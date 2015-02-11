@@ -1,0 +1,32 @@
+# Welcome to the SPI Online Analysis Documentation Page
+
+Currently there
+For full documentation visit [mkdocs.org](http://mkdocs.org).
+
+## Adding Documentation
+
+To add documentation to this website you need:
+
+* A copy of the Hummingbird git repository
+* `mkdocs` installed: `pip install mkdocs`
+* Your favourite text editor
+
+Now you can simply edit the files in the docs/docs directory
+inside the root of the hummingbird git repository.
+For example to edit this page one would do:
+
+	$ cd docs/
+	$ emacs docs/index.md
+
+The pages are written in [Markdown](http://daringfireball.net/projects/markdown/syntax), 
+which is a simple to use and read markup language.
+
+After you finish editing you can look at a live version of the docs using:
+
+	$ mkdocs serve
+
+If you're happy about how it turned out you need to generate the HTML:
+
+	$ mkdocs build
+
+Now just commit it. Don't forget to add any possible new files.

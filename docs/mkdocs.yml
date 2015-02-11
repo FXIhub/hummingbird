@@ -1,0 +1,5 @@
+site_name: SPI Online Analysis
+theme_dir: spi
+theme: readthedocs
+repo_name: Bitbucket
+repo_url: https://bitbucket.org/spinitiative/hummingbird/src/docs/docs
