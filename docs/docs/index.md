@@ -1,8 +1,5 @@
 # Welcome to the SPI Online Analysis Documentation Page
 
-Currently there
-For full documentation visit [mkdocs.org](http://mkdocs.org).
-
 ## Adding Documentation
 
 To add documentation to this website you need:
@@ -39,3 +36,8 @@ Please ignore any warnings about "stale files"
 Now just commit it. Don't forget to add any possible new files.
 Equally import is to commit the changes in the `spinitiative.bitbucket.org` directory.
 Those are the actual HTML files that will go live.
+
+You should now be able to see the documentation online at
+[http://spinitiative.bitbucket.org](http://spinitiative.bitbucket.org)
+
+For full documentation visit [mkdocs.org](http://mkdocs.org).
