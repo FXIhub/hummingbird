@@ -6,7 +6,7 @@
 Welcome to SPI Online Analysis's documentation!
 ===============================================
 
-If you want to quickly edit this documentation you can simply click on the ``Edit on BitBucket`` button on the top of the page.
+If you want to quickly edit this documentation you can simply click on the ``Edit on Bitbucket`` button on the top of the page.
 
 Alternatively ff you want to edit the documentation on your computer you need:
 
