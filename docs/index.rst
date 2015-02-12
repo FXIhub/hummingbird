@@ -6,7 +6,9 @@
 Welcome to SPI Online Analysis's documentation!
 ===============================================
 
-To add documentation to this website you need:
+If you want to quickly edit this documentation you can simply click on the ``Edit on BitBucket`` button on the top of the page.
+
+Alternatively ff you want to edit the documentation on your computer you need:
 
 * A copy of the Hummingbird git repository
 * Your favourite text editor
@@ -31,6 +33,7 @@ browser.
 If you're happy with the result you can now simply commit the changes and push.
 Your changes should be automatically pushed to
 http://spidocs.readthedocs.org/ by BitBucket.
+
 
 .. toctree::
    :maxdepth: 2
