@@ -3,6 +3,7 @@
 import sys
 import argparse
 import logging
+import os
 from backend import Backend
 
 def parse_cmdline_args():
