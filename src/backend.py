@@ -23,8 +23,8 @@ class Backend(object):
         print "MPI rank %d inited" % rank
 
     def start(self):
-        self.backend_conf['_running'] = True
-        while(self.backend_conf['_running']):
+        self.backend_conf.state['_running'] = True
+        while(self.backend_conf.state['_running']):
             evt = self.translator.nextEvent()
             self.backend_conf.onEvent(evt)
             

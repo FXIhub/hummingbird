@@ -28,6 +28,7 @@ if __name__ == "__main__":
             backend = Backend(args.backend)
         else:
             backend = Backend(None)
+        backend.start()
     elif(args.interface is not False):
         start_interface()
         
