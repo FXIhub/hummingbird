@@ -13,9 +13,9 @@ class Backend(object):
             logging.warning("No configuration file given! "
                             "Loading example configuration from %s" % (config_file))
     
-            self.backend_conf = imp.load_source('backend_conf', config_file)
-            self.translator = translation.init_translator(self.backend_conf.state)
-            print 'Starting backend...'
+        self.backend_conf = imp.load_source('backend_conf', config_file)
+        self.translator = translation.init_translator(self.backend_conf.state)
+        print 'Starting backend...'
 
     def mpi_init(self):
         comm = MPI.COMM_WORLD
