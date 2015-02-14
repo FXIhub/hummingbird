@@ -1,3 +1,4 @@
+from event_translator import EventTranslator
 
 class LCLSTranslator(object):
     def __init__(self, state):
