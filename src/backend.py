@@ -8,7 +8,8 @@ class Backend(object):
     def __init__(self, config_file):
         if(config_file is None):
             # Try to load an example configuration file
-            config_file = os.path.abspath(os.path.dirname(__file__)+"/../examples/conf.py")
+            config_file = os.path.abspath(os.path.dirname(__file__)+
+                                          "/../examples/cxitut13/conf.py")
             logging.warning("No configuration file given! "
                             "Loading example configuration from %s" % (config_file))
     
