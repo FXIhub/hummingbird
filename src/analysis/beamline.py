@@ -1,12 +1,12 @@
 def printPulseEnergy(evt):
     pulseEnergies = evt['pulseEnergy']
-    for p in pulseEnergies:
+    for k,v in pulseEnergies.iteritems():
         # Convert from J to mJ
-        print "%s = %f mJ" % (p['desc'], p['data']*1000.0)
+        print "%s = %f mJ" % (k, v*1000.0)
 
 def printPhotonEnergy(evt):
     photonEnergies = evt['photonEnergy']
-    for p in photonEnergies:
+    for p in photonEnergies.keys():
         # Convert from J to eV
-        print "%s = %f eV" % (p['desc'], p['data']*6.242e18)
+        print "%s = %f eV" % (p, photonEnergies[p]*6.242e18)
     

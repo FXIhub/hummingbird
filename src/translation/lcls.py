@@ -53,7 +53,7 @@ class LCLSTranslator(object):
     def translate(self, evt, key):
         native_keys = self._c2n[key]
         event_keys = evt.keys()
-        values = []
+        values = {}
         for k in event_keys:
             if(k.type() in native_keys):
                 obj = evt.get(k.type(), k.src())
@@ -62,7 +62,7 @@ class LCLSTranslator(object):
                 elif(type(obj) is psana.Bld.BldDataEBeamV5):
                     self.trBldDataEBeam(values, obj)
                 else:
-                    values.append(obj)
+                    raise RuntimeError('%s not yet supported' % (type(obj)))
         return values
 
     def trBldDataEBeam(self, values, obj):
@@ -88,26 +88,11 @@ class LCLSTranslator(object):
             # Calculate the resonant photon energy of the first active segment
             photonEnergyeV = 44.42*energyProfile*energyProfile;
 
-        values.append({
-            'data': photonEnergyeV/6.242e+18,
-            'desc': 'photon energy in J'})
-
+        values['photon energy in J'] = photonEnergyeV/6.242e+18
                     
     def trBldDataFEEGasDetEnergy(self, values, obj):
         # convert from mJ to J
-        values.append({
-            'data': obj.f_11_ENRC()/1000.0,
-            'desc': 'f_11_ENRC'})
-
-        values.append({
-            'data': obj.f_12_ENRC()/1000.0,
-            'desc': 'f_12_ENRC'})
-
-        values.append({
-            'data': obj.f_21_ENRC()/1000.0,
-            'desc': 'f_21_ENRC'})
-
-        values.append({
-            'data': obj.f_22_ENRC()/1000.0,
-            'desc': 'f_22_ENRC'})
-        
+        values['f_11_ENRC'] = obj.f_11_ENRC()/1000.0
+        values['f_12_ENRC'] = obj.f_12_ENRC()/1000.0
+        values['f_21_ENRC'] = obj.f_21_ENRC()/1000.0
+        values['f_22_ENRC'] = obj.f_22_ENRC()/1000.0        
