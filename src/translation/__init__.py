@@ -2,6 +2,7 @@ import logging
 from pint import UnitRegistry
 
 ureg = UnitRegistry()
+ureg.enable_contexts('spectroscopy')
 
 def init_translator(state):
     if('Facility' not in state):
