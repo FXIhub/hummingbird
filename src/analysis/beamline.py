@@ -1,12 +1,10 @@
-def printPulseEnergy(evt):
-    pulseEnergies = evt['pulseEnergy']
-    for k,v in pulseEnergies.iteritems():
-        # Convert from J to mJ
-        print "%s = %f mJ" % (k, v*1000.0)
+from translation import ureg
 
-def printPhotonEnergy(evt):
-    photonEnergies = evt['photonEnergy']
-    for p in photonEnergies.keys():
-        # Convert from J to eV
-        print "%s = %f eV" % (p, photonEnergies[p]*6.242e18)
+def printPulseEnergy(pulseEnergies):
+    for k,v in pulseEnergies.iteritems():
+        print "%s = %s" % (k, (v.data*v.unit))
+
+def printPhotonEnergy(photonEnergies):
+    for k,v in photonEnergies.iteritems():
+        print "%s = %s" % (k, v.data*v.unit)
     

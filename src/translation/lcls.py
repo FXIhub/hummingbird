@@ -3,9 +3,11 @@ import sys
 import ctypes
 import logging
 from event_translator import EventTranslator
+from record import addRecord
 from IPython.core.debugger import Tracer
 import pdb
 import psana
+from . import ureg
 
 class LCLSTranslator(object):    
     def __init__(self, state):
@@ -17,11 +19,11 @@ class LCLSTranslator(object):
 
         # Define how to translate between LCLS keys and Hummingbird ones
         self._n2c = {}
-        self._n2c[psana.Bld.BldDataFEEGasDetEnergy] = 'pulseEnergy'
-        self._n2c[psana.Bld.BldDataEBeamV5] = 'photonEnergy'
-        self._n2c[psana.CsPad.DataV2] = 'photonPixelDetector'
-        self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetector'
-        self._n2c[psana.Acqiris.DataDescV1] = 'ionTOF'
+        self._n2c[psana.Bld.BldDataFEEGasDetEnergy] = 'pulseEnergies'
+        self._n2c[psana.Bld.BldDataEBeamV5] = 'photonEnergies'
+        self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
+        self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
+        self._n2c[psana.Acqiris.DataDescV1] = 'ionTOFs'
 
         # Calculate the inverse mapping
         self._c2n = {}
@@ -61,6 +63,12 @@ class LCLSTranslator(object):
                     self.trBldDataFEEGasDetEnergy(values, obj)
                 elif(type(obj) is psana.Bld.BldDataEBeamV5):
                     self.trBldDataEBeam(values, obj)
+                elif(type(obj) is psana.CsPad2x2.ElementV1):
+                    self.trCsPad2x2(values, obj)
+                elif(type(obj) is psana.CsPad.DataV2):
+                    self.trCsPad(values, obj)
+                elif(type(obj) is psana.Acqiris.DataDescV1):
+                    self.trAcqiris(values, obj)
                 else:
                     raise RuntimeError('%s not yet supported' % (type(obj)))
         return values
@@ -88,11 +96,22 @@ class LCLSTranslator(object):
             # Calculate the resonant photon energy of the first active segment
             photonEnergyeV = 44.42*energyProfile*energyProfile;
 
-        values['photon energy in J'] = photonEnergyeV/6.242e+18
+        addRecord(values, 'photon energy', photonEnergyeV, ureg.eV)
                     
     def trBldDataFEEGasDetEnergy(self, values, obj):
         # convert from mJ to J
-        values['f_11_ENRC'] = obj.f_11_ENRC()/1000.0
-        values['f_12_ENRC'] = obj.f_12_ENRC()/1000.0
-        values['f_21_ENRC'] = obj.f_21_ENRC()/1000.0
-        values['f_22_ENRC'] = obj.f_22_ENRC()/1000.0        
+        addRecord(values, 'f_11_ENRC', obj.f_11_ENRC(), ureg.mJ)
+        addRecord(values, 'f_12_ENRC', obj.f_12_ENRC(), ureg.mJ)
+        addRecord(values, 'f_21_ENRC', obj.f_21_ENRC(), ureg.mJ)
+        addRecord(values, 'f_22_ENRC', obj.f_22_ENRC(), ureg.mJ)
+
+    def trCsPad2x2(self, values, obj):
+        addRecord(values, 'CsPad2x2', obj.data(), ureg.count)
+
+    def trCsPad(self, values, obj):
+        nQuads = obj.quads_shape()[0]
+        for i in range(0, nQuads):
+            addRecord(values, 'CsPad Quad %d' % (i), obj.quads(i).data(), ureg.count)
+
+    def trAcqiris(self, values, obj):
+        pass
