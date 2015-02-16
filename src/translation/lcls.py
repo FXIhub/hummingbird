@@ -3,10 +3,13 @@ import sys
 import ctypes
 import logging
 from event_translator import EventTranslator
-from record import addRecord
+from record import addRecord, Record
 from IPython.core.debugger import Tracer
 import pdb
 import psana
+import numpy
+import datetime
+from pytz import timezone
 from . import ureg
 
 class LCLSTranslator(object):    
@@ -17,19 +20,28 @@ class LCLSTranslator(object):
         else:
             self.ds = psana.DataSource(state['LCLS/DataSource'])
 
-        # Define how to translate between LCLS keys and Hummingbird ones
+        # Define how to translate between LCLS types and Hummingbird ones
         self._n2c = {}
         self._n2c[psana.Bld.BldDataFEEGasDetEnergy] = 'pulseEnergies'
         self._n2c[psana.Bld.BldDataEBeamV5] = 'photonEnergies'
+        self._n2c[psana.Bld.BldDataEBeamV6] = 'photonEnergies'
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
         self._n2c[psana.Acqiris.DataDescV1] = 'ionTOFs'
+        self._n2c[psana.EventId] = 'eventID'
 
         # Calculate the inverse mapping
         self._c2n = {}
         for k, v in self._n2c.iteritems():
             self._c2n[v] = self._c2n.get(v, [])
             self._c2n[v].append(k)
+
+        # Define how to translate between LCLS sources and Hummingbird ones
+        self._s2c = {}
+        self._s2c['DetInfo(CxiDs1.0:Cspad.0)'] = 'Front CsPad'
+        self._s2c['DetInfo(CxiDsd.0:Cspad.0)'] = 'Back CsPad'
+        self._s2c['DetInfo(CxiEndstation.0:Acqiris.0)'] = 'Acqiris 0'
+        self._s2c['DetInfo(CxiEndstation.0:Acqiris.1)'] = 'Acqiris 1'
 
     def nextEvent(self):
         evt = self.ds.events().next()
@@ -66,9 +78,11 @@ class LCLSTranslator(object):
                 elif(type(obj) is psana.CsPad2x2.ElementV1):
                     self.trCsPad2x2(values, obj)
                 elif(type(obj) is psana.CsPad.DataV2):
-                    self.trCsPad(values, obj)
+                    self.trCsPad(values, obj, k)
                 elif(type(obj) is psana.Acqiris.DataDescV1):
-                    self.trAcqiris(values, obj)
+                    self.trAcqiris(values, obj, k)
+                elif(type(obj) is psana.EventId):
+                    self.trEventID(values, obj)
                 else:
                     raise RuntimeError('%s not yet supported' % (type(obj)))
         return values
@@ -108,10 +122,51 @@ class LCLSTranslator(object):
     def trCsPad2x2(self, values, obj):
         addRecord(values, 'CsPad2x2', obj.data(), ureg.ADU)
 
-    def trCsPad(self, values, obj):
+    def trCsPad(self, values, obj, evt_key):
         nQuads = obj.quads_shape()[0]
         for i in range(0, nQuads):
-            addRecord(values, 'CsPad Quad %d' % (i), obj.quads(i).data(), ureg.ADU)
+            addRecord(values, '%s Quad %d' % (self._s2c[str(evt_key.src())], i),
+                      obj.quads(i).data(), ureg.ADU)
 
-    def trAcqiris(self, values, obj):
-        pass
+    def trAcqiris(self, values, obj, evt_key):
+        acqConfig = self.ds.env().configStore().get(psana.Acqiris.ConfigV1, evt_key.src())
+        horiz = acqConfig.horiz();
+        sampInterval = horiz.sampInterval();
+        
+        nChannels = obj.data_shape()[0]
+        print obj.data_shape()
+        for i in range(0, nChannels):
+            vert = acqConfig.vert()[i]
+            slope = vert.slope()
+            offset = vert.offset()
+
+            seg = 0
+            elem = obj.data(i)
+            timestamps = elem.timestamp();
+            timestamp = timestamps[seg].value();
+            trigTime = timestamps[seg].pos();
+            nbrSamplesInSeg = elem.nbrSamplesInSeg();
+            waveforms = elem.waveforms();
+            raw = waveforms[seg]
+            if(nbrSamplesInSeg == 0):
+                logging.warning("Warning: TOF data for detector %s is missing.\n" % evt_key);
+            data = raw*slope - offset
+            time = timestamp + sampInterval * numpy.arange(0,nbrSamplesInSeg)
+
+            rec = Record('%s Channel %d' %(self._s2c[str(evt_key.src())],i),
+                         data, ureg.V)
+            rec.time = time
+            values[rec.name] = rec
+
+    def trEventID(self, values, obj):
+        time = datetime.datetime.fromtimestamp(obj.time()[0]+obj.time()[1]*1e-9,tz=timezone('utc'))
+        time = time.astimezone(tz=timezone('US/Pacific'))
+        rec = Record('Timestamp', time, ureg.s)
+        time = datetime.datetime.fromtimestamp(obj.time()[0])
+        rec.datetime64 = numpy.datetime64(time,'ns')+obj.time()[1]        
+        rec.fiducials = obj.fiducials()
+        rec.run = obj.run()
+        rec.ticks = obj.ticks()
+        rec.vector = obj.vector()
+        values[rec.name] = rec
+
