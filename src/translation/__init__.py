@@ -3,6 +3,7 @@ from pint import UnitRegistry
 
 ureg = UnitRegistry()
 ureg.enable_contexts('spectroscopy')
+ureg.default_format = '~'
 
 def init_translator(state):
     if('Facility' not in state):
