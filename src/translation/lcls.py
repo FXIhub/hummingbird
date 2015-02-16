@@ -106,12 +106,12 @@ class LCLSTranslator(object):
         addRecord(values, 'f_22_ENRC', obj.f_22_ENRC(), ureg.mJ)
 
     def trCsPad2x2(self, values, obj):
-        addRecord(values, 'CsPad2x2', obj.data(), ureg.count)
+        addRecord(values, 'CsPad2x2', obj.data(), ureg.ADU)
 
     def trCsPad(self, values, obj):
         nQuads = obj.quads_shape()[0]
         for i in range(0, nQuads):
-            addRecord(values, 'CsPad Quad %d' % (i), obj.quads(i).data(), ureg.count)
+            addRecord(values, 'CsPad Quad %d' % (i), obj.quads(i).data(), ureg.ADU)
 
     def trAcqiris(self, values, obj):
         pass
