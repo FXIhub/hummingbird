@@ -1,3 +1,5 @@
+import collections
+import datetime
 
 def printKeys(evt):
     print evt.keys()    
@@ -28,3 +30,13 @@ def printID(eventID):
             print "vector = %s" %(v.vector)
         except AttributeError:
             pass
+
+
+processingTimes = collections.deque([],100)
+
+def printProcessingRate(evt = None):
+    processingTimes.appendleft(datetime.datetime.now())
+    dt = processingTimes[0] - processingTimes[-1]
+    if(len(processingTimes) > 1):
+        print "Processing at %g Hz" % (len(processingTimes)/dt.total_seconds())
+    
