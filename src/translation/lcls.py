@@ -55,7 +55,7 @@ class LCLSTranslator(object):
             for c in self.nativeToCommon(k):
                 common_keys.add(c)
         # parameters corresponds to the EPICS values
-        return list(common_keys)+'parameters'
+        return list(common_keys)+['parameters']
 
     def nativeToCommon(self,key):
         if(key.type() in self._n2c):
