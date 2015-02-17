@@ -54,7 +54,8 @@ class LCLSTranslator(object):
         for k in native_keys:
             for c in self.nativeToCommon(k):
                 common_keys.add(c)
-        return list(common_keys)
+        # parameters corresponds to the EPICS values
+        return list(common_keys)+'parameters'
 
     def nativeToCommon(self,key):
         if(key.type() in self._n2c):
@@ -66,29 +67,34 @@ class LCLSTranslator(object):
         return evt.keys()
         
     def translate(self, evt, key):
-        native_keys = self._c2n[key]
-        event_keys = evt.keys()
-        values = {}
-        for k in event_keys:
-            if(k.type() in native_keys):
-                obj = evt.get(k.type(), k.src())
-                if(type(obj) is psana.Bld.BldDataFEEGasDetEnergy):
-                    self.trBldDataFEEGasDetEnergy(values, obj)
-                elif(type(obj) is psana.Bld.BldDataEBeamV5):
-                    self.trBldDataEBeam(values, obj)
-                elif(type(obj) is psana.CsPad2x2.ElementV1):
-                    self.trCsPad2x2(values, obj)
-                elif(type(obj) is psana.CsPad.DataV2):
-                    self.trCsPad(values, obj, k)
-                elif(type(obj) is psana.Acqiris.DataDescV1):
-                    self.trAcqiris(values, obj, k)
-                elif(type(obj) is psana.EventId):
-                    self.trEventID(values, obj)
-                elif(type(obj) is psana.EvrData.DataV3):
-                    self.trEventCodes(values, obj)
-                else:
-                    raise RuntimeError('%s not yet supported' % (type(obj)))
-        return values
+        if(key in self._c2n):
+            values = {}        
+            native_keys = self._c2n[key]
+            event_keys = evt.keys()
+            for k in event_keys:
+                if(k.type() in native_keys):
+                    obj = evt.get(k.type(), k.src())
+                    if(type(obj) is psana.Bld.BldDataFEEGasDetEnergy):
+                        self.trBldDataFEEGasDetEnergy(values, obj)
+                    elif(type(obj) is psana.Bld.BldDataEBeamV5):
+                        self.trBldDataEBeam(values, obj)
+                    elif(type(obj) is psana.CsPad2x2.ElementV1):
+                        self.trCsPad2x2(values, obj)
+                    elif(type(obj) is psana.CsPad.DataV2):
+                        self.trCsPad(values, obj, k)
+                    elif(type(obj) is psana.Acqiris.DataDescV1):
+                        self.trAcqiris(values, obj, k)
+                    elif(type(obj) is psana.EventId):
+                        self.trEventID(values, obj)
+                    elif(type(obj) is psana.EvrData.DataV3):
+                        self.trEventCodes(values, obj)
+                    else:
+                        raise RuntimeError('%s not yet supported' % (type(obj)))
+            return values        
+        elif(key == 'parameters'):
+            return self.trEPICS()
+        else:
+            raise RuntimeError('%s not found in event' % (key))
 
     def trBldDataEBeam(self, values, obj):
         photonEnergyeV = -1
@@ -179,3 +185,24 @@ class LCLSTranslator(object):
             codes.append(fifoEvent.eventCode())
 
         addRecord(values, 'EvrEventCodes', codes)
+
+    def trEPICS(self):
+        return EPICSdict(self.ds.env().epicsStore())
+
+class EPICSdict(object):
+    def __init__(self, epics):
+        self.epics = epics        
+        self._cache = {}
+
+    def keys(self):
+        return self.epics.pvNames() + self.epics.aliases()
+
+    def __getitem__(self, key):
+        if(key not in self._cache):
+            pv = self.epics.getPV(key)
+            if(pv is None):
+                raise KeyError('%s is not a valid EPICS key' %(key))
+            rec = Record(key, pv.value(0))
+            rec.PV = pv
+            self._cache[key] = rec
+        return self._cache[key]

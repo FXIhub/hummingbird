@@ -2,7 +2,11 @@ def addRecord(values, name, data, unit=None):
     values[name] = Record(name,data, unit)
 
 class Record(object):
-    def __init__(self, name, data, unit):
+    def __init__(self, name, data, unit=None):
         self.name = name
         self.data = data
         self.unit = unit
+
+
+        
+        
