@@ -84,6 +84,3 @@ If you're happy with the result you can now simply commit the changes
 and push. Your changes should be automatically pushed to
 `http://spidocs.readthedocs.org/ <http://spidocs.readthedocs.org/>`_ by
 BitBucket.
-
-.. toctree::
-   :maxdepth: 2
