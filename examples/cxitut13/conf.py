@@ -1,3 +1,6 @@
+import analysis.event
+import analysis.beamline
+
 state = {
     'Facility': 'LCLS',
     'LCLS/DataSource': 'exp=XCS/xcstut13:run=15'
