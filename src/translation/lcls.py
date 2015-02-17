@@ -23,6 +23,10 @@ class LCLSTranslator(object):
         # Define how to translate between LCLS types and Hummingbird ones
         self._n2c = {}
         self._n2c[psana.Bld.BldDataFEEGasDetEnergy] = 'pulseEnergies'
+        self._n2c[psana.Bld.BldDataEBeamV1] = 'photonEnergies'
+        self._n2c[psana.Bld.BldDataEBeamV2] = 'photonEnergies'
+        self._n2c[psana.Bld.BldDataEBeamV3] = 'photonEnergies'
+        self._n2c[psana.Bld.BldDataEBeamV4] = 'photonEnergies'
         self._n2c[psana.Bld.BldDataEBeamV5] = 'photonEnergies'
         self._n2c[psana.Bld.BldDataEBeamV6] = 'photonEnergies'
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
@@ -76,7 +80,7 @@ class LCLSTranslator(object):
                     obj = evt.get(k.type(), k.src())
                     if(type(obj) is psana.Bld.BldDataFEEGasDetEnergy):
                         self.trBldDataFEEGasDetEnergy(values, obj)
-                    elif(type(obj) is psana.Bld.BldDataEBeamV5):
+                    elif(key == 'photonEnergies'):
                         self.trBldDataEBeam(values, obj)
                     elif(type(obj) is psana.CsPad2x2.ElementV1):
                         self.trCsPad2x2(values, obj)
