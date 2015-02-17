@@ -29,6 +29,7 @@ class LCLSTranslator(object):
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
         self._n2c[psana.Acqiris.DataDescV1] = 'ionTOFs'
         self._n2c[psana.EventId] = 'eventID'
+        self._n2c[psana.EvrData.DataV3] = 'eventCodes'
 
         # Calculate the inverse mapping
         self._c2n = {}
@@ -83,6 +84,8 @@ class LCLSTranslator(object):
                     self.trAcqiris(values, obj, k)
                 elif(type(obj) is psana.EventId):
                     self.trEventID(values, obj)
+                elif(type(obj) is psana.EvrData.DataV3):
+                    self.trEventCodes(values, obj)
                 else:
                     raise RuntimeError('%s not yet supported' % (type(obj)))
         return values
@@ -170,3 +173,9 @@ class LCLSTranslator(object):
         rec.vector = obj.vector()
         values[rec.name] = rec
 
+    def trEventCodes(self, values, obj):        
+        codes = []
+        for i,fifoEvent in enumerate(obj.fifoEvents()):
+            codes.append(fifoEvent.eventCode())
+
+        addRecord(values, 'EvrEventCodes', codes)
