@@ -20,8 +20,8 @@ To be able to contribute first you need a copy of the repository:
 
     $ git clone git@bitbucket.org:spinitiative/hummingbird.git
 
-For help on using ``git`` please check `here <http://git-scm.com/doc>`_
-and `here <https://www.atlassian.com/git/>`_.
+For help on using ``git`` please check `the official git documentation <http://git-scm.com/doc>`_
+and the `Atlassian git tutorials <https://www.atlassian.com/git/>`_.
 
 Documentation
 -------------
@@ -95,5 +95,5 @@ BitBucket.
    requirements
    getting_started
    configuration
-
+   analysis
 

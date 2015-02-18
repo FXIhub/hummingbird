@@ -100,3 +100,4 @@ new key. That way future analysis can use the output of previous ones.
 
 For a list of available algorithms please check the API documentation (coming soon!).
 
+You can find more example configurations inside the directories in ``examples``.
