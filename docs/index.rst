@@ -87,3 +87,13 @@ BitBucket.
 
 .. toctree::
    :maxdepth: 2
+
+.. toctree::
+   :hidden:
+
+   Welcome <self>
+   requirements
+   getting_started
+   configuration
+
+
