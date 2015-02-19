@@ -4,7 +4,7 @@
 import os
 import logging
 import imp
-import translation
+from . import init_translator
 #from mpi4py import MPI
 
 class Backend(object):
@@ -28,7 +28,7 @@ class Backend(object):
     
         self._config_file = config_file
         self.backend_conf = imp.load_source('backend_conf', config_file)
-        self.translator = translation.init_translator(self.backend_conf.state)
+        self.translator = init_translator(self.backend_conf.state)
         print 'Starting backend...'
 
     def mpi_init(self):

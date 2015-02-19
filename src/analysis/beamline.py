@@ -1,5 +1,3 @@
-from translation import ureg
-
 def printPulseEnergy(pulseEnergies):
     for k,v in pulseEnergies.iteritems():
         print "%s = %s" % (k, (v.data*v.unit))
