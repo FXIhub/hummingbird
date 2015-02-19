@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.abspath('../src'))
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.mathjax','sphinx.ext.autosummary'
+    'sphinx.ext.mathjax', 'sphinx.ext.autosummary', 'sphinx.ext.viewcode'
 ]
 
 #autosummary_generate = True
