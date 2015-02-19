@@ -96,4 +96,5 @@ BitBucket.
    getting_started
    configuration
    analysis
+   Architecture <architecture>
 
