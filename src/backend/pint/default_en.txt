@@ -46,7 +46,7 @@ kelvin = [temperature]; offset: 0 = K = degK
 radian = [] = rad
 bit = []
 count = []
-ADU = [] = ADU = ADU = ADU
+ADU = []
 
 @import constants_en.txt
 

@@ -4,7 +4,6 @@ import sys
 import argparse
 import logging
 import os
-from backend import Backend
 
 def parse_cmdline_args():
     parser = argparse.ArgumentParser(description='Hummingbird - the XFEL Online Analysis Framework.')
@@ -18,19 +17,18 @@ def parse_cmdline_args():
         parser.print_help()
     return parser.parse_args()
 
-def start_interface():
-    print 'Starting interface...'
-
 if __name__ == "__main__":
     logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s')
     args = parse_cmdline_args()
     if(args.backend is not None):
+        from backend.backend import Backend
         if(args.backend != True):
             backend = Backend(args.backend)
         else:
             backend = Backend(None)
         backend.start()
     elif(args.interface is not False):
-        start_interface()
+        import interface
+        interface.start_interface()
         
     

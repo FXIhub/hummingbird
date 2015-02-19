@@ -22,7 +22,7 @@ class Backend(object):
         if(config_file is None):
             # Try to load an example configuration file
             config_file = os.path.abspath(os.path.dirname(__file__)+
-                                          "/../examples/cxitut13/conf.py")
+                                          "/../../examples/cxitut13/conf.py")
             logging.warning("No configuration file given! "
                             "Loading example configuration from %s" % (config_file))
     
