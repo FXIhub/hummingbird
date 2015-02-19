@@ -42,8 +42,8 @@ modules are imported:
    import analysis.pixel_detector
 
 In this case three modules are imported. You can find what modules are available
-by peeking into the ``src/analysis`` directory (or by browsing the API
-documentation as soon as someone writes it).
+by peeking into the ``src/analysis`` directory or by browsing the 
+:doc:`API documentation <API/modules>`.
 
 
 
@@ -98,6 +98,6 @@ These algorithms will do the required analysis, communicate the results with the
 interface, and store any eventual output back onto the ``evt`` dictionary, using a
 new key. That way future analysis can use the output of previous ones.
 
-For a list of available algorithms please check the API documentation (coming soon!).
+For a list of available analysis algorithms please check the relevant :doc:`API documentation <API/analysis>`.
 
 You can find more example configurations inside the directories in ``examples``.
