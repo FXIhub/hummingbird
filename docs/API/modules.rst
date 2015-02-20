@@ -7,4 +7,3 @@ Reference API
    analysis
    backend
    hummingbird
-   translation
