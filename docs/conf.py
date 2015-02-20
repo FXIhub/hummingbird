@@ -39,7 +39,7 @@ try:
         def __getattr__(cls, name):
             return Mock()
 
-    MOCK_MODULES = ['PyQt4','psana','sip','numpy','scipy','zmq']
+    MOCK_MODULES = ['PyQt4','psana','sip','numpy','scipy','zmq','pytz']
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 except ImportError:
     raise
