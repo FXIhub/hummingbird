@@ -22,15 +22,19 @@ import os
 sys.path.insert(0, os.path.abspath('../src'))
 
 import sys
-from mock import Mock as MagicMock
 
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
+try:
+    from mock import Mock as MagicMock
+
+    class Mock(MagicMock):
+        @classmethod
+        def __getattr__(cls, name):
             return Mock()
 
-MOCK_MODULES = ['PyQt4','psana']
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+    MOCK_MODULES = ['PyQt4','psana']
+    sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+except ImportError:
+    pass
 
 
 # -- General configuration ------------------------------------------------
