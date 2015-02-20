@@ -2,7 +2,7 @@
 """
 
 from Qt import QtGui, QtCore
-from interface import Interface
+from .interface import Interface
 import sys
 
 def start_interface():

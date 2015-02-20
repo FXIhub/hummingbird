@@ -4,7 +4,7 @@ from Qt import QtGui, QtCore
 import sys
 
 class Interface(QtGui.QMainWindow):
-    """Main Window Class
+    """Main Window Class.
 
     Contains only menus and toolbars. The plots will be in their own windows.
     """
@@ -12,7 +12,7 @@ class Interface(QtGui.QMainWindow):
         QtGui.QMainWindow.__init__(self)
 
 def start_interface():
-    """Initialize and show the Interface"""
+    """Initialize and show the Interface."""
     QtCore.QCoreApplication.setOrganizationName("SPI")
     QtCore.QCoreApplication.setOrganizationDomain("spidocs.rtfd.org")
     QtCore.QCoreApplication.setApplicationName("Hummingbird")
