@@ -23,15 +23,23 @@ sys.path.insert(0, os.path.abspath('../src'))
 
 import sys
 
+# Try to use mock modules to be able to build documentation even it's not
+# possible to import certain modules
 try:
     from mock import Mock as MagicMock
 
     class Mock(MagicMock):
+        """
+        Mock modules.
+        Taken from
+        http://read-the-docs.readthedocs.org/en/latest/faq.html#i-get-import-errors-on-libraries-that-depend-on-c-modules
+        with some slight changes.
+        """
         @classmethod
         def __getattr__(cls, name):
             return Mock()
 
-    MOCK_MODULES = ['PyQt4','psana']
+    MOCK_MODULES = ['PyQt4','psana','sip','numpy','scipy','zmq']
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 except ImportError:
     pass
