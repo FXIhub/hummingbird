@@ -47,7 +47,10 @@ if USE_QT_PY == None:
 if USE_QT_PY == PYSIDE:
     from PySide import QtGui, QtCore, QtOpenGL, QtSvg
     import PySide
-    VERSION_INFO = 'PySide ' + PySide.__version__
+    try:
+        VERSION_INFO = 'PySide ' + PySide.__version__
+    except TypeError:
+        pass
     
     # Make a loadUiType function like PyQt has
     
@@ -101,7 +104,11 @@ elif USE_QT_PY == PYQT4:
 
     QtCore.Signal = QtCore.pyqtSignal
     QtCore.Slot = QtCore.pyqtSlot
-    VERSION_INFO = 'PyQt4 ' + QtCore.PYQT_VERSION_STR + ' Qt ' + QtCore.QT_VERSION_STR
+    try:
+        VERSION_INFO = 'PyQt4 ' + QtCore.PYQT_VERSION_STR + ' Qt ' +  QtCore.QT_VERSION_STR
+    except TypeError:
+        pass
+
 
 elif USE_QT_PY == PYQT5:
     
@@ -156,7 +163,10 @@ elif USE_QT_PY == PYQT5:
 versionReq = [4, 7]
 USE_PYSIDE = USE_QT_PY == PYSIDE # still needed internally elsewhere
 QtVersion = PySide.QtCore.__version__ if USE_QT_PY ==  PYSIDE else QtCore.QT_VERSION_STR
-m = re.match(r'(\d+)\.(\d+).*', QtVersion)
-if m is not None and list(map(int, m.groups())) < versionReq:
-    print(list(map(int, m.groups())))
-    raise Exception('pyqtgraph requires Qt version >= %d.%d  (your version is %s)' % (versionReq[0], versionReq[1], QtVersion))
+try:
+    m = re.match(r'(\d+)\.(\d+).*', QtVersion)
+    if m is not None and list(map(int, m.groups())) < versionReq:
+        print(list(map(int, m.groups())))
+        raise Exception('Hummingbird requires Qt version >= %d.%d  (your version is %s)' % (versionReq[0], versionReq[1], QtVersion))
+except TypeError:
+    pass
