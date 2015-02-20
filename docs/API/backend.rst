@@ -1,32 +1,25 @@
 backend package
-================
+===============
 
-backend.backend module
-------------------------
-
-.. automodule:: backend.backend
+.. autoclass:: backend.Backend
     :members:
     :undoc-members:
     :show-inheritance:
 
-backend.event_translator module
----------------------
-
-.. automodule:: backend.event_translator
+.. autoclass:: backend.EventTranslator
     :members:
     :undoc-members:
     :show-inheritance:
 
-backend.record module
-------------------------------
-
-.. automodule:: backend.record
+.. autoclass:: backend.Record
     :members:
     :undoc-members:
     :show-inheritance:
+
+.. autofunction:: backend.addRecord
 
 backend.lcls module
-------------------------------
+-------------------
 
 .. automodule:: backend.lcls
     :members:

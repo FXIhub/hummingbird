@@ -4,8 +4,8 @@
 import os
 import logging
 import imp
-from . import init_translator
 #from mpi4py import MPI
+
 
 class Backend(object):
     """Coordinates data reading, translation and analysis.
@@ -49,3 +49,13 @@ class Backend(object):
             self.backend_conf.onEvent(evt)
             
         
+def init_translator(state):
+    if('Facility' not in state):
+        raise ValueError("You need to set the 'Facility' in the configuration")
+    elif(state['Facility'] == 'LCLS'):
+        from lcls import LCLSTranslator
+        return LCLSTranslator(state)
+    else:
+        raise ValueError('Facility %s not supported' % (state['Facility']))
+
+

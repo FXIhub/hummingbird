@@ -6,4 +6,3 @@ Reference API
 
    analysis
    backend
-   hummingbird

@@ -21,7 +21,7 @@ if __name__ == "__main__":
     logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s')
     args = parse_cmdline_args()
     if(args.backend is not None):
-        from backend.backend import Backend
+        from backend import Backend
         if(args.backend != True):
             backend = Backend(args.backend)
         else:
