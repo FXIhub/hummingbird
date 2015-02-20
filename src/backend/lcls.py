@@ -4,7 +4,6 @@ import ctypes
 import logging
 from event_translator import EventTranslator
 from record import addRecord, Record
-from IPython.core.debugger import Tracer
 import pdb
 import psana
 import numpy
