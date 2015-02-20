@@ -42,7 +42,7 @@ try:
     MOCK_MODULES = ['PyQt4','psana','sip','numpy','scipy','zmq']
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 except ImportError:
-    pass
+    raise
 
 
 # -- General configuration ------------------------------------------------
