@@ -16,11 +16,13 @@ class Interface(QtGui.QMainWindow):
     Contains only menus and toolbars. The plots will be in their own windows.
     """
     plot_requested=QtCore.Signal(str,str,list)
+    new_data=QtCore.Signal(str,str,list)
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         self._initZMQ()
         self._plots = {}
         self.plot_requested.connect(self.plot)
+        self.new_data.connect(self.plot_append)
         self._replot_timer = QtCore.QTimer()
         # Replot every 100 ms
         self._replot_timer.setInterval(100)
@@ -60,17 +62,29 @@ class Interface(QtGui.QMainWindow):
         # The uuid identifies the sender uniquely        
         uuid = payload[0]
         cmd = payload[1]
-        if(cmd == 'plot'):
+        if(cmd == 'set_data'):
             title = payload[2]
             data = payload[3]
             # This must use a connection because it's being executed
             # by the IOLoopThread which cannot plot
             self.plot_requested.emit(str(uuid),str(title),list(data))
+
+        if(cmd == 'new_data'):
+            title = payload[2]
+            data = payload[3]
+            # This must use a connection because it's being executed
+            # by the IOLoopThread which cannot plot
+            self.new_data.emit(str(uuid),str(title),list(data))
     
     def plot(self, uuid, title, data):
         if(uuid+title not in self._plots):
             self._plots[uuid+title] = plot.Plot(uuid, '', title)
         self._plots[uuid+title].set_data(data)
+
+    def plot_append(self, uuid, title, data):
+        if(uuid+title not in self._plots):
+            self._plots[uuid+title] = plot.Plot(uuid, '', title)
+        self._plots[uuid+title].append(data)
 
 
     def _replot(self):

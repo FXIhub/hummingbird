@@ -16,9 +16,9 @@ class Plot(object):
         for x in data:
             self._data.append(x)
 
-    def append(self, x):
-        self._data.append(x)
-
+    def append(self, data):      
+        for x in data:
+            self._data.append(x)
 
     def _init_widget(self):
         self._widget = pyqtgraph.plot(numpy.array(self._data, copy=False), title=self._title, antialias=True)

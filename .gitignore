@@ -3,4 +3,6 @@
 # Sphinx documentation
 docs/.build/
 
-.emacs-backup
+.emacs-backups
+.#*
+.fuse_hidden*

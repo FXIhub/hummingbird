@@ -1,6 +1,6 @@
 import collections
 import datetime
-from . import plotting
+import ipc
 
 def printKeys(evt):
     print evt.keys()    
@@ -36,8 +36,7 @@ eventFiducialDeque = collections.deque([],100)
 def plotFiducial(eventID):
     for k,v in eventID.iteritems():
         eventFiducialDeque.append(v.fiducials)
-        plotting.plot(eventFiducialDeque,"Event Fiducials")
-        print "Fiducial"
+        ipc.set_data(eventFiducialDeque,"Event Fiducials")
 
 processingTimes = collections.deque([],100)
 

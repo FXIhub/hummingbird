@@ -1,5 +1,5 @@
 import collections
-from . import plotting
+import ipc
 
 def printPulseEnergy(pulseEnergies):
     for k,v in pulseEnergies.iteritems():
@@ -16,6 +16,7 @@ def plotPulseEnergy(pulseEnergies):
         if(k not in pulseEnergiesDeques):
             pulseEnergiesDeques[k] = collections.deque([],history_length)
         pulseEnergiesDeques[k].append(v.data)
-        plotting.plot(pulseEnergiesDeques[k],k,unit=v.unit)
+#        plotting.plot(pulseEnergiesDeques[k],k,unit=v.unit)
+        ipc.new_data([v.data],k)
         print "Data"
     
