@@ -20,6 +20,10 @@ class RingBuffer(object):
     def __len__(self):
         return self._len
 
+    def clear(self):
+        self._len = 0
+        self._index = 0
+
     @property
     def shape(self):
         return (self._len)        

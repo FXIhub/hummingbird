@@ -8,6 +8,7 @@ import pyqtgraph
 import threading
 from zmq.eventloop import ioloop, zmqstream
 import zmq
+import plot
 
 class Interface(QtGui.QMainWindow):
     """Main Window Class.
@@ -20,7 +21,12 @@ class Interface(QtGui.QMainWindow):
         self._initZMQ()
         self._plots = {}
         self.plot_requested.connect(self.plot)
-        
+        self._replot_timer = QtCore.QTimer()
+        # Replot every 100 ms
+        self._replot_timer.setInterval(100)
+        self._replot_timer.timeout.connect(self._replot)
+        self._replot_timer.start()
+
     def _initZMQ(self):
         ioloop.install()
 
@@ -62,13 +68,18 @@ class Interface(QtGui.QMainWindow):
             self.plot_requested.emit(str(uuid),str(title),list(data))
     
     def plot(self, uuid, title, data):
-        if(uuid+title in self._plots):
-            print "In _plot %s" % (title)
-            self._plots[uuid+title].plot(data, clear=True,antialias=True)
-        else:
-            print "New plot"
-            self._plots[uuid+title] = pyqtgraph.plot(data,title=title,antialias=True)
-        QtCore.QCoreApplication.instance().processEvents()
+        if(uuid+title not in self._plots):
+            self._plots[uuid+title] = plot.Plot(uuid, '', title)
+        self._plots[uuid+title].set_data(data)
+
+
+    def _replot(self):
+        for p in self._plots.values():
+            p.replot()
+
+    def closeEvent(self, event):
+        print "Closing"
+        QtCore.QCoreApplication.instance().quit()
 
 def start_interface():
     """Initialize and show the Interface."""

@@ -4,7 +4,7 @@ import socket
 
 server = None
 hostname = socket.gethostname()
-uuid = uuid4
+uuid = uuid4()
 
 def init_IPC():
     global server
