@@ -47,6 +47,7 @@ class Backend(object):
         self.backend_conf.state['running'] = True
         while(self.backend_conf.state['running']):
             evt = self.translator.nextEvent()
+            ipc.set_current_event(evt)
             self.backend_conf.onEvent(evt)
             
         

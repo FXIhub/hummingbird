@@ -5,6 +5,7 @@ class EventTranslator(object):
         self._cache = {}
         self._keys = None
         self._nativeKeys = None
+        self._id = None
 
     def __getitem__(self, key):
         if key not in self._cache:
@@ -20,4 +21,8 @@ class EventTranslator(object):
         if self._nativeKeys is None:
             self._nativeKeys = self._trans.eventNativeKeys(self._evt)
         return self._nativeKeys
-        
+            
+    def id(self):
+        if self._id is None:
+            self._id = self._trans.id(self._evt)
+        return self._id

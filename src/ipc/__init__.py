@@ -13,4 +13,4 @@ def zmq():
     return _server
     
 
-from broadcast import set_data, new_data
+from broadcast import set_data, new_data, set_current_event

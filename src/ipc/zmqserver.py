@@ -2,6 +2,7 @@ import zmq
 import pickle
 from zmq.eventloop import ioloop, zmqstream
 import threading
+import ipc
 
 class ZmqServer(object):
     def __init__(self):
@@ -19,12 +20,14 @@ class ZmqServer(object):
         t.daemon = True
         t.start()
 
-    def send(self, data):
-        self._data_socket.send_multipart([self._zmq_key,pickle.dumps(data)])
+    def send(self, title, data):
+        self._data_socket.send_multipart([bytes(title),pickle.dumps(data)])
 
     def get_command(self, stream, msg):
-        print msg
-        stream.send_multipart(msg)
+        if(msg[0] == 'keys'):
+            stream.socket.send_multipart(['keys']+ipc.broadcast.data_titles)
+        if(msg[0] == 'data_port'):
+            stream.socket.send_multipart(['data_port',bytes(5555)])
 
     def ioloop(self):
         ioloop.IOLoop.instance().start()

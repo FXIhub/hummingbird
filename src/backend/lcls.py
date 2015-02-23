@@ -99,6 +99,9 @@ class LCLSTranslator(object):
         else:
             raise RuntimeError('%s not found in event' % (key))
 
+    def id(self, evt):
+        return float(self.translate(evt,'eventID')['Timestamp'].timestamp)
+
     def trBldDataEBeam(self, values, obj):
         photonEnergyeV = -1
         if(type(obj) is psana.Bld.BldDataEBeamV6):
@@ -171,7 +174,8 @@ class LCLSTranslator(object):
             values[rec.name] = rec
 
     def trEventID(self, values, obj):
-        time = datetime.datetime.fromtimestamp(obj.time()[0]+obj.time()[1]*1e-9,tz=timezone('utc'))
+        timestamp = obj.time()[0]+obj.time()[1]*1e-9
+        time = datetime.datetime.fromtimestamp(timestamp,tz=timezone('utc'))
         time = time.astimezone(tz=timezone('US/Pacific'))
         rec = Record('Timestamp', time, ureg.s)
         time = datetime.datetime.fromtimestamp(obj.time()[0])
@@ -180,6 +184,7 @@ class LCLSTranslator(object):
         rec.run = obj.run()
         rec.ticks = obj.ticks()
         rec.vector = obj.vector()
+        rec.timestamp = timestamp
         values[rec.name] = rec
 
     def trEventCodes(self, values, obj):        

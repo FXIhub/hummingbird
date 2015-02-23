@@ -36,7 +36,7 @@ eventFiducialDeque = collections.deque([],100)
 def plotFiducial(eventID):
     for k,v in eventID.iteritems():
         eventFiducialDeque.append(v.fiducials)
-        ipc.set_data(eventFiducialDeque,"Event Fiducials")
+        ipc.set_data("Event Fiducials", eventFiducialDeque)
 
 processingTimes = collections.deque([],100)
 
@@ -44,5 +44,5 @@ def printProcessingRate(evt = None):
     processingTimes.appendleft(datetime.datetime.now())
     dt = processingTimes[0] - processingTimes[-1]
     if(len(processingTimes) > 1):
-        print "Processing at %g Hz" % (len(processingTimes)/dt.total_seconds())
+        print "Processing at %g Hz" % ((len(processingTimes)-1)/dt.total_seconds())
     

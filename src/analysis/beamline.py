@@ -17,6 +17,5 @@ def plotPulseEnergy(pulseEnergies):
             pulseEnergiesDeques[k] = collections.deque([],history_length)
         pulseEnergiesDeques[k].append(v.data)
 #        plotting.plot(pulseEnergiesDeques[k],k,unit=v.unit)
-        ipc.new_data([v.data],k)
-        print "Data"
+        ipc.new_data(k, [v.data])
     
