@@ -4,6 +4,7 @@
 import os
 import logging
 import imp
+import ipc
 #from mpi4py import MPI
 
 
@@ -50,6 +51,7 @@ class Backend(object):
             
         
 def init_translator(state):
+    ipc.init_IPC()
     if('Facility' not in state):
         raise ValueError("You need to set the 'Facility' in the configuration")
     elif(state['Facility'] == 'LCLS'):

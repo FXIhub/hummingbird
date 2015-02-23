@@ -1,5 +1,6 @@
 import collections
 import datetime
+from . import plotting
 
 def printKeys(evt):
     print evt.keys()    
@@ -31,6 +32,12 @@ def printID(eventID):
         except AttributeError:
             pass
 
+eventFiducialDeque = collections.deque([],100)
+def plotFiducial(eventID):
+    for k,v in eventID.iteritems():
+        eventFiducialDeque.append(v.fiducials)
+        plotting.plot(eventFiducialDeque,"Event Fiducials")
+        print "Fiducial"
 
 processingTimes = collections.deque([],100)
 
