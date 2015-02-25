@@ -92,12 +92,12 @@ class Interface(QtGui.QMainWindow):
     
     def plot(self, uuid, title, data):
         if(uuid+title not in self._plotdata):
-            self._plotdata[uuid+title] = plot.PlotData(uuid, '', title)
+            self._plotdata[uuid+title] = plot.PlotData(self, uuid, '', title)
         self._plotdata[uuid+title].set_data(data)
 
     def plot_append(self, uuid, title, data, data_x):
         if(uuid+title not in self._plotdata):
-            self._plotdata[uuid+title] = plot.PlotData(uuid, '', title)
+            self._plotdata[uuid+title] = plot.PlotData(self, uuid, '', title)
         self._plotdata[uuid+title].append(data, data_x)
 
 
@@ -107,6 +107,8 @@ class Interface(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         print "Closing"
+        for widget in QtGui.QApplication.topLevelWidgets():
+            widget.close()
         QtCore.QCoreApplication.instance().quit()
 
     def addSource(self, source):

@@ -38,7 +38,7 @@ def plotFiducial(eventID):
         eventFiducialDeque.append(v.fiducials)
         ipc.set_data("Event Fiducials", eventFiducialDeque)
 
-processingTimes = collections.deque([],100)
+processingTimes = collections.deque([], 100)
 
 def printProcessingRate(evt = None):
     processingTimes.appendleft(datetime.datetime.now())

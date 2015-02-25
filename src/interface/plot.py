@@ -2,9 +2,11 @@ from ringbuffer import RingBuffer
 import pyqtgraph
 import numpy
 from Qt import QtGui, QtCore
+from ui import PlotWindow
 
-class PlotData(object):
-    def __init__(self, source_uuid, source_hostname, title, maxlen = 1000):
+class PlotData(QtCore.QObject):
+    def __init__(self, parent, source_uuid, source_hostname, title, maxlen = 1000):
+        QtCore.QObject.__init__(self,parent)
         self._uuid = source_uuid
         self._hostname = source_hostname
         self._title = title
@@ -12,6 +14,7 @@ class PlotData(object):
         self._x = None
         self._widget = None
         self._maxlen = maxlen
+        self._parent = parent
 
     def set_data(self, yy):
         if(self._y is None):
@@ -38,10 +41,13 @@ class PlotData(object):
             self._widget = pyqtgraph.plot(x = numpy.array(self._x, copy=False), 
                                           y = numpy.array(self._y, copy=False),
                                           title=self._title, antialias=True)
+            self._pw = PlotWindow(self._parent)
         else:
             self._widget = pyqtgraph.plot(y = numpy.array(self._y, copy=False),
                                           title=self._title, antialias=True)
+            self._pw = PlotWindow(self._parent)
 
+        self._pw.show()
         self._widget.hideAxis('bottom')
 
     def replot(self):
@@ -54,6 +60,5 @@ class PlotData(object):
                               y=numpy.array(self._y, copy=False), clear=True)
         else:
             self._widget.plot(numpy.array(self._y, copy=False), clear=True)
-            
-        
+                        
         

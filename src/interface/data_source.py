@@ -45,5 +45,6 @@ class DataSource(QtCore.QObject):
             self.query_keys()
         elif(reply[0] == 'keys'):
             self.keys = reply[1:]
+            # I might want to do this from a separate timer
             self.parent().addSource(self)
 
