@@ -4,7 +4,7 @@ Provides a wrapper for a ZeroMQ socket. Adapted from PyZeroMQt.
 from Qt import QtCore
 from zmqcontext import ZmqContext
 from zmq import FD, LINGER, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, EVENTS, \
-                POLLIN, POLLOUT, POLLERR, NOBLOCK, ZMQError, EAGAIN, ssh
+                POLLIN, POLLOUT, POLLERR, NOBLOCK, ZMQError, EAGAIN
 
 class ZmqSocket(QtCore.QObject):
     readyRead=QtCore.Signal()
@@ -39,6 +39,7 @@ class ZmqSocket(QtCore.QObject):
 
     def connect(self, addr, tunnel=None):
         if(tunnel):
+            from zmq import ssh
             ssh.tunnel_connection(self._socket, addr, tunnel)
         else:
             self._socket.connect(addr)

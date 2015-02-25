@@ -29,8 +29,8 @@ class Interface(QtGui.QMainWindow):
         self._replot_timer.timeout.connect(self._replot)
         self._replot_timer.start()
 
-        self._data_sources.append(DataSource(self,'localhost',
-                                             5554,'login'))
+#        self._data_sources.append(DataSource(self,'localhost',
+#                                             5554,'login'))
 
     def _initZMQ(self):
         pass
