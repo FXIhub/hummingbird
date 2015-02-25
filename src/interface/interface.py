@@ -64,7 +64,7 @@ class Interface(QtGui.QMainWindow):
             ssh_tunnel = None
             if(diag.checkBox.isChecked()):
                 ssh_tunnel = diag.ssh.text()
-            self._data_sources.append(DataSource(diag.hostname.text(),
+            self._data_sources.append(DataSource(self, diag.hostname.text(),
                                                  diag.port.value(),
                                                  ssh_tunnel))
 

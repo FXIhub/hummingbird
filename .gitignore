@@ -6,3 +6,4 @@ docs/.build/
 .emacs-backups
 .#*
 .fuse_hidden*
+*~
