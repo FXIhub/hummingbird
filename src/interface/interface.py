@@ -32,9 +32,6 @@ class Interface(QtGui.QMainWindow):
         self._replot_timer.timeout.connect(self._replot)
         self._replot_timer.start()
 
-#        self._data_sources.append(DataSource(self,'localhost',
-#                                             5554,'login'))
-
     def _init_geometry(self):
         if(self.settings.contains("geometry")):
             self.restoreGeometry(self.settings.value("geometry"))
@@ -47,25 +44,6 @@ class Interface(QtGui.QMainWindow):
             for ds in self.settings.value("dataSources"):
                 self._data_sources.append(DataSource(self, ds[0], ds[1], ds[2]))
             
-    def _initZMQ(self):
-        pass
-#        self._context = zmq.Context()
-#        self._zmq_key = bytes('hummingbird')
-
-        # self._data_socket = self._context.socket(zmq.SUB)
-        # self._data_socket.setsockopt(zmq.SUBSCRIBE, self._zmq_key)
-        # ssh.tunnel_connection(self._data_socket, "tcp://localhost:5555", "login")
-        # self._data_stream = zmqstream.ZMQStream(self._data_socket)
-        # self._data_stream.on_recv_stream(self._get_broadcast)
-
-        # self._ctrl_socket = self._context.socket(zmq.REQ)
-        # ssh.tunnel_connection(self._ctrl_socket, "tcp://localhost:5554", "login")
-        # self._ctrl_stream = zmqstream.ZMQStream(self._ctrl_socket)
-        # self._ctrl_stream.on_recv_stream(self._get_command_reply)
-
-#        self._io_thread = IOLoopThread()
-#        self._io_thread.start()
-
     def _init_menus(self):
         self._backends_menu = self.menuBar().addMenu(self.tr("&Backends"))
 
@@ -149,7 +127,6 @@ class Interface(QtGui.QMainWindow):
             source.subscribe(key)
         else:
             source.unsubscribe(key)
-
             
 def start_interface():
     """Initialize and show the Interface."""
