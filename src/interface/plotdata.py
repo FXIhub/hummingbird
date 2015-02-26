@@ -35,30 +35,5 @@ class PlotData(QtCore.QObject):
 
         for x in xx:
             self._x.append(x)
-
-    def _init_widget(self):
-        if(self._x is not None):
-            self._widget = pyqtgraph.plot(x = numpy.array(self._x, copy=False), 
-                                          y = numpy.array(self._y, copy=False),
-                                          title=self._title, antialias=True)
-            self._pw = PlotWindow(self._parent)
-        else:
-            self._widget = pyqtgraph.plot(y = numpy.array(self._y, copy=False),
-                                          title=self._title, antialias=True)
-            self._pw = PlotWindow(self._parent)
-
-        self._pw.show()
-        self._widget.hideAxis('bottom')
-
-    def replot(self):
-        if(self._y is None or len(self._y) < 2):
-            return
-        if(self._widget is None):
-            self._init_widget()
-        if(self._x is not None):
-            self._widget.plot(x=numpy.array(self._x, copy=False),
-                              y=numpy.array(self._y, copy=False), clear=True)
-        else:
-            self._widget.plot(numpy.array(self._y, copy=False), clear=True)
                         
         

@@ -29,6 +29,8 @@ class ZmqServer(object):
             stream.socket.send_multipart(['keys']+ipc.broadcast.data_titles)
         if(msg[0] == 'data_port'):
             stream.socket.send_multipart(['data_port',bytes(self._data_port)])
+        if(msg[0] == 'uuid'):
+            stream.socket.send_multipart(['uuid',bytes(ipc.uuid)])
 
     def ioloop(self):
         ioloop.IOLoop.instance().start()

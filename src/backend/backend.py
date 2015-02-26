@@ -57,6 +57,9 @@ def init_translator(state):
     elif(state['Facility'] == 'LCLS'):
         from lcls import LCLSTranslator
         return LCLSTranslator(state)
+    elif(state['Facility'] == 'dummy'):
+        from dummy import DummyTranslator
+        return DummyTranslator(state)
     else:
         raise ValueError('Facility %s not supported' % (state['Facility']))
 

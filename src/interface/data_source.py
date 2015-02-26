@@ -11,9 +11,15 @@ class DataSource(QtCore.QObject):
         self._hostname = hostname
         self._port = port
         self._ssh_tunnel = ssh_tunnel
-        self.connect()
-        self.get_data_port()
-        self.keys = None
+        self.connected = False
+        try:            
+            self.connect()
+            self.connected = True
+            self.get_data_port()
+            self.keys = None
+        except (RuntimeError, zmq.error.ZMQError):
+            QtGui.QMessageBox.warning(self.parent(), "Connection failed!", "Could not connect to %s" % self.name())
+            raise
     def subscribe(self, key):
         self._data_socket.subscribe(bytes(key))
     def unsubscribe(self, key):
@@ -30,6 +36,8 @@ class DataSource(QtCore.QObject):
         self._ctrl_socket.connect(addr, self._ssh_tunnel)
     def get_data_port(self):
         self._ctrl_socket.send_multipart(['data_port'])
+    def get_uuid(self):
+        self._ctrl_socket.send_multipart(['uuid'])
     def query_keys(self):
         self._ctrl_socket.send_multipart(['keys'])
 
@@ -42,9 +50,14 @@ class DataSource(QtCore.QObject):
             addr = "tcp://%s:%s" % (self._hostname, self._data_port)
             self._data_socket.readyRead.connect(self.parent()._get_broadcast)
             self._data_socket.connect(addr, self._ssh_tunnel)
+            self.parent().add_backend_to_menu(self)
+            self.get_uuid()
+        elif(reply[0] == 'uuid'):
+            self.uuid = reply[1]
             self.query_keys()
         elif(reply[0] == 'keys'):
             self.keys = reply[1:]
-            # I might want to do this from a separate timer
-            self.parent().addSource(self)
+
+
+
 
