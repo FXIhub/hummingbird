@@ -19,10 +19,11 @@ class Interface(QtGui.QMainWindow):
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         self.settings = QtCore.QSettings()
+        self._init_geometry()
+        self._init_data_sources()
         self._init_menus()
         self._initZMQ()
         self._plotdata = {}
-        self._data_sources = []
         self.plot_requested.connect(self.plot)
         self.new_data.connect(self.plot_append)
         self._replot_timer = QtCore.QTimer()
@@ -39,7 +40,13 @@ class Interface(QtGui.QMainWindow):
             self.restoreGeometry(self.settings.value("geometry"))
         if(self.settings.contains("windowState")):
             self.restoreState(self.settings.value("windowState"))
-
+            
+    def _init_data_sources(self):
+        self._data_sources = []
+        if(self.settings.contains("dataSources")):
+            for ds in self.settings.value("dataSources"):
+                self._data_sources.append(DataSource(self, ds[0], ds[1], ds[2]))
+            
     def _initZMQ(self):
         pass
 #        self._context = zmq.Context()
@@ -116,6 +123,10 @@ class Interface(QtGui.QMainWindow):
     def closeEvent(self, event):
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("windowState", self.saveState())
+        ds_settings = []
+        for ds in self._data_sources:
+            ds_settings.append([ds._hostname, ds._port, ds._ssh_tunnel])        
+        self.settings.setValue("dataSources", ds_settings)
         # Make sure settings are saved
         del self.settings
         # Force exit to prevent pyqtgraph from crashing
