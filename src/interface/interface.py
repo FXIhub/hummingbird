@@ -7,6 +7,7 @@ import pyqtgraph
 import plot
 from ui import AddBackendDialog
 from data_source import DataSource
+import os
 
 class Interface(QtGui.QMainWindow):
     """Main Window Class.
@@ -107,9 +108,8 @@ class Interface(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         print "Closing"
-        for widget in QtGui.QApplication.topLevelWidgets():
-            widget.close()
-        QtCore.QCoreApplication.instance().quit()
+        # Force exit to prevent pyqtgraph from crashing
+        os._exit(0)
 
     def addSource(self, source):
         menu =  self._backends_menu.addMenu(source.name())
