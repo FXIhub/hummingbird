@@ -30,6 +30,9 @@
          <property name="toolTip">
           <string>The hostname of the backend.</string>
          </property>
+         <property name="text">
+          <string>localhost</string>
+         </property>
         </widget>
        </item>
       </layout>
@@ -58,7 +61,7 @@
           <number>1</number>
          </property>
          <property name="value">
-          <number>5555</number>
+          <number>13131</number>
          </property>
         </widget>
        </item>
