@@ -10,7 +10,7 @@ class ZmqServer(object):
         self._context = zmq.Context()
         self._data_socket = self._context.socket(zmq.PUB)
         self._data_port = 13132
-        self._data_socket.bind("tcp://*:%d", self._data_port)
+        self._data_socket.bind("tcp://*:%d" % (self._data_port))
         ioloop.install()
         self._ctrl_socket = self._context.socket(zmq.REP)
         self._ctrl_socket.bind("tcp://*:13131")
