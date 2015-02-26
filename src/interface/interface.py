@@ -18,6 +18,7 @@ class Interface(QtGui.QMainWindow):
     new_data=QtCore.Signal(str,str,list,list)
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
+        self.settings = QtCore.QSettings()
         self._init_menus()
         self._initZMQ()
         self._plotdata = {}
@@ -32,6 +33,12 @@ class Interface(QtGui.QMainWindow):
 
 #        self._data_sources.append(DataSource(self,'localhost',
 #                                             5554,'login'))
+
+    def _init_geometry(self):
+        if(self.settings.contains("geometry")):
+            self.restoreGeometry(self.settings.value("geometry"))
+        if(self.settings.contains("windowState")):
+            self.restoreState(self.settings.value("windowState"))
 
     def _initZMQ(self):
         pass
@@ -107,7 +114,10 @@ class Interface(QtGui.QMainWindow):
             p.replot()
 
     def closeEvent(self, event):
-        print "Closing"
+        self.settings.setValue("geometry", self.saveGeometry())
+        self.settings.setValue("windowState", self.saveState())
+        # Make sure settings are saved
+        del self.settings
         # Force exit to prevent pyqtgraph from crashing
         os._exit(0)
 
