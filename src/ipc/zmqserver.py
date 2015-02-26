@@ -26,7 +26,8 @@ class ZmqServer(object):
 
     def get_command(self, stream, msg):
         if(msg[0] == 'keys'):
-            stream.socket.send_multipart(['keys']+ipc.broadcast.data_titles)
+            stream.socket.send_multipart(['keys']+ipc.broadcast.data_titles+
+                                         ipc.broadcast.data_types)
         if(msg[0] == 'data_port'):
             stream.socket.send_multipart(['data_port',bytes(self._data_port)])
         if(msg[0] == 'uuid'):

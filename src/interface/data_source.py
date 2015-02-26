@@ -17,6 +17,7 @@ class DataSource(QtCore.QObject):
             self.connected = True
             self.get_data_port()
             self.keys = None
+            self.data_type = None
         except (RuntimeError, zmq.error.ZMQError):
             QtGui.QMessageBox.warning(self.parent(), "Connection failed!", "Could not connect to %s" % self.name())
             raise
@@ -38,7 +39,7 @@ class DataSource(QtCore.QObject):
         self._ctrl_socket.send_multipart(['data_port'])
     def get_uuid(self):
         self._ctrl_socket.send_multipart(['uuid'])
-    def query_keys(self):
+    def query_keys_and_type(self):
         self._ctrl_socket.send_multipart(['keys'])
 
     def _get_command_reply(self):
@@ -54,9 +55,15 @@ class DataSource(QtCore.QObject):
             self.get_uuid()
         elif(reply[0] == 'uuid'):
             self.uuid = reply[1]
-            self.query_keys()
+            self.query_keys_and_type()
         elif(reply[0] == 'keys'):
-            self.keys = reply[1:]
+            reply.pop(0)
+            self.keys = reply[:len(reply)/2]
+            self.data_type = {}
+            for k,t in zip(self.keys,reply[len(reply)/2:]):                
+                self.data_type[k] = t
+
+
 
 
 

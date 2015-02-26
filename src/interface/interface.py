@@ -5,7 +5,7 @@ import sys
 import pickle
 import pyqtgraph
 from plotdata import PlotData
-from ui import AddBackendDialog, PlotWindow
+from ui import AddBackendDialog, PlotWindow, ImageWindow
 from data_source import DataSource
 import os
 
@@ -29,7 +29,7 @@ class Interface(QtGui.QMainWindow):
         self.new_data.connect(self.plot_append)
         self._replot_timer = QtCore.QTimer()
         # Replot every 100 ms
-        self._replot_timer.setInterval(100)
+        self._replot_timer.setInterval(1000)
         self._replot_timer.timeout.connect(self._replot)
         self._replot_timer.start()
 
@@ -55,9 +55,13 @@ class Interface(QtGui.QMainWindow):
         self._add_backend_action.triggered.connect(self._add_backend_triggered)
 
         self._plots_menu = self.menuBar().addMenu(self.tr("&Plots"))
-        self._new_plot_action = QtGui.QAction("New", self)
+        self._new_plot_action = QtGui.QAction("New Line Plot", self)
         self._plots_menu.addAction(self._new_plot_action)
         self._new_plot_action.triggered.connect(self._new_plot_triggered)
+
+        self._new_image_action = QtGui.QAction("New Image Plot", self)
+        self._plots_menu.addAction(self._new_image_action)
+        self._new_image_action.triggered.connect(self._new_plot_triggered)
         
     def _add_backend_triggered(self):
         diag = AddBackendDialog(self)
@@ -80,9 +84,12 @@ class Interface(QtGui.QMainWindow):
         action.triggered.connect(self._data_source_triggered)
     
     def _new_plot_triggered(self):
-        pw = PlotWindow(self)
-        pw.show()
-        self._plot_windows.append(pw)
+        if(self.sender() is self._new_plot_action):
+            w = PlotWindow(self)
+        elif(self.sender() is self._new_image_action):
+            w = ImageWindow(self)
+        w.show()
+        self._plot_windows.append(w)
 
     def _get_broadcast(self):
         socket = self.sender()
@@ -98,13 +105,13 @@ class Interface(QtGui.QMainWindow):
         if(cmd == 'set_data'):
             title = payload[2]
             data = payload[3]
-            self.plot_requested.emit(str(uuid),str(title),list(data))
+            self.plot(str(uuid),title,data)
 
         if(cmd == 'new_data'):
             title = payload[2]
             data = payload[3]
             data_x = payload[4]
-            self.new_data.emit(str(uuid),str(title),list(data),list(data_x))
+            self.plot_append(str(uuid),title,data,data_x)
     
     def plot(self, uuid, title, data):
         if(uuid+title not in self._plotdata):
@@ -158,7 +165,6 @@ class Interface(QtGui.QMainWindow):
             self._data_sources.append(ds)
         else:
             self._data_sources.remove(ds)
-        print self._data_sources
             
 def start_interface():
     """Initialize and show the Interface."""

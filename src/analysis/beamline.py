@@ -16,5 +16,5 @@ def plotPulseEnergy(pulseEnergies):
         if(k not in pulseEnergiesDeques):
             pulseEnergiesDeques[k] = collections.deque([],history_length)
         pulseEnergiesDeques[k].append(v.data)
-        ipc.new_data(k, [v.data])
+        ipc.new_data(k, v.data)
     

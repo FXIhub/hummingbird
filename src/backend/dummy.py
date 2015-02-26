@@ -3,6 +3,7 @@ import random
 from event_translator import EventTranslator
 from record import addRecord, Record
 from . import ureg
+import numpy
 
 class DummyTranslator(object):    
     def __init__(self, state):
@@ -12,6 +13,8 @@ class DummyTranslator(object):
         evt = {}
         evt['pr1'] = random.random()
         evt['pr2'] = random.random()
+        # CCD data 128px wide, 256px tall
+        evt['ccd'] = numpy.random.rand(256,128)
         return EventTranslator(evt,self)
         
     def eventKeys(self, evt):
@@ -25,6 +28,8 @@ class DummyTranslator(object):
         if(key == 'pulseEnergies'):            
             addRecord(values, 'pulseEnergy1', evt['pr1'], ureg.mJ)
             addRecord(values, 'pulseEnergy2', evt['pr2'], ureg.mJ)
+        elif(key == 'photonPixelDetectors'):            
+            addRecord(values, 'CCD', evt['ccd'], ureg.ADU)
         else:
             raise RuntimeError('%s not found in event' % (key))
         return values

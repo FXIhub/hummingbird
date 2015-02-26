@@ -9,5 +9,6 @@ state = {
 
 def onEvent(evt):
     analysis.beamline.plotPulseEnergy(evt['pulseEnergies'])
+    analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
     analysis.event.printProcessingRate(evt)
     time.sleep(1)

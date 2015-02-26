@@ -3,6 +3,7 @@ import pyqtgraph
 import numpy
 from Qt import QtGui, QtCore
 from ui import PlotWindow
+from collections import deque
 
 class PlotData(QtCore.QObject):
     def __init__(self, parent, source_uuid, source_hostname, title, maxlen = 1000):
@@ -24,16 +25,17 @@ class PlotData(QtCore.QObject):
         for y in yy:
             self._y.append(y)
 
-    def append(self, yy, xx):
+    def append(self, y, x):
         if(self._y is None):
-            self._y = RingBuffer(self._maxlen, type(yy)) 
+            if(isinstance(y,numpy.ndarray)):
+                self._y = deque([],100)
+            else:
+                self._y = RingBuffer(self._maxlen, type(y)) 
         if(self._x is None):
-            self._x = RingBuffer(self._maxlen, type(xx)) 
+            self._x = RingBuffer(self._maxlen, type(x)) 
 
-        for y in yy:
-            self._y.append(y)
-
-        for x in xx:
-            self._x.append(x)
+        self._y.append(y)
+            
+        self._x.append(x)
                         
         

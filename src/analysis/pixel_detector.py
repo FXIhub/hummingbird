@@ -1,4 +1,6 @@
 from numpy import sum, mean, min, max, std
+import ipc
+import numpy
 
 def printStatistics(detectors):
     for k,r in detectors.iteritems():
@@ -7,6 +9,12 @@ def printStatistics(detectors):
                                                                 sum(v), mean(v),
                                                                 min(v), max(v),
                                                                 std(v))
+
+def plotImages(detectors):
+    for k,r in detectors.iteritems():
+        v = r.data
+        ipc.new_data(k, v)
+
 """
 import numpy
 def slacH5ToCheetah(slacArr):
