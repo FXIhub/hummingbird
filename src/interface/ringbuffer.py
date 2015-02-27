@@ -1,13 +1,19 @@
 import numpy
 
 class RingBuffer(object):
-    def __init__(self, maxlen, dtype=float, order='C'):
-        self._data = numpy.empty((2*maxlen), dtype, order)
+    def __init__(self, maxlen):
         self._index = 0
         self._len = 0
         self._maxlen = maxlen
-
+        self._data = None
     def append(self, x):
+        if(self._data is None):
+            try:
+                self._data = numpy.empty(tuple([2*self._maxlen]+list(x.shape)),
+                                         x.dtype)
+            except AttributeError:
+                self._data = numpy.empty([2*self._maxlen], type(x))
+
         self._data[self._index] = x
         self._data[self._index + self._maxlen] = x
         self._index = (self._index + 1) % self._maxlen

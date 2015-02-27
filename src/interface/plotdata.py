@@ -3,7 +3,6 @@ import pyqtgraph
 import numpy
 from Qt import QtGui, QtCore
 from ui import PlotWindow
-from collections import deque
 
 class PlotData(QtCore.QObject):
     def __init__(self, parent, source_uuid, source_hostname, title, maxlen = 1000):
@@ -19,7 +18,7 @@ class PlotData(QtCore.QObject):
 
     def set_data(self, yy):
         if(self._y is None):
-            self._y = RingBuffer(self._maxlen, type(yy))
+            self._y = RingBuffer(self._maxlen)
         else:
             self._y.clear()
         for y in yy:
@@ -28,14 +27,16 @@ class PlotData(QtCore.QObject):
     def append(self, y, x):
         if(self._y is None):
             if(isinstance(y,numpy.ndarray)):
-                self._y = deque([],100)
+                # Make sure the image ringbuffers don't take more than
+                # 100 MBs. The factor of 2 takes into account the fact
+                # that the buffer is twice as big as its usable size
+                self._y = RingBuffer(min(self._maxlen,
+                                         1024*1024*100/(2*y.nbytes)))
             else:
-                self._y = RingBuffer(self._maxlen, type(y)) 
+                self._y = RingBuffer(self._maxlen) 
         if(self._x is None):
-            self._x = RingBuffer(self._maxlen, type(x)) 
+            self._x = RingBuffer(self._maxlen) 
 
         self._y.append(y)
             
         self._x.append(x)
-                        
-        

@@ -3,6 +3,7 @@ from interface.ui import Ui_imageWindow
 import pyqtgraph
 import numpy
 import os
+from IPython.core.debugger import Tracer
 
 class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
     def __init__(self, parent = None):
@@ -49,5 +50,12 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             # There might be no data yet, so no plotdata
             if(key in self.parent()._plotdata):
                 pd = self.parent()._plotdata[key]
-                self.plot.setImage(pd._y[-1])
-        
+                if(self.plot.image is not None):               
+                    last_index = self.plot.image.shape[0]-1
+                    # Only update if we're in the last index
+                    if(self.plot.currentIndex == last_index):
+                        self.plot.setImage(numpy.array(pd._y))
+                        last_index = self.plot.image.shape[0]-1
+                        self.plot.setCurrentIndex(last_index)
+                else:
+                    self.plot.setImage(numpy.array(pd._y))
