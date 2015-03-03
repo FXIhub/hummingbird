@@ -19,7 +19,7 @@ class ZmqSocket(QtCore.QObject):
         fd=self._socket.getsockopt(FD)
         self._notifier=QtCore.QSocketNotifier(fd, QtCore.QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.activity)
-
+        
     def __del__(self): self._socket.close()
 
     def setIdentity(self, name): self._socket.setsockopt(IDENTITY, name)
@@ -37,7 +37,7 @@ class ZmqSocket(QtCore.QObject):
 
     def bind(self, addr): self._socket.bind(addr)
 
-    def connect(self, addr, tunnel=None):
+    def connect_socket(self, addr, tunnel=None):
         if(tunnel):
             from zmq import ssh
             ssh.tunnel_connection(self._socket, addr, tunnel)

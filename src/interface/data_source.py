@@ -34,14 +34,14 @@ class DataSource(QtCore.QObject):
         self._ctrl_socket = ZmqSocket(REQ)
         addr = "tcp://%s:%d" % (self._hostname, self._port)
         self._ctrl_socket.readyRead.connect(self._get_command_reply)
-        self._ctrl_socket.connect(addr, self._ssh_tunnel)
+        self._ctrl_socket.connect_socket(addr, self._ssh_tunnel)
     def get_data_port(self):
         self._ctrl_socket.send_multipart(['data_port'])
     def get_uuid(self):
         self._ctrl_socket.send_multipart(['uuid'])
     def query_keys_and_type(self):
         self._ctrl_socket.send_multipart(['keys'])
-
+        
     def _get_command_reply(self):
         socket=self.sender()
         reply = socket.recv_multipart()
@@ -50,7 +50,7 @@ class DataSource(QtCore.QObject):
             self._data_socket = ZmqSocket(SUB)
             addr = "tcp://%s:%s" % (self._hostname, self._data_port)
             self._data_socket.readyRead.connect(self.parent()._get_broadcast)
-            self._data_socket.connect(addr, self._ssh_tunnel)
+            self._data_socket.connect_socket(addr, self._ssh_tunnel)
             self.parent().add_backend_to_menu(self)
             self.get_uuid()
         elif(reply[0] == 'uuid'):
@@ -62,9 +62,3 @@ class DataSource(QtCore.QObject):
             self.data_type = {}
             for k,t in zip(self.keys,reply[len(reply)/2:]):                
                 self.data_type[k] = t
-
-
-
-
-
-

@@ -24,27 +24,16 @@ class Interface(QtGui.QMainWindow):
         self.settings = QtCore.QSettings()
         self._init_geometry()
         self._init_menus()
-        self._init_data_sources()
-        self.plot_requested.connect(self.plot)
-        self.new_data.connect(self.plot_append)
-        self._replot_timer = QtCore.QTimer()
-        # Replot every 100 ms
-        self._replot_timer.setInterval(1000)
-        self._replot_timer.timeout.connect(self._replot)
-        self._replot_timer.start()
+        # self._init_data_sources()
+        # BD: This causes problems right now, maybe we can fix this later
+        self._init_connections()
+        self._init_timer()
 
     def _init_geometry(self):
         if(self.settings.contains("geometry")):
             self.restoreGeometry(self.settings.value("geometry"))
         if(self.settings.contains("windowState")):
             self.restoreState(self.settings.value("windowState"))
-            
-    def _init_data_sources(self):
-        if(self.settings.contains("dataSources")):
-            for ds in self.settings.value("dataSources"):
-                ds = DataSource(self, ds[0], ds[1], ds[2])
-                if(ds.connected):
-                    self._data_sources.append(ds)
             
     def _init_menus(self):
         self._backends_menu = self.menuBar().addMenu(self.tr("&Backends"))
@@ -62,6 +51,23 @@ class Interface(QtGui.QMainWindow):
         self._new_image_action = QtGui.QAction("New Image Plot", self)
         self._plots_menu.addAction(self._new_image_action)
         self._new_image_action.triggered.connect(self._new_plot_triggered)
+
+    def _init_data_sources(self):
+        if(self.settings.contains("dataSources")):
+            for ds in self.settings.value("dataSources"):
+                ds = DataSource(self, ds[0], ds[1], ds[2])
+                if(ds.connected):
+                    self._data_sources.append(ds)
+            
+    def _init_connections(self):
+        self.plot_requested.connect(self.plot)
+        self.new_data.connect(self.plot_append)
+
+    def _init_timer(self):
+        self._replot_timer = QtCore.QTimer()
+        self._replot_timer.setInterval(1000) # Replot every 100 ms
+        self._replot_timer.timeout.connect(self._replot)
+        self._replot_timer.start()
         
     def _add_backend_triggered(self):
         diag = AddBackendDialog(self)
@@ -122,7 +128,6 @@ class Interface(QtGui.QMainWindow):
         if(uuid+title not in self._plotdata):
             self._plotdata[uuid+title] = PlotData(self, uuid, '', title)
         self._plotdata[uuid+title].append(data, data_x)
-
 
     def _replot(self):
         for p in self._plot_windows:
