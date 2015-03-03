@@ -7,7 +7,8 @@ from IPython.core.debugger import Tracer
 
 class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
     def __init__(self, parent = None):
-        QtGui.QMainWindow.__init__(self,parent)
+        QtGui.QMainWindow.__init__(self,None)
+        self._parent = parent
         self.setupUi(self)
         self.plot = pyqtgraph.ImageView(self.plotFrame)
         layout = QtGui.QVBoxLayout(self.plotFrame)
@@ -20,7 +21,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
     def onMenuShow(self):
         # Go through all the available data sources and add them
         self.menuData_Sources.clear()
-        for ds in self.parent()._data_sources:
+        for ds in self._parent._data_sources:
             menu =  self.menuData_Sources.addMenu(ds.name())
             for key in ds.keys:
                 if(ds.data_type[key] != 'image'):
@@ -48,8 +49,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
     def replot(self):
         for key in self._enabled_sources:
             # There might be no data yet, so no plotdata
-            if(key in self.parent()._plotdata):
-                pd = self.parent()._plotdata[key]
+            if(key in self._parent._plotdata):
+                pd = self._parent._plotdata[key]
                 if(self.plot.image is not None):               
                     last_index = self.plot.image.shape[0]-1
                     # Only update if we're in the last index

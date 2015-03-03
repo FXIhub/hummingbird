@@ -6,7 +6,8 @@ import os
 
 class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
     def __init__(self, parent = None):
-        QtGui.QMainWindow.__init__(self,parent)
+        QtGui.QMainWindow.__init__(self,None)
+        self._parent = parent
         self.setupUi(self)
         self.plot = pyqtgraph.PlotWidget(self.plotFrame)
         self.plot.hideAxis('bottom')
@@ -20,7 +21,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
     def onMenuShow(self):
         # Go through all the available data sources and add them
         self.menuData_Sources.clear()
-        for ds in self.parent()._data_sources:
+        for ds in self._parent._data_sources:
             menu =  self.menuData_Sources.addMenu(ds.name())
             for key in ds.keys:
                 if(ds.data_type[key] != 'scalar'):
@@ -49,8 +50,8 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         self.plot.clear()
         for key in self._enabled_sources:
             # There might be no data yet, so no plotdata
-            if(key in self.parent()._plotdata):
-                pd = self.parent()._plotdata[key]
+            if(key in self._parent._plotdata):
+                pd = self._parent._plotdata[key]
                 if(pd._x is not None):
                     self.plot.plot(x=numpy.array(pd._x, copy=False),
                                    y=numpy.array(pd._y, copy=False), clear=False)

@@ -37,7 +37,7 @@ class ZmqSocket(QtCore.QObject):
 
     def bind(self, addr): self._socket.bind(addr)
 
-    def connect(self, addr, tunnel=None):
+    def connect_(self, addr, tunnel=None):
         if(tunnel):
             from zmq import ssh
             ssh.tunnel_connection(self._socket, addr, tunnel)
