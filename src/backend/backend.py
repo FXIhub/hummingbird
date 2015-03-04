@@ -32,6 +32,10 @@ class Backend(object):
         self.translator = init_translator(self.backend_conf.state)
         print 'Starting backend...'
 
+    def reload_config(self):
+        # Receive a relaod signal from the GUI and restart the backend
+        print "reload"
+        
     def mpi_init(self):
         """Initialize MPI"""
         comm = MPI.COMM_WORLD
@@ -62,5 +66,3 @@ def init_translator(state):
         return DummyTranslator(state)
     else:
         raise ValueError('Facility %s not supported' % (state['Facility']))
-
-
