@@ -5,9 +5,12 @@ import os
 import logging
 import imp
 import ipc
+import time 
 #from mpi4py import MPI
 
 class Backend(object):
+    state = None
+    conf = None
     """Coordinates data reading, translation and analysis.
     
     This is the main class of the backend of Hummingbird. It uses a light source
@@ -19,8 +22,6 @@ class Backend(object):
         config_file (str): The configuration file to load.        
     """
     def __init__(self, config_file):
-        state = None
-        conf = None
         if(config_file is None):
             # Try to load an example configuration file
             config_file = os.path.abspath(os.path.dirname(__file__)+
@@ -30,10 +31,18 @@ class Backend(object):
     
         self._config_file = config_file
         # self.backend_conf = imp.load_source('backend_conf', config_file)
-        Backend.conf = imp.load_source('backend_conf', config_file)
-        Backend.state = Backend.conf.state
+        self.load_conf()
         self.translator = init_translator(Backend.state)
         print 'Starting backend...'
+
+    def load_conf(self):        
+        Backend.conf = imp.load_source('backend_conf', self._config_file)
+        if(Backend.state is None):
+            Backend.state = Backend.conf.state
+        else:
+            # Only copy the keys that exist in the newly loaded state
+            for k in Backend.conf.state:
+                Backend.state[k] = Backend.conf.state[k]
 
     def mpi_init(self):
         """Initialize MPI"""
@@ -48,11 +57,25 @@ class Backend(object):
         get events from the translator and process them as fast as possible.
         """
         Backend.state['running'] = True
-        while(Backend.state['running']):
-            evt = self.translator.nextEvent()
-            ipc.set_current_event(evt)
-            Backend.conf.onEvent(evt)
+        self.event_loop()
             
+    def event_loop(self):
+        while(True):
+            try:
+                while(Backend.state['running']):
+                    evt = self.translator.nextEvent()
+                    ipc.set_current_event(evt)
+                    Backend.conf.onEvent(evt)
+            except KeyboardInterrupt:  
+                try:
+                    print "Hit Ctrl+c again in the next second to quit..."
+                    time.sleep(1)
+                    print "Reloading configuration file."                
+                    self.load_conf()
+                except KeyboardInterrupt:  
+                    print "Exiting..."
+                    break
+
         
 def init_translator(state):
     if('Facility' not in state):
