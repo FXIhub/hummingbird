@@ -7,7 +7,6 @@ import imp
 import ipc
 #from mpi4py import MPI
 
-
 class Backend(object):
     """Coordinates data reading, translation and analysis.
     
@@ -20,6 +19,8 @@ class Backend(object):
         config_file (str): The configuration file to load.        
     """
     def __init__(self, config_file):
+        state = None
+        conf = None
         if(config_file is None):
             # Try to load an example configuration file
             config_file = os.path.abspath(os.path.dirname(__file__)+
@@ -28,8 +29,10 @@ class Backend(object):
                             "Loading example configuration from %s" % (config_file))
     
         self._config_file = config_file
-        self.backend_conf = imp.load_source('backend_conf', config_file)
-        self.translator = init_translator(self.backend_conf.state)
+        # self.backend_conf = imp.load_source('backend_conf', config_file)
+        Backend.conf = imp.load_source('backend_conf', config_file)
+        Backend.state = Backend.conf.state
+        self.translator = init_translator(Backend.state)
         print 'Starting backend...'
 
     def mpi_init(self):
@@ -44,11 +47,11 @@ class Backend(object):
         Sets ``state['running']`` to True. While ``state['running']`` is True, it will
         get events from the translator and process them as fast as possible.
         """
-        self.backend_conf.state['running'] = True
-        while(self.backend_conf.state['running']):
+        Backend.state['running'] = True
+        while(Backend.state['running']):
             evt = self.translator.nextEvent()
             ipc.set_current_event(evt)
-            self.backend_conf.onEvent(evt)
+            Backend.conf.onEvent(evt)
             
         
 def init_translator(state):
