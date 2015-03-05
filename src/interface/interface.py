@@ -24,8 +24,7 @@ class Interface(QtGui.QMainWindow):
         self.settings = QtCore.QSettings()
         self._init_geometry()
         self._init_menus()
-        # self._init_data_sources()
-        # BD: This causes problems right now, maybe we can fix this later
+        self._init_data_sources()
         self._init_connections()
         self._init_timer()
 
