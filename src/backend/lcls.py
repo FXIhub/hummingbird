@@ -18,6 +18,12 @@ class LCLSTranslator(object):
                              " in the configuration")
         else:
             self.ds = psana.DataSource(state['LCLS/DataSource'])
+        
+        if('LCLS/PsanaConf' in state):
+            config_file = os.path.abspath(os.path.dirname(__file__)+
+                                          "/../../examples/"+ 
+                                          state['LCLS/PsanaConf'])
+            psana.setConfigFile(config_file)
 
         # Define how to translate between LCLS types and Hummingbird ones
         self._n2c = {}

@@ -36,7 +36,7 @@ class Backend(object):
         print 'Starting backend...'
 
     def load_conf(self):        
-        Backend.conf = imp.load_source('backend_conf', self._config_file)
+        Backend.conf = imp.load_source('backend_conf', self._config_file)        
         if(Backend.state is None):
             Backend.state = Backend.conf.state
         else:
