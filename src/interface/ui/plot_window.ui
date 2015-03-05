@@ -261,7 +261,7 @@
      <x>0</x>
      <y>0</y>
      <width>534</width>
-     <height>22</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuData_Sources">
@@ -269,8 +269,44 @@
      <string>Data Sources</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionLegend_Box"/>
+    <addaction name="actionX_axis"/>
+    <addaction name="actionY_axis"/>
+   </widget>
    <addaction name="menuData_Sources"/>
+   <addaction name="menuView"/>
   </widget>
+  <action name="actionLegend_Box">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Legend Box</string>
+   </property>
+  </action>
+  <action name="actionX_axis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>X axis</string>
+   </property>
+  </action>
+  <action name="actionY_axis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Y axis</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>

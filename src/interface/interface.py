@@ -54,7 +54,8 @@ class Interface(QtGui.QMainWindow):
         self._new_image_action.triggered.connect(self._new_plot_triggered)
 
     def _init_data_sources(self):
-        if(self.settings.contains("dataSources")):
+        if(self.settings.contains("dataSources") and 
+           self.settings.value("dataSources") is not None):
             for ds in self.settings.value("dataSources"):
                 ds = DataSource(self, ds[0], ds[1], ds[2])
                 if(ds.connected):

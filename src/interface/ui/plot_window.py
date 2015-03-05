@@ -12,13 +12,17 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         self.setupUi(self)
         self.plot = pyqtgraph.PlotWidget(self.plotFrame, antialiasing=True)
         self.plot.hideAxis('bottom')
-        self.legend = self.plot.addLegend()
+        self.legend = self.plot.addLegend()        
+        self.legend.hide()
         layout = QtGui.QVBoxLayout(self.plotFrame)
         layout.addWidget(self.plot)
         icon_path = os.path.dirname(os.path.realpath(__file__)) + "/../images/logo_48_transparent.png"
         icon = QtGui.QPixmap(icon_path); 
         self.logoLabel.setPixmap(icon)
         self.menuData_Sources.aboutToShow.connect(self.onMenuShow)
+        self.actionLegend_Box.triggered.connect(self.onViewLegendBox)
+        self.actionX_axis.triggered.connect(self.onViewXAxis)
+        self.actionY_axis.triggered.connect(self.onViewYAxis)
         self._enabled_sources = []
     def onMenuShow(self):
         # Go through all the available data sources and add them
@@ -38,7 +42,27 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
                         action.setChecked(False)
                     menu.addAction(action)
                     action.triggered.connect(self._source_key_triggered)
-                    
+
+    def onViewLegendBox(self):
+        action = self.sender()
+        if(action.isChecked()):
+            self.legend.show()
+        else:
+            self.legend.hide()
+
+    def onViewXAxis(self):
+        action = self.sender()
+        if(action.isChecked()):
+            self.plot.showAxis('bottom')
+        else:
+            self.plot.hideAxis('bottom')
+
+    def onViewYAxis(self):
+        action = self.sender()
+        if(action.isChecked()):
+            self.plot.showAxis('left')
+        else:
+            self.plot.hideAxis('left')
 
     def _source_key_triggered(self):
         action = self.sender()
