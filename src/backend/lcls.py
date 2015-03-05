@@ -13,17 +13,21 @@ from . import ureg
 
 class LCLSTranslator(object):    
     def __init__(self, state):
+        if('LCLS/PsanaConf' in state):
+            config_file = os.path.abspath(os.path.dirname(__file__)+
+                                          "/../../examples/cxic9714/"+ 
+                                          state['LCLS/PsanaConf'])
+            if(not os.path.isfile(config_file)):
+                raise RuntimeError("Could not find LCLS/PsanaConf: %s" %(config_file))
+            print config_file
+            psana.setConfigFile(config_file)
+
         if('LCLS/DataSource' not in state):
             raise ValueError("You need to set the 'LCLS/DataSource'"
                              " in the configuration")
         else:
             self.ds = psana.DataSource(state['LCLS/DataSource'])
         
-        if('LCLS/PsanaConf' in state):
-            config_file = os.path.abspath(os.path.dirname(__file__)+
-                                          "/../../examples/"+ 
-                                          state['LCLS/PsanaConf'])
-            psana.setConfigFile(config_file)
 
         # Define how to translate between LCLS types and Hummingbird ones
         self._n2c = {}
@@ -35,6 +39,7 @@ class LCLSTranslator(object):
         self._n2c[psana.Bld.BldDataEBeamV5] = 'photonEnergies'
         self._n2c[psana.Bld.BldDataEBeamV6] = 'photonEnergies'
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
+        self._n2c[psana.ndarray_int16_2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
         self._n2c[psana.Acqiris.DataDescV1] = 'ionTOFs'
         self._n2c[psana.EventId] = 'eventID'
@@ -82,7 +87,7 @@ class LCLSTranslator(object):
             event_keys = evt.keys()
             for k in event_keys:
                 if(k.type() in native_keys):
-                    obj = evt.get(k.type(), k.src())
+                    obj = evt.get(k.type(), k.src(), k.key())
                     if(type(obj) is psana.Bld.BldDataFEEGasDetEnergy):
                         self.trBldDataFEEGasDetEnergy(values, obj)
                     elif(key == 'photonEnergies'):
@@ -97,7 +102,11 @@ class LCLSTranslator(object):
                         self.trEventID(values, obj)
                     elif(type(obj) is psana.EvrData.DataV3):
                         self.trEventCodes(values, obj)
+                    elif(type(obj) is numpy.ndarray):
+                        self.trNdArray(values, obj, k)
                     else:
+                        print type(obj)
+                        print k
                         raise RuntimeError('%s not yet supported' % (type(obj)))
             return values        
         elif(key == 'parameters'):
@@ -199,6 +208,9 @@ class LCLSTranslator(object):
             codes.append(fifoEvent.eventCode())
 
         addRecord(values, 'EvrEventCodes', codes)
+
+    def trNdArray(self, values, obj, evtKey):
+        addRecord(values, str(evtKey.src()) + evtKey.key(), obj, ureg.ADU)
 
     def trEPICS(self):
         return EPICSdict(self.ds.env().epicsStore())
