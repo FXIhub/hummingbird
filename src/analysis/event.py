@@ -36,7 +36,8 @@ eventFiducialDeque = collections.deque([],100)
 def plotFiducial(eventID):
     for k,v in eventID.iteritems():
         eventFiducialDeque.append(v.fiducials)
-        ipc.set_data("Event Fiducials", eventFiducialDeque)
+        #ipc.set_data("Event Fiducials", eventFiducialDeque)
+        ipc.new_data(k, v.fiducials)
 
 processingTimes = collections.deque([], 100)
 

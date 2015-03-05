@@ -25,18 +25,20 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         self.menuData_Sources.clear()
         for ds in self._parent._data_sources:
             menu =  self.menuData_Sources.addMenu(ds.name())
-            for key in ds.keys:
-                if(ds.data_type[key] != 'scalar'):
-                    continue
-                action = QtGui.QAction(key, self)
-                action.setData([ds,key])
-                action.setCheckable(True)
-                if((ds.uuid+key) in self._enabled_sources):
-                    action.setChecked(True)
-                else:
-                    action.setChecked(False)
-                menu.addAction(action)
-                action.triggered.connect(self._source_key_triggered)
+            if ds.keys is not None:
+                for key in ds.keys:
+                    if(ds.data_type[key] != 'scalar'):
+                        continue
+                    action = QtGui.QAction(key, self)
+                    action.setData([ds,key])
+                    action.setCheckable(True)
+                    if((ds.uuid+key) in self._enabled_sources):
+                        action.setChecked(True)
+                    else:
+                        action.setChecked(False)
+                    menu.addAction(action)
+                    action.triggered.connect(self._source_key_triggered)
+                    
 
     def _source_key_triggered(self):
         action = self.sender()
