@@ -4,6 +4,7 @@ import numpy
 from numpy import abs
 from backend import Backend
 
+
 def plotMeanPhotonMap(nrPhotons, paramX, paramY):
     if(Backend.state['meanPhotonMap/initialize']):
         global photonMap, photonMapX, photonMapY, photonMapN
@@ -18,4 +19,6 @@ def plotMeanPhotonMap(nrPhotons, paramX, paramY):
     photonMap[abs(photonMapY - paramY).argmin(), abs(photonMapX - paramX).argmin()] += nrPhotons
     photonMapN += 1
     if(not photonMapN % Backend.state["meanPhotonMap/updateRate"]):
+        print photonMap.shape
+        print photonMap/float(photonMapN)
         ipc.new_data('meanPhotonMap', photonMap/float(photonMapN))
