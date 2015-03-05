@@ -9,9 +9,9 @@ state = {
 }
 
 def onEvent(evt):
-    #print "Available keys: ", evt.keys()
+    print "Available keys: ", evt.keys()
     analysis.beamline.plotPulseEnergy(evt['pulseEnergies'])
     analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
-    analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
+    #analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.event.printProcessingRate(evt)
     time.sleep(1)
