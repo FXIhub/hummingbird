@@ -38,7 +38,6 @@ class LCLSTranslator(object):
         self._n2c[psana.Bld.BldDataEBeamV5] = 'photonEnergies'
         self._n2c[psana.Bld.BldDataEBeamV6] = 'photonEnergies'
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
-        self._n2c[psana.ndarray_int16_2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
         self._n2c[psana.Acqiris.DataDescV1] = 'ionTOFs'
         self._n2c[psana.EventId] = 'eventID'
@@ -102,8 +101,6 @@ class LCLSTranslator(object):
                         self.trEventID(values, obj)
                     elif(type(obj) is psana.EvrData.DataV3):
                         self.trEventCodes(values, obj)
-                    elif(type(obj) is numpy.ndarray):
-                        self.trNdArray(values, obj, k)
                     else:
                         print type(obj)
                         print k
@@ -112,8 +109,21 @@ class LCLSTranslator(object):
         elif(key == 'parameters'):
             return self.trEPICS()
         else:
-            raise RuntimeError('%s not found in event' % (key))
-
+            # check if the key matches any of the existing keys in the event
+            event_keys = evt.keys()
+            values = {}
+            found = False
+            for k in event_keys:
+                if(k.key() == key):
+                    obj = evt.get(k.type(), k.src(), k.key())
+                    found = True
+                    addRecord(values, self._s2c[str(k.src())],  
+                              obj, ureg.ADU)
+            if(found):
+                return values
+            else:
+                raise RuntimeError('%s not found in event' % (key))
+            
     def id(self, evt):
         return float(self.translate(evt,'eventID')['Timestamp'].timestamp)
 
@@ -208,9 +218,6 @@ class LCLSTranslator(object):
             codes.append(fifoEvent.eventCode())
 
         addRecord(values, 'EvrEventCodes', codes)
-
-    def trNdArray(self, values, obj, evtKey):
-        addRecord(values, str(evtKey.src()) + evtKey.key(), obj, ureg.ADU)
 
     def trEPICS(self):
         return EPICSdict(self.ds.env().epicsStore())
