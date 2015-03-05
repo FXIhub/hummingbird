@@ -4,7 +4,8 @@ import analysis.beamline
 import analysis.pixel_detector
 
 state = {
-    'Facility': 'dummy'
+    'Facility': 'dummy',
+    'squareImage' : True
 }
 
 def onEvent(evt):
