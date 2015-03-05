@@ -10,13 +10,12 @@ import numpy
 import datetime
 from pytz import timezone
 from . import ureg
+from backend import Backend
 
 class LCLSTranslator(object):    
     def __init__(self, state):
         if('LCLS/PsanaConf' in state):
-            config_file = os.path.abspath(os.path.dirname(__file__)+
-                                          "/../../examples/cxic9714/"+ 
-                                          state['LCLS/PsanaConf'])
+            config_file = Backend.state['_config_dir'] +'/'+ state['LCLS/PsanaConf']
             if(not os.path.isfile(config_file)):
                 raise RuntimeError("Could not find LCLS/PsanaConf: %s" %(config_file))
             print config_file

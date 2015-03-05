@@ -32,6 +32,8 @@ class Backend(object):
         self._config_file = config_file
         # self.backend_conf = imp.load_source('backend_conf', config_file)
         self.load_conf()
+        Backend.state['_config_file'] = config_file
+        Backend.state['_config_dir'] = os.path.dirname(config_file)
         self.translator = init_translator(Backend.state)
         print 'Starting backend...'
 
