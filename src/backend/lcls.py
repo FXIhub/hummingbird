@@ -123,7 +123,7 @@ class LCLSTranslator(object):
             if(found):
                 return values
             else:
-                print '%s not found in event' % (key))
+                print '%s not found in event' % (key)
             
     def id(self, evt):
         return float(self.translate(evt,'eventID')['Timestamp'].timestamp)

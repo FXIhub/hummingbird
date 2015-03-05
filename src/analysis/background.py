@@ -4,22 +4,26 @@ import numpy
 from numpy import abs
 from backend import Backend
 
+class MeanPhotonMap:
+    def __init__(self, conf):
+        #global photonMap, photonMapX, photonMapY, photonMapN
+        xmin, xmax = conf["paramXmin"], conf["paramXmax"]
+        ymin, ymax = conf["paramYmin"], conf["paramYmax"]
+        xbin, ybin = conf["paramXbin"], conf["paramYbin"]
+        self.photonMapX = numpy.linspace(xmin, xmax, (xmax-xmin)/float(xbin) + 1)
+        self.photonMapY = numpy.linspace(ymin, ymax, (ymax-ymin)/float(ybin) + 1)
+        self.photonMap = numpy.zeros((self.photonMapY.shape[0], self.photonMapX.shape[0]))
+        self.photonMapN = 0
 
-def plotMeanPhotonMap(nrPhotons, paramX, paramY):
-    if(Backend.state['meanPhotonMap/initialize']):
-        global photonMap, photonMapX, photonMapY, photonMapN
-        xmin, xmax = Backend.state["meanPhotonMap/paramXmin"], Backend.state["meanPhotonMap/paramXmax"]
-        ymin, ymax = Backend.state["meanPhotonMap/paramYmin"], Backend.state["meanPhotonMap/paramYmax"]
-        xbin, ybin = Backend.state["meanPhotonMap/paramXbin"], Backend.state["meanPhotonMap/paramYbin"]
-        photonMapX = numpy.linspace(xmin, xmax, (xmax-xmin)/float(xbin) + 1)
-        photonMapY = numpy.linspace(ymin, ymax, (ymax-ymin)/float(ybin) + 1)
-        photonMap = numpy.zeros((photonMapY.shape[0], photonMapX.shape[0]))
-        photonMapN = 0
-        Backend.state['meanPhotonMap/initialize'] = False
-    photonMap[abs(photonMapY - paramY).argmin(), abs(photonMapX - paramX).argmin()] += nrPhotons
-    photonMapN += 1
-    if(not photonMapN % Backend.state["meanPhotonMap/updateRate"]):
-        print photonMap.shape
-        #print photonMap/float(photonMapN)
-        print photonMap.sum(), float(photonMapN), (photonMap/float(photonMapN)).min(), (photonMap/float(photonMapN)).max()
-        ipc.new_data('meanPhotonMap', photonMap/float(photonMapN))
+    def append(self, N, X, Y):
+        self.photonMap[abs(self.photonMapY - Y.data).argmin(), abs(self.photonMapX - X.data).argmin()] += N
+        self.photonMapN += 1
+
+photonMaps = {}
+def plotMeanPhotonMap(key, conf, nrPhotons, paramX, paramY):
+    if not key in photonMaps:
+        photonMaps[key] = MeanPhotonMap(conf)
+    for k,m in photonMaps.iteritems():
+        m.append(nrPhotons, paramX, paramY)
+        if(not m.photonMapN % conf["updateRate"]):
+            ipc.new_data('meanPhotonMap_%s_%s' %(paramX.name, paramY.name), m.photonMap/float(m.photonMapN))
