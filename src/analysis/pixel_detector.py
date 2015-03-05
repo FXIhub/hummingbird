@@ -25,11 +25,10 @@ def plotDetector(detector):
         image = detector.data.reshape(sh[0]*sh[2], sh[1])
     else:
         image = detector.data
-    print image.shape
     ipc.new_data(detector.name, image)
     
-
-def countNrPhotons(image):
+def countNrPhotons(detector):
+    image = detector.data
     return sum(image[image>Backend.state['aduThreshold']]) / float(Backend.state['aduPhoton'])
 
 """
