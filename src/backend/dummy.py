@@ -15,10 +15,12 @@ class DummyTranslator(object):
         evt['pr2'] = random.random()
         # CCD data 128px wide, 256px tall
         evt['ccd'] = numpy.random.rand(256,128)
+        evt['apX'] = (numpy.random.random() + 2.0) * 2.0
+        evt['apY'] = (numpy.random.random() + 2.0) * 2.0
         return EventTranslator(evt,self)
         
     def eventKeys(self, evt):
-        return ['pulseEnergies']
+        return ['pulseEnergies', 'parameters']
         
     def eventNativeKeys(self, evt):
         return evt.keys()
@@ -30,6 +32,9 @@ class DummyTranslator(object):
             addRecord(values, 'pulseEnergy2', evt['pr2'], ureg.mJ)
         elif(key == 'photonPixelDetectors'):            
             addRecord(values, 'CCD', evt['ccd'], ureg.ADU)
+        elif(key == 'parameters'):
+            addRecord(values, 'apertureX', evt['apX'], ureg.mm)
+            addRecord(values, 'apertureY', evt['apY'], ureg.mm)
         else:
             raise RuntimeError('%s not found in event' % (key))
         return values

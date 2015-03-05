@@ -54,6 +54,7 @@ class LCLSTranslator(object):
         self._s2c['DetInfo(CxiDs1.0:Cspad.0)'] = 'CsPad Ds1'
         self._s2c['DetInfo(CxiDsd.0:Cspad.0)'] = 'CsPad Dsd'
         self._s2c['DetInfo(CxiDs2.0:Cspad.0)'] = 'CsPad Ds2'
+        self._s2c['DetInfo(CxiDg3.0:Cspad2x2.0)'] = 'CsPad Dg3'
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.0)'] = 'Acqiris 0'
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.1)'] = 'Acqiris 1'
 
