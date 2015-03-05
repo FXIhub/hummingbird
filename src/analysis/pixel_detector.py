@@ -1,6 +1,7 @@
 from numpy import sum, mean, min, max, std
 import ipc
 import numpy
+from backend import Backend
 
 def printStatistics(detectors):
     for k,r in detectors.iteritems():
@@ -13,7 +14,10 @@ def printStatistics(detectors):
 def plotImages(detectors):
     for k,r in detectors.iteritems():
         v = r.data
-        ipc.new_data(k, v)
+        if('squareImage' in Backend.state and Backend.state['squareImage']):
+            ipc.new_data(k, v**2)
+        else:
+            ipc.new_data(k, v)
 
 """
 import numpy
