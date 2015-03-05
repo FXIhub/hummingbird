@@ -117,7 +117,7 @@ class LCLSTranslator(object):
                 if(k.key() == key):
                     obj = evt.get(k.type(), k.src(), k.key())
                     found = True
-                    addRecord(values, self._s2c[str(k.src())],  
+                    addRecord(values, self._s2c[str(k.src())] + ' ['+key+']',  
                               obj, ureg.ADU)
             if(found):
                 return values
