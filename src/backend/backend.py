@@ -88,5 +88,3 @@ def init_translator(state):
         return DummyTranslator(state)
     else:
         raise ValueError('Facility %s not supported' % (state['Facility']))
-
-

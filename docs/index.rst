@@ -14,7 +14,9 @@ asking to be added to the team.
 Getting Started
 ~~~~~~~~~~~~~~~
 
-To be able to contribute first you need a copy of the repository:
+To be able to contribute first you need a copy of the repository. If
+you have not done so already submit your rsa public key to bitbucket
+under Mange/SSH keys and then clone the repository:
 
 ::
 

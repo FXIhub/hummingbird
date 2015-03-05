@@ -29,6 +29,8 @@ class Interface(QtGui.QMainWindow):
         self._init_connections()
         self._init_timer()
 
+    # Inititialization
+    # ----------------
     def _init_geometry(self):
         if(self.settings.contains("geometry")):
             self.restoreGeometry(self.settings.value("geometry"))
@@ -68,7 +70,17 @@ class Interface(QtGui.QMainWindow):
         self._replot_timer.setInterval(1000) # Replot every 100 ms
         self._replot_timer.timeout.connect(self._replot)
         self._replot_timer.start()
-        
+
+    # Add backends to the GUI
+    # -------------------------
+    def add_backend_to_menu(self, ds):
+        action = QtGui.QAction(ds.name(), self)
+        action.setData(ds)
+        action.setCheckable(True)
+        action.setChecked(True)        
+        self._backends_menu.addAction(action)
+        action.triggered.connect(self._data_source_triggered)
+
     def _add_backend_triggered(self):
         diag = AddBackendDialog(self)
         if(diag.exec_()):
@@ -81,14 +93,8 @@ class Interface(QtGui.QMainWindow):
             if(ds.connected):
                 self._data_sources.append(ds)
 
-    def add_backend_to_menu(self, ds):
-        action = QtGui.QAction(ds.name(), self)
-        action.setData(ds)
-        action.setCheckable(True)
-        action.setChecked(True)        
-        self._backends_menu.addAction(action)
-        action.triggered.connect(self._data_source_triggered)
-    
+    # Add plots to the GUI
+    # --------------------
     def _new_plot_triggered(self):
         if(self.sender() is self._new_plot_action):
             w = PlotWindow(self)
@@ -97,28 +103,6 @@ class Interface(QtGui.QMainWindow):
         w.show()
         self._plot_windows.append(w)
 
-    def _get_broadcast(self):
-        socket = self.sender()
-        parts = socket.recv_multipart()
-        # The first part is a key, so we discard
-        for recvd in parts[1::2]:            
-            self._process_broadcast(pickle.loads(recvd))
-
-    def _process_broadcast(self, payload):
-        # The uuid identifies the sender uniquely        
-        uuid = payload[0]
-        cmd = payload[1]
-        if(cmd == 'set_data'):
-            title = payload[2]
-            data = payload[3]
-            self.plot(str(uuid),title,data)
-
-        if(cmd == 'new_data'):
-            title = payload[2]
-            data = payload[3]
-            data_x = payload[4]
-            self.plot_append(str(uuid),title,data,data_x)
-    
     def plot(self, uuid, title, data):
         if(uuid+title not in self._plotdata):
             self._plotdata[uuid+title] = PlotData(self, uuid, '', title)
@@ -129,22 +113,8 @@ class Interface(QtGui.QMainWindow):
             self._plotdata[uuid+title] = PlotData(self, uuid, '', title)
         self._plotdata[uuid+title].append(data, data_x)
 
-    def _replot(self):
-        for p in self._plot_windows:
-            p.replot()
-
-    def closeEvent(self, event):
-        self.settings.setValue("geometry", self.saveGeometry())
-        self.settings.setValue("windowState", self.saveState())
-        ds_settings = []
-        for ds in self._data_sources:
-            ds_settings.append([ds._hostname, ds._port, ds._ssh_tunnel])        
-        self.settings.setValue("dataSources", ds_settings)
-        # Make sure settings are saved
-        del self.settings
-        # Force exit to prevent pyqtgraph from crashing
-        os._exit(0)
-
+    # Add data sources to the plots
+    # -----------------------------
     def addSource(self, source):
         menu =  self._backends_menu.addMenu(source.name())
         for key in source.keys:            
@@ -170,6 +140,52 @@ class Interface(QtGui.QMainWindow):
             self._data_sources.append(ds)
         else:
             self._data_sources.remove(ds)
+
+    # Receiving signals form broadcast
+    # --------------------------------
+    def _get_broadcast(self):
+        socket = self.sender()
+        parts = socket.recv_multipart()
+        # The first part is a key, so we discard
+        for recvd in parts[1::2]:            
+            self._process_broadcast(pickle.loads(recvd))
+            
+    def _process_broadcast(self, payload):
+        # The uuid identifies the sender uniquely        
+        uuid = payload[0]
+        cmd = payload[1]
+        if(cmd == 'set_data'):
+            title = payload[2]
+            data = payload[3]
+            self.plot(str(uuid),title,data)
+
+        if(cmd == 'new_data'):
+            title = payload[2]
+            data = payload[3]
+            data_x = payload[4]
+            self.plot_append(str(uuid),title,data,data_x)
+    
+    # Refresh plots
+    # -------------
+    def _replot(self):
+        for p in self._plot_windows:
+            p.replot()
+
+
+    # Closing the GUI
+    # ---------------
+    def closeEvent(self, event):
+        self.settings.setValue("geometry", self.saveGeometry())
+        self.settings.setValue("windowState", self.saveState())
+        ds_settings = []
+        for ds in self._data_sources:
+            ds_settings.append([ds._hostname, ds._port, ds._ssh_tunnel])        
+        self.settings.setValue("dataSources", ds_settings)
+        # Make sure settings are saved
+        del self.settings
+        # Force exit to prevent pyqtgraph from crashing
+        os._exit(0)
+
             
 def start_interface():
     """Initialize and show the Interface."""
