@@ -42,8 +42,9 @@ class DataSource(QtCore.QObject):
     def query_keys_and_type(self):
         self._ctrl_socket.send_multipart(['keys'])
         
-    def _get_command_reply(self):
-        socket=self.sender()
+    def _get_command_reply(self, socket = None):
+        if(socket is None):
+            socket=self.sender()
         reply = socket.recv_multipart()
         if(reply[0] == 'data_port'):
             self._data_port = reply[1]
@@ -51,7 +52,7 @@ class DataSource(QtCore.QObject):
             addr = "tcp://%s:%s" % (self._hostname, self._data_port)
             self._data_socket.readyRead.connect(self.parent()._get_broadcast)
             self._data_socket.connect_socket(addr, self._ssh_tunnel)
-            self.parent().add_backend_to_menu(self)
+            self.parent().add_backend(self)
             self.get_uuid()
         elif(reply[0] == 'uuid'):
             self.uuid = reply[1]

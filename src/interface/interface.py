@@ -41,8 +41,13 @@ class Interface(QtGui.QMainWindow):
 
         self._add_backend_action = QtGui.QAction("Add", self)
         self._backends_menu.addAction(self._add_backend_action)
-        self._backends_menu.addSeparator()
         self._add_backend_action.triggered.connect(self._add_backend_triggered)
+
+        self._reload_backend_action = QtGui.QAction("Reload", self)
+        self._backends_menu.addAction(self._reload_backend_action)
+        self._reload_backend_action.triggered.connect(self._reload_backend_triggered)
+
+        self._backends_menu.addSeparator()
 
         self._plots_menu = self.menuBar().addMenu(self.tr("&Plots"))
         self._new_plot_action = QtGui.QAction("New Line Plot", self)
@@ -58,8 +63,6 @@ class Interface(QtGui.QMainWindow):
            self.settings.value("dataSources") is not None):
             for ds in self.settings.value("dataSources"):
                 ds = DataSource(self, ds[0], ds[1], ds[2])
-                if(ds.connected):
-                    self._data_sources.append(ds)
             
     def _init_connections(self):
         self.plot_requested.connect(self.plot)
@@ -73,7 +76,19 @@ class Interface(QtGui.QMainWindow):
 
     # Add backends to the GUI
     # -------------------------
-    def add_backend_to_menu(self, ds):
+    def add_backend(self, ds):
+        # Add backend to menu if it's not there yet
+        # and append to _data_sources
+        actions = self._backends_menu.actions()
+        unique = True
+        for a in actions:
+            if(a.text() == ds.name()):
+                unique = False
+        if(not unique):
+            QtGui.QMessageBox.warning(self, "Duplicate backend", "Duplicate backend. Ignoring %s" % ds.name())
+            return
+
+        self._data_sources.append(ds)
         action = QtGui.QAction(ds.name(), self)
         action.setData(ds)
         action.setCheckable(True)
@@ -90,9 +105,14 @@ class Interface(QtGui.QMainWindow):
             ds = DataSource(self, diag.hostname.text(),
                             diag.port.value(),
                             ssh_tunnel)
-            if(ds.connected):
-                self._data_sources.append(ds)
 
+    def _reload_backend_triggered(self):
+        # Go through the data sources and ask for new keys
+        for ds in self._data_sources:
+            ds.query_keys_and_type()
+            # Why do I need to call this explicitly?
+            ds._get_command_reply(ds._ctrl_socket)
+            
     # Add plots to the GUI
     # --------------------
     def _new_plot_triggered(self):
