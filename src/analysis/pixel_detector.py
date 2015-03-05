@@ -19,6 +19,9 @@ def plotImages(detectors):
         else:
             ipc.new_data(k, v)
 
+def countNrPhotons(image):
+    return sum(image[image>Backend.state['aduThreshold']]) / float(Backend.state['aduPhoton'])
+
 """
 import numpy
 def slacH5ToCheetah(slacArr):

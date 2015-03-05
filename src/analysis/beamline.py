@@ -11,6 +11,7 @@ def printPhotonEnergy(photonEnergies):
 
 pulseEnergiesDeques = {}
 def plotPulseEnergy(pulseEnergies):
+    print pulseEnergiesDeques
     history_length = 100
     for k,v in pulseEnergies.iteritems():
         if(k not in pulseEnergiesDeques):
