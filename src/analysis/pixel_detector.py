@@ -19,6 +19,16 @@ def plotImages(detectors):
         else:
             ipc.new_data(k, v)
 
+def plotDetector(detector):
+    sh = detector.data.shape
+    if (detector.data.ndim == 3):
+        image = detector.data.reshape(sh[0]*sh[2], sh[1])
+    else:
+        image = detector.data
+    print image.shape
+    ipc.new_data(detector.name, image)
+    
+
 def countNrPhotons(image):
     return sum(image[image>Backend.state['aduThreshold']]) / float(Backend.state['aduPhoton'])
 

@@ -20,5 +20,6 @@ def plotMeanPhotonMap(nrPhotons, paramX, paramY):
     photonMapN += 1
     if(not photonMapN % Backend.state["meanPhotonMap/updateRate"]):
         print photonMap.shape
-        print photonMap/float(photonMapN)
+        #print photonMap/float(photonMapN)
+        print photonMap.sum(), float(photonMapN), (photonMap/float(photonMapN)).min(), (photonMap/float(photonMapN)).max()
         ipc.new_data('meanPhotonMap', photonMap/float(photonMapN))
