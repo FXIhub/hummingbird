@@ -103,6 +103,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         # There might be no data yet, so no plotdata
         if(key in self._parent._plotdata):
             pd = self._parent._plotdata[key]
+            autoLevels = self.actionAuto_Levels.isChecked()
+            autoRange = self.actionAuto_Zoom.isChecked()
             if(self.plot.image is not None):               
                 last_index = self.plot.image.shape[0]-1
                 # Only update if we're in the last index
@@ -111,7 +113,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                                        transform = QtGui.QTransform(0, 1, 0,
                                                                     1, 0, 0,
                                                                     0, 0, 1),
-                                       autoRange=False, autoLevels=False)
+                                       autoRange=autoRange, autoLevels=autoLevels)
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index)
             else:
@@ -119,7 +121,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                                    transform = QtGui.QTransform(0, 1, 0,
                                                                 1, 0, 0,
                                                                 0, 0, 1),
-                                   autoRange=False, autoLevels=False)
+                                   autoRange=autoRange, autoLevels=autoLevels)
             self.setWindowTitle(pd._title)
             self.plot.ui.roiPlot.hide()
             dt = self.get_time()
