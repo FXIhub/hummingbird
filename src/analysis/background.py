@@ -8,7 +8,7 @@ class MeanPhotonMap:
     def __init__(self, conf):
         xmin, xmax = conf["paramXmin"], conf["paramXmax"]
         ymin, ymax = conf["paramYmin"], conf["paramYmax"]
-        xbin, ybin = conf["paramXbin"], conf["paramYbin"]
+        xbin, ybin = conf["paramXstep"], conf["paramYstep"]
         self.photonMapX = numpy.linspace(xmin, xmax, (xmax-xmin)/float(xbin) + 1)
         self.photonMapY = numpy.linspace(ymin, ymax, (ymax-ymin)/float(ybin) + 1)
         self.photonMap  = numpy.zeros((self.photonMapY.shape[0], self.photonMapX.shape[0]), dtype=numpy.float)
