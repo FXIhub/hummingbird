@@ -3,6 +3,7 @@ from interface.ui import Ui_plotWindow
 import pyqtgraph
 import numpy
 import os
+import datetime
 
 class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
     lineColors = [(252, 175, 62), (114, 159, 207), (255, 255, 255), (239, 41, 41), (138, 226, 52), (173, 127, 168)]
@@ -88,17 +89,16 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
             source.unsubscribe(key)
             self._enabled_sources.remove(source.uuid+key)
 
-    def get_time(self, index=None):
-        if index is None:
-            index = self.plot.currentIndex
-        key = self._enabled_source
-        # There might be no data yet, so no plotdata
-        if(key in self._parent._plotdata):
-            pd = self._parent._plotdata[key]
-            dt = datetime.datetime.fromtimestamp(pd._x[index])
-            return dt
-        else:
-            return datetime.datetime.now()
+    def get_time(self):
+        if self._enabled_sources:
+            key = self._enabled_sources[0]
+            # There might be no data yet, so no plotdata
+            if(key in self._parent._plotdata):
+                pd = self._parent._plotdata[key]
+                dt = datetime.datetime.fromtimestamp(pd._x[-1])
+            else: dt = datetime.datetime.now()
+        else: dt = datetime.datetime.now()
+        return dt
 
     def replot(self):
         self.plot.clear()
