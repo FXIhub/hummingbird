@@ -70,6 +70,9 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
             self.plot.hideAxis('left')
 
     def onSaveToJPG(self):
+        dt = self.get_time()
+        self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
+        timestamp = '%04d%02d%02d_%02d%02d%02d' %(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
         QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' + self.plot_title + '.jpg', 'jpg')
 
     def onTitleChange(self, title):
@@ -84,6 +87,18 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         else:
             source.unsubscribe(key)
             self._enabled_sources.remove(source.uuid+key)
+
+    def get_time(self, index=None):
+        if index is None:
+            index = self.plot.currentIndex
+        key = self._enabled_source
+        # There might be no data yet, so no plotdata
+        if(key in self._parent._plotdata):
+            pd = self._parent._plotdata[key]
+            dt = datetime.datetime.fromtimestamp(pd._x[index])
+            return dt
+        else:
+            return datetime.datetime.now()
 
     def replot(self):
         self.plot.clear()
@@ -111,3 +126,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
                     self.legend.addItem(plt,pd._title)
                 color_index += 1
         self.setWindowTitle(", ".join(titlebar))
+        dt = self.get_time()
+        # Round to miliseconds
+        self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
+        self.dateLabel.setText(str(dt.date()))
