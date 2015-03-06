@@ -95,6 +95,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             pd = self._parent._plotdata[key]
             autoLevels = self.actionAuto_Levels.isChecked()
             autoRange = self.actionAuto_Zoom.isChecked()
+            if "xmin" in self._prev_source.conf[self._prev_key]:
+                print self._prev_source.conf[self._prev_key]
             if(self.plot.image is not None):               
                 last_index = self.plot.image.shape[0]-1
                 # Only update if we're in the last index

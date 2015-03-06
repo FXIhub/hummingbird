@@ -64,3 +64,4 @@ class DataSource(QtCore.QObject):
             for k in self.keys:
                 self.data_type[k] = self.conf[k]['data_type']
 
+

@@ -5,16 +5,17 @@ from numpy import abs
 from backend import Backend
 
 class MeanPhotonMap:
-    def __init__(self, conf):
-        xmin, xmax = conf["paramXmin"], conf["paramXmax"]
-        ymin, ymax = conf["paramYmin"], conf["paramYmax"]
-        xbin, ybin = conf["paramXstep"], conf["paramYstep"]
-        self.photonMapX = numpy.linspace(xmin, xmax, (xmax-xmin)/float(xbin) + 1)
-        self.photonMapY = numpy.linspace(ymin, ymax, (ymax-ymin)/float(ybin) + 1)
+    def __init__(self, key, conf):
+        xmin, xmax = conf["paramXmin"],  conf["paramXmax"]
+        ymin, ymax = conf["paramYmin"],  conf["paramYmax"]
+        xstep, ystep = conf["paramXstep"], conf["paramYstep"]
+        self.photonMapX = numpy.linspace(xmin, xmax, (xmax-xmin)/float(xstep) + 1)
+        self.photonMapY = numpy.linspace(ymin, ymax, (ymax-ymin)/float(ystep) + 1)
         self.photonMap  = numpy.zeros((self.photonMapY.shape[0], self.photonMapX.shape[0]), dtype=numpy.float)
         self.eventMap   = numpy.zeros((self.photonMapY.shape[0], self.photonMapX.shape[0]), dtype=numpy.float)
         self.meanMap    = numpy.zeros((self.photonMapY.shape[0], self.photonMapX.shape[0]), dtype=numpy.float)
         self.counter    = 0 
+        ipc.broadcast.init_data(key, data_type='image', xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax)
 
     def append(self, N, X, Y, G):
         self.photonMap[abs(self.photonMapY - Y.data).argmin(), abs(self.photonMapX - X.data).argmin()] += N
@@ -27,7 +28,7 @@ class MeanPhotonMap:
 photonMaps = {}
 def plotMeanPhotonMap(key, conf, nrPhotons, paramX, paramY, pulseEnergy):
     if not key in photonMaps:
-        photonMaps[key] = MeanPhotonMap(conf)
+        photonMaps[key] = MeanPhotonMap('meanPhotonMap_%s' %key,conf)
     m = photonMaps[key]
     m.append(nrPhotons, paramX, paramY, pulseEnergy)
     if(not m.counter % conf["updateRate"]):
