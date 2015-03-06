@@ -45,6 +45,7 @@ class LCLSTranslator(object):
         self._n2c[psana.Acqiris.DataDescV1] = 'ionTOFs'
         self._n2c[psana.EventId] = 'eventID'
         self._n2c[psana.EvrData.DataV3] = 'eventCodes'
+        self._n2c[psana.EvrData.DataV4] = 'eventCodes'
 
         # Calculate the inverse mapping
         self._c2n = {}
@@ -106,7 +107,8 @@ class LCLSTranslator(object):
                         self.trAcqiris(values, obj, k)
                     elif(type(obj) is psana.EventId):
                         self.trEventID(values, obj)
-                    elif(type(obj) is psana.EvrData.DataV3):
+                    elif(type(obj) is psana.EvrData.DataV3 or
+                         type(obj) is psana.EvrData.DataV4):
                         self.trEventCodes(values, obj)
                     else:
                         print type(obj)

@@ -29,4 +29,4 @@ def onEvent(evt):
     #analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
     #analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.event.printProcessingRate(evt)
-    #time.sleep(1)
+    time.sleep(0.1)
