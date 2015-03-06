@@ -53,6 +53,9 @@ class ZmqSocket(QtCore.QObject):
     def recv(self):
         return self._socket.recv()
 
+    def recv_json(self):
+        return self._socket.recv_json()
+
     def recv_multipart(self):
         return self._socket.recv_multipart()
 

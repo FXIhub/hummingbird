@@ -45,7 +45,7 @@ class DataSource(QtCore.QObject):
     def _get_command_reply(self, socket = None):
         if(socket is None):
             socket=self.sender()
-        reply = socket.recv_multipart()
+        reply = socket.recv_json()
         if(reply[0] == 'data_port'):
             self._data_port = reply[1]
             self._data_socket = ZmqSocket(SUB)
@@ -58,8 +58,9 @@ class DataSource(QtCore.QObject):
             self.uuid = reply[1]
             self.query_keys_and_type()
         elif(reply[0] == 'keys'):
-            reply.pop(0)
-            self.keys = reply[:len(reply)/2]
+            self.conf = reply[1]
+            self.keys = self.conf.keys()
             self.data_type = {}
-            for k,t in zip(self.keys,reply[len(reply)/2:]):                
-                self.data_type[k] = t
+            for k in self.keys:
+                self.data_type[k] = self.conf[k]['data_type']
+

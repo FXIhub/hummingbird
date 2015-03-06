@@ -6,7 +6,14 @@ _evt = None
 
 data_titles = []
 data_types = []
+data_conf = {}
 # We should probably define a schedule to transmit things, instead of doing it all the time
+
+def init_data(title, **kwds):
+    if(title in data_conf.keys()):
+        data_conf[title].update(kwds)
+    else:
+        data_conf[title] = kwds
 
 def set_data(title, data_y, data_x = None, unit=None):
     global data_titles
@@ -16,6 +23,14 @@ def set_data(title, data_y, data_x = None, unit=None):
 
 def new_data(title, data_y, data_x = None, unit=None):
     global data_titles
+    if(title not in data_conf):
+        data_conf[title] = {}
+    if('data_type' not in data_conf[title]):
+        if(isinstance(data_y,numpy.ndarray)):
+            data_conf[title]['data_type'] = 'image'
+        else:
+            data_conf[title]['data_type'] = 'scale'
+
     if(title not in data_titles):
         data_titles.append(title)
         if(isinstance(data_y,numpy.ndarray)):
