@@ -169,7 +169,7 @@ class LCLSTranslator(object):
         addRecord(values, 'f_22_ENRC', obj.f_22_ENRC(), ureg.mJ)
 
     def trLusiIpmFex(self, values, obj, evt_key):
-        addRecord(values, 'IpmFex '+evt_key.src(), obj.sum(), ureg.ADU)
+        addRecord(values, 'IpmFex '+str(evt_key.src()), obj.sum(), ureg.ADU)
 
     def trCsPad2x2(self, values, obj):
         addRecord(values, 'CsPad2x2', obj.data(), ureg.ADU)
