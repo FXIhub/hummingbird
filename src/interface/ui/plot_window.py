@@ -68,7 +68,6 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
             self.plot.hideAxis('left')
 
     def onSaveToJPG(self):
-        print self.settings.value("outputPath")
         QtGui.QPixmap.grabWidget(self.centralwidget).save(self.settings.value("outputPath") + '/screenshot.jpg', 'jpg')
 
     def _source_key_triggered(self):
