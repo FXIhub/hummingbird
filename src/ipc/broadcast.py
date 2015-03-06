@@ -29,7 +29,7 @@ def new_data(title, data_y, data_x = None, unit=None):
         if(isinstance(data_y,numpy.ndarray)):
             data_conf[title]['data_type'] = 'image'
         else:
-            data_conf[title]['data_type'] = 'scale'
+            data_conf[title]['data_type'] = 'scalar'
 
     if(title not in data_titles):
         data_titles.append(title)
