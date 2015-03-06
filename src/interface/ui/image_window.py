@@ -95,24 +95,39 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             pd = self._parent._plotdata[key]
             autoLevels = self.actionAuto_Levels.isChecked()
             autoRange = self.actionAuto_Zoom.isChecked()
+            transpose_transform = QtGui.QTransform(0, 1, 0,
+                                                   1, 0, 0,
+                                                   0, 0, 1)            
+            xmin = 0
+            ymin = 0
+            xmax = pd._y.shape[2]
+            ymax = pd._y.shape[1]
+            transform = QtGui.QTransform()
             if "xmin" in self._prev_source.conf[self._prev_key]:
-                print self._prev_source.conf[self._prev_key]
+                xmin = self._prev_source.conf[self._prev_key]['xmin']
+            if "ymin" in self._prev_source.conf[self._prev_key]:
+                ymin = self._prev_source.conf[self._prev_key]['ymin']
+            transform.translate(xmin, ymin)
+            transform.scale(1.0/xmax, 1.0/ymax)                        
+            if "xmax" in self._prev_source.conf[self._prev_key]:
+                xmax = self._prev_source.conf[self._prev_key]['xmax']
+            if "ymax" in self._prev_source.conf[self._prev_key]:
+                ymax = self._prev_source.conf[self._prev_key]['ymax']
+            transform.scale(xmax-xmin, ymax-ymin)            
+            transform = transpose_transform*transform
+
             if(self.plot.image is not None):               
                 last_index = self.plot.image.shape[0]-1
                 # Only update if we're in the last index
                 if(self.plot.currentIndex == last_index):
                     self.plot.setImage(numpy.array(pd._y), 
-                                       transform = QtGui.QTransform(0, 1, 0,
-                                                                    1, 0, 0,
-                                                                    0, 0, 1),
+                                       transform = transform,
                                        autoRange=autoRange, autoLevels=autoLevels)
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index)
             else:
                 self.plot.setImage(numpy.array(pd._y),
-                                   transform = QtGui.QTransform(0, 1, 0,
-                                                                1, 0, 0,
-                                                                0, 0, 1),
+                                   transform = transform,
                                    autoRange=autoRange, autoLevels=autoLevels)
             self.setWindowTitle(pd._title)
             self.plot.ui.roiPlot.hide()

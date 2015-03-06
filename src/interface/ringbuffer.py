@@ -32,7 +32,10 @@ class RingBuffer(object):
 
     @property
     def shape(self):
-        return (self._len)        
+        if(len(self._data.shape) == 1):
+            return (self._len)        
+        else:
+            return (self._len,)+self._data.shape[1:]
 
     def __getitem__(self, args):
         if(isinstance(args, slice)):

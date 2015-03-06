@@ -3,6 +3,7 @@ import analysis.event
 import analysis.beamline
 import analysis.background
 import analysis.pixel_detector
+import ipc
 
 state = {
     'Facility': 'dummy',
@@ -25,7 +26,7 @@ def onEvent(evt):
     #nrPhotons = analysis.pixel_detector.countNrPhotons(evt['photonPixelDetectors']['CCD'].data)
     #analysis.background.plotMeanPhotonMap(nrPhotons, evt['parameters']['apertureX'].data, evt['parameters']['apertureY'].data)    
     #print "Available keys: ", evt.keys()
-
+    ipc.broadcast.init_data('CCD', xmin=10,ymin=10)
     analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
     #analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.event.printProcessingRate(evt)
