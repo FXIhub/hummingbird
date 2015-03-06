@@ -15,9 +15,9 @@ class MeanPhotonMap:
         self.eventMap   = numpy.zeros((self.photonMapY.shape[0], self.photonMapX.shape[0]), dtype=numpy.float)
         self.meanMap    = numpy.zeros((self.photonMapY.shape[0], self.photonMapX.shape[0]), dtype=numpy.float)
 
-    def append(self, N, X, Y):
+    def append(self, N, G, X, Y):
         self.photonMap[abs(self.photonMapY - Y.data).argmin(), abs(self.photonMapX - X.data).argmin()] += N
-        self.eventMap[abs(self.photonMapY - Y.data).argmin(), abs(self.photonMapX - X.data).argmin()] += 1.
+        self.eventMap[abs(self.photonMapY - Y.data).argmin(), abs(self.photonMapX - X.data).argmin()] += G
         visited = self.eventMap != 0
         self.meanMap[visited] = self.photonMap[visited] / self.eventMap[visited]
         self.meanMap[~visited] = 1.1 * self.meanMap[visited].max()
@@ -29,5 +29,11 @@ def plotMeanPhotonMap(key, conf, nrPhotons, paramX, paramY):
     m = photonMaps[key]
     m.append(nrPhotons, paramX, paramY)
     if(not m.eventMap.sum() % conf["updateRate"]):
-        print m.meanMap.shape
         ipc.new_data('meanPhotonMap_%s' %key, m.meanMap)
+    minimum = m.meanMap.min()
+    yopt, xopt = numpy.where(m.meanMap == minimum)
+    #print ymin, xmin
+    #print "Best position for %s: x=%.2f, y=%.2f, mean=%.2f" %(key, m.photonMapX[xopt[0]], m.photonMapY[yopt[0]], minimum)
+
+def plotAperturePos(pos):
+    ipc.new_data(pos.name, pos.data)
