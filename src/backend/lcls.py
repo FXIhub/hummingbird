@@ -95,7 +95,7 @@ class LCLSTranslator(object):
                        type(obj) is psana.Bld.BldDataFEEGasDetEnergyV1):
                         self.trBldDataFEEGasDetEnergy(values, obj)
                     elif(type(obj) is psana.Lusi.IpmFexV1):
-                        self.trLusiIpmFex(values, obj)
+                        self.trLusiIpmFex(values, obj, k)
                     elif(key == 'photonEnergies'):
                         self.trBldDataEBeam(values, obj)
                     elif(type(obj) is psana.CsPad2x2.ElementV1):
@@ -166,7 +166,7 @@ class LCLSTranslator(object):
         addRecord(values, 'f_21_ENRC', obj.f_21_ENRC(), ureg.mJ)
         addRecord(values, 'f_22_ENRC', obj.f_22_ENRC(), ureg.mJ)
 
-    def trLusiIpmFex(self, values, obj):
+    def trLusiIpmFex(self, values, obj, evt_key):
         addRecord(values, 'IpmFex '+evt_key.src(), obj.sum(), ureg.ADU)
 
     def trCsPad2x2(self, values, obj):
