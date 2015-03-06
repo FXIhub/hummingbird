@@ -74,7 +74,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         dt = self.get_time()
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         timestamp = '%04d%02d%02d_%02d%02d%02d' %(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
-        QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' + self.plot_title + '.jpg', 'jpg')
+        QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' + timestamp + '_' + self.plot_title + '.jpg', 'jpg')
 
     def onTitleChange(self, title):
         self.plot_title = str(title)

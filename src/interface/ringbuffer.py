@@ -55,6 +55,8 @@ class RingBuffer(object):
                 stop += args.stop
             return self._data[start:stop:args.step]
         else:
+            if args < 0:
+                args = self._len + args
             return self._data[args+self._maxlen+self._index-self._len]
 
 
