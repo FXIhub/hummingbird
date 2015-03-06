@@ -37,6 +37,7 @@ class LCLSTranslator(object):
         self._n2c[psana.Bld.BldDataEBeamV4] = 'photonEnergies'
         self._n2c[psana.Bld.BldDataEBeamV5] = 'photonEnergies'
         self._n2c[psana.Bld.BldDataEBeamV6] = 'photonEnergies'
+        self._n2c[psana.Bld.BldDataEBeamV7] = 'photonEnergies'
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
         self._n2c[psana.Acqiris.DataDescV1] = 'ionTOFs'
