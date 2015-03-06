@@ -25,7 +25,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         self.plot_title = str(self.title.text())
         self.title.textChanged.connect(self.onTitleChange)
         self.actionSaveToJPG.triggered.connect(self.onSaveToJPG)
-        #self.actionSave_to_JPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
+        self.actionSaveToJPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
         self.actionLegend_Box.triggered.connect(self.onViewLegendBox)
         self.actionX_axis.triggered.connect(self.onViewXAxis)
         self.actionY_axis.triggered.connect(self.onViewYAxis)
@@ -85,6 +85,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         if(action.isChecked()):
             source.subscribe(key)
             self._enabled_sources.append(source.uuid+key)
+            self.title.setText(str(key))
         else:
             source.unsubscribe(key)
             self._enabled_sources.remove(source.uuid+key)

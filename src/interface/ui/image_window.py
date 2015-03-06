@@ -25,7 +25,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         self.logoLabel.setPixmap(icon)
         self.menuData_Sources.aboutToShow.connect(self.onMenuShow)
         self.actionSaveToJPG.triggered.connect(self.onSaveToJPG)
-        #self.actionSave_to_JPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
+        self.actionSaveToJPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
         self.plot_title = str(self.title.text())
         self.title.textChanged.connect(self.onTitleChange)
         self._enabled_source = None
@@ -68,7 +68,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             source.subscribe(key)
             self._enabled_source = source.uuid+key
             self._prev_source = source
-            self._prev_key = key            
+            self._prev_key = key
+            self.title.setText(str(key))  
         else:
             source.unsubscribe(key)
             self._enabled_source = None
