@@ -67,3 +67,4 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                                        transform = QtGui.QTransform(0, 1, 0,
                                                                     1, 0, 0,
                                                                     0, 0, 1))
+                self.setWindowTitle(pd._title)
