@@ -15,7 +15,7 @@ class ZmqServer(object):
         self._ctrl_socket = self._context.socket(zmq.REP)
         self._ctrl_socket.bind("tcp://*:13131")
         self._ctrl_stream = zmqstream.ZMQStream(self._ctrl_socket)
-        self._ctrl_stream.on_recv_stream(self.get_command)
+        self._ctrl_stream.on_recv_stream(self.answer_command)
         ipc.uuid = ipc.hostname+':'+str(self._data_port)
         t = threading.Thread(target=self.ioloop)
         # Make sure the program exists even when the thread exists
@@ -25,14 +25,15 @@ class ZmqServer(object):
     def send(self, title, data):
         self._data_socket.send_multipart([bytes(title),pickle.dumps(data)])
 
-    def get_command(self, stream, msg):
+    def answer_command(self, stream, msg):
         if(msg[0] == 'keys'):
-            stream.socket.send_multipart(['keys']+ipc.broadcast.data_titles+
-                                         ipc.broadcast.data_types)
+            stream.socket.send_json(['keys',ipc.broadcast.data_conf])
+#            stream.socket.send_multipart(['keys']+ipc.broadcast.data_titles+
+#                                         ipc.broadcast.data_types)
         if(msg[0] == 'data_port'):
-            stream.socket.send_multipart(['data_port',bytes(self._data_port)])
+            stream.socket.send_json(['data_port',bytes(self._data_port)])
         if(msg[0] == 'uuid'):
-            stream.socket.send_multipart(['uuid',bytes(ipc.uuid)])
+            stream.socket.send_json(['uuid',bytes(ipc.uuid)])
 
     def ioloop(self):
         ioloop.IOLoop.instance().start()
