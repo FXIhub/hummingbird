@@ -15,6 +15,7 @@ class DummyTranslator(object):
         evt['pr2'] = random.random()
         # CCD data 128px wide, 256px tall
         evt['ccd'] = numpy.random.rand(256,128)
+        evt['ccd1'] = numpy.random.rand(128,256)
         evt['apX'] = (numpy.random.random() + 2.0) * 2.0
         evt['apY'] = (numpy.random.random() + 2.0) * 2.0
         return EventTranslator(evt,self)
@@ -32,6 +33,7 @@ class DummyTranslator(object):
             addRecord(values, 'pulseEnergy2', evt['pr2'], ureg.mJ)
         elif(key == 'photonPixelDetectors'):            
             addRecord(values, 'CCD', evt['ccd'], ureg.ADU)
+            addRecord(values, 'CCD1', evt['ccd1'], ureg.ADU)
         elif(key == 'parameters'):
             addRecord(values, 'apertureX', evt['apX'], ureg.mm)
             addRecord(values, 'apertureY', evt['apY'], ureg.mm)
