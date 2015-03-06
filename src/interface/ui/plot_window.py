@@ -21,8 +21,10 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         icon = QtGui.QPixmap(icon_path); 
         self.logoLabel.setPixmap(icon)
         self.menuData_Sources.aboutToShow.connect(self.onMenuShow)
-        self.actionSave_to_JPG.triggered.connect(self.onSaveToJPG)
-        self.actionSave_to_JPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
+        self.plot_title = str(self.title.text())
+        self.title.textChanged.connect(self.onTitleChange)
+        self.actionSaveToJPG.triggered.connect(self.onSaveToJPG)
+        #self.actionSave_to_JPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
         self.actionLegend_Box.triggered.connect(self.onViewLegendBox)
         self.actionX_axis.triggered.connect(self.onViewXAxis)
         self.actionY_axis.triggered.connect(self.onViewYAxis)
@@ -68,8 +70,11 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
             self.plot.hideAxis('left')
 
     def onSaveToJPG(self):
-        QtGui.QPixmap.grabWidget(self.centralwidget).save(self.settings.value("outputPath") + '/screenshot.jpg', 'jpg')
+        QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' + self.plot_title + '.jpg', 'jpg')
 
+    def onTitleChange(self, title):
+        self.plot_title = str(title)
+        
     def _source_key_triggered(self):
         action = self.sender()
         source,key = action.data()

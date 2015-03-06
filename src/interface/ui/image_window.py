@@ -20,8 +20,10 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         icon = QtGui.QPixmap(icon_path); 
         self.logoLabel.setPixmap(icon)
         self.menuData_Sources.aboutToShow.connect(self.onMenuShow)
-        self.actionSave_to_JPG.triggered.connect(self.onSaveToJPG)
-        self.actionSave_to_JPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
+        self.actionSaveToJPG.triggered.connect(self.onSaveToJPG)
+        #self.actionSave_to_JPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
+        self.plot_title = str(self.title.text())
+        self.title.textChanged.connect(self.onTitleChange)
         self._enabled_source = None
         self._prev_source = None
         self._prev_key = None
@@ -44,6 +46,12 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                     menu.addAction(action)
                     action.triggered.connect(self._source_key_triggered)
 
+    def onSaveToJPG(self):
+        QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' + self.plot_title + '.jpg', 'jpg')
+
+    def onTitleChange(self, title):
+        self.plot_title = str(title)
+                    
     def _source_key_triggered(self):
         action = self.sender()
         source,key = action.data()
@@ -59,9 +67,6 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             self._enabled_source = None
             self._prev_source = None
             self._prev_key = None        
-
-    def onSaveToJPG(self):
-        QtGui.QPixmap.grabWidget(self.centralwidget).save(self.settings.value("outputPath") + '.jpg', 'jpg')
 
     def replot(self):
         key = self._enabled_source
