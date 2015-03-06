@@ -90,7 +90,8 @@ class LCLSTranslator(object):
             for k in event_keys:
                 if(k.type() in native_keys):
                     obj = evt.get(k.type(), k.src(), k.key())
-                    if(type(obj) is psana.Bld.BldDataFEEGasDetEnergy):
+                    if(type(obj) is psana.Bld.BldDataFEEGasDetEnergy or
+                       type(obj) is psana.Bld.BldDataFEEGasDetEnergyV1):
                         self.trBldDataFEEGasDetEnergy(values, obj)
                     elif(key == 'photonEnergies'):
                         self.trBldDataEBeam(values, obj)
