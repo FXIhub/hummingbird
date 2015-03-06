@@ -32,6 +32,7 @@ class LCLSTranslator(object):
         self._n2c = {}
         self._n2c[psana.Bld.BldDataFEEGasDetEnergy] = 'pulseEnergies'
         self._n2c[psana.Bld.BldDataFEEGasDetEnergyV1] = 'pulseEnergies'
+        self._n2c[psana.Lusi.IpmFexV1] = 'pulseEnergies'
         self._n2c[psana.Bld.BldDataEBeamV1] = 'photonEnergies'
         self._n2c[psana.Bld.BldDataEBeamV2] = 'photonEnergies'
         self._n2c[psana.Bld.BldDataEBeamV3] = 'photonEnergies'
@@ -93,6 +94,8 @@ class LCLSTranslator(object):
                     if(type(obj) is psana.Bld.BldDataFEEGasDetEnergy or
                        type(obj) is psana.Bld.BldDataFEEGasDetEnergyV1):
                         self.trBldDataFEEGasDetEnergy(values, obj)
+                    elif(type(obj) is psana.Lusi.IpmFexV1):
+                        self.trLusiIpmFex(values, obj)
                     elif(key == 'photonEnergies'):
                         self.trBldDataEBeam(values, obj)
                     elif(type(obj) is psana.CsPad2x2.ElementV1):
@@ -162,6 +165,9 @@ class LCLSTranslator(object):
         addRecord(values, 'f_12_ENRC', obj.f_12_ENRC(), ureg.mJ)
         addRecord(values, 'f_21_ENRC', obj.f_21_ENRC(), ureg.mJ)
         addRecord(values, 'f_22_ENRC', obj.f_22_ENRC(), ureg.mJ)
+
+    def trLusiIpmFex(self, values, obj):
+        addRecord(values, 'IpmFex '+evt_key.src(), obj.sum(), ureg.ADU)
 
     def trCsPad2x2(self, values, obj):
         addRecord(values, 'CsPad2x2', obj.data(), ureg.ADU)
