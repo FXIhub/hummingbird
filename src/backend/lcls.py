@@ -31,6 +31,7 @@ class LCLSTranslator(object):
         # Define how to translate between LCLS types and Hummingbird ones
         self._n2c = {}
         self._n2c[psana.Bld.BldDataFEEGasDetEnergy] = 'pulseEnergies'
+        self._n2c[psana.Bld.BldDataFEEGasDetEnergyV1] = 'pulseEnergies'
         self._n2c[psana.Bld.BldDataEBeamV1] = 'photonEnergies'
         self._n2c[psana.Bld.BldDataEBeamV2] = 'photonEnergies'
         self._n2c[psana.Bld.BldDataEBeamV3] = 'photonEnergies'
