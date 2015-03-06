@@ -56,8 +56,14 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                     last_index = self.plot.image.shape[0]-1
                     # Only update if we're in the last index
                     if(self.plot.currentIndex == last_index):
-                        self.plot.setImage(numpy.array(pd._y))
+                        self.plot.setImage(numpy.array(pd._y), 
+                                           transform = QtGui.QTransform(0, 1, 0,
+                                                                        1, 0, 0,
+                                                                        0, 0, 1))
                         last_index = self.plot.image.shape[0]-1
                         self.plot.setCurrentIndex(last_index)
                 else:
-                    self.plot.setImage(numpy.array(pd._y))
+                    self.plot.setImage(numpy.array(pd._y),
+                                       transform = QtGui.QTransform(0, 1, 0,
+                                                                    1, 0, 0,
+                                                                    0, 0, 1))
