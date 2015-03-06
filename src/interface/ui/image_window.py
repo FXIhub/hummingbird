@@ -4,6 +4,8 @@ import pyqtgraph
 import numpy
 import os
 from IPython.core.debugger import Tracer
+from .ImageView import ImageView
+import datetime
 
 class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
     def __init__(self, parent = None):
@@ -11,11 +13,24 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         self._parent = parent
         self.setupUi(self)
         self.settings = QtCore.QSettings()
-        self.plot = pyqtgraph.ImageView(self.plotFrame, view=pyqtgraph.PlotItem())
+        # self.plot = pyqtgraph.GraphicsLayoutWidget()
+        # vb = self.plot.addViewBox()
+        # vb.setAspectLocked()
+        # grad = pyqtgraph.GradientEditorItem(orientation='right')
+        # self.plot.addItem(grad, 0, 1)
+        # plt = pyqtgraph.PlotItem()
+        # img = pyqtgraph.ImageItem()
+        # plt.addItem(img)
+        # vb.addItem(plt)
+        self.plot = ImageView(self.plotFrame, view=pyqtgraph.PlotItem())
         self.plot.ui.roiBtn.hide()
         self.plot.ui.normBtn.hide()
+        self.plot.ui.normBtn.hide()
+        self.plot.ui.roiPlot.hide()
+            
         layout = QtGui.QVBoxLayout(self.plotFrame)
         layout.addWidget(self.plot)
+#        self.plot = img
         icon_path = os.path.dirname(os.path.realpath(__file__)) + "/../images/logo_48_transparent.png"
         icon = QtGui.QPixmap(icon_path); 
         self.logoLabel.setPixmap(icon)
@@ -90,4 +105,9 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                                                                 1, 0, 0,
                                                                 0, 0, 1))
             self.setWindowTitle(pd._title)
+            self.plot.ui.roiPlot.hide()
+            dt = datetime.datetime.fromtimestamp(pd._x[self.plot.currentIndex])
+            # Round to miliseconds
+            self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
+            self.dateLabel.setText(str(dt.date()))
 
