@@ -22,11 +22,11 @@ state = {
 }
 
 def onEvent(evt):
-    nrPhotons = analysis.pixel_detector.countNrPhotons(evt['photonPixelDetectors']['CCD'].data)
-    analysis.background.plotMeanPhotonMap(nrPhotons, evt['parameters']['apertureX'].data, evt['parameters']['apertureY'].data)    
+    #nrPhotons = analysis.pixel_detector.countNrPhotons(evt['photonPixelDetectors']['CCD'].data)
+    #analysis.background.plotMeanPhotonMap(nrPhotons, evt['parameters']['apertureX'].data, evt['parameters']['apertureY'].data)    
     #print "Available keys: ", evt.keys()
 
-    #analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
+    analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
     #analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.event.printProcessingRate(evt)
     time.sleep(0.1)

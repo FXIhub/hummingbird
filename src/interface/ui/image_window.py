@@ -62,7 +62,10 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                     action.triggered.connect(self._source_key_triggered)
 
     def onSaveToJPG(self):
-        QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' + self.plot_title + '.jpg', 'jpg')
+        dt = self.get_time()
+        self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
+        timestamp = '%04d%02d%02d_%02d%02d%02d' %(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
+        QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' + timestamp + '_' + self.plot_title + '.jpg', 'jpg')
 
     def onTitleChange(self, title):
         self.plot_title = str(title)
@@ -83,6 +86,18 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             self._prev_source = None
             self._prev_key = None        
 
+    def get_time(self, index=None):
+        if index is None:
+            index = self.plot.currentIndex
+        key = self._enabled_source
+        # There might be no data yet, so no plotdata
+        if(key in self._parent._plotdata):
+            pd = self._parent._plotdata[key]
+            dt = datetime.datetime.fromtimestamp(pd._x[index])
+            return dt
+        else:
+            return datetime.datetime.now()
+            
     def replot(self):
         key = self._enabled_source
         # There might be no data yet, so no plotdata
@@ -106,7 +121,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                                                                 0, 0, 1))
             self.setWindowTitle(pd._title)
             self.plot.ui.roiPlot.hide()
-            dt = datetime.datetime.fromtimestamp(pd._x[self.plot.currentIndex])
+            dt = self.get_time()
             # Round to miliseconds
             self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
             self.dateLabel.setText(str(dt.date()))
