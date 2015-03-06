@@ -21,7 +21,9 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         self.menuData_Sources.aboutToShow.connect(self.onMenuShow)
         self.actionSave_to_JPG.triggered.connect(self.onSaveToJPG)
         self.actionSave_to_JPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
-        self._enabled_sources = []
+        self._enabled_source = None
+        self._prev_source = None
+        self._prev_key = None
     def onMenuShow(self):
         # Go through all the available data sources and add them
         self.menuData_Sources.clear()
@@ -34,7 +36,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                     action = QtGui.QAction(key, self)
                     action.setData([ds,key])
                     action.setCheckable(True)
-                    if((ds.uuid+key) in self._enabled_sources):
+                    if((ds.uuid+key) == self._enabled_source):
                         action.setChecked(True)
                     else:
                         action.setChecked(False)
@@ -45,33 +47,41 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         action = self.sender()
         source,key = action.data()
         if(action.isChecked()):
+            if(self._prev_source):
+                self._prev_source.unsubscribe(self._prev_key)
             source.subscribe(key)
-            self._enabled_sources.append(source.uuid+key)
+            self._enabled_source = source.uuid+key
+            self._prev_source = source
+            self._prev_key = key            
         else:
             source.unsubscribe(key)
-            self._enabled_sources.remove(source.uuid+key)
+            self._enabled_source = None
+            self._prev_source = None
+            self._prev_key = None        
 
     def onSaveToJPG(self):
         QtGui.QPixmap.grabWidget(self.centralwidget).save('screenshot.jpg', 'jpg')
 
     def replot(self):
-        for key in self._enabled_sources:
-            # There might be no data yet, so no plotdata
-            if(key in self._parent._plotdata):
-                pd = self._parent._plotdata[key]
-                if(self.plot.image is not None):               
-                    last_index = self.plot.image.shape[0]-1
-                    # Only update if we're in the last index
-                    if(self.plot.currentIndex == last_index):
-                        self.plot.setImage(numpy.array(pd._y), 
-                                           transform = QtGui.QTransform(0, 1, 0,
-                                                                        1, 0, 0,
-                                                                        0, 0, 1))
-                        last_index = self.plot.image.shape[0]-1
-                        self.plot.setCurrentIndex(last_index)
-                else:
-                    self.plot.setImage(numpy.array(pd._y),
+        key = self._enabled_source
+        # There might be no data yet, so no plotdata
+        if(key in self._parent._plotdata):
+            pd = self._parent._plotdata[key]
+            if(self.plot.image is not None):               
+                last_index = self.plot.image.shape[0]-1
+                # Only update if we're in the last index
+                if(self.plot.currentIndex == last_index):
+                    self.plot.setImage(numpy.array(pd._y), 
                                        transform = QtGui.QTransform(0, 1, 0,
                                                                     1, 0, 0,
-                                                                    0, 0, 1))
-                self.setWindowTitle(pd._title)
+                                                                    0, 0, 1),
+                                       pos=[0, 0])
+                    last_index = self.plot.image.shape[0]-1
+                    self.plot.setCurrentIndex(last_index)
+            else:
+                self.plot.setImage(numpy.array(pd._y),
+                                   transform = QtGui.QTransform(0, 1, 0,
+                                                                1, 0, 0,
+                                                                0, 0, 1))
+            self.setWindowTitle(pd._title)
+

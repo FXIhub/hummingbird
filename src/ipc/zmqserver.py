@@ -16,6 +16,7 @@ class ZmqServer(object):
         self._ctrl_socket.bind("tcp://*:13131")
         self._ctrl_stream = zmqstream.ZMQStream(self._ctrl_socket)
         self._ctrl_stream.on_recv_stream(self.get_command)
+        ipc.uuid = ipc.hostname+':'+str(self._data_port)
         t = threading.Thread(target=self.ioloop)
         # Make sure the program exists even when the thread exists
         t.daemon = True

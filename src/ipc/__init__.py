@@ -4,7 +4,7 @@ import socket
 
 _server = None
 hostname = socket.gethostname()
-uuid = uuid4()
+uuid = None
 
 def zmq():
     global _server
