@@ -28,9 +28,14 @@ def plotDetector(detector):
     #if(not counter % Backend.state["detectorUpdateRate"]):
     ipc.new_data(detector.name, image)
 
+def reshape_detector(detector):
+    central = []
+    for i in range(4):
+        central.append(detector.data[i*8+1,:,:194])
+    return numpy.hstack(central)
+    
 nrPhotons = {}    
-def countNrPhotons(detector):
-    image = detector.data
+def countNrPhotons(image):
     return sum(image[image>Backend.state['aduThreshold']]) / float(Backend.state['aduPhoton'])
 
 def plotNrPhotons(key, nrPhotons):
