@@ -13,24 +13,13 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         self._parent = parent
         self.setupUi(self)
         self.settings = QtCore.QSettings()
-        # self.plot = pyqtgraph.GraphicsLayoutWidget()
-        # vb = self.plot.addViewBox()
-        # vb.setAspectLocked()
-        # grad = pyqtgraph.GradientEditorItem(orientation='right')
-        # self.plot.addItem(grad, 0, 1)
-        # plt = pyqtgraph.PlotItem()
-        # img = pyqtgraph.ImageItem()
-        # plt.addItem(img)
-        # vb.addItem(plt)
         self.plot = ImageView(self.plotFrame, view=pyqtgraph.PlotItem())
         self.plot.ui.roiBtn.hide()
         self.plot.ui.normBtn.hide()
         self.plot.ui.normBtn.hide()
-        self.plot.ui.roiPlot.hide()
-            
+        self.plot.ui.roiPlot.hide()            
         layout = QtGui.QVBoxLayout(self.plotFrame)
         layout.addWidget(self.plot)
-#        self.plot = img
         icon_path = os.path.dirname(os.path.realpath(__file__)) + "/../images/logo_48_transparent.png"
         icon = QtGui.QPixmap(icon_path); 
         self.logoLabel.setPixmap(icon)
