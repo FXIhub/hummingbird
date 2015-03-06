@@ -10,6 +10,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         QtGui.QMainWindow.__init__(self,None)
         self._parent = parent
         self.setupUi(self)
+        self.settings = QtCore.QSettings()
         self.plot = pyqtgraph.PlotWidget(self.plotFrame, antialiasing=True)
         self.plot.hideAxis('bottom')
         self.legend = self.plot.addLegend()        
@@ -20,6 +21,8 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         icon = QtGui.QPixmap(icon_path); 
         self.logoLabel.setPixmap(icon)
         self.menuData_Sources.aboutToShow.connect(self.onMenuShow)
+        self.actionSave_to_JPG.triggered.connect(self.onSaveToJPG)
+        self.actionSave_to_JPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
         self.actionLegend_Box.triggered.connect(self.onViewLegendBox)
         self.actionX_axis.triggered.connect(self.onViewXAxis)
         self.actionY_axis.triggered.connect(self.onViewYAxis)
@@ -63,6 +66,10 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
             self.plot.showAxis('left')
         else:
             self.plot.hideAxis('left')
+
+    def onSaveToJPG(self):
+        print self.settings.value("outputPath")
+        QtGui.QPixmap.grabWidget(self.centralwidget).save(self.settings.value("outputPath") + '/screenshot.jpg', 'jpg')
 
     def _source_key_triggered(self):
         action = self.sender()

@@ -10,6 +10,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         QtGui.QMainWindow.__init__(self,None)
         self._parent = parent
         self.setupUi(self)
+        self.settings = QtCore.QSettings()
         self.plot = pyqtgraph.ImageView(self.plotFrame, view=pyqtgraph.PlotItem())
         self.plot.ui.roiBtn.hide()
         self.plot.ui.normBtn.hide()
@@ -60,7 +61,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             self._prev_key = None        
 
     def onSaveToJPG(self):
-        QtGui.QPixmap.grabWidget(self.centralwidget).save('screenshot.jpg', 'jpg')
+        QtGui.QPixmap.grabWidget(self.centralwidget).save(self.settings.value("outputPath") + '.jpg', 'jpg')
 
     def replot(self):
         key = self._enabled_source
