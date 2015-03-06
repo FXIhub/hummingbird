@@ -1,5 +1,7 @@
 import collections
 import ipc
+import numpy
+from backend import  ureg
 
 def printPulseEnergy(pulseEnergies):
     for k,v in pulseEnergies.iteritems():
@@ -9,13 +11,16 @@ def printPhotonEnergy(photonEnergies):
     for k,v in photonEnergies.iteritems():
         print "%s = %s" % (k, v.data*v.unit)
 
-pulseEnergiesDeques = {}
 def plotPulseEnergy(pulseEnergies):
-    print pulseEnergiesDeques
-    history_length = 100
     for k,v in pulseEnergies.iteritems():
-        if(k not in pulseEnergiesDeques):
-            pulseEnergiesDeques[k] = collections.deque([],history_length)
-        pulseEnergiesDeques[k].append(v.data)
         ipc.new_data(k, v.data)
 
+def averagePulseEnergies(pulseEnergies):
+    pulseEnergy = []
+    for pE in pulseEnergies.values():
+        if (pE.unit == ureg.mJ):
+            pulseEnergy.append(pE.data)
+    if pulseEnergy:
+        return numpy.mean(pulseEnergy)
+    else:
+        return 0
