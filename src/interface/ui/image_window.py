@@ -42,20 +42,16 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                     action.triggered.connect(self._source_key_triggered)
 
     def _source_key_triggered(self):
-        print self.menuData_Sources.actions()
         action = self.sender()
         source,key = action.data()
         if(action.isChecked()):
             if(self._prev_source):
                 self._prev_source.unsubscribe(self._prev_key)
-                print "Removing %s" %(self._prev_key)
-            print "Adding %s" %(key)
             source.subscribe(key)
             self._enabled_source = source.uuid+key
             self._prev_source = source
             self._prev_key = key            
         else:
-            print "Removing %s" %(key)
             source.unsubscribe(key)
             self._enabled_source = None
             self._prev_source = None
@@ -73,7 +69,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                     self.plot.setImage(numpy.array(pd._y), 
                                        transform = QtGui.QTransform(0, 1, 0,
                                                                     1, 0, 0,
-                                                                    0, 0, 1))
+                                                                    0, 0, 1),
+                                       pos=[0, 0])
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index)
             else:
