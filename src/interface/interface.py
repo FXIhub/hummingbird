@@ -5,7 +5,7 @@ import sys
 import pickle
 import pyqtgraph
 from plotdata import PlotData
-from ui import AddBackendDialog, PlotWindow, ImageWindow
+from ui import AddBackendDialog, PreferencesDialog, PlotWindow, ImageWindow
 from data_source import DataSource
 import os
 
@@ -36,7 +36,7 @@ class Interface(QtGui.QMainWindow):
         if(self.settings.contains("windowState")):
             self.restoreState(self.settings.value("windowState"))
             
-    def _init_menus(self):
+    def _init_menus(self):        
         self._backends_menu = self.menuBar().addMenu(self.tr("&Backends"))
 
         self._add_backend_action = QtGui.QAction("Add", self)
@@ -57,6 +57,11 @@ class Interface(QtGui.QMainWindow):
         self._new_image_action = QtGui.QAction("New Image Plot", self)
         self._plots_menu.addAction(self._new_image_action)
         self._new_image_action.triggered.connect(self._new_plot_triggered)
+
+        self._options_menu = self.menuBar().addMenu(self.tr("&Options"))
+        self._preferences_action = QtGui.QAction("Preferences", self)
+        self._options_menu.addAction(self._preferences_action)
+        self._preferences_action.triggered.connect(self._preferencesClicked)
 
     def _init_data_sources(self):
         if(self.settings.contains("dataSources") and 
@@ -191,7 +196,14 @@ class Interface(QtGui.QMainWindow):
         for p in self._plot_windows:
             p.replot()
 
-
+    # Open preferences dialog
+    # -----------------------
+    def _preferencesClicked(self):
+        diag = PreferencesDialog(self)
+        if(diag.exec_()):
+            v = diag.outputPath.text()
+            self.settings.setValue("outputPath", v)
+            
     # Closing the GUI
     # ---------------
     def closeEvent(self, event):

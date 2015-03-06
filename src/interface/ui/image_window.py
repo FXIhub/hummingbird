@@ -19,6 +19,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         icon = QtGui.QPixmap(icon_path); 
         self.logoLabel.setPixmap(icon)
         self.menuData_Sources.aboutToShow.connect(self.onMenuShow)
+        self.actionSave_to_JPG.triggered.connect(self.onSaveToJPG)
+        self.actionSave_to_JPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
         self._enabled_sources = []
     def onMenuShow(self):
         # Go through all the available data sources and add them
@@ -48,6 +50,9 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         else:
             source.unsubscribe(key)
             self._enabled_sources.remove(source.uuid+key)
+
+    def onSaveToJPG(self):
+        QtGui.QPixmap.grabWidget(self.centralwidget).save('screenshot.jpg', 'jpg')
 
     def replot(self):
         for key in self._enabled_sources:

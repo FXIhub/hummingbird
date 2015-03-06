@@ -431,8 +431,20 @@
      <string>Data Sources</string>
     </property>
    </widget>
+   <widget class="QMenu" name="menuSave">
+    <property name="title">
+     <string>Save</string>
+    </property>
+    <addaction name="actionSave_to_JPG"/>
+   </widget>
    <addaction name="menuData_Sources"/>
+   <addaction name="menuSave"/>
   </widget>
+  <action name="actionSave_to_JPG">
+   <property name="text">
+    <string>Save to JPG</string>
+   </property>
+  </action>
  </widget>
  <resources/>
  <connections/>
