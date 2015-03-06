@@ -96,14 +96,15 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                                        transform = QtGui.QTransform(0, 1, 0,
                                                                     1, 0, 0,
                                                                     0, 0, 1),
-                                       pos=[0, 0])
+                                       autoRange=False, autoLevels=False)
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index)
             else:
                 self.plot.setImage(numpy.array(pd._y),
                                    transform = QtGui.QTransform(0, 1, 0,
                                                                 1, 0, 0,
-                                                                0, 0, 1))
+                                                                0, 0, 1),
+                                   autoRange=False, autoLevels=False)
             self.setWindowTitle(pd._title)
             self.plot.ui.roiPlot.hide()
             dt = datetime.datetime.fromtimestamp(pd._x[self.plot.currentIndex])
