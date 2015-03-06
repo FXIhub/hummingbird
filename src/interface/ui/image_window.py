@@ -11,6 +11,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         self._parent = parent
         self.setupUi(self)
         self.plot = pyqtgraph.ImageView(self.plotFrame, view=pyqtgraph.PlotItem())
+        self.plot.ui.roiBtn.hide()
+        self.plot.ui.normBtn.hide()
         layout = QtGui.QVBoxLayout(self.plotFrame)
         layout.addWidget(self.plot)
         icon_path = os.path.dirname(os.path.realpath(__file__)) + "/../images/logo_48_transparent.png"
