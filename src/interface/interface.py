@@ -4,7 +4,6 @@ from Qt import QtGui, QtCore
 import sys
 import pickle
 import pyqtgraph
-from plotdata import PlotData
 from ui import AddBackendDialog, PreferencesDialog, PlotWindow, ImageWindow
 from data_source import DataSource
 import os
@@ -15,13 +14,10 @@ class Interface(QtGui.QMainWindow):
 
     Contains only menus and toolbars. The plots will be in their own windows.
     """
-    plot_requested=QtCore.Signal(str,str,list)
-    new_data=QtCore.Signal(str,str,list,list)
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         self._plot_windows = []
         self._data_sources = []
-        self._plotdata = {}
         self.settings = QtCore.QSettings()
         self._init_geometry()
         self._init_menus()
@@ -71,8 +67,7 @@ class Interface(QtGui.QMainWindow):
                 ds = DataSource(self, ds[0], ds[1], ds[2])
             
     def _init_connections(self):
-        self.plot_requested.connect(self.plot)
-        self.new_data.connect(self.plot_append)
+        pass
 
     def _init_timer(self):
         self._replot_timer = QtCore.QTimer()
@@ -129,15 +124,6 @@ class Interface(QtGui.QMainWindow):
         w.show()
         self._plot_windows.append(w)
 
-    def plot(self, uuid, title, data):
-        if(uuid+title not in self._plotdata):
-            self._plotdata[uuid+title] = PlotData(self, uuid, '', title)
-        self._plotdata[uuid+title].set_data(data)
-
-    def plot_append(self, uuid, title, data, data_x):
-        if(uuid+title not in self._plotdata):
-            self._plotdata[uuid+title] = PlotData(self, uuid, '', title)
-        self._plotdata[uuid+title].append(data, data_x)
 
     # Add data sources to the plots
     # -----------------------------
@@ -167,38 +153,6 @@ class Interface(QtGui.QMainWindow):
         else:
             self._data_sources.remove(ds)
 
-    # Receiving signals form broadcast
-    # --------------------------------
-    def _get_broadcast(self):
-        socket = self.sender()
-        socket.blockSignals(True)
-        QtCore.QCoreApplication.processEvents()
-        socket.blockSignals(False)
-        parts = socket.recv_multipart()
-        # The first part is a key, so we discard
-        for recvd in parts[1::2]:            
-            data = json.loads(recvd)
-            for i in range(len(data)):
-                if data[i] == '__ndarray__':
-                    data[i] = socket.recv_array()
-
-            self._process_broadcast(data)
-            
-    def _process_broadcast(self, payload):
-        # The uuid identifies the sender uniquely        
-        uuid = payload[0]
-        cmd = payload[1]
-        if(cmd == 'set_data'):
-            title = payload[2]
-            data = payload[3]
-            self.plot(str(uuid),title,data)
-
-        if(cmd == 'new_data'):
-            title = payload[2]
-            data = payload[3]
-            data_x = payload[4]
-            self.plot_append(str(uuid),title,data,data_x)
-    
     # Refresh plots
     # -------------
     def _replot(self):

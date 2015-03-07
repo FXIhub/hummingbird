@@ -500,6 +500,15 @@
             <property name="palette">
              <palette>
               <active>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
+                 </color>
+                </brush>
+               </colorrole>
                <colorrole role="Text">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
@@ -520,6 +529,15 @@
                </colorrole>
               </active>
               <inactive>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
+                 </color>
+                </brush>
+               </colorrole>
                <colorrole role="Text">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
@@ -540,6 +558,15 @@
                </colorrole>
               </inactive>
               <disabled>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>69</red>
+                  <green>69</green>
+                  <blue>69</blue>
+                 </color>
+                </brush>
+               </colorrole>
                <colorrole role="Text">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
@@ -562,7 +589,7 @@
              </palette>
             </property>
             <property name="text">
-             <string>TextLabel</string>
+             <string/>
             </property>
            </widget>
           </item>
@@ -679,8 +706,45 @@
               <verstretch>0</verstretch>
              </sizepolicy>
             </property>
+            <property name="palette">
+             <palette>
+              <active>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </active>
+              <inactive>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </inactive>
+              <disabled>
+               <colorrole role="WindowText">
+                <brush brushstyle="SolidPattern">
+                 <color alpha="255">
+                  <red>69</red>
+                  <green>69</green>
+                  <blue>69</blue>
+                 </color>
+                </brush>
+               </colorrole>
+              </disabled>
+             </palette>
+            </property>
             <property name="text">
-             <string>TextLabel</string>
+             <string/>
             </property>
            </widget>
           </item>
