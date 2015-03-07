@@ -116,6 +116,11 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             transform.scale(xmax-xmin, ymax-ymin)            
             transform = transpose_transform*transform
 
+            if "xlabel" in self._prev_source.conf[self._prev_key]:
+                self.plot.getView().setLabel('bottom', self._prev_source.conf[self._prev_key]['xlabel'])
+            if "ylabel" in self._prev_source.conf[self._prev_key]:
+                self.plot.getView().setLabel('left', self._prev_source.conf[self._prev_key]['ylabel'])
+                
             if(self.plot.image is not None):               
                 last_index = self.plot.image.shape[0]-1
                 # Only update if we're in the last index
