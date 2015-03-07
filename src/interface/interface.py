@@ -171,6 +171,9 @@ class Interface(QtGui.QMainWindow):
     # --------------------------------
     def _get_broadcast(self):
         socket = self.sender()
+        socket.blockSignals(True)
+        QtCore.QCoreApplication.processEvents()
+        socket.blockSignals(False)
         parts = socket.recv_multipart()
         # The first part is a key, so we discard
         for recvd in parts[1::2]:            
