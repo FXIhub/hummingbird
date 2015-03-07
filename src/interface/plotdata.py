@@ -5,10 +5,8 @@ from Qt import QtGui, QtCore
 from ui import PlotWindow
 
 class PlotData(QtCore.QObject):
-    def __init__(self, parent, source_uuid, source_hostname, title, source, maxlen = 1000):
+    def __init__(self, parent, title, source, maxlen = 1000):
         QtCore.QObject.__init__(self,parent)
-        self._uuid = source_uuid
-        self._hostname = source_hostname
         self._title = title
         self._y = None
         self._x = None

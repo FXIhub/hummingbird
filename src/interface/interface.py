@@ -131,12 +131,12 @@ class Interface(QtGui.QMainWindow):
 
     def plot(self, uuid, title, data, source):
         if(uuid+title not in self._plotdata):
-            self._plotdata[uuid+title] = PlotData(self, uuid, '', title, source)
+            self._plotdata[uuid+title] = PlotData(self, title, source)
         self._plotdata[uuid+title].set_data(data)
 
     def plot_append(self, uuid, title, data, data_x, source):
         if(uuid+title not in self._plotdata):
-            self._plotdata[uuid+title] = PlotData(self, uuid, '', title, source)
+            self._plotdata[uuid+title] = PlotData(self, title, source)
         self._plotdata[uuid+title].append(data, data_x)
 
     # Add data sources to the plots
