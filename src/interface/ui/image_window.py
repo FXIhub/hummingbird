@@ -138,6 +138,10 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                                    transform = transform,
                                    autoRange=autoRange, autoLevels=autoLevels,
                                    autoHistogramRange=autoHistogram)
+                # Make sure to go to the last image
+                last_index = self.plot.image.shape[0]-1
+                self.plot.setCurrentIndex(last_index)
+
             self.setWindowTitle(pd._title)
             self.plot.ui.roiPlot.hide()
             dt = self.get_time()
