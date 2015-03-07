@@ -5,6 +5,8 @@ from Qt import QtCore
 from zmqcontext import ZmqContext
 from zmq import FD, LINGER, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, EVENTS, \
                 POLLIN, POLLOUT, POLLERR, NOBLOCK, ZMQError, EAGAIN
+import json
+import numpy
 
 class ZmqSocket(QtCore.QObject):
     readyRead=QtCore.Signal()
@@ -62,3 +64,11 @@ class ZmqSocket(QtCore.QObject):
     def send(self, _msg): return self._socket.send(_msg)
 
     def send_multipart(self, _msg): return self._socket.send_multipart(_msg)
+
+    def recv_array(self, flags=0, copy=True, track=False):
+        """recv a numpy array"""
+        md = json.loads(self._socket.recv_multipart(flags=flags)[1])
+        msg = self._socket.recv_multipart(flags=flags, copy=copy, track=track)[1]
+        buf = buffer(msg)
+        A = numpy.frombuffer(buf, dtype=md['dtype'])
+        return A.reshape(md['shape'])
