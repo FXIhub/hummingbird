@@ -105,15 +105,15 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         self.plot.clear()
         color_index = 0
         titlebar = []
+        self.plot.plotItem.legend.items = []
+
         for key in sorted(self._enabled_sources):
             # There might be no data yet, so no plotdata
             if(key in self._parent._plotdata):
                 pd = self._parent._plotdata[key]
                 titlebar.append(pd._title)
 
-                self.legend.removeItem(key)
                 color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
-
                 source =  self._enabled_sources[key]['source']
                 source_key =  self._enabled_sources[key]['key']
                 if(self.actionX_axis.isChecked()):
@@ -127,13 +127,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
                                          y=numpy.array(pd._y, copy=False), clear=False, pen=color)
                 else:
                     plt = self.plot.plot(numpy.array(pd._y, copy=False), clear=False, pen=color)
-                found = False
-                for sample, label in self.legend.items:
-                    if(label.text == pd._title):
-                        found = True
-                        break
-                if(not found):
-                    self.legend.addItem(plt,pd._title)
+                self.legend.addItem(plt,pd._title)
                 color_index += 1
         self.setWindowTitle(", ".join(titlebar))
         dt = self.get_time()
