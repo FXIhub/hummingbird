@@ -76,7 +76,7 @@ class Interface(QtGui.QMainWindow):
 
     def _init_timer(self):
         self._replot_timer = QtCore.QTimer()
-        self._replot_timer.setInterval(10) # Replot every 100 ms
+        self._replot_timer.setInterval(1000) # Replot every 1000 ms
         self._replot_timer.timeout.connect(self._replot)
         self._replot_timer.start()
 
