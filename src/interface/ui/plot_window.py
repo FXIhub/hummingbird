@@ -29,7 +29,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         self.actionLegend_Box.triggered.connect(self.onViewLegendBox)
         self.actionX_axis.triggered.connect(self.onViewXAxis)
         self.actionY_axis.triggered.connect(self.onViewYAxis)
-        self._enabled_sources = []
+        self._enabled_sources = {}
     def onMenuShow(self):
         # Go through all the available data sources and add them
         self.menuData_Sources.clear()
@@ -42,7 +42,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
                     action = QtGui.QAction(key, self)
                     action.setData([ds,key])
                     action.setCheckable(True)
-                    if((ds.uuid+key) in self._enabled_sources):
+                    if((ds.uuid+key) in self._enabled_sources.keys()):
                         action.setChecked(True)
                     else:
                         action.setChecked(False)
@@ -84,15 +84,15 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         source,key = action.data()
         if(action.isChecked()):
             source.subscribe(key)
-            self._enabled_sources.append(source.uuid+key)
+            self._enabled_sources[source.uuid+key] = {'source': source, 'key': key}
             self.title.setText(str(key))
         else:
             source.unsubscribe(key)
-            self._enabled_sources.remove(source.uuid+key)
+            self._enabled_sources.pop(source.uuid+key)
 
     def get_time(self):
         if self._enabled_sources:
-            key = self._enabled_sources[0]
+            key = self._enabled_sources.keys()[0]
             # There might be no data yet, so no plotdata
             if(key in self._parent._plotdata):
                 pd = self._parent._plotdata[key]
@@ -105,7 +105,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         self.plot.clear()
         color_index = 0
         titlebar = []
-        for key in self._enabled_sources:
+        for key in sorted(self._enabled_sources):
             # There might be no data yet, so no plotdata
             if(key in self._parent._plotdata):
                 pd = self._parent._plotdata[key]
@@ -113,6 +113,15 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
 
                 self.legend.removeItem(key)
                 color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
+
+                source =  self._enabled_sources[key]['source']
+                source_key =  self._enabled_sources[key]['key']
+                if(self.actionX_axis.isChecked()):
+                    if 'xlabel' in source.conf[source_key]:
+                        self.plot.setLabel('bottom', source.conf[source_key]['xlabel'])                
+                if(self.actionY_axis.isChecked()):
+                    if 'ylabel' in source.conf[source_key]:
+                        self.plot.setLabel('left', source.conf[source_key]['ylabel'])
                 if(pd._x is not None):
                     plt = self.plot.plot(x=numpy.array(pd._x, copy=False),
                                          y=numpy.array(pd._y, copy=False), clear=False, pen=color)

@@ -13,6 +13,7 @@ state = {
 def onEvent(evt):
     ipc.broadcast.init_data('CCD', xmin=10,ymin=10, xmax=20,ymax=30, xlabel='foo', ylabel='bar')
     analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
+    ipc.broadcast.init_data('pulseEnergy1', xlabel='foo', ylabel='bar')
     analysis.beamline.plotPulseEnergy(evt['pulseEnergies'])
     #analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.event.printProcessingRate(evt)
