@@ -35,7 +35,7 @@ class PlotData(QtCore.QObject):
             else:
                 self._y = RingBuffer(self._maxlen) 
         if(self._x is None):
-            self._x = RingBuffer(self._maxlen) 
+            self._x = RingBuffer(self._y._maxlen)
 
         self._y.append(y)
             
