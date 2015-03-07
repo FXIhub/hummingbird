@@ -15,6 +15,7 @@ class DataSource(QtCore.QObject):
         self._ssh_tunnel = ssh_tunnel
         self.connected = False
         self._plotdata = {}
+        self._subscribed_keys = {}
         try:            
             self.connect()
             self.connected = True
@@ -24,10 +25,19 @@ class DataSource(QtCore.QObject):
         except (RuntimeError, zmq.error.ZMQError):
             QtGui.QMessageBox.warning(self.parent(), "Connection failed!", "Could not connect to %s" % self.name())
             raise
-    def subscribe(self, key):
-        self._data_socket.subscribe(bytes(key))
-    def unsubscribe(self, key):
-        self._data_socket.unsubscribe(bytes(key))
+    def subscribe(self, key, plot):
+        if key not in self._subscribed_keys:
+            self._subscribed_keys[key] = [plot]
+            self._data_socket.subscribe(bytes(key))
+        else:
+            self._subscribed_keys[key].append(plot)
+    def unsubscribe(self, key, plot):
+        self._subscribed_keys[key].remove(plot)
+        # Check if list is empty
+        if not self._subscribed_keys[key]:
+            self._data_socket.unsubscribe(bytes(key))
+            self._subscribed_keys.pop(key)
+
     def name(self):
         if(self._ssh_tunnel):
             return '%s (%s)' % (self._hostname, self._ssh_tunnel)

@@ -16,7 +16,7 @@ def onEvent(evt):
 
     t0 = time.time()
     ipc.new_data('CCD2', evt['photonPixelDetectors']['CCD2'].data)
-    ipc.new_data('CCD', evt['photonPixelDetectors']['CCD'].data, foo='bar')
+    ipc.new_data('CCD', evt['photonPixelDetectors']['CCD'].data.T, foo='bar')
     t1 = time.time()
     print 1.0/(t1-t0)
 #    analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
