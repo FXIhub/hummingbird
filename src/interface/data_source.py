@@ -15,6 +15,7 @@ class DataSource(QtCore.QObject):
         self._ssh_tunnel = ssh_tunnel
         self.connected = False
         self._plotdata = {}
+        self._params = {}
         try:            
             self.connect()
             self.connected = True
@@ -95,6 +96,11 @@ class DataSource(QtCore.QObject):
             title = payload[2]
             data = payload[3]
             data_x = payload[4]
+            params = payload[5]
+            if(title in self._params):
+                self._params[title].update(params)
+            else:
+                self._params[title] = params
             self.plot_append(str(uuid),title,data,data_x)
 
     def plot(self, uuid, title, data):

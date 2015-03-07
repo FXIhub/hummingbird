@@ -107,6 +107,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             xmax = pd._y.shape[2]
             ymax = pd._y.shape[1]
             transform = QtGui.QTransform()
+
             if "xmin" in self._prev_source.conf[self._prev_key]:
                 xmin = self._prev_source.conf[self._prev_key]['xmin']
             if "ymin" in self._prev_source.conf[self._prev_key]:
