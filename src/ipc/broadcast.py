@@ -4,8 +4,6 @@ import ipc
 _evt_counter = 0
 _evt = None
 
-data_titles = []
-data_types = []
 data_conf = {}
 # We should probably define a schedule to transmit things, instead of doing it all the time
 
@@ -16,13 +14,6 @@ def init_data(title, **kwds):
         data_conf[title] = kwds
 
 def set_data(title, data_y, data_x = None, unit=None):
-    global data_titles
-    if(title not in data_titles):
-        data_titles.append(title)
-    ipc.zmq().send(title, [ipc.uuid, 'set_data', title, data_y])
-
-def new_data(title, data_y, data_x = None, unit=None):
-    global data_titles
     if(title not in data_conf):
         data_conf[title] = {}
     if('data_type' not in data_conf[title]):
@@ -31,12 +22,16 @@ def new_data(title, data_y, data_x = None, unit=None):
         else:
             data_conf[title]['data_type'] = 'scalar'
 
-    if(title not in data_titles):
-        data_titles.append(title)
+    ipc.zmq().send(title, [ipc.uuid, 'set_data', title, data_y])
+
+def new_data(title, data_y, data_x = None, unit=None):
+    if(title not in data_conf):
+        data_conf[title] = {}
+    if('data_type' not in data_conf[title]):
         if(isinstance(data_y,numpy.ndarray)):
-            data_types.append('image')
+            data_conf[title]['data_type'] = 'image'
         else:
-            data_types.append('scalar')
+            data_conf[title]['data_type'] = 'scalar'
 
     if(data_x is None):
         data_x = _evt.id()
