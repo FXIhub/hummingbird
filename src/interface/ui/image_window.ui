@@ -535,10 +535,11 @@
    </widget>
    <widget class="QMenu" name="menuOptions">
     <property name="title">
-     <string>Options</string>
+     <string>Settings</string>
     </property>
     <addaction name="actionAuto_Zoom"/>
     <addaction name="actionAuto_Levels"/>
+    <addaction name="actionAuto_Histogram"/>
    </widget>
    <addaction name="menuData_Sources"/>
    <addaction name="menuSave"/>
@@ -569,6 +570,17 @@
    </property>
    <property name="text">
     <string>Auto Levels</string>
+   </property>
+  </action>
+  <action name="actionAuto_Histogram">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto Histogram</string>
    </property>
   </action>
  </widget>
