@@ -784,6 +784,8 @@
     <addaction name="actionLegend_Box"/>
     <addaction name="actionX_axis"/>
     <addaction name="actionY_axis"/>
+    <addaction name="actionPoints"/>
+    <addaction name="actionLines"/>
    </widget>
    <widget class="QMenu" name="menuSave">
     <property name="title">
@@ -825,6 +827,25 @@
   <action name="actionSaveToJPG">
    <property name="text">
     <string>Save to JPG</string>
+   </property>
+  </action>
+  <action name="actionPoints">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Points</string>
+   </property>
+  </action>
+  <action name="actionLines">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Lines</string>
    </property>
   </action>
  </widget>

@@ -118,6 +118,18 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
                 titlebar.append(pd._title)
 
                 color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
+                pen = None
+                symbol = None
+                symbolPen = None
+                symbolBrush = None
+                symbolSize = 3
+                if(self.actionLines.isChecked()):
+                    pen = color
+                if(self.actionPoints.isChecked()):
+                    symbol = 'o'
+                    symbolPen = color
+                    symbolBrush = color
+
                 source_key =  self._enabled_sources[key]['key']
                 if(self.actionX_axis.isChecked()):
                     if 'xlabel' in source.conf[source_key]:
@@ -127,9 +139,9 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
                         self.plot.setLabel('left', source.conf[source_key]['ylabel'])
                 if(pd._x is not None):
                     plt = self.plot.plot(x=numpy.array(pd._x, copy=False),
-                                         y=numpy.array(pd._y, copy=False), clear=False, pen=color)
+                                         y=numpy.array(pd._y, copy=False), clear=False, pen=pen, symbol=symbol, symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=symbolSize)
                 else:
-                    plt = self.plot.plot(numpy.array(pd._y, copy=False), clear=False, pen=color)
+                    plt = self.plot.plot(numpy.array(pd._y, copy=False), clear=False,  pen=pen, symbol=symbol, symbolPen=symbolPen, symbolBrush=symbolBrush,symbolSize=symbolSize)
                 self.legend.addItem(plt,pd._title)
                 color_index += 1
         self.setWindowTitle(", ".join(titlebar))
