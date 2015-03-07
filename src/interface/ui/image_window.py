@@ -96,6 +96,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             pd = self._parent._plotdata[key]
             autoLevels = self.actionAuto_Levels.isChecked()
             autoRange = self.actionAuto_Zoom.isChecked()
+            autoHistogram = self.actionAuto_Histogram.isChecked()
             transpose_transform = QtGui.QTransform(0, 1, 0,
                                                    1, 0, 0,
                                                    0, 0, 1)            
@@ -128,13 +129,15 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                 if(self.plot.currentIndex == last_index):
                     self.plot.setImage(numpy.array(pd._y), 
                                        transform = transform,
-                                       autoRange=autoRange, autoLevels=autoLevels)
+                                       autoRange=autoRange, autoLevels=autoLevels,
+                                       autoHistogramRange=autoHistogram)
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index)
             else:
                 self.plot.setImage(numpy.array(pd._y),
                                    transform = transform,
-                                   autoRange=autoRange, autoLevels=autoLevels)
+                                   autoRange=autoRange, autoLevels=autoLevels,
+                                   autoHistogramRange=autoHistogram)
             self.setWindowTitle(pd._title)
             self.plot.ui.roiPlot.hide()
             dt = self.get_time()
