@@ -81,9 +81,10 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         if index is None:
             index = self.plot.currentIndex
         key = self._enabled_source
+        source = self._prev_source
         # There might be no data yet, so no plotdata
-        if(key in self._parent._plotdata):
-            pd = self._parent._plotdata[key]
+        if(source is not None and key in source._plotdata):
+            pd = source._plotdata[key]
             dt = datetime.datetime.fromtimestamp(pd._x[index])
             return dt
         else:
@@ -91,9 +92,10 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             
     def replot(self):
         key = self._enabled_source
+        source = self._prev_source
         # There might be no data yet, so no plotdata
-        if(key in self._parent._plotdata):
-            pd = self._parent._plotdata[key]
+        if(source is not None and key in source._plotdata):
+            pd = source._plotdata[key]
             autoLevels = self.actionAuto_Levels.isChecked()
             autoRange = self.actionAuto_Zoom.isChecked()
             autoHistogram = self.actionAuto_Histogram.isChecked()

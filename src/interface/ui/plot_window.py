@@ -30,6 +30,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         self.actionX_axis.triggered.connect(self.onViewXAxis)
         self.actionY_axis.triggered.connect(self.onViewYAxis)
         self._enabled_sources = {}
+        
     def onMenuShow(self):
         # Go through all the available data sources and add them
         self.menuData_Sources.clear()
@@ -42,6 +43,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
                     action = QtGui.QAction(key, self)
                     action.setData([ds,key])
                     action.setCheckable(True)
+
                     if((ds.uuid+key) in self._enabled_sources.keys()):
                         action.setChecked(True)
                     else:
@@ -93,9 +95,10 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
     def get_time(self):
         if self._enabled_sources:
             key = self._enabled_sources.keys()[0]
+            source = self._enabled_sources[key]['source']
             # There might be no data yet, so no plotdata
-            if(key in self._parent._plotdata):
-                pd = self._parent._plotdata[key]
+            if(key in source._plotdata):
+                pd = source._plotdata[key]
                 dt = datetime.datetime.fromtimestamp(pd._x[-1])
             else: dt = datetime.datetime.now()
         else: dt = datetime.datetime.now()
@@ -108,13 +111,13 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         self.plot.plotItem.legend.items = []
 
         for key in sorted(self._enabled_sources):
+            source = self._enabled_sources[key]['source']
             # There might be no data yet, so no plotdata
-            if(key in self._parent._plotdata):
-                pd = self._parent._plotdata[key]
+            if(key in source._plotdata):
+                pd = source._plotdata[key]
                 titlebar.append(pd._title)
 
                 color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
-                source =  self._enabled_sources[key]['source']
                 source_key =  self._enabled_sources[key]['key']
                 if(self.actionX_axis.isChecked()):
                     if 'xlabel' in source.conf[source_key]:

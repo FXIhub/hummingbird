@@ -4,6 +4,8 @@ import zmq
 import signal
 from zmqsocket import ZmqSocket
 from time import sleep
+from plotdata import PlotData
+import json
 
 class DataSource(QtCore.QObject):
     def __init__(self, parent, hostname, port, ssh_tunnel = None):
@@ -12,6 +14,7 @@ class DataSource(QtCore.QObject):
         self._port = port
         self._ssh_tunnel = ssh_tunnel
         self.connected = False
+        self._plotdata = {}
         try:            
             self.connect()
             self.connected = True
@@ -50,7 +53,7 @@ class DataSource(QtCore.QObject):
             self._data_port = reply[1]
             self._data_socket = ZmqSocket(SUB,self)
             addr = "tcp://%s:%s" % (self._hostname, self._data_port)
-            self._data_socket.readyRead.connect(self.parent()._get_broadcast)
+            self._data_socket.readyRead.connect(self._get_broadcast)
             self._data_socket.connect_socket(addr, self._ssh_tunnel)
             self.parent().add_backend(self)
             self.get_uuid()
@@ -64,4 +67,42 @@ class DataSource(QtCore.QObject):
             for k in self.keys:
                 self.data_type[k] = self.conf[k]['data_type']
 
+    def _get_broadcast(self):
+        socket = self.sender()
+        socket.blockSignals(True)
+        QtCore.QCoreApplication.processEvents()
+        socket.blockSignals(False)
+        parts = socket.recv_multipart()
+        # The first part is a key, so we discard
+        for recvd in parts[1::2]:            
+            data = json.loads(recvd)
+            for i in range(len(data)):
+                if data[i] == '__ndarray__':
+                    data[i] = socket.recv_array()
 
+            self._process_broadcast(data)
+            
+    def _process_broadcast(self, payload):
+        # The uuid identifies the sender uniquely        
+        uuid = payload[0]
+        cmd = payload[1]
+        if(cmd == 'set_data'):
+            title = payload[2]
+            data = payload[3]
+            self.plot(str(uuid),title,data, source)
+
+        if(cmd == 'new_data'):
+            title = payload[2]
+            data = payload[3]
+            data_x = payload[4]
+            self.plot_append(str(uuid),title,data,data_x)
+
+    def plot(self, uuid, title, data):
+        if(uuid+title not in self._plotdata):
+            self._plotdata[uuid+title] = PlotData(self, title, self)
+        self._plotdata[uuid+title].set_data(data)
+
+    def plot_append(self, uuid, title, data, data_x):
+        if(uuid+title not in self._plotdata):
+            self._plotdata[uuid+title] = PlotData(self, title, self)
+        self._plotdata[uuid+title].append(data, data_x)

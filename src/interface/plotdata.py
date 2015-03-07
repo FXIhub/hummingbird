@@ -30,13 +30,12 @@ class PlotData(QtCore.QObject):
                 # Make sure the image ringbuffers don't take more than
                 # 200 MBs. The factor of 2 takes into account the fact
                 # that the buffer is twice as big as its usable size
-                self._y = RingBuffer(min(self._maxlen,
-                                         1024*1024*200/(2*y.nbytes)))
+                self._y = RingBuffer(max(1,min(self._maxlen,
+                                               1024*1024*200/(2*y.nbytes))))
             else:
                 self._y = RingBuffer(self._maxlen) 
         if(self._x is None):
             self._x = RingBuffer(self._y._maxlen)
 
-        self._y.append(y)
-            
+        self._y.append(y)            
         self._x.append(x)
