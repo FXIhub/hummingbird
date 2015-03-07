@@ -8,6 +8,7 @@ from plotdata import PlotData
 from ui import AddBackendDialog, PreferencesDialog, PlotWindow, ImageWindow
 from data_source import DataSource
 import os
+import json
 
 class Interface(QtGui.QMainWindow):
     """Main Window Class.
@@ -75,7 +76,7 @@ class Interface(QtGui.QMainWindow):
 
     def _init_timer(self):
         self._replot_timer = QtCore.QTimer()
-        self._replot_timer.setInterval(1000) # Replot every 100 ms
+        self._replot_timer.setInterval(10) # Replot every 100 ms
         self._replot_timer.timeout.connect(self._replot)
         self._replot_timer.start()
 
@@ -173,7 +174,12 @@ class Interface(QtGui.QMainWindow):
         parts = socket.recv_multipart()
         # The first part is a key, so we discard
         for recvd in parts[1::2]:            
-            self._process_broadcast(pickle.loads(recvd))
+            data = json.loads(recvd)
+            for i in range(len(data)):
+                if data[i] == '__ndarray__':
+                    data[i] = socket.recv_array()
+
+            self._process_broadcast(data)
             
     def _process_broadcast(self, payload):
         # The uuid identifies the sender uniquely        

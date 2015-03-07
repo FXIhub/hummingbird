@@ -3,6 +3,8 @@ import pickle
 from zmq.eventloop import ioloop, zmqstream
 import threading
 import ipc
+import numpy
+import json
 
 class ZmqServer(object):
     def __init__(self):
@@ -22,8 +24,25 @@ class ZmqServer(object):
         t.daemon = True
         t.start()
 
+
+    def send_array(self, key, A, flags=0, copy=True, track=False):
+            """send a numpy array with metadata"""
+            md = dict(
+                dtype = str(A.dtype),
+                shape = A.shape,
+            )
+            self._data_socket.send_multipart([bytes(key),json.dumps(md)], flags)
+            return self._data_socket.send_multipart([bytes(key), A], flags, copy=copy, track=track)
+
     def send(self, title, data):
-        self._data_socket.send_multipart([bytes(title),pickle.dumps(data)])
+        array_list = []
+        for i in range(len(data)):
+            if(isinstance(data[i],numpy.ndarray)):
+                array_list.append(data[i])
+                data[i] = '__ndarray__'
+        self._data_socket.send_multipart([bytes(title),json.dumps(data)])
+        for a in array_list:
+            self.send_array(title, a)
 
     def answer_command(self, stream, msg):
         if(msg[0] == 'keys'):
