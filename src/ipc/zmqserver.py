@@ -30,6 +30,7 @@ class ZmqServer(object):
             md = dict(
                 dtype = str(A.dtype),
                 shape = A.shape,
+                strides = A.strides,                
             )
             self._data_socket.send_multipart([bytes(key),json.dumps(md)], flags)
             return self._data_socket.send_multipart([bytes(key), A], flags, copy=copy, track=track)

@@ -70,5 +70,4 @@ class ZmqSocket(QtCore.QObject):
         md = json.loads(self._socket.recv_multipart(flags=flags)[1])
         msg = self._socket.recv_multipart(flags=flags, copy=copy, track=track)[1]
         buf = buffer(msg)
-        A = numpy.frombuffer(buf, dtype=md['dtype'])
-        return A.reshape(md['shape'])
+        return  numpy.ndarray(shape = md['shape'], dtype=md['dtype'], buffer = buf, strides = md['strides'])
