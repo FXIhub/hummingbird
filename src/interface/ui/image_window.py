@@ -28,6 +28,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         self.actionSaveToJPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
         self.plot_title = str(self.title.text())
         self.title.textChanged.connect(self.onTitleChange)
+        self.infoLabel.setText('')
         self._enabled_source = None
         self._prev_source = None
         self._prev_key = None
