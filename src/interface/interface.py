@@ -129,14 +129,14 @@ class Interface(QtGui.QMainWindow):
         w.show()
         self._plot_windows.append(w)
 
-    def plot(self, uuid, title, data):
+    def plot(self, uuid, title, data, source):
         if(uuid+title not in self._plotdata):
-            self._plotdata[uuid+title] = PlotData(self, uuid, '', title)
+            self._plotdata[uuid+title] = PlotData(self, uuid, '', title, source)
         self._plotdata[uuid+title].set_data(data)
 
-    def plot_append(self, uuid, title, data, data_x):
+    def plot_append(self, uuid, title, data, data_x, source):
         if(uuid+title not in self._plotdata):
-            self._plotdata[uuid+title] = PlotData(self, uuid, '', title)
+            self._plotdata[uuid+title] = PlotData(self, uuid, '', title, source)
         self._plotdata[uuid+title].append(data, data_x)
 
     # Add data sources to the plots
@@ -171,6 +171,7 @@ class Interface(QtGui.QMainWindow):
     # --------------------------------
     def _get_broadcast(self):
         socket = self.sender()
+        source = socket.parent()
         socket.blockSignals(True)
         QtCore.QCoreApplication.processEvents()
         socket.blockSignals(False)
@@ -182,22 +183,22 @@ class Interface(QtGui.QMainWindow):
                 if data[i] == '__ndarray__':
                     data[i] = socket.recv_array()
 
-            self._process_broadcast(data)
+            self._process_broadcast(data, source)
             
-    def _process_broadcast(self, payload):
+    def _process_broadcast(self, payload, source):
         # The uuid identifies the sender uniquely        
         uuid = payload[0]
         cmd = payload[1]
         if(cmd == 'set_data'):
             title = payload[2]
             data = payload[3]
-            self.plot(str(uuid),title,data)
+            self.plot(str(uuid),title,data, source)
 
         if(cmd == 'new_data'):
             title = payload[2]
             data = payload[3]
             data_x = payload[4]
-            self.plot_append(str(uuid),title,data,data_x)
+            self.plot_append(str(uuid),title,data,data_x, source)
     
     # Refresh plots
     # -------------

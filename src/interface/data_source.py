@@ -48,7 +48,7 @@ class DataSource(QtCore.QObject):
         reply = socket.recv_json()
         if(reply[0] == 'data_port'):
             self._data_port = reply[1]
-            self._data_socket = ZmqSocket(SUB)
+            self._data_socket = ZmqSocket(SUB,self)
             addr = "tcp://%s:%s" % (self._hostname, self._data_port)
             self._data_socket.readyRead.connect(self.parent()._get_broadcast)
             self._data_socket.connect_socket(addr, self._ssh_tunnel)
