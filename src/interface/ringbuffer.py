@@ -8,18 +8,27 @@ class RingBuffer(object):
         self._data = None
     def append(self, x):
         if(self._data is None):
-            try:
-                self._data = numpy.empty(tuple([2*self._maxlen]+list(x.shape)),
-                                         x.dtype)
-            except AttributeError:
-                self._data = numpy.empty([2*self._maxlen], type(x))
+            self._init_data(x)
+        try:
+            self._data[self._index] = x
+        except ValueError:
+            self._init_data(x)
+            self._index = 0
+            self._len = 0
+            self._data[self._index] = x            
 
-        self._data[self._index] = x
         self._data[self._index + self._maxlen] = x
         self._index = (self._index + 1) % self._maxlen
         if(self._len < self._maxlen):
             self._len += 1
         
+    def _init_data(self, x):
+        try:
+            self._data = numpy.empty(tuple([2*self._maxlen]+list(x.shape)),
+                                     x.dtype)
+        except AttributeError:
+            self._data = numpy.empty([2*self._maxlen], type(x))
+
     def __array__(self):
         return self._data[self._maxlen+self._index-self._len:self._maxlen+self._index]
 
