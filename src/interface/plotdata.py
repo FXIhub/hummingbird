@@ -5,16 +5,16 @@ from Qt import QtGui, QtCore
 from ui import PlotWindow
 
 class PlotData(QtCore.QObject):
-    def __init__(self, parent, title, source, maxlen = 1000):
+    def __init__(self, parent, title, maxlen = 1000):
         QtCore.QObject.__init__(self,parent)
         self._title = title
         self._y = None
         self._x = None
         self._widget = None
-        self._maxlen = maxlen
         self._parent = parent
-        if('history_length' in source.conf[title]):
-            self._maxlen = source.conf[title]['history_length']
+        self._maxlen = maxlen
+        if('history_length' in parent.conf[title]):
+            self._maxlen = parent.conf[title]['history_length']
 
     def set_data(self, yy):
         if(self._y is None):
