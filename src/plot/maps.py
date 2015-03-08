@@ -53,9 +53,9 @@ class MeanMap:
 
     def update_local_maps(self):
         rad = self.radius
-        self.localMeanMap = numpy.zeros((2*rad, 2*rad))
         self.localIntegralMap = self.integralMap[self.center[0]-rad: self.center[0]+rad+1, self.center[1]-rad:self.center[1]+rad+1].toarray()
         self.localNormMap     = self.normMap[self.center[0]-rad: self.center[0]+rad+1, self.center[1]-rad:self.center[1]+rad+1].toarray()
+        self.localMeanMap = numpy.zeros(self.localIntegralMap.shape)
         visited = self.localNormMap != 0
         self.localMeanMap[visited] = self.localIntegralMap[visited] / self.localNormMap[visited]
 
