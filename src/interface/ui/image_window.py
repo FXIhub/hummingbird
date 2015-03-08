@@ -39,7 +39,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             menu =  self.menuData_Sources.addMenu(ds.name())
             if ds.keys is not None: 
                 for key in ds.keys:
-                    if(ds.data_type[key] != 'image'):
+                    if(ds.data_type[key] != 'image' and ds.data_type[key] != 'vector'):
                         continue
                     action = QtGui.QAction(key, self)
                     action.setData([ds,key])
@@ -104,8 +104,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                                                    0, 0, 1)            
             xmin = 0
             ymin = 0
-            xmax = pd._y.shape[2]
-            ymax = pd._y.shape[1]
+            xmax = pd._y.shape[-1]
+            ymax = pd._y.shape[-2]
             transform = QtGui.QTransform()
 
             if "xmin" in self._prev_source.conf[self._prev_key]:
@@ -126,7 +126,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             if "ylabel" in self._prev_source.conf[self._prev_key]:
                 self.plot.getView().setLabel('left', self._prev_source.conf[self._prev_key]['ylabel'])
                 
-            if(self.plot.image is not None):               
+            if(self.plot.image is not None and len(self.plot.image.shape) > 2):
                 last_index = self.plot.image.shape[0]-1
                 # Only update if we're in the last index
                 if(self.plot.currentIndex == last_index):
@@ -142,9 +142,10 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                                    transform = transform,
                                    autoRange=autoRange, autoLevels=autoLevels,
                                    autoHistogramRange=autoHistogram)
-                # Make sure to go to the last image
-                last_index = self.plot.image.shape[0]-1
-                self.plot.setCurrentIndex(last_index)
+                if(len(self.plot.image.shape) > 2):
+                    # Make sure to go to the last image
+                    last_index = self.plot.image.shape[0]-1
+                    self.plot.setCurrentIndex(last_index)
 
             self.setWindowTitle(pd._title)
             self.plot.ui.roiPlot.hide()
