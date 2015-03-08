@@ -6,7 +6,6 @@ import logging
 import imp
 import ipc
 import time 
-#from mpi4py import MPI
 
 class Backend(object):
     state = None
@@ -46,12 +45,6 @@ class Backend(object):
             for k in Backend.conf.state:
                 Backend.state[k] = Backend.conf.state[k]
 
-    def mpi_init(self):
-        """Initialize MPI"""
-        comm = MPI.COMM_WORLD
-        self.rank = comm.Get_rank()
-        print "MPI rank %d inited" % rank
-
     def start(self):
         """Start the event loop.
         
@@ -60,14 +53,17 @@ class Backend(object):
         """
         Backend.state['running'] = True
         self.event_loop()
-            
+
     def event_loop(self):
         while(True):
             try:
                 while(Backend.state['running']):
-                    evt = self.translator.nextEvent()
-                    ipc.set_current_event(evt)
-                    Backend.conf.onEvent(evt)
+                    if(ipc.mpi.is_master()):
+                        ipc.mpi.master_loop()
+                    else:
+                        evt = self.translator.nextEvent()
+                        ipc.set_current_event(evt)
+                        Backend.conf.onEvent(evt)
             except KeyboardInterrupt:  
                 try:
                     print "Hit Ctrl+c again in the next second to quit..."

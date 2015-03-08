@@ -9,6 +9,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
     lineColors = [(252, 175, 62), (114, 159, 207), (255, 255, 255), (239, 41, 41), (138, 226, 52), (173, 127, 168)]
     def __init__(self, parent = None):
         QtGui.QMainWindow.__init__(self,None)
+        self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self._parent = parent
         self.setupUi(self)
         self.settings = QtCore.QSettings()
@@ -85,11 +86,11 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         action = self.sender()
         source,key = action.data()
         if(action.isChecked()):
-            source.subscribe(key)
+            source.subscribe(key,self)
             self._enabled_sources[source.uuid+key] = {'source': source, 'key': key}
             self.title.setText(str(key))
         else:
-            source.unsubscribe(key)
+            source.unsubscribe(key,self)
             self._enabled_sources.pop(source.uuid+key)
 
     def get_time(self):
@@ -149,3 +150,11 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         # Round to miliseconds
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         self.dateLabel.setText(str(dt.date()))
+
+    def closeEvent(self, event):
+        # Unsibscribe all everything
+        for d in self._enabled_sources.values():
+            d['source'].unsubscribe(d['key'],self)
+        # Remove myself from the interface plot list
+        # otherwise we'll be called also on replot
+        self._parent._plot_windows.remove(self)
