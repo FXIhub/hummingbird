@@ -22,6 +22,7 @@ def is_main_slave():
     return rank == 1
 
 def send(title, data):
+    print rank
     comm.send([title, data], 0)
 
 def master_loop():
