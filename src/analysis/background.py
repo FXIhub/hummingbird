@@ -3,7 +3,7 @@ import ipc
 import numpy
 from numpy import abs
 from backend import Backend
-from plots import MeanMap
+#from plots import MeanMap
 
 photonMaps = {}
 def plotMeanPhotonMap(key, conf, nrPhotons, paramX, paramY, pulseEnergy):
@@ -17,7 +17,9 @@ def plotMeanPhotonMap(key, conf, nrPhotons, paramX, paramY, pulseEnergy):
         m.update_local_maps()
         m.update_gridmap(paramX,paramY)
         
-        ipc.new_data(key+'overview', m.gridMap) 
+        #ipc.new_data(key+'overview', m.gridMap) 
+        
+        print m.localXmin, m.localXmax, m.localYmin, m.localYmax
         ipc.new_data(key+'local', m.localMeanMap, xmin=m.localXmin, xmax=m.localXmax, ymin=m.localYmin, ymax=m.localYmax)
 
     #minimum = m.meanMap.min()

@@ -20,7 +20,7 @@ class MeanMap:
         self.localYmax = self.yrange[Ny/2+self.radius+1]
         self.integralMap  = lil_matrix((Ny, Nx), dtype=numpy.float32)
         self.normMap      = lil_matrix((Ny, Nx), dtype=numpy.float32)
-        self.localMeanMap      = numpy.zeros((2*self.radius, 2*self.radius))
+        self.localMeanMap = numpy.zeros((2*self.radius, 2*self.radius))
 
         self.gridxrange = numpy.linspace(xmin, xmax, (xmax-xmin)/float(gridstep))
         self.gridyrange = numpy.linspace(ymin, ymax, (ymax-ymin)/float(gridstep))
@@ -46,13 +46,14 @@ class MeanMap:
         self.center = (abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin())
 
     def update_local_limits(self):
-        self.localXmin = self.xrange[self.center[1]-self.radius]
-        self.localXmax = self.xrange[self.center[1]+self.radius+1]
-        self.localYmin = self.yrange[self.center[0]-self.radius]
-        self.localYmax = self.yrange[self.center[0]+self.radius+1]
+        self.localXmin = max(self.xrange[self.center[1]-self.radius], self.xrange.min())
+        self.localXmax = min(self.xrange[self.center[1]+self.radius+1], self.xrange.max())
+        self.localYmin = max(self.yrange[self.center[0]-self.radius], self.yrange.min())
+        self.localYmax = min(self.yrange[self.center[0]+self.radius+1], self.yrange.max())
 
     def update_local_maps(self):
         rad = self.radius
+        self.localMeanMap = numpy.zeros((2*rad, 2*rad))
         self.localIntegralMap = self.integralMap[self.center[0]-rad: self.center[0]+rad+1, self.center[1]-rad:self.center[1]+rad+1].toarray()
         self.localNormMap     = self.normMap[self.center[0]-rad: self.center[0]+rad+1, self.center[1]-rad:self.center[1]+rad+1].toarray()
         visited = self.localNormMap != 0
@@ -63,3 +64,17 @@ class MeanMap:
         visited = self.gridMap != 0
         self.gridMap[visited] = 1
         self.gridMap[current] = 2
+
+meanMaps = {}
+def plotMeanMap(key, conf, paramX, paramY, paramZ, normZ):
+    if not key in meanMaps:
+        meanMaps[key] = MeanMap(key,conf)
+    m = meanMaps[key]
+    m.append(paramX, paramY, paramZ, normZ)
+    if(not m.counter % conf["updateRate"]):
+        m.update_center(paramX, paramY)
+        m.update_local_limits()
+        m.update_local_maps()
+        m.update_gridmap(paramX,paramY)        
+        ipc.new_data(key+'overview', m.gridMap) 
+        ipc.new_data(key+'local', m.localMeanMap, xmin=m.localXmin, xmax=m.localXmax, ymin=m.localYmin, ymax=m.localYmax)
