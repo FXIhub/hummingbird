@@ -39,7 +39,8 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
             menu =  self.menuData_Sources.addMenu(ds.name())
             if ds.keys is not None:
                 for key in ds.keys:
-                    if(ds.data_type[key] != 'scalar'):
+                    if(ds.data_type[key] != 'scalar' and 
+                       ds.data_type[key] != 'vector'):
                         continue
                     action = QtGui.QAction(key, self)
                     action.setData([ds,key])
@@ -138,11 +139,17 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
                 if(self.actionY_axis.isChecked()):
                     if 'ylabel' in source.conf[source_key]:
                         self.plot.setLabel('left', source.conf[source_key]['ylabel'])
-                if(pd._x is not None):
+
+                if(source.data_type[source_key] == 'scalar'):
+                    y = pd._y
+                elif(source.data_type[source_key] == 'vector'):
+                    y = pd._y[-1,:]
+
+                if(pd._x is not None and source.data_type[source_key] == 'scalar'):
                     plt = self.plot.plot(x=numpy.array(pd._x, copy=False),
-                                         y=numpy.array(pd._y, copy=False), clear=False, pen=pen, symbol=symbol, symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=symbolSize)
+                                         y=numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol, symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=symbolSize)
                 else:
-                    plt = self.plot.plot(numpy.array(pd._y, copy=False), clear=False,  pen=pen, symbol=symbol, symbolPen=symbolPen, symbolBrush=symbolBrush,symbolSize=symbolSize)
+                    plt = self.plot.plot(numpy.array(y, copy=False), clear=False,  pen=pen, symbol=symbol, symbolPen=symbolPen, symbolBrush=symbolBrush,symbolSize=symbolSize)
                 self.legend.addItem(plt,pd._title)
                 color_index += 1
         self.setWindowTitle(", ".join(titlebar))

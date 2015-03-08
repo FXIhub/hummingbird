@@ -46,7 +46,8 @@ class RingBuffer(object):
         else:
             return (self._len,)+self._data.shape[1:]
 
-    def __getitem__(self, args):
+
+    def _convert_dim(self, args):
         if(isinstance(args, slice)):
             start = self._maxlen+self._index-self._len
             if(args.start is None):
@@ -65,11 +66,19 @@ class RingBuffer(object):
                 stop += args.stop-self._len
             elif(args.stop < 0):
                 stop += args.stop
-            return self._data[start:stop:args.step]
+            return slice(start, stop, args.step)
         else:
             if args < 0:
                 args = self._len + args
-            return self._data[args+self._maxlen+self._index-self._len]
+            return args
+
+    def __getitem__(self, args):
+        if(isinstance(args, tuple)):
+            args = list(args)
+            args[0] = self._convert_dim(args[0])
+            return self._data[tuple(args)]
+        else:
+            return self._data[self._convert_dim(args)]
 
 
 
