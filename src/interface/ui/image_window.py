@@ -136,6 +136,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                                        autoHistogramRange=autoHistogram)
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index)
+
             else:
                 self.plot.setImage(numpy.array(pd._y),
                                    transform = transform,

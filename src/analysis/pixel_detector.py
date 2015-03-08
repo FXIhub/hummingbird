@@ -19,7 +19,11 @@ def plotImages(detectors):
         else:
             ipc.new_data(k, v)
 
+detectors = {}
 def plotDetector(detector):
+    if(not detector.name in detectors):
+        ipc.broadcast.init_data(detector.name, data_type='image', history_length=10)
+        detectors[detector.name] = 1
     sh = detector.data.shape
     if (detector.data.ndim == 3):
         image = detector.data.reshape(sh[0]*sh[2], sh[1])
