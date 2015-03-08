@@ -116,8 +116,9 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             else:
                 self.plot.getView().invertY(False)
 
-            if "flipy" in self._prev_source.conf[self._prev_key]:
-                self.plot.getView().invertY(not self.plot.getView().yInverted())
+            if ("flipy" in self._prev_source.conf[self._prev_key] and
+                self._prev_source.conf[self._prev_key]['flipy'] is True):
+                self.plot.getView().invertY(not self.plot.getView().getViewBox().yInverted())
 
             if "xmin" in self._prev_source.conf[self._prev_key]:
                 xmin = self._prev_source.conf[self._prev_key]['xmin']
