@@ -51,12 +51,20 @@ class MeanMap:
         self.localYmin = max(self.yrange[self.center[0]-self.radius], self.yrange.min())
         self.localYmax = min(self.yrange[self.center[0]+self.radius+1], self.yrange.max())
 
-    def update_local_maps(self):
-        rad = self.radius
+    def gather_integral_map(self):
         if(ipc.mpi.slaves_comm):
-            integralMaps = ipc.mpi.slaves_comm.gather(integralMap)
-            print integralMaps
-            print ipc.mpi.rank
+            integralMaps = ipc.mpi.slaves_comm.gather(self.integralMap)
+            normMaps = ipc.mpi.slaves_comm.gather(self.normMap)
+            if(ipc.mpi.is_main_slave()):
+                self.integralMap = integralMaps[0]
+                self.normMap = normMaps[0]
+                for i in integralMaps[1:]:
+                    self.integralMap += i
+                for n in normMaps[1:]:
+                    self.normMap += n
+
+    def update_local_maps(self):
+        rad = self.radius        
         self.localIntegralMap = self.integralMap[self.center[0]-rad: self.center[0]+rad+1, self.center[1]-rad:self.center[1]+rad+1].toarray()
         self.localNormMap     = self.normMap[self.center[0]-rad: self.center[0]+rad+1, self.center[1]-rad:self.center[1]+rad+1].toarray()
         self.localMeanMap = numpy.zeros(self.localIntegralMap.shape)
@@ -70,15 +78,17 @@ class MeanMap:
         self.gridMap[current] = 2
 
 meanMaps = {}
-def plotMeanMap(key, conf, paramX, paramY, paramZ, normZ):
+def plotMeanMap(key, conf, paramX, paramY, paramZ, normZ, msg=''):
     if not key in meanMaps:
         meanMaps[key] = MeanMap(key,conf)
     m = meanMaps[key]
     m.append(paramX, paramY, paramZ, normZ)
     if(not m.counter % conf["updateRate"]):
-        m.update_center(paramX, paramY)
-        m.update_local_limits()
-        m.update_local_maps()
-        m.update_gridmap(paramX,paramY)        
-        ipc.new_data(key+'overview', m.gridMap) 
-        ipc.new_data(key+'local', m.localMeanMap, xmin=m.localXmin, xmax=m.localXmax, ymin=m.localYmin, ymax=m.localYmax)
+        m.gather_integral_map()
+        if(ipc.mpi.size == 1 or ipc.mpi.is_main_slave()):
+            m.update_center(paramX, paramY)
+            m.update_local_limits()
+            m.update_local_maps()
+            m.update_gridmap(paramX,paramY)        
+            ipc.new_data(key+'overview', m.gridMap) 
+            ipc.new_data(key+'local', m.localMeanMap, xmin=m.localXmin, xmax=m.localXmax, ymin=m.localYmin, ymax=m.localYmax, msg=msg)
