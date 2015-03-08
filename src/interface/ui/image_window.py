@@ -136,16 +136,23 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                 ymax = self._prev_source.conf[self._prev_key]['ymax']
             transform.scale(xmax-xmin, ymax-ymin)
             # Tranpose images to make x (last dimension) horizontal
+            axis_labels = ['left','bottom']
+            xlabel_index = 0
+            ylabel_index = 1
             if self._data_type == 'image':
                 transform = transpose_transform*transform
+                xlabel_index = (xlabel_index+1)%2
+                ylabel_index = (ylabel_index+1)%2
 
             if "transpose" in self._prev_source.conf[self._prev_key]:
                 transform = transpose_transform*transform
+                xlabel_index = (xlabel_index+1)%2
+                ylabel_index = (ylabel_index+1)%2
 
             if "xlabel" in self._prev_source.conf[self._prev_key]:
-                self.plot.getView().setLabel('bottom', self._prev_source.conf[self._prev_key]['xlabel'])
+                self.plot.getView().setLabel(axis_labels[xlabel_index], self._prev_source.conf[self._prev_key]['xlabel'])
             if "ylabel" in self._prev_source.conf[self._prev_key]:
-                self.plot.getView().setLabel('left', self._prev_source.conf[self._prev_key]['ylabel'])
+                self.plot.getView().setLabel(axis_labels[ylabel_index], self._prev_source.conf[self._prev_key]['ylabel'])
                 
             if(self.plot.image is not None and len(self.plot.image.shape) > 2):
                 last_index = self.plot.image.shape[0]-1
