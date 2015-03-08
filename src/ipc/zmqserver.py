@@ -12,6 +12,7 @@ class ZmqServer(object):
         self._context = zmq.Context()
         self._data_socket = self._context.socket(zmq.PUB)
         self._data_port = 13132
+        self._data_socket.setsockopt(zmq.SNDHWM, 10)
         self._data_socket.bind("tcp://*:%d" % (self._data_port))
         ioloop.install()
         self._ctrl_socket = self._context.socket(zmq.REP)
@@ -32,8 +33,8 @@ class ZmqServer(object):
                 shape = A.shape,
                 strides = A.strides,                
             )
-            self._data_socket.send_multipart([bytes(key),json.dumps(md)], flags)
-            return self._data_socket.send_multipart([bytes(key), A], flags, copy=copy, track=track)
+            self._data_socket.send_json(md,flags|zmq.SNDMORE)
+            return self._data_socket.send(A, flags, copy=copy, track=track)
 
     def send(self, title, data):
         array_list = []
@@ -41,9 +42,16 @@ class ZmqServer(object):
             if(isinstance(data[i],numpy.ndarray)):
                 array_list.append(data[i])
                 data[i] = '__ndarray__'
-        self._data_socket.send_multipart([bytes(title),json.dumps(data)])
-        for a in array_list:
-            self.send_array(title, a)
+        self._data_socket.send(bytes(title), zmq.SNDMORE)
+        if(len(array_list)):
+            self._data_socket.send_json(data, zmq.SNDMORE)
+        else:
+            self._data_socket.send_json(data)
+        for i in range(len(array_list)):
+            if(i != len(array_list)-1):
+                self.send_array(title, array_list[i], flags=zmq.SNDMORE)
+            else:
+                self.send_array(title, array_list[i])
 
     def answer_command(self, stream, msg):
         if(msg[0] == 'keys'):

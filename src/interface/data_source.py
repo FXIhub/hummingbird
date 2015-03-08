@@ -82,16 +82,14 @@ class DataSource(QtCore.QObject):
         socket.blockSignals(True)
         QtCore.QCoreApplication.processEvents()
         socket.blockSignals(False)
-        parts = socket.recv_multipart()
-        # The first part is a key, so we discard
-        for recvd in parts[1::2]:            
-            data = json.loads(recvd)
-            for i in range(len(data)):
-                if data[i] == '__ndarray__':
-                    data[i] = socket.recv_array()
 
-            self._process_broadcast(data)
-            
+        key = socket.recv()
+        data = socket.recv_json()
+        for i in range(len(data)):
+            if data[i] == '__ndarray__':
+                data[i] = socket.recv_array()
+        self._process_broadcast(data)
+
     def _process_broadcast(self, payload):
         # The uuid identifies the sender uniquely        
         uuid = payload[0]

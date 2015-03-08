@@ -24,4 +24,4 @@ def onEvent(evt):
     analysis.beamline.plotPulseEnergy(evt['pulseEnergies'])
     #analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.event.printProcessingRate(evt)
-    time.sleep(1)
+    time.sleep(0.01)

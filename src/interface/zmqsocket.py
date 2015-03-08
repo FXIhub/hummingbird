@@ -4,7 +4,7 @@ Provides a wrapper for a ZeroMQ socket. Adapted from PyZeroMQt.
 from Qt import QtCore
 from zmqcontext import ZmqContext
 from zmq import FD, LINGER, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, EVENTS, \
-                POLLIN, POLLOUT, POLLERR, NOBLOCK, ZMQError, EAGAIN
+                POLLIN, POLLOUT, POLLERR, NOBLOCK, ZMQError, EAGAIN, RCVHWM
 import json
 import numpy
 
@@ -21,6 +21,7 @@ class ZmqSocket(QtCore.QObject):
         fd=self._socket.getsockopt(FD)
         self._notifier=QtCore.QSocketNotifier(fd, QtCore.QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.activity)
+        self._socket.setsockopt(RCVHWM, 10)
         
     def __del__(self): self._socket.close()
 
@@ -52,11 +53,11 @@ class ZmqSocket(QtCore.QObject):
             self.readyRead.emit()
         self._notifier.setEnabled(True);
 
-    def recv(self):
-        return self._socket.recv()
+    def recv(self, flags=0):
+        return self._socket.recv(flags)
 
-    def recv_json(self):
-        return self._socket.recv_json()
+    def recv_json(self, flags=0):
+        return self._socket.recv_json(flags)
 
     def recv_multipart(self):
         return self._socket.recv_multipart()
@@ -67,7 +68,7 @@ class ZmqSocket(QtCore.QObject):
 
     def recv_array(self, flags=0, copy=True, track=False):
         """recv a numpy array"""
-        md = json.loads(self._socket.recv_multipart(flags=flags)[1])
-        msg = self._socket.recv_multipart(flags=flags, copy=copy, track=track)[1]
+        md = self._socket.recv_json(flags=flags)        
+        msg = self._socket.recv(flags=flags, copy=copy, track=track)
         buf = buffer(msg)
         return  numpy.ndarray(shape = md['shape'], dtype=md['dtype'], buffer = buf, strides = md['strides'])
