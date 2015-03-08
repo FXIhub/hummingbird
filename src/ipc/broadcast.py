@@ -30,7 +30,7 @@ def set_data(title, data_y, data_x = None, unit=None):
     else:
         ipc.zmq().send(title, [ipc.uuid, 'set_data', title, data_y])
 
-def new_data(title, data_y, data_x = None, unit=None, **kwds):
+def new_data(title, data_y, data_x = None, unit=None, reduce=False, **kwds):
     if(title not in data_conf):
         data_conf[title] = {}
     if('data_type' not in data_conf[title]):
@@ -44,7 +44,10 @@ def new_data(title, data_y, data_x = None, unit=None, **kwds):
     if(data_x is None):
         data_x = _evt.id()
     if(ipc.mpi.is_slave()):
-        ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y, data_x, kwds])
+        if(reduce):
+            ipc.mpi.send_reduce(title, 'new_data', data_y, data_x, **kwds)
+        else:
+            ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y, data_x, kwds])
     else:
         ipc.zmq().send(title, [ipc.uuid, 'new_data', title, data_y, data_x, kwds])
 
