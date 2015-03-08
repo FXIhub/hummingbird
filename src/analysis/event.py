@@ -43,7 +43,16 @@ processingTimes = collections.deque([], 100)
 
 def printProcessingRate(evt = None):
     processingTimes.appendleft(datetime.datetime.now())
+    if(len(processingTimes) < 2):
+        return
     dt = processingTimes[0] - processingTimes[-1]
-    if(len(processingTimes) > 1):
-        print "Processing at %g Hz" % ((len(processingTimes)-1)/dt.total_seconds())
+    proc_rate = ((len(processingTimes)-1)/dt.total_seconds())
+    if(ipc.mpi.size > 1):
+        reduce=True
+    else:
+        reduce=False
+        print "Processing at %g Hz" % (proc_rate)
+    ipc.new_data('Processing Rate', proc_rate, reduce=reduce)
+
+
     
