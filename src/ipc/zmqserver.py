@@ -5,6 +5,7 @@ import threading
 import ipc
 import numpy
 import hashlib
+import ipc.mpi
 
 class ZmqServer(object):
     def __init__(self):

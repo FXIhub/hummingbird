@@ -88,7 +88,7 @@ class DataSource(QtCore.QObject):
         for i in range(len(data)):
             if data[i] == '__ndarray__':
                 data[i] = socket.recv_array()
-        self._process_broadcast(data)
+        self._process_broadcast(data)        
 
     def _process_broadcast(self, payload):
         # The uuid identifies the sender uniquely        
