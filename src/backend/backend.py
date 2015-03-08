@@ -33,7 +33,8 @@ class Backend(object):
         self.load_conf()
         Backend.state['_config_file'] = config_file
         Backend.state['_config_dir'] = os.path.dirname(config_file)
-        self.translator = init_translator(Backend.state)
+        if(not ipc.mpi.is_master()):
+            self.translator = init_translator(Backend.state)
         print 'Starting backend...'
 
     def load_conf(self):        
