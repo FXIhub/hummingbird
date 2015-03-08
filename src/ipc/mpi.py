@@ -17,6 +17,7 @@ except ImportError:
     rank = 0
     size = 1
     comm = None
+    slaves_comm = None
 
 
 def is_slave():

@@ -53,6 +53,10 @@ class MeanMap:
 
     def update_local_maps(self):
         rad = self.radius
+        if(ipc.mpi.slaves_comm):
+            integralMaps = ipc.mpi.slaves_comm.gather(integralMap)
+            print integralMaps
+            print ipc.mpi.rank
         self.localIntegralMap = self.integralMap[self.center[0]-rad: self.center[0]+rad+1, self.center[1]-rad:self.center[1]+rad+1].toarray()
         self.localNormMap     = self.normMap[self.center[0]-rad: self.center[0]+rad+1, self.center[1]-rad:self.center[1]+rad+1].toarray()
         self.localMeanMap = numpy.zeros(self.localIntegralMap.shape)

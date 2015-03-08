@@ -38,7 +38,8 @@ def set_data(title, data_y, data_x = None, unit=None):
     else:
         ipc.zmq().send(title, [ipc.uuid, 'set_data', title, data_y])
 
-def new_data(title, data_y, data_x = None, unit=None, reduce=False, **kwds):
+def new_data(title, data_y, data_x = None, unit=None, reduce=False, 
+             denominator=None, **kwds):
     check_type(title, data_y)
 
     if(data_x is None):
