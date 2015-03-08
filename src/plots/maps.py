@@ -1,23 +1,8 @@
-import ipc
 import numpy
-from backend import Backend
+import ipc
 from scipy.sparse import lil_matrix
-from plots import MeanMap
 
-counter = []
-def counting(hit):
-    if hit: counter.append(True)
-    else: counter.append(False)
-    return counter
-
-def countLitPixels(image):
-    hitscore = (image > Backend.state["aduThreshold"]).sum()
-    return hitscore > Backend.state["hitscoreMinCount"], hitscore
-
-def plotHitscore(hitscore):
-    ipc.new_data("Hitscore", hitscore)
-
-class MeanPhotonMap:
+class MeanMap:
     def __init__(self, key, conf):
         xmin, xmax = conf["xmin"],  conf["xmax"]
         ymin, ymax = conf["ymin"],  conf["ymax"]
@@ -78,65 +63,3 @@ class MeanPhotonMap:
         visited = self.gridMap != 0
         self.gridMap[visited] = 1
         self.gridMap[current] = 2
-
-photonMaps = {}
-def plotMeanPhotonMap(key, conf, nrPhotons, paramX, paramY, pulseEnergy):
-    if not key in photonMaps:
-        photonMaps[key] = MeanMap(key,conf)
-    m = photonMaps[key]
-    m.append(paramX, paramY, nrPhotons, pulseEnergy)
-    if(not m.counter % conf["updateRate"]):
-        m.update_center(paramX, paramY)
-        m.update_local_limits()
-        m.update_local_maps()
-        m.update_gridmap(paramX,paramY)
-        
-        ipc.new_data(key+'overview', m.gridMap) 
-        ipc.new_data(key+'local', m.localMeanMap, xmin=m.localXmin, xmax=m.localXmax, ymin=m.localYmin, ymax=m.localYmax)
-        
-
-        #center = (abs(m.photonMapY - paramY.data).argmin(), abs(m.photonMapX - paramX.data).argmin())
-        #photonMap = grab_array(m.photonMap, center, conf["radius"])
-        #gasMap = grab_array(m.gasMap, center, conf["radius"])
-
-        
-        
-        #meanMap = numpy.zeros(photonMap.shape)
-        #meanMap[visited] = photonMap[visited] / gasMap[visited]
-        #print m.eventMap.shape
-        #Nx = 100
-        #Ny = 100
-        #N = numpy.prod(m.eventMap.shape)  / ((conf["radius"])**2)
-        #print N
-        #Nx,Ny = 2*[int(numpy.sqrt(N))]
-        #print Nx,Ny
-        #print m.photonMapY[center[0]], m.photonMapX[center[1]]
-        #print m.eventMap[center[0],center[1]]
-        #for j in range(Ny):
-        #    for i in range(Nx):
-        #        m.eventMapDown[j,i] = self.eventMap[
-        #eventMap = (m.eventMap.reshape((Nx*Ny, numpy.prod(m.eventMap.shape)/(Nx*Ny))).sum(axis=1) > 0).reshape((Ny,Nx))
-        #x = m.photonMapX.reshape(Nx, conf["radius"]).mean(axis=1)
-        #y = m.photonMapY.reshape(Ny, conf["radius"]).mean(axis=1)
-        #ly, lx = numpy.where(eventMap == 1)
-        #print lx,ly,x[lx[0]], y[ly[0]]
-        #ly, lx = numpy.where(eventMap.T == 1)
-        #print lx,ly,x[lx[0]], y[ly[0]]
-        #rad = conf["radius"]
-        #print eventMap.shape
-        #eventMap = numpy.transpose(numpy.asarray(eventMap))
-        #ly, lx = numpy.where(eventMap == 1)
-        #print lx,ly,x[lx[0]], y[ly[0]]
-        #ly, lx = numpy.where(eventMap.T == 1)
-        #print lx,ly,x[lx[0]], y[ly[0]]
-        #print type(eventMap)
-        #eventMap2 = numpy.zeros(eventMap.shape)
-        #eventMap2[:] = eventMap.T
-        
-    #minimum = m.meanMap.min()
-    #print minimum
-    #yopt, xopt = numpy.where(m.meanMap == minimum)
-    #print yopt, xopt
-    #print "Current aperture position for %s: x=%d, y=%d" %(key, paramX.data, paramY.data)
-    #print "Best position for %s: x=%.2f, y=%.2f, mean=%.2f" %(key, m.photonMapX[xopt[0]], m.photonMapY[yopt[0]], minimum)
-
