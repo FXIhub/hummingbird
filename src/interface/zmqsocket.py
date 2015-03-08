@@ -5,8 +5,8 @@ from Qt import QtCore
 from zmqcontext import ZmqContext
 from zmq import FD, LINGER, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, EVENTS, \
                 POLLIN, POLLOUT, POLLERR, NOBLOCK, ZMQError, EAGAIN, RCVHWM
-import json
 import numpy
+import hashlib
 
 class ZmqSocket(QtCore.QObject):
     readyRead=QtCore.Signal()
@@ -34,9 +34,15 @@ class ZmqSocket(QtCore.QObject):
     def linger(self): return self._socket.getsockopt(LINGER)
 
     def subscribe(self, _filter): 
-        self._socket.setsockopt(SUBSCRIBE, _filter)    
+        # scramble the filter to avoid spurious matches (like CCD matching CCD1)
+        m = hashlib.md5()
+        m.update(_filter)
+        self._socket.setsockopt(SUBSCRIBE, m.digest())    
 
-    def unsubscribe(self, _filter): self._socket.setsockopt(UNSUBSCRIBE, _filter)
+    def unsubscribe(self, _filter):
+        m = hashlib.md5()
+        m.update(_filter)
+        self._socket.setsockopt(UNSUBSCRIBE, m.digest())
 
     def bind(self, addr): self._socket.bind(addr)
 

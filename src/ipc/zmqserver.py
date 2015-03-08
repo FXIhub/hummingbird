@@ -4,7 +4,7 @@ from zmq.eventloop import ioloop, zmqstream
 import threading
 import ipc
 import numpy
-import json
+import hashlib
 
 class ZmqServer(object):
     def __init__(self):
@@ -42,7 +42,9 @@ class ZmqServer(object):
             if(isinstance(data[i],numpy.ndarray)):
                 array_list.append(data[i])
                 data[i] = '__ndarray__'
-        self._data_socket.send(bytes(title), zmq.SNDMORE)
+        m = hashlib.md5()
+        m.update(bytes(title))
+        self._data_socket.send(m.digest(), zmq.SNDMORE)
         if(len(array_list)):
             self._data_socket.send_json(data, zmq.SNDMORE)
         else:
