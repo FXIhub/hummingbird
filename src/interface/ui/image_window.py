@@ -32,6 +32,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         self._enabled_source = None
         self._prev_source = None
         self._prev_key = None
+        self._data_type = None
     def onMenuShow(self):
         # Go through all the available data sources and add them
         self.menuData_Sources.clear()
@@ -70,12 +71,14 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             self._enabled_source = source.uuid+key
             self._prev_source = source
             self._prev_key = key
-            self.title.setText(str(key))  
+            self.title.setText(str(key))
+            self._data_type = source.data_type[key]
         else:
             source.unsubscribe(key, self)
             self._enabled_source = None
             self._prev_source = None
             self._prev_key = None        
+            self._data_type = None
 
     def get_time(self, index=None):
         if index is None:
@@ -108,6 +111,14 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             ymax = pd._y.shape[-2]
             transform = QtGui.QTransform()
 
+            if self._data_type == 'image':
+                self.plot.getView().invertY(True)
+            else:
+                self.plot.getView().invertY(False)
+
+            if "flipy" in self._prev_source.conf[self._prev_key]:
+                self.plot.getView().invertY(not self.plot.getView().yInverted())
+
             if "xmin" in self._prev_source.conf[self._prev_key]:
                 xmin = self._prev_source.conf[self._prev_key]['xmin']
             if "ymin" in self._prev_source.conf[self._prev_key]:
@@ -118,8 +129,13 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                 xmax = self._prev_source.conf[self._prev_key]['xmax']
             if "ymax" in self._prev_source.conf[self._prev_key]:
                 ymax = self._prev_source.conf[self._prev_key]['ymax']
-            transform.scale(xmax-xmin, ymax-ymin)            
-            transform = transpose_transform*transform
+            transform.scale(xmax-xmin, ymax-ymin)
+            # Tranpose images to make x (last dimension) horizontal
+            if self._data_type == 'image':
+                transform = transpose_transform*transform
+
+            if "transpose" in self._prev_source.conf[self._prev_key]:
+                transform = transpose_transform*transform
 
             if "xlabel" in self._prev_source.conf[self._prev_key]:
                 self.plot.getView().setLabel('bottom', self._prev_source.conf[self._prev_key]['xlabel'])

@@ -16,7 +16,7 @@ def onEvent(evt):
 
     t0 = time.time()
 #    ipc.new_data('CCD2', evt['photonPixelDetectors']['CCD2'].data, reduce=True)
-#    ipc.new_data('CCD', evt['photonPixelDetectors']['CCD'].data.T, foo='bar', reduce=True)
+    ipc.new_data('CCD', evt['photonPixelDetectors']['CCD'].data)
     ipc.new_data('tof', evt['ionTOFs']['tof'].data)
     t1 = time.time()
     print 1.0/(t1-t0)
