@@ -10,7 +10,6 @@ def printStatistics(detectors):
                                                                 sum(v), mean(v),
                                                                 min(v), max(v),
                                                                 std(v))
-
 def plotImages(detectors):
     for k,r in detectors.iteritems():
         v = r.data
@@ -31,6 +30,13 @@ def plotDetector(detector):
         image = detector.data
     #if(not counter % Backend.state["detectorUpdateRate"]):
     ipc.new_data(detector.name, image)
+
+histograms = {}
+def plotHistogram(key, detector, conf):
+    if(not key in histograms):
+        ipc.broadcast.init_data(key, data_type='vector', history_length=100)
+    hist, bins = numpy.histogram(detector.flat, range=(conf["hmin"], conf["hmax"]), bins=conf["nbins"])
+    ipc.new_data(key, hist, xmin=bins.min(), xmax=bins.max())
 
 def reshape_detector(detector):
     central = []
