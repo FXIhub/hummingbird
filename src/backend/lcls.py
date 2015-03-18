@@ -15,7 +15,7 @@ from backend import Backend
 class LCLSTranslator(object):    
     def __init__(self, state):
         config_file = None
-        if('LCLS/PsanaConf' in state or ('LCLS' in state and 'PsanaConf' in state['LCLS'])):
+        if('LCLS/PsanaConf' in state):
             config_file = Backend.state['_config_dir'] +'/'+ state['LCLS/PsanaConf']
         elif('LCLS' in state and 'PsanaConf' in state['LCLS']):
             config_file = Backend.state['_config_dir'] +'/'+ state['LCLS']['PsanaConf']
@@ -28,7 +28,7 @@ class LCLSTranslator(object):
         if('LCLS/DataSource' in state):
             self.ds = psana.DataSource(state['LCLS/DataSource'])
         elif('LCLS' in state and 'DataSource' in state['LCLS']):
-            self.ds = psana.DataSource(state['LCLS/DataSource'])
+            self.ds = psana.DataSource(state['LCLS']['DataSource'])
         else:
             raise ValueError("You need to set the '[LCLS][DataSource]'"
                              " in the configuration")
@@ -52,7 +52,11 @@ class LCLSTranslator(object):
         self._n2c[psana.Acqiris.DataDescV1] = 'ionTOFs'
         self._n2c[psana.EventId] = 'eventID'
         self._n2c[psana.EvrData.DataV3] = 'eventCodes'
-        self._n2c[psana.EvrData.DataV4] = 'eventCodes'
+        # Guard against old(er) psana versions
+        try:
+            self._n2c[psana.EvrData.DataV4] = 'eventCodes'
+        except AttributeError:
+            pass
 
         # Calculate the inverse mapping
         self._c2n = {}
