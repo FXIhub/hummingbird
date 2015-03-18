@@ -40,20 +40,24 @@ class LCLSTranslator(object):
         self._n2c[psana.Bld.BldDataFEEGasDetEnergy] = 'pulseEnergies'
         self._n2c[psana.Bld.BldDataFEEGasDetEnergyV1] = 'pulseEnergies'
         self._n2c[psana.Lusi.IpmFexV1] = 'pulseEnergies'
-        self._n2c[psana.Bld.BldDataEBeamV1] = 'photonEnergies'
-        self._n2c[psana.Bld.BldDataEBeamV2] = 'photonEnergies'
-        self._n2c[psana.Bld.BldDataEBeamV3] = 'photonEnergies'
-        self._n2c[psana.Bld.BldDataEBeamV4] = 'photonEnergies'
-        self._n2c[psana.Bld.BldDataEBeamV5] = 'photonEnergies'
-        self._n2c[psana.Bld.BldDataEBeamV6] = 'photonEnergies'
-        self._n2c[psana.Bld.BldDataEBeamV7] = 'photonEnergies'
+        # Guard against old(er) psana versions
+        try:
+            self._n2c[psana.Bld.BldDataEBeamV1] = 'photonEnergies'
+            self._n2c[psana.Bld.BldDataEBeamV2] = 'photonEnergies'
+            self._n2c[psana.Bld.BldDataEBeamV3] = 'photonEnergies'
+            self._n2c[psana.Bld.BldDataEBeamV4] = 'photonEnergies'
+            self._n2c[psana.Bld.BldDataEBeamV5] = 'photonEnergies'
+            self._n2c[psana.Bld.BldDataEBeamV6] = 'photonEnergies'
+            self._n2c[psana.Bld.BldDataEBeamV7] = 'photonEnergies'
+        except AttributeError:
+            pass
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
         self._n2c[psana.Acqiris.DataDescV1] = 'ionTOFs'
         self._n2c[psana.EventId] = 'eventID'
-        self._n2c[psana.EvrData.DataV3] = 'eventCodes'
         # Guard against old(er) psana versions
         try:
+            self._n2c[psana.EvrData.DataV3] = 'eventCodes'
             self._n2c[psana.EvrData.DataV4] = 'eventCodes'
         except AttributeError:
             pass
