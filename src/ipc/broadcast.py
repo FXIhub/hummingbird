@@ -24,7 +24,7 @@ def check_type(title, data_y):
             elif(len(data_y.shape) == 2):
                 data_conf[title]['data_type'] = 'image'
             else:
-                raise ValueError("Type %s not supported" % (type(data_y)))
+                raise ValueError("%dD data not supported; shape=%s" % (len(data_y.shape),data_y.shape))
 
         else:
             data_conf[title]['data_type'] = 'scalar'
