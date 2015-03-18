@@ -42,13 +42,10 @@ class Interface(QtGui.QMainWindow):
                 if(pw['window_type'] == 'ImageWindow'):
                     w = ImageWindow(self)
                     for es in pw['enabled_sources']:
-                        print 'here3'
                         for ds in data_sources:
-                            print 'here2'
                             if(ds._hostname == es['hostname'] and
                                ds._port == es['port'] and
                                ds._ssh_tunnel == es['tunnel']):
-                                print 'here'
                                 source = ds
                                 key = es['key']      
                                 w.set_source_key(source,key)
@@ -206,7 +203,8 @@ class Interface(QtGui.QMainWindow):
         for pw in self._plot_windows:
             enabled_sources = []
             if(isinstance(pw,PlotWindow)):
-                for es in pw._enabled_sources:
+                print  pw._enabled_sources
+                for es in pw._enabled_sources.values():
                     ds = es['source']
                     enabled_sources.append({'hostname': ds._hostname,
                                             'port': ds._port,

@@ -105,7 +105,7 @@ class DataSource(QtCore.QObject):
         if(cmd == 'set_data'):
             title = payload[2]
             data = payload[3]
-            self.plot(str(uuid),title,data, source)
+            self.plot(title,data, source)
 
         if(cmd == 'new_data'):
             title = payload[2]
@@ -113,14 +113,14 @@ class DataSource(QtCore.QObject):
             data_x = payload[4]
             conf = payload[5]
             self.conf[title].update(conf)
-            self.plot_append(str(uuid),title,data,data_x)
+            self.plot_append(title,data,data_x)
 
-    def plot(self, uuid, title, data):
-        if(uuid+title not in self._plotdata):
+    def plot(self, title, data):
+        if(self.name()+title not in self._plotdata):
             self._plotdata[self.name()+title] = PlotData(self, title)
         self._plotdata[self.name()+title].set_data(data)
 
-    def plot_append(self, uuid, title, data, data_x):
-        if(uuid+title not in self._plotdata):
+    def plot_append(self, title, data, data_x):
+        if(self.name()+title not in self._plotdata):
             self._plotdata[self.name()+title] = PlotData(self, title)
         self._plotdata[self.name()+title].append(data, data_x)

@@ -98,9 +98,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         key = self._enabled_source
         source = self._prev_source
         # There might be no data yet, so no plotdata
-        print 'here6'
         if(source is not None and key in source._plotdata):
-            print 'here5'
             pd = source._plotdata[key]
             autoLevels = self.actionAuto_Levels.isChecked()
             autoRange = self.actionAuto_Zoom.isChecked()

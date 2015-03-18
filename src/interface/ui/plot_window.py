@@ -46,7 +46,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
                     action.setData([ds,key])
                     action.setCheckable(True)
 
-                    if((ds.uuid+key) in self._enabled_sources.keys()):
+                    if((ds.name()+key) in self._enabled_sources.keys()):
                         action.setChecked(True)
                     else:
                         action.setChecked(False)
@@ -88,11 +88,11 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         source,key = action.data()
         if(action.isChecked()):
             source.subscribe(key,self)
-            self._enabled_sources[source.uuid+key] = {'source': source, 'key': key}
+            self._enabled_sources[source.name()+key] = {'source': source, 'key': key}
             self.title.setText(str(key))
         else:
             source.unsubscribe(key,self)
-            self._enabled_sources.pop(source.uuid+key)
+            self._enabled_sources.pop(source.name()+key)
 
     def get_time(self):
         if self._enabled_sources:
