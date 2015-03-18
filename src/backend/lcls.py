@@ -14,18 +14,25 @@ from backend import Backend
 
 class LCLSTranslator(object):    
     def __init__(self, state):
-        if('LCLS/PsanaConf' in state):
+        config_file = None
+        if('LCLS/PsanaConf' in state or ('LCLS' in state and 'PsanaConf' in state['LCLS'])):
             config_file = Backend.state['_config_dir'] +'/'+ state['LCLS/PsanaConf']
+        elif('LCLS' in state and 'PsanaConf' in state['LCLS']):
+            config_file = Backend.state['_config_dir'] +'/'+ state['LCLS']['PsanaConf']
+        if(config_file is not None):
             if(not os.path.isfile(config_file)):
-                raise RuntimeError("Could not find LCLS/PsanaConf: %s" %(config_file))
-            print config_file
+                raise RuntimeError("Could not find [LCLS][PsanaConf]: %s" %(config_file))
+            logging.info("Info: Found configuration file %s.\n" % config_file);
             psana.setConfigFile(config_file)
 
-        if('LCLS/DataSource' not in state):
-            raise ValueError("You need to set the 'LCLS/DataSource'"
-                             " in the configuration")
-        else:
+        if('LCLS/DataSource' in state):
             self.ds = psana.DataSource(state['LCLS/DataSource'])
+        elif('LCLS' in state and 'DataSource' in state['LCLS']):
+            self.ds = psana.DataSource(state['LCLS/DataSource'])
+        else:
+            raise ValueError("You need to set the '[LCLS][DataSource]'"
+                             " in the configuration")
+
         
 
         # Define how to translate between LCLS types and Hummingbird ones
