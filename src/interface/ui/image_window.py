@@ -32,7 +32,6 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         self._enabled_source = None
         self._prev_source = None
         self._prev_key = None
-        self._data_type = None
     def onMenuShow(self):
         # Go through all the available data sources and add them
         self.menuData_Sources.clear()
@@ -45,7 +44,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                     action = QtGui.QAction(key, self)
                     action.setData([ds,key])
                     action.setCheckable(True)
-                    if((ds.uuid+key) == self._enabled_source):
+                    if((ds.name()+key) == self._enabled_source):
                         action.setChecked(True)
                     else:
                         action.setChecked(False)
@@ -61,24 +60,26 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
     def onTitleChange(self, title):
         self.plot_title = str(title)
                     
-    def _source_key_triggered(self):
-        action = self.sender()
-        source,key = action.data()
-        if(action.isChecked()):
+
+    def set_source_key(self, source, key, enable=True):
+        if(enable):
             if(self._prev_source):
                 self._prev_source.unsubscribe(self._prev_key)
             source.subscribe(key, self)
-            self._enabled_source = source.uuid+key
+            self._enabled_source = source.name()+key
             self._prev_source = source
             self._prev_key = key
             self.title.setText(str(key))
-            self._data_type = source.data_type[key]
         else:
             source.unsubscribe(key, self)
             self._enabled_source = None
             self._prev_source = None
             self._prev_key = None        
-            self._data_type = None
+
+    def _source_key_triggered(self):
+        action = self.sender()
+        source,key = action.data()
+        self.set_source_key(source,key,action.isChecked())
 
     def get_time(self, index=None):
         if index is None:
@@ -97,7 +98,9 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         key = self._enabled_source
         source = self._prev_source
         # There might be no data yet, so no plotdata
+        print 'here6'
         if(source is not None and key in source._plotdata):
+            print 'here5'
             pd = source._plotdata[key]
             autoLevels = self.actionAuto_Levels.isChecked()
             autoRange = self.actionAuto_Zoom.isChecked()
@@ -111,7 +114,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             ymax = pd._y.shape[-2]
             transform = QtGui.QTransform()
 
-            if self._data_type == 'image':
+            if source.data_type[self._prev_key] == 'image':
                 self.plot.getView().invertY(True)
             else:
                 self.plot.getView().invertY(False)
@@ -139,7 +142,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
             axis_labels = ['left','bottom']
             xlabel_index = 0
             ylabel_index = 1
-            if self._data_type == 'image':
+            if source.data_type[self._prev_key] == 'image':
                 transform = transpose_transform*transform
                 xlabel_index = (xlabel_index+1)%2
                 ylabel_index = (ylabel_index+1)%2

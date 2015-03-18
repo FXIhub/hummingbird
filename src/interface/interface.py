@@ -21,7 +21,8 @@ class Interface(QtGui.QMainWindow):
         self.settings = QtCore.QSettings()
         self._init_geometry()
         self._init_menus()
-        self._init_data_sources()
+        loading_sources = self._init_data_sources()
+        self._restore_plot_windows(loading_sources)
         self._init_connections()
         self._init_timer()
 
@@ -32,6 +33,35 @@ class Interface(QtGui.QMainWindow):
             self.restoreGeometry(self.settings.value("geometry"))
         if(self.settings.contains("windowState")):
             self.restoreState(self.settings.value("windowState"))
+
+
+    def _restore_plot_windows(self, data_sources):
+        if(self.settings.contains("plotWindows")):
+            plot_windows = self.settings.value("plotWindows")
+            for pw in plot_windows:
+                if(pw['window_type'] == 'ImageWindow'):
+                    w = ImageWindow(self)
+                    for es in pw['enabled_sources']:
+                        print 'here3'
+                        for ds in data_sources:
+                            print 'here2'
+                            if(ds._hostname == es['hostname'] and
+                               ds._port == es['port'] and
+                               ds._ssh_tunnel == es['tunnel']):
+                                print 'here'
+                                source = ds
+                                key = es['key']      
+                                w.set_source_key(source,key)
+                    
+                elif(pw['window_type'] == 'PlotWindow'):
+                    w = PlotWindow(self)
+                else:
+                    raise ValueError('window_type %s not supported' %(pw['window_type']))
+                w.restoreGeometry(pw['geometry'])
+                w.restoreState(pw['windowState'])
+                w.show()
+                self._plot_windows.append(w)
+        
             
     def _init_menus(self):        
         self._backends_menu = self.menuBar().addMenu(self.tr("&Backends"))
@@ -61,11 +91,14 @@ class Interface(QtGui.QMainWindow):
         self._preferences_action.triggered.connect(self._preferencesClicked)
 
     def _init_data_sources(self):
+        loaded_sources = []
         if(self.settings.contains("dataSources") and 
            self.settings.value("dataSources") is not None):
             for ds in self.settings.value("dataSources"):
                 ds = DataSource(self, ds[0], ds[1], ds[2])
-            
+                loaded_sources.append(ds)    
+        return loaded_sources
+
     def _init_connections(self):
         pass
 
@@ -167,15 +200,48 @@ class Interface(QtGui.QMainWindow):
             v = diag.outputPath.text()
             self.settings.setValue("outputPath", v)
             
+
+    def savePlotWindows(self):
+        pw_settings = []
+        for pw in self._plot_windows:
+            enabled_sources = []
+            if(isinstance(pw,PlotWindow)):
+                for es in pw._enabled_sources:
+                    ds = es['source']
+                    enabled_sources.append({'hostname': ds._hostname,
+                                            'port': ds._port,
+                                            'tunnel': ds._ssh_tunnel,
+                                            'key': es['key']})
+                    window_type = 'PlotWindow'
+            elif(isinstance(pw,ImageWindow)):
+                ds = pw._prev_source
+                if(ds is not None):
+                    enabled_sources.append({'hostname': ds._hostname,
+                                            'port': ds._port,
+                                            'tunnel': ds._ssh_tunnel,
+                                            'key': pw._prev_key})
+                window_type = 'ImageWindow'
+                
+            else:
+                raise ValueError('Unsupported plotWindow type %s' % (type(pw)) )
+
+            pw_settings.append({'geometry': pw.saveGeometry(),
+                                'windowState': pw.saveState(),
+                                'enabled_sources': enabled_sources,
+                                'window_type' : window_type})
+        self.settings.setValue("plotWindows", pw_settings)
+
     # Closing the GUI
     # ---------------
     def closeEvent(self, event):
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("windowState", self.saveState())
+        # Save data sources
         ds_settings = []
         for ds in self._data_sources:
             ds_settings.append([ds._hostname, ds._port, ds._ssh_tunnel])        
         self.settings.setValue("dataSources", ds_settings)
+        self.savePlotWindows()
         # Make sure settings are saved
         del self.settings
         # Force exit to prevent pyqtgraph from crashing

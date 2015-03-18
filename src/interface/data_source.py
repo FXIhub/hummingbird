@@ -28,7 +28,11 @@ class DataSource(QtCore.QObject):
     def subscribe(self, key, plot):
         if key not in self._subscribed_keys:
             self._subscribed_keys[key] = [plot]
-            self._data_socket.subscribe(bytes(key))
+            try:
+                self._data_socket.subscribe(bytes(key))
+            # socket might still not exist
+            except AttributeError:
+                pass
         else:
             self._subscribed_keys[key].append(plot)
     def unsubscribe(self, key, plot):
@@ -67,6 +71,10 @@ class DataSource(QtCore.QObject):
             self._data_socket.connect_socket(addr, self._ssh_tunnel)
             self.parent().add_backend(self)
             self.get_uuid()
+            # Subscribe to stuff already requested
+            for key in self._subscribed_keys.keys():
+                print 'subscribing to %s' % (bytes(key))
+                self._data_socket.subscribe(bytes(key))
         elif(reply[0] == 'uuid'):
             self.uuid = reply[1]
             self.query_keys_and_type()
@@ -109,10 +117,10 @@ class DataSource(QtCore.QObject):
 
     def plot(self, uuid, title, data):
         if(uuid+title not in self._plotdata):
-            self._plotdata[uuid+title] = PlotData(self, title)
-        self._plotdata[uuid+title].set_data(data)
+            self._plotdata[self.name()+title] = PlotData(self, title)
+        self._plotdata[self.name()+title].set_data(data)
 
     def plot_append(self, uuid, title, data, data_x):
         if(uuid+title not in self._plotdata):
-            self._plotdata[uuid+title] = PlotData(self, title)
-        self._plotdata[uuid+title].append(data, data_x)
+            self._plotdata[self.name()+title] = PlotData(self, title)
+        self._plotdata[self.name()+title].append(data, data_x)
