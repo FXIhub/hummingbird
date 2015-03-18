@@ -83,16 +83,19 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
     def onTitleChange(self, title):
         self.plot_title = str(title)
         
-    def _source_key_triggered(self):
-        action = self.sender()
-        source,key = action.data()
-        if(action.isChecked()):
+    def set_source_key(self, source, key, enable=True):
+        if(enable):
             source.subscribe(key,self)
             self._enabled_sources[source.name()+key] = {'source': source, 'key': key}
             self.title.setText(str(key))
         else:
             source.unsubscribe(key,self)
             self._enabled_sources.pop(source.name()+key)
+
+    def _source_key_triggered(self):
+        action = self.sender()
+        source,key = action.data()
+        self.set_source_key(source,key,action.isChecked())
 
     def get_time(self):
         if self._enabled_sources:

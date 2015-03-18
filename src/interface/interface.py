@@ -52,6 +52,14 @@ class Interface(QtGui.QMainWindow):
                     
                 elif(pw['window_type'] == 'PlotWindow'):
                     w = PlotWindow(self)
+                    for es in pw['enabled_sources']:
+                        for ds in data_sources:
+                            if(ds._hostname == es['hostname'] and
+                               ds._port == es['port'] and
+                               ds._ssh_tunnel == es['tunnel']):
+                                source = ds
+                                key = es['key']      
+                                w.set_source_key(source,key)
                 else:
                     raise ValueError('window_type %s not supported' %(pw['window_type']))
                 w.restoreGeometry(pw['geometry'])
@@ -203,7 +211,6 @@ class Interface(QtGui.QMainWindow):
         for pw in self._plot_windows:
             enabled_sources = []
             if(isinstance(pw,PlotWindow)):
-                print  pw._enabled_sources
                 for es in pw._enabled_sources.values():
                     ds = es['source']
                     enabled_sources.append({'hostname': ds._hostname,
