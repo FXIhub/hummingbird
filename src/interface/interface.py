@@ -72,14 +72,14 @@ class Interface(QtGui.QMainWindow):
 
         self._backends_menu.addSeparator()
 
-        self._plots_menu = self.menuBar().addMenu(self.tr("&Plots"))
+        self._displays_menu = self.menuBar().addMenu(self.tr("&Displays"))
         self._new_plot_action = QtGui.QAction("New Line Plot", self)
-        self._plots_menu.addAction(self._new_plot_action)
-        self._new_plot_action.triggered.connect(self._new_plot_triggered)
+        self._displays_menu.addAction(self._new_plot_action)
+        self._new_plot_action.triggered.connect(self._new_display_triggered)
 
-        self._new_image_action = QtGui.QAction("New Image Plot", self)
-        self._plots_menu.addAction(self._new_image_action)
-        self._new_image_action.triggered.connect(self._new_plot_triggered)
+        self._new_image_action = QtGui.QAction("New Image Viewer", self)
+        self._displays_menu.addAction(self._new_image_action)
+        self._new_image_action.triggered.connect(self._new_display_triggered)
 
         self._options_menu = self.menuBar().addMenu(self.tr("&Options"))
         self._preferences_action = QtGui.QAction("Preferences", self)
@@ -143,9 +143,9 @@ class Interface(QtGui.QMainWindow):
             # Why do I need to call this explicitly?
             ds._get_command_reply(ds._ctrl_socket)
             
-    # Add plots to the GUI
+    # Add data windows to the GUI
     # --------------------
-    def _new_plot_triggered(self):
+    def _new_display_triggered(self):
         if(self.sender() is self._new_plot_action):
             w = PlotWindow(self)
         elif(self.sender() is self._new_image_action):

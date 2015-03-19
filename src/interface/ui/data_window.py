@@ -75,12 +75,9 @@ class DataWindow(QtGui.QMainWindow):
                 source.unsubscribe(key, self)
         # Remove myself from the interface plot list
         # otherwise we'll be called also on replot
-        self._parent._plot_windows.remove(self)
+        self._parent._data_windows.remove(self)
 
     def source_and_keys(self):
         for source in self._enabled_sources.keys():
             for key in self._enabled_sources[source]:
-                if(key not in source._plotdata):
-                    continue
-                pd = source._plotdata[key]
                 yield source,key
