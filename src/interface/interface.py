@@ -23,7 +23,6 @@ class Interface(QtGui.QMainWindow):
         self._init_menus()
         loading_sources = self._init_data_sources()
         self._restore_data_windows(loading_sources)
-        self._init_connections()
         self._init_timer()
 
     # Inititialization
@@ -94,9 +93,6 @@ class Interface(QtGui.QMainWindow):
                 ds = DataSource(self, ds[0], ds[1], ds[2])
                 loaded_sources.append(ds)    
         return loaded_sources
-
-    def _init_connections(self):
-        pass
 
     def _init_timer(self):
         self._replot_timer = QtCore.QTimer()
