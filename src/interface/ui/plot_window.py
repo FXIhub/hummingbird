@@ -4,14 +4,16 @@ import pyqtgraph
 import numpy
 import os
 import datetime
+from data_window import DataWindow
 
-class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
+class PlotWindow(DataWindow, Ui_plotWindow):
     lineColors = [(252, 175, 62), (114, 159, 207), (255, 255, 255), (239, 41, 41), (138, 226, 52), (173, 127, 168)]
     def __init__(self, parent = None):
-        QtGui.QMainWindow.__init__(self,None)
+        DataWindow.__init__(self,None)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self._parent = parent
         self.setupUi(self)
+        self.setupConnections()
         self.settings = QtCore.QSettings()
         self.plot = pyqtgraph.PlotWidget(self.plotFrame, antialiasing=True)
         self.plot.hideAxis('bottom')
@@ -22,7 +24,6 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         icon_path = os.path.dirname(os.path.realpath(__file__)) + "/../images/logo_48_transparent.png"
         icon = QtGui.QPixmap(icon_path); 
         self.logoLabel.setPixmap(icon)
-        self.menuData_Sources.aboutToShow.connect(self.onMenuShow)
         self.plot_title = str(self.title.text())
         self.title.textChanged.connect(self.onTitleChange)
         self.actionSaveToJPG.triggered.connect(self.onSaveToJPG)
@@ -30,29 +31,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         self.actionLegend_Box.triggered.connect(self.onViewLegendBox)
         self.actionX_axis.triggered.connect(self.onViewXAxis)
         self.actionY_axis.triggered.connect(self.onViewYAxis)
-        self._enabled_sources = {}
-        
-    def onMenuShow(self):
-        # Go through all the available data sources and add them
-        self.menuData_Sources.clear()
-        for ds in self._parent._data_sources:
-            menu =  self.menuData_Sources.addMenu(ds.name())
-            if ds.keys is not None:
-                for key in ds.keys:
-                    if(ds.data_type[key] != 'scalar' and 
-                       ds.data_type[key] != 'vector'):
-                        continue
-                    action = QtGui.QAction(key, self)
-                    action.setData([ds,key])
-                    action.setCheckable(True)
-
-                    if((ds.name()+key) in self._enabled_sources.keys()):
-                        action.setChecked(True)
-                    else:
-                        action.setChecked(False)
-                    menu.addAction(action)
-                    action.triggered.connect(self._source_key_triggered)
-
+        self.acceptable_data_types = ['scalar', 'vector']
     def onViewLegendBox(self):
         action = self.sender()
         if(action.isChecked()):
@@ -83,43 +62,18 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
     def onTitleChange(self, title):
         self.plot_title = str(title)
         
-    def set_source_key(self, source, key, enable=True):
-        if(enable):
-            source.subscribe(key,self)
-            self._enabled_sources[source.name()+key] = {'source': source, 'key': key}
-            self.title.setText(str(key))
-        else:
-            source.unsubscribe(key,self)
-            self._enabled_sources.pop(source.name()+key)
-
-    def _source_key_triggered(self):
-        action = self.sender()
-        source,key = action.data()
-        self.set_source_key(source,key,action.isChecked())
-
-    def get_time(self):
-        if self._enabled_sources:
-            key = self._enabled_sources.keys()[0]
-            source = self._enabled_sources[key]['source']
-            # There might be no data yet, so no plotdata
-            if(key in source._plotdata):
-                pd = source._plotdata[self._enabled_sources[key]['key']]
-                dt = datetime.datetime.fromtimestamp(pd._x[-1])
-            else: dt = datetime.datetime.now()
-        else: dt = datetime.datetime.now()
-        return dt
-
     def replot(self):
         self.plot.clear()
         color_index = 0
         titlebar = []
         self.plot.plotItem.legend.items = []
 
-        for key in sorted(self._enabled_sources):
-            source = self._enabled_sources[key]['source']
-            # There might be no data yet, so no plotdata
-            if(self._enabled_sources[key]['key'] in source._plotdata):
-                pd = source._plotdata[self._enabled_sources[key]['key']]
+        for source in self._enabled_sources.keys():
+            for key in self._enabled_sources[source]:
+                if(key not in source._plotdata):
+                    # There might be no data yet, so no plotdata
+                    continue
+                pd = source._plotdata[key]
                 titlebar.append(pd._title)
 
                 color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
@@ -135,24 +89,26 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
                     symbolPen = color
                     symbolBrush = color
 
-                source_key =  self._enabled_sources[key]['key']
+                conf = source.conf[key]
                 if(self.actionX_axis.isChecked()):
-                    if 'xlabel' in source.conf[source_key]:
-                        self.plot.setLabel('bottom', source.conf[source_key]['xlabel'])                
+                    if 'xlabel' in conf:
+                        self.plot.setLabel('bottom', conf['xlabel'])                
                 if(self.actionY_axis.isChecked()):
-                    if 'ylabel' in source.conf[source_key]:
-                        self.plot.setLabel('left', source.conf[source_key]['ylabel'])
+                    if 'ylabel' in conf:
+                        self.plot.setLabel('left', conf['ylabel'])
 
-                if(source.data_type[source_key] == 'scalar'):
+                if(source.data_type[key] == 'scalar'):
                     y = pd._y
-                elif(source.data_type[source_key] == 'vector'):
+                elif(source.data_type[key] == 'vector'):
                     y = pd._y[-1,:]
 
-                if(pd._x is not None and source.data_type[source_key] == 'scalar'):
+                if(pd._x is not None and source.data_type[key] == 'scalar'):
                     plt = self.plot.plot(x=numpy.array(pd._x, copy=False),
-                                         y=numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol, symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=symbolSize)
+                                         y=numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol,
+                                         symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=symbolSize)
                 else:
-                    plt = self.plot.plot(numpy.array(y, copy=False), clear=False,  pen=pen, symbol=symbol, symbolPen=symbolPen, symbolBrush=symbolBrush,symbolSize=symbolSize)
+                    plt = self.plot.plot(numpy.array(y, copy=False), clear=False,  pen=pen, symbol=symbol,
+                                         symbolPen=symbolPen, symbolBrush=symbolBrush,symbolSize=symbolSize)
                 self.legend.addItem(plt,pd._title)
                 color_index += 1
         self.setWindowTitle(", ".join(titlebar))
@@ -160,11 +116,3 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         # Round to miliseconds
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         self.dateLabel.setText(str(dt.date()))
-
-    def closeEvent(self, event):
-        # Unsibscribe all everything
-        for d in self._enabled_sources.values():
-            d['source'].unsubscribe(d['key'],self)
-        # Remove myself from the interface plot list
-        # otherwise we'll be called also on replot
-        self._parent._plot_windows.remove(self)

@@ -5,13 +5,15 @@ import numpy
 import os
 from IPython.core.debugger import Tracer
 from .ImageView import ImageView
+from data_window import DataWindow
 import datetime
 
-class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
+class ImageWindow(DataWindow, Ui_imageWindow):
     def __init__(self, parent = None):
-        QtGui.QMainWindow.__init__(self,None)
+        DataWindow.__init__(self,None)
         self._parent = parent
         self.setupUi(self)
+        self.setupConnections()
         self.settings = QtCore.QSettings()
         self.plot = ImageView(self.plotFrame, view=pyqtgraph.PlotItem())
         self.plot.ui.roiBtn.hide()
@@ -23,33 +25,12 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         icon_path = os.path.dirname(os.path.realpath(__file__)) + "/../images/logo_48_transparent.png"
         icon = QtGui.QPixmap(icon_path); 
         self.logoLabel.setPixmap(icon)
-        self.menuData_Sources.aboutToShow.connect(self.onMenuShow)
         self.actionSaveToJPG.triggered.connect(self.onSaveToJPG)
         self.actionSaveToJPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
         self.plot_title = str(self.title.text())
         self.title.textChanged.connect(self.onTitleChange)
         self.infoLabel.setText('')
-        self._enabled_sources = {}
-    def onMenuShow(self):
-        # Go through all the available data sources and add them
-        self.menuData_Sources.clear()
-        for ds in self._parent._data_sources:
-            menu =  self.menuData_Sources.addMenu(ds.name())
-            if ds.keys is not None: 
-                for key in ds.keys:
-                    if(ds.data_type[key] != 'image' and ds.data_type[key] != 'vector'):
-                        continue
-                    action = QtGui.QAction(key, self)
-                    action.setData([ds,key])
-                    action.setCheckable(True)
-                    if(ds in self._enabled_sources and
-                       key in self._enabled_sources[ds]):
-                        action.setChecked(True)
-                    else:
-                        action.setChecked(False)
-                    menu.addAction(action)
-                    action.triggered.connect(self._source_key_triggered)
-
+        self.acceptable_data_types = ['image', 'vector']
     def onSaveToJPG(self):
         dt = self.get_time()
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
@@ -58,44 +39,6 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
 
     def onTitleChange(self, title):
         self.plot_title = str(title)
-                    
-    def set_source_key(self, source, key, enable=True):
-        if(enable):
-            if(self._enabled_sources):
-                # we'll assume there's just one source
-                source = self._enabled_sources.keys()[0]
-                key = self._enabled_sources[source].pop()
-                source.unsubscribe(key)
-            source.subscribe(key, self)
-            if(source in  self._enabled_sources):                
-                self._enabled_sources[source].append(key)
-            else:
-                self._enabled_sources[source] = [key]
-            self.title.setText(str(key))
-        else:
-            source.unsubscribe(key, self)
-            self._enabled_sources[source].remove(key)
-
-    def _source_key_triggered(self):
-        action = self.sender()
-        source,key = action.data()
-        self.set_source_key(source,key,action.isChecked())
-
-    def get_time(self, index=None):
-        if index is None:
-            index = self.plot.currentIndex
-        # Check if we have enabled_sources
-        source = None
-        if(self._enabled_sources):
-            source = self._enabled_sources.keys()[0]
-            key = self._enabled_sources[source][0]
-        # There might be no data yet, so no plotdata
-        if(source is not None and key in source._plotdata):
-            pd = source._plotdata[key]
-            dt = datetime.datetime.fromtimestamp(pd._x[index])
-            return dt
-        else:
-            return datetime.datetime.now()
             
     def replot(self):
         for source in self._enabled_sources.keys():
@@ -186,12 +129,3 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                 self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
                 self.dateLabel.setText(str(dt.date()))
 
-
-    def closeEvent(self, event):
-        # Unsibscribe all everything
-        for source in self._enabled_sources.keys():
-            for key in self._enabled_sources[source]:
-                source.unsubscribe(key, self)
-        # Remove myself from the interface plot list
-        # otherwise we'll be called also on replot
-        self._parent._plot_windows.remove(self)
