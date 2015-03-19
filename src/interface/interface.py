@@ -8,12 +8,14 @@ from ui import AddBackendDialog, PreferencesDialog, PlotWindow, ImageWindow
 from data_source import DataSource
 import os
 import json
+import signal
 
 class Interface(QtGui.QMainWindow):
     """Main Window Class.
 
     Contains only menus and toolbars. The plots will be in their own windows.
     """
+    instance = None
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
         self._data_windows = []
@@ -24,6 +26,7 @@ class Interface(QtGui.QMainWindow):
         loading_sources = self._init_data_sources()
         self._restore_data_windows(loading_sources)
         self._init_timer()
+        Interface.instance = self
 
     # Inititialization
     # ----------------
@@ -231,24 +234,22 @@ class Interface(QtGui.QMainWindow):
         # Force exit to prevent pyqtgraph from crashing
         os._exit(0)
 
-            
 def start_interface():
     """Initialize and show the Interface."""
-    sys.excepthook = exceptionHandler
     QtCore.QCoreApplication.setOrganizationName("SPI")
     QtCore.QCoreApplication.setOrganizationDomain("spidocs.rtfd.org")
     QtCore.QCoreApplication.setApplicationName("Hummingbird")
     app = QtGui.QApplication(sys.argv)
-    mw = Interface()
-    mw.show()
-    ret = app.exec_()
-    sys.exit(ret)
+    Interface().show()
+    sys.exit(app.exec_())
 
-def exceptionHandler(exceptionType, value, traceback):
-    """Handle exceptions in debugging mode"""
-    sys.__excepthook__(exceptionType, value, traceback)
-    QtGui.QApplication.instance().exit()
-    sys.exit(-1)
+def sigint_handler(*args):
+    """Handler for the SIGINT signal."""
+    if QtGui.QMessageBox.question(None, '', "Are you sure you want to quit?",
+                                  QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
+                                  QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
+        Interface.instance.closeEvent(None)
 
-
+# This has to be outside a function, for unknown reasons to me
+signal.signal(signal.SIGINT, sigint_handler)
 
