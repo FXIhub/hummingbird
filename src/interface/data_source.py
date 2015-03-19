@@ -118,3 +118,8 @@ class DataSource(QtCore.QObject):
         if(title not in self._plotdata):
             self._plotdata[title] = PlotData(self, title)
         self._plotdata[title].append(data, data_x)
+
+    def get_plot_data(self, title):
+        if(title in self._plotdata):
+            return self._plotdata[title]
+        return None

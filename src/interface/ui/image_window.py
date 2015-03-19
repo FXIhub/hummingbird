@@ -29,9 +29,7 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         self.plot_title = str(self.title.text())
         self.title.textChanged.connect(self.onTitleChange)
         self.infoLabel.setText('')
-        self._enabled_source = None
-        self._prev_source = None
-        self._prev_key = None
+        self._enabled_sources = {}
     def onMenuShow(self):
         # Go through all the available data sources and add them
         self.menuData_Sources.clear()
@@ -44,7 +42,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
                     action = QtGui.QAction(key, self)
                     action.setData([ds,key])
                     action.setCheckable(True)
-                    if((ds.name()+key) == self._enabled_source):
+                    if(ds in self._enabled_sources and
+                       key in self._enabled_sources[ds]):
                         action.setChecked(True)
                     else:
                         action.setChecked(False)
@@ -60,21 +59,22 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
     def onTitleChange(self, title):
         self.plot_title = str(title)
                     
-
     def set_source_key(self, source, key, enable=True):
         if(enable):
-            if(self._prev_source):
-                self._prev_source.unsubscribe(self._prev_key)
+            if(self._enabled_sources):
+                # we'll assume there's just one source
+                source = self._enabled_sources.keys()[0]
+                key = self._enabled_sources[source].pop()
+                source.unsubscribe(key)
             source.subscribe(key, self)
-            self._enabled_source = source.name()+key
-            self._prev_source = source
-            self._prev_key = key
+            if(source in  self._enabled_sources):                
+                self._enabled_sources[source].append(key)
+            else:
+                self._enabled_sources[source] = [key]
             self.title.setText(str(key))
         else:
             source.unsubscribe(key, self)
-            self._enabled_source = None
-            self._prev_source = None
-            self._prev_key = None        
+            self._enabled_sources[source].remove(key)
 
     def _source_key_triggered(self):
         action = self.sender()
@@ -84,110 +84,114 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
     def get_time(self, index=None):
         if index is None:
             index = self.plot.currentIndex
-        key = self._enabled_source
-        source = self._prev_source
+        # Check if we have enabled_sources
+        source = None
+        if(self._enabled_sources):
+            source = self._enabled_sources.keys()[0]
+            key = self._enabled_sources[source][0]
         # There might be no data yet, so no plotdata
-        if(source is not None and self._prev_key in source._plotdata):
-            pd = source._plotdata[self._prev_key]
+        if(source is not None and key in source._plotdata):
+            pd = source._plotdata[key]
             dt = datetime.datetime.fromtimestamp(pd._x[index])
             return dt
         else:
             return datetime.datetime.now()
             
     def replot(self):
-        key = self._enabled_source
-        source = self._prev_source
-        # There might be no data yet, so no plotdata
-        if(source is not None and self._prev_key in source._plotdata):
-            pd = source._plotdata[self._prev_key]
-            autoLevels = self.actionAuto_Levels.isChecked()
-            autoRange = self.actionAuto_Zoom.isChecked()
-            autoHistogram = self.actionAuto_Histogram.isChecked()
-            transpose_transform = QtGui.QTransform(0, 1, 0,
-                                                   1, 0, 0,
-                                                   0, 0, 1)            
-            xmin = 0
-            ymin = 0
-            xmax = pd._y.shape[-1]
-            ymax = pd._y.shape[-2]
-            transform = QtGui.QTransform()
+        for source in self._enabled_sources.keys():
+            for key in self._enabled_sources[source]:
+                if(key not in source._plotdata):
+                    continue
+                pd = source._plotdata[key]
+                autoLevels = self.actionAuto_Levels.isChecked()
+                autoRange = self.actionAuto_Zoom.isChecked()
+                autoHistogram = self.actionAuto_Histogram.isChecked()
+                transpose_transform = QtGui.QTransform(0, 1, 0,
+                                                       1, 0, 0,
+                                                       0, 0, 1)            
+                xmin = 0
+                ymin = 0
+                xmax = pd._y.shape[-1]
+                ymax = pd._y.shape[-2]
+                transform = QtGui.QTransform()
 
-            if source.data_type[self._prev_key] == 'image':
-                self.plot.getView().invertY(True)
-            else:
-                self.plot.getView().invertY(False)
+                if source.data_type[key] == 'image':
+                    self.plot.getView().invertY(True)
+                else:
+                    self.plot.getView().invertY(False)
 
-            if "msg" in self._prev_source.conf[self._prev_key]:
-                msg = self._prev_source.conf[self._prev_key]['msg']
-                self.infoLabel.setText(msg)
+                conf = source.conf[key]
+                if "msg" in conf:
+                    msg = conf['msg']
+                    self.infoLabel.setText(msg)
 
-            if ("flipy" in self._prev_source.conf[self._prev_key] and
-                self._prev_source.conf[self._prev_key]['flipy'] is True):
-                self.plot.getView().invertY(not self.plot.getView().getViewBox().yInverted())
+                if ("flipy" in conf and conf['flipy'] is True):
+                    self.plot.getView().invertY(not self.plot.getView().getViewBox().yInverted())
 
-            if "xmin" in self._prev_source.conf[self._prev_key]:
-                xmin = self._prev_source.conf[self._prev_key]['xmin']
-            if "ymin" in self._prev_source.conf[self._prev_key]:
-                ymin = self._prev_source.conf[self._prev_key]['ymin']
-            transform.translate(xmin, ymin)
-            transform.scale(1.0/xmax, 1.0/ymax)                        
-            if "xmax" in self._prev_source.conf[self._prev_key]:
-                xmax = self._prev_source.conf[self._prev_key]['xmax']
-            if "ymax" in self._prev_source.conf[self._prev_key]:
-                ymax = self._prev_source.conf[self._prev_key]['ymax']
-            transform.scale(xmax-xmin, ymax-ymin)
-            # Tranpose images to make x (last dimension) horizontal
-            axis_labels = ['left','bottom']
-            xlabel_index = 0
-            ylabel_index = 1
-            if source.data_type[self._prev_key] == 'image':
-                transform = transpose_transform*transform
-                xlabel_index = (xlabel_index+1)%2
-                ylabel_index = (ylabel_index+1)%2
+                if "xmin" in conf:
+                    xmin = conf['xmin']
+                if "ymin" in conf:
+                    ymin = conf['ymin']
+                transform.translate(xmin, ymin)
+                transform.scale(1.0/xmax, 1.0/ymax)                        
+                if "xmax" in conf:
+                    xmax = conf['xmax']
+                if "ymax" in conf:
+                    ymax = conf['ymax']
+                transform.scale(xmax-xmin, ymax-ymin)
+                # Tranpose images to make x (last dimension) horizontal
+                axis_labels = ['left','bottom']
+                xlabel_index = 0
+                ylabel_index = 1
+                if source.data_type[key] == 'image':
+                    transform = transpose_transform*transform
+                    xlabel_index = (xlabel_index+1)%2
+                    ylabel_index = (ylabel_index+1)%2
 
-            if "transpose" in self._prev_source.conf[self._prev_key]:
-                transform = transpose_transform*transform
-                xlabel_index = (xlabel_index+1)%2
-                ylabel_index = (ylabel_index+1)%2
+                if "transpose" in conf:
+                    transform = transpose_transform*transform
+                    xlabel_index = (xlabel_index+1)%2
+                    ylabel_index = (ylabel_index+1)%2
 
-            if "xlabel" in self._prev_source.conf[self._prev_key]:
-                self.plot.getView().setLabel(axis_labels[xlabel_index], self._prev_source.conf[self._prev_key]['xlabel'])
-            if "ylabel" in self._prev_source.conf[self._prev_key]:
-                self.plot.getView().setLabel(axis_labels[ylabel_index], self._prev_source.conf[self._prev_key]['ylabel'])
+                if "xlabel" in conf:
+                    self.plot.getView().setLabel(axis_labels[xlabel_index], conf['xlabel'])
+                if "ylabel" in conf:
+                    self.plot.getView().setLabel(axis_labels[ylabel_index], conf['ylabel'])
                 
-            if(self.plot.image is not None and len(self.plot.image.shape) > 2):
-                last_index = self.plot.image.shape[0]-1
-                # Only update if we're in the last index
-                if(self.plot.currentIndex == last_index):
-                    self.plot.setImage(numpy.array(pd._y), 
+                if(self.plot.image is not None and len(self.plot.image.shape) > 2):
+                    last_index = self.plot.image.shape[0]-1
+                    # Only update if we're in the last index
+                    if(self.plot.currentIndex == last_index):
+                        self.plot.setImage(numpy.array(pd._y), 
+                                           transform = transform,
+                                           autoRange=autoRange, autoLevels=autoLevels,
+                                           autoHistogramRange=autoHistogram)
+                        last_index = self.plot.image.shape[0]-1
+                        self.plot.setCurrentIndex(last_index)
+
+                else:
+                    self.plot.setImage(numpy.array(pd._y),
                                        transform = transform,
                                        autoRange=autoRange, autoLevels=autoLevels,
                                        autoHistogramRange=autoHistogram)
-                    last_index = self.plot.image.shape[0]-1
-                    self.plot.setCurrentIndex(last_index)
+                    if(len(self.plot.image.shape) > 2):
+                        # Make sure to go to the last image
+                        last_index = self.plot.image.shape[0]-1
+                        self.plot.setCurrentIndex(last_index)
 
-            else:
-                self.plot.setImage(numpy.array(pd._y),
-                                   transform = transform,
-                                   autoRange=autoRange, autoLevels=autoLevels,
-                                   autoHistogramRange=autoHistogram)
-                if(len(self.plot.image.shape) > 2):
-                    # Make sure to go to the last image
-                    last_index = self.plot.image.shape[0]-1
-                    self.plot.setCurrentIndex(last_index)
-
-            self.setWindowTitle(pd._title)
-            self.plot.ui.roiPlot.hide()
-            dt = self.get_time()
-            # Round to miliseconds
-            self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
-            self.dateLabel.setText(str(dt.date()))
+                self.setWindowTitle(pd._title)
+                self.plot.ui.roiPlot.hide()
+                dt = self.get_time()
+                # Round to miliseconds
+                self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
+                self.dateLabel.setText(str(dt.date()))
 
 
     def closeEvent(self, event):
         # Unsibscribe all everything
-        if self._prev_source is not None:
-            self._prev_source.unsubscribe(self._prev_key,self)
+        for source in self._enabled_sources.keys():
+            for key in self._enabled_sources[source]:
+                source.unsubscribe(key, self)
         # Remove myself from the interface plot list
         # otherwise we'll be called also on replot
         self._parent._plot_windows.remove(self)
