@@ -19,6 +19,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.actionX_axis.triggered.connect(self.onViewXAxis)
         self.actionY_axis.triggered.connect(self.onViewYAxis)
         self.acceptable_data_types = ['scalar', 'vector']
+        self.exclusive_source = False
 
     def onViewLegendBox(self):
         action = self.sender()

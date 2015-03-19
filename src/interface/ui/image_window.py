@@ -20,6 +20,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.finish_layout()
         self.infoLabel.setText('')
         self.acceptable_data_types = ['image', 'vector']
+        self.exclusive_source = True
             
     def replot(self):
         for source,title in self.source_and_titles():

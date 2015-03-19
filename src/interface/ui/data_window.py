@@ -62,10 +62,10 @@ class DataWindow(QtGui.QMainWindow):
 
     def set_source_title(self, source, title, enable=True):
         if(enable):
-            if(self._enabled_sources):
-                # we'll assume there's just one source
-                source = self._enabled_sources.keys()[0]
-                source.unsubscribe(self._enabled_sources[source].pop())
+            if(self.exclusive_source and self._enabled_sources):
+                for s,t in self.source_and_titles():
+                    self._enabled_sources[source].remove(t)
+                    s.unsubscribe(t, self)
             source.subscribe(title, self)
             if(source in  self._enabled_sources):                
                 self._enabled_sources[source].append(title)
