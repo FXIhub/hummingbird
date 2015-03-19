@@ -73,7 +73,6 @@ class DataSource(QtCore.QObject):
             self.get_uuid()
             # Subscribe to stuff already requested
             for key in self._subscribed_keys.keys():
-                print 'subscribing to %s' % (bytes(key))
                 self._data_socket.subscribe(bytes(key))
         elif(reply[0] == 'uuid'):
             self.uuid = reply[1]
