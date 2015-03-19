@@ -87,8 +87,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         key = self._enabled_source
         source = self._prev_source
         # There might be no data yet, so no plotdata
-        if(source is not None and key in source._plotdata):
-            pd = source._plotdata[key]
+        if(source is not None and self._prev_key in source._plotdata):
+            pd = source._plotdata[self._prev_key]
             dt = datetime.datetime.fromtimestamp(pd._x[index])
             return dt
         else:
@@ -98,8 +98,8 @@ class ImageWindow(QtGui.QMainWindow, Ui_imageWindow):
         key = self._enabled_source
         source = self._prev_source
         # There might be no data yet, so no plotdata
-        if(source is not None and key in source._plotdata):
-            pd = source._plotdata[key]
+        if(source is not None and self._prev_key in source._plotdata):
+            pd = source._plotdata[self._prev_key]
             autoLevels = self.actionAuto_Levels.isChecked()
             autoRange = self.actionAuto_Zoom.isChecked()
             autoHistogram = self.actionAuto_Histogram.isChecked()

@@ -110,11 +110,11 @@ class DataSource(QtCore.QObject):
             self.plot_append(title,data,data_x)
 
     def plot(self, title, data):
-        if(self.name()+title not in self._plotdata):
-            self._plotdata[self.name()+title] = PlotData(self, title)
-        self._plotdata[self.name()+title].set_data(data)
+        if(title not in self._plotdata):
+            self._plotdata[title] = PlotData(self, title)
+        self._plotdata[title].set_data(data)
 
     def plot_append(self, title, data, data_x):
-        if(self.name()+title not in self._plotdata):
-            self._plotdata[self.name()+title] = PlotData(self, title)
-        self._plotdata[self.name()+title].append(data, data_x)
+        if(title not in self._plotdata):
+            self._plotdata[title] = PlotData(self, title)
+        self._plotdata[title].append(data, data_x)

@@ -103,7 +103,7 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
             source = self._enabled_sources[key]['source']
             # There might be no data yet, so no plotdata
             if(key in source._plotdata):
-                pd = source._plotdata[key]
+                pd = source._plotdata[self._enabled_sources[key]['key']]
                 dt = datetime.datetime.fromtimestamp(pd._x[-1])
             else: dt = datetime.datetime.now()
         else: dt = datetime.datetime.now()
@@ -118,8 +118,8 @@ class PlotWindow(QtGui.QMainWindow, Ui_plotWindow):
         for key in sorted(self._enabled_sources):
             source = self._enabled_sources[key]['source']
             # There might be no data yet, so no plotdata
-            if(key in source._plotdata):
-                pd = source._plotdata[key]
+            if(self._enabled_sources[key]['key'] in source._plotdata):
+                pd = source._plotdata[self._enabled_sources[key]['key']]
                 titlebar.append(pd._title)
 
                 color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
