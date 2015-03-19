@@ -10,35 +10,16 @@ import datetime
 
 class ImageWindow(DataWindow, Ui_imageWindow):
     def __init__(self, parent = None):
-        DataWindow.__init__(self,None)
-        self._parent = parent
-        self.setupUi(self)
-        self.setupConnections()
-        self.settings = QtCore.QSettings()
+        # This also sets up the UI part
+        DataWindow.__init__(self,parent)
         self.plot = ImageView(self.plotFrame, view=pyqtgraph.PlotItem())
         self.plot.ui.roiBtn.hide()
         self.plot.ui.normBtn.hide()
         self.plot.ui.normBtn.hide()
-        self.plot.ui.roiPlot.hide()            
-        layout = QtGui.QVBoxLayout(self.plotFrame)
-        layout.addWidget(self.plot)
-        icon_path = os.path.dirname(os.path.realpath(__file__)) + "/../images/logo_48_transparent.png"
-        icon = QtGui.QPixmap(icon_path); 
-        self.logoLabel.setPixmap(icon)
-        self.actionSaveToJPG.triggered.connect(self.onSaveToJPG)
-        self.actionSaveToJPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
-        self.plot_title = str(self.title.text())
-        self.title.textChanged.connect(self.onTitleChange)
+        self.plot.ui.roiPlot.hide()
+        self.finish_layout()
         self.infoLabel.setText('')
         self.acceptable_data_types = ['image', 'vector']
-    def onSaveToJPG(self):
-        dt = self.get_time()
-        self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
-        timestamp = '%04d%02d%02d_%02d%02d%02d' %(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
-        QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' + timestamp + '_' + self.plot_title + '.jpg', 'jpg')
-
-    def onTitleChange(self, title):
-        self.plot_title = str(title)
             
     def replot(self):
         for source,title in self.source_and_titles():

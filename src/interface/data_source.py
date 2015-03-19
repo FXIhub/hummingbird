@@ -72,7 +72,6 @@ class DataSource(QtCore.QObject):
                 self._data_socket.subscribe(bytes(title))
             self.query_configuration()
         elif(reply[0] == 'conf'):
-            print reply
             self.conf = reply[1]
             self.titles = self.conf.keys()
             self.data_type = {}
