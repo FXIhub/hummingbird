@@ -41,27 +41,18 @@ class Interface(QtGui.QMainWindow):
             for pw in plot_windows:
                 if(pw['window_type'] == 'ImageWindow'):
                     w = ImageWindow(self)
-                    for es in pw['enabled_sources']:
-                        for ds in data_sources:
-                            if(ds._hostname == es['hostname'] and
-                               ds._port == es['port'] and
-                               ds._ssh_tunnel == es['tunnel']):
-                                source = ds
-                                key = es['key']      
-                                w.set_source_key(source,key)
-                    
                 elif(pw['window_type'] == 'PlotWindow'):
-                    w = PlotWindow(self)
-                    for es in pw['enabled_sources']:
-                        for ds in data_sources:
-                            if(ds._hostname == es['hostname'] and
-                               ds._port == es['port'] and
-                               ds._ssh_tunnel == es['tunnel']):
-                                source = ds
-                                key = es['key']      
-                                w.set_source_key(source,key)
+                    w = PlotWindow(self)                    
                 else:
                     raise ValueError('window_type %s not supported' %(pw['window_type']))
+                for es in pw['enabled_sources']:
+                    for ds in data_sources:
+                        if(ds._hostname == es['hostname'] and
+                           ds._port == es['port'] and
+                           ds._ssh_tunnel == es['tunnel']):
+                            source = ds
+                            key = es['key']      
+                            w.set_source_key(source,key)
                 w.restoreGeometry(pw['geometry'])
                 w.restoreState(pw['windowState'])
                 w.show()
@@ -216,12 +207,11 @@ class Interface(QtGui.QMainWindow):
             else:
                 raise ValueError('Unsupported plotWindow type %s' % (type(pw)) )
             enabled_sources = []
-            for source in pw._enabled_sources.keys():
-                for key in pw._enabled_sources[source]:
-                    enabled_sources.append({'hostname': source._hostname,
-                                            'port': source._port,
-                                            'tunnel': source._ssh_tunnel,
-                                            'key': key})
+            for source,key in pw.source_and_keys():
+                enabled_sources.append({'hostname': source._hostname,
+                                        'port': source._port,
+                                        'tunnel': source._ssh_tunnel,
+                                        'key': key})
 
             pw_settings.append({'geometry': pw.saveGeometry(),
                                 'windowState': pw.saveState(),

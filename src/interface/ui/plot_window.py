@@ -68,49 +68,47 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         titlebar = []
         self.plot.plotItem.legend.items = []
 
-        for source in self._enabled_sources.keys():
-            for key in self._enabled_sources[source]:
-                if(key not in source._plotdata):
-                    # There might be no data yet, so no plotdata
-                    continue
-                pd = source._plotdata[key]
-                titlebar.append(pd._title)
+        for source,key in self.source_and_keys():
+            if(key not in source._plotdata):
+                continue
+            pd = source._plotdata[key]
+            titlebar.append(pd._title)
 
-                color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
-                pen = None
-                symbol = None
-                symbolPen = None
-                symbolBrush = None
-                symbolSize = 3
-                if(self.actionLines.isChecked()):
-                    pen = color
-                if(self.actionPoints.isChecked()):
-                    symbol = 'o'
-                    symbolPen = color
-                    symbolBrush = color
+            color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
+            pen = None
+            symbol = None
+            symbolPen = None
+            symbolBrush = None
+            symbolSize = 3
+            if(self.actionLines.isChecked()):
+                pen = color
+            if(self.actionPoints.isChecked()):
+                symbol = 'o'
+                symbolPen = color
+                symbolBrush = color
 
-                conf = source.conf[key]
-                if(self.actionX_axis.isChecked()):
-                    if 'xlabel' in conf:
-                        self.plot.setLabel('bottom', conf['xlabel'])                
-                if(self.actionY_axis.isChecked()):
-                    if 'ylabel' in conf:
-                        self.plot.setLabel('left', conf['ylabel'])
+            conf = source.conf[key]
+            if(self.actionX_axis.isChecked()):
+                if 'xlabel' in conf:
+                    self.plot.setLabel('bottom', conf['xlabel'])                
+            if(self.actionY_axis.isChecked()):
+                if 'ylabel' in conf:
+                    self.plot.setLabel('left', conf['ylabel'])
 
-                if(source.data_type[key] == 'scalar'):
-                    y = pd._y
-                elif(source.data_type[key] == 'vector'):
-                    y = pd._y[-1,:]
+            if(source.data_type[key] == 'scalar'):
+                y = pd._y
+            elif(source.data_type[key] == 'vector'):
+                y = pd._y[-1,:]
 
-                if(pd._x is not None and source.data_type[key] == 'scalar'):
-                    plt = self.plot.plot(x=numpy.array(pd._x, copy=False),
-                                         y=numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol,
-                                         symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=symbolSize)
-                else:
-                    plt = self.plot.plot(numpy.array(y, copy=False), clear=False,  pen=pen, symbol=symbol,
-                                         symbolPen=symbolPen, symbolBrush=symbolBrush,symbolSize=symbolSize)
-                self.legend.addItem(plt,pd._title)
-                color_index += 1
+            if(pd._x is not None and source.data_type[key] == 'scalar'):
+                plt = self.plot.plot(x=numpy.array(pd._x, copy=False),
+                                     y=numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol,
+                                     symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=symbolSize)
+            else:
+                plt = self.plot.plot(numpy.array(y, copy=False), clear=False,  pen=pen, symbol=symbol,
+                                     symbolPen=symbolPen, symbolBrush=symbolBrush,symbolSize=symbolSize)
+            self.legend.addItem(plt,pd._title)
+            color_index += 1
         self.setWindowTitle(", ".join(titlebar))
         dt = self.get_time()
         # Round to miliseconds
