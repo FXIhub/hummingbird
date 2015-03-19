@@ -54,8 +54,6 @@ class DataSource(QtCore.QObject):
         self._ctrl_socket.connect_socket(addr, self._ssh_tunnel)
     def get_data_port(self):
         self._ctrl_socket.send_multipart(['data_port'])
-    def get_uuid(self):
-        self._ctrl_socket.send_multipart(['uuid'])
     def query_keys_and_type(self):
         self._ctrl_socket.send_multipart(['keys'])
         
@@ -70,12 +68,9 @@ class DataSource(QtCore.QObject):
             self._data_socket.readyRead.connect(self._get_broadcast)
             self._data_socket.connect_socket(addr, self._ssh_tunnel)
             self.parent().add_backend(self)
-            self.get_uuid()
             # Subscribe to stuff already requested
             for key in self._subscribed_keys.keys():
                 self._data_socket.subscribe(bytes(key))
-        elif(reply[0] == 'uuid'):
-            self.uuid = reply[1]
             self.query_keys_and_type()
         elif(reply[0] == 'keys'):
             self.conf = reply[1]
