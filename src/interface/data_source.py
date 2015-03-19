@@ -78,6 +78,7 @@ class DataSource(QtCore.QObject):
             self.data_type = {}
             for k in self.keys:
                 self.data_type[k] = self.conf[k]['data_type']
+                self._plotdata[k] = PlotData(self, k)
 
     def _get_broadcast(self):
         socket = self.sender()
@@ -110,16 +111,7 @@ class DataSource(QtCore.QObject):
             self.plot_append(title,data,data_x)
 
     def plot(self, title, data):
-        if(title not in self._plotdata):
-            self._plotdata[title] = PlotData(self, title)
         self._plotdata[title].set_data(data)
 
     def plot_append(self, title, data, data_x):
-        if(title not in self._plotdata):
-            self._plotdata[title] = PlotData(self, title)
         self._plotdata[title].append(data, data_x)
-
-    def get_plot_data(self, title):
-        if(title in self._plotdata):
-            return self._plotdata[title]
-        return None
