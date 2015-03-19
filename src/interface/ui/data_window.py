@@ -6,8 +6,6 @@ class DataWindow(QtGui.QMainWindow):
          QtGui.QMainWindow.__init__(self,None)
          self._enabled_sources = {}
     def setupConnections(self):
-        # menuData_Sources is a "virtual" attribute
-        print 'here'
         self.menuData_Sources.aboutToShow.connect(self.onMenuShow)        
     def onMenuShow(self):
         # Go through all the available data sources and add them
@@ -78,3 +76,11 @@ class DataWindow(QtGui.QMainWindow):
         # Remove myself from the interface plot list
         # otherwise we'll be called also on replot
         self._parent._plot_windows.remove(self)
+
+    def source_and_keys():
+        for source in self._enabled_sources.keys():
+            for key in self._enabled_sources[source]:
+                if(key not in source._plotdata):
+                    continue
+                pd = source._plotdata[key]
+                yield source,key,pd

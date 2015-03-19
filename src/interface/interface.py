@@ -209,26 +209,19 @@ class Interface(QtGui.QMainWindow):
     def savePlotWindows(self):
         pw_settings = []
         for pw in self._plot_windows:
-            enabled_sources = []
             if(isinstance(pw,PlotWindow)):
-                for es in pw._enabled_sources.values():
-                    ds = es['source']
-                    enabled_sources.append({'hostname': ds._hostname,
-                                            'port': ds._port,
-                                            'tunnel': ds._ssh_tunnel,
-                                            'key': es['key']})
-                    window_type = 'PlotWindow'
+                window_type = 'PlotWindow'
             elif(isinstance(pw,ImageWindow)):
-                ds = pw._prev_source
-                if(ds is not None):
-                    enabled_sources.append({'hostname': ds._hostname,
-                                            'port': ds._port,
-                                            'tunnel': ds._ssh_tunnel,
-                                            'key': pw._prev_key})
-                window_type = 'ImageWindow'
-                
+                window_type = 'ImageWindow'                
             else:
                 raise ValueError('Unsupported plotWindow type %s' % (type(pw)) )
+            enabled_sources = []
+            for source in pw._enabled_sources.keys():
+                for key in pw._enabled_sources[source]:
+                    enabled_sources.append({'hostname': source._hostname,
+                                            'port': source._port,
+                                            'tunnel': source._ssh_tunnel,
+                                            'key': key})
 
             pw_settings.append({'geometry': pw.saveGeometry(),
                                 'windowState': pw.saveState(),
