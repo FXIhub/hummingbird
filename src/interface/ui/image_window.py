@@ -41,10 +41,12 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.plot_title = str(title)
             
     def replot(self):
-        for source,key in self.source_and_keys():
-            if(key not in source._plotdata):
+        for source,title in self.source_and_titles():
+            if(title not in source._plotdata):
                 continue
-            pd = source._plotdata[key]
+            pd = source._plotdata[title]
+            if(pd._y is None):
+                continue
             autoLevels = self.actionAuto_Levels.isChecked()
             autoRange = self.actionAuto_Zoom.isChecked()
             autoHistogram = self.actionAuto_Histogram.isChecked()
@@ -57,12 +59,12 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             ymax = pd._y.shape[-2]
             transform = QtGui.QTransform()
 
-            if source.data_type[key] == 'image':
+            if source.data_type[title] == 'image':
                 self.plot.getView().invertY(True)
             else:
                 self.plot.getView().invertY(False)
 
-            conf = source.conf[key]
+            conf = source.conf[title]
             if "msg" in conf:
                 msg = conf['msg']
                 self.infoLabel.setText(msg)
@@ -85,7 +87,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             axis_labels = ['left','bottom']
             xlabel_index = 0
             ylabel_index = 1
-            if source.data_type[key] == 'image':
+            if source.data_type[title] == 'image':
                 transform = transpose_transform*transform
                 xlabel_index = (xlabel_index+1)%2
                 ylabel_index = (ylabel_index+1)%2

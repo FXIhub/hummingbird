@@ -57,10 +57,8 @@ class ZmqServer(object):
                 self.send_array(title, array_list[i])
 
     def answer_command(self, stream, msg):
-        if(msg[0] == 'keys'):
-            stream.socket.send_json(['keys',ipc.broadcast.data_conf])
-#            stream.socket.send_multipart(['keys']+ipc.broadcast.data_titles+
-#                                         ipc.broadcast.data_types)
+        if(msg[0] == 'conf'):
+            stream.socket.send_json(['conf',ipc.broadcast.data_conf])
         if(msg[0] == 'data_port'):
             stream.socket.send_json(['data_port',bytes(self._data_port)])
         if(msg[0] == 'uuid'):

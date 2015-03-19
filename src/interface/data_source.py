@@ -15,32 +15,32 @@ class DataSource(QtCore.QObject):
         self._ssh_tunnel = ssh_tunnel
         self.connected = False
         self._plotdata = {}
-        self._subscribed_keys = {}
+        self._subscribed_titles = {}
         try:            
             self.connect()
             self.connected = True
             self.get_data_port()
-            self.keys = None
+            self.titles = None
             self.data_type = None
         except (RuntimeError, zmq.error.ZMQError):
             QtGui.QMessageBox.warning(self.parent(), "Connection failed!", "Could not connect to %s" % self.name())
             raise
-    def subscribe(self, key, plot):
-        if key not in self._subscribed_keys:
-            self._subscribed_keys[key] = [plot]
+    def subscribe(self, title, plot):
+        if title not in self._subscribed_titles:
+            self._subscribed_titles[title] = [plot]
             try:
-                self._data_socket.subscribe(bytes(key))
+                self._data_socket.subscribe(bytes(title))
             # socket might still not exist
             except AttributeError:
                 pass
         else:
-            self._subscribed_keys[key].append(plot)
-    def unsubscribe(self, key, plot):
-        self._subscribed_keys[key].remove(plot)
+            self._subscribed_titles[title].append(plot)
+    def unsubscribe(self, title, plot):
+        self._subscribed_titles[title].remove(plot)
         # Check if list is empty
-        if not self._subscribed_keys[key]:
-            self._data_socket.unsubscribe(bytes(key))
-            self._subscribed_keys.pop(key)
+        if not self._subscribed_titles[title]:
+            self._data_socket.unsubscribe(bytes(title))
+            self._subscribed_titles.pop(title)
 
     def name(self):
         if(self._ssh_tunnel):
@@ -54,9 +54,8 @@ class DataSource(QtCore.QObject):
         self._ctrl_socket.connect_socket(addr, self._ssh_tunnel)
     def get_data_port(self):
         self._ctrl_socket.send_multipart(['data_port'])
-    def query_keys_and_type(self):
-        self._ctrl_socket.send_multipart(['keys'])
-        
+    def query_configuration(self):
+        self._ctrl_socket.send_multipart(['conf'])        
     def _get_command_reply(self, socket = None):
         if(socket is None):
             socket=self.sender()
@@ -69,14 +68,15 @@ class DataSource(QtCore.QObject):
             self._data_socket.connect_socket(addr, self._ssh_tunnel)
             self.parent().add_backend(self)
             # Subscribe to stuff already requested
-            for key in self._subscribed_keys.keys():
-                self._data_socket.subscribe(bytes(key))
-            self.query_keys_and_type()
-        elif(reply[0] == 'keys'):
+            for title in self._subscribed_titles.keys():
+                self._data_socket.subscribe(bytes(title))
+            self.query_configuration()
+        elif(reply[0] == 'conf'):
+            print reply
             self.conf = reply[1]
-            self.keys = self.conf.keys()
+            self.titles = self.conf.keys()
             self.data_type = {}
-            for k in self.keys:
+            for k in self.titles:
                 self.data_type[k] = self.conf[k]['data_type']
                 self._plotdata[k] = PlotData(self, k)
 
@@ -86,7 +86,7 @@ class DataSource(QtCore.QObject):
         QtCore.QCoreApplication.processEvents()
         socket.blockSignals(False)
 
-        key = socket.recv()
+        title = socket.recv()
         data = socket.recv_json()
         for i in range(len(data)):
             if data[i] == '__ndarray__':

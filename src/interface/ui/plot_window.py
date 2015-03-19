@@ -68,10 +68,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         titlebar = []
         self.plot.plotItem.legend.items = []
 
-        for source,key in self.source_and_keys():
-            if(key not in source._plotdata):
+        for source,title in self.source_and_titles():
+            if(title not in source._plotdata):
                 continue
-            pd = source._plotdata[key]
+            pd = source._plotdata[title]
+            if(pd._y is None):
+                continue
             titlebar.append(pd._title)
 
             color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
@@ -87,7 +89,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 symbolPen = color
                 symbolBrush = color
 
-            conf = source.conf[key]
+            conf = source.conf[title]
             if(self.actionX_axis.isChecked()):
                 if 'xlabel' in conf:
                     self.plot.setLabel('bottom', conf['xlabel'])                
@@ -95,12 +97,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 if 'ylabel' in conf:
                     self.plot.setLabel('left', conf['ylabel'])
 
-            if(source.data_type[key] == 'scalar'):
+            if(source.data_type[title] == 'scalar'):
                 y = pd._y
-            elif(source.data_type[key] == 'vector'):
+            elif(source.data_type[title] == 'vector'):
                 y = pd._y[-1,:]
 
-            if(pd._x is not None and source.data_type[key] == 'scalar'):
+            if(pd._x is not None and source.data_type[title] == 'scalar'):
                 plt = self.plot.plot(x=numpy.array(pd._x, copy=False),
                                      y=numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol,
                                      symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=symbolSize)

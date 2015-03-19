@@ -24,7 +24,10 @@ class Interface(QtGui.QMainWindow):
         self._init_geometry()
         self._init_menus()
         loading_sources = self._init_data_sources()
-        self._restore_data_windows(loading_sources)
+        try:            
+            self._restore_data_windows(loading_sources)
+        except KeyError:
+            pass
         self._init_timer()
         Interface.instance = self
 
@@ -41,24 +44,28 @@ class Interface(QtGui.QMainWindow):
         if(self.settings.contains("dataWindows")):
             data_windows = self.settings.value("dataWindows")
             for dw in data_windows:
-                if(dw['window_type'] == 'ImageWindow'):
-                    w = ImageWindow(self)
-                elif(dw['window_type'] == 'PlotWindow'):
-                    w = PlotWindow(self)                    
-                else:
-                    raise ValueError('window_type %s not supported' %(pw['window_type']))
-                for es in dw['enabled_sources']:
-                    for ds in data_sources:
-                        if(ds._hostname == es['hostname'] and
-                           ds._port == es['port'] and
-                           ds._ssh_tunnel == es['tunnel']):
-                            source = ds
-                            key = es['key']      
-                            w.set_source_key(source,key)
-                w.restoreGeometry(dw['geometry'])
-                w.restoreState(dw['windowState'])
-                w.show()
-                self._data_windows.append(w)
+                try:            
+                    if(dw['window_type'] == 'ImageWindow'):
+                        w = ImageWindow(self)
+                    elif(dw['window_type'] == 'PlotWindow'):
+                        w = PlotWindow(self)                    
+                    else:
+                        raise ValueError('window_type %s not supported' %(pw['window_type']))
+                    for es in dw['enabled_sources']:
+                        for ds in data_sources:
+                            if(ds._hostname == es['hostname'] and
+                               ds._port == es['port'] and
+                               ds._ssh_tunnel == es['tunnel']):
+                                source = ds
+                                title = es['title']      
+                                w.set_source_title(source,title)
+                    w.restoreGeometry(dw['geometry'])
+                    w.restoreState(dw['windowState'])
+                    w.show()
+                    self._data_windows.append(w)
+                # Try to handle some version incompatibilities
+                except KeyError:
+                    pass
         
             
     def _init_menus(self):        
@@ -138,7 +145,7 @@ class Interface(QtGui.QMainWindow):
     def _reload_backend_triggered(self):
         # Go through the data sources and ask for new keys
         for ds in self._data_sources:
-            ds.query_keys_and_type()
+            ds.query_titles_and_type()
             # Why do I need to call this explicitly?
             ds._get_command_reply(ds._ctrl_socket)
             
@@ -157,21 +164,21 @@ class Interface(QtGui.QMainWindow):
     # -----------------------------
     def addSource(self, source):
         menu =  self._backends_menu.addMenu(source.name())
-        for key in source.keys:            
-            action = QtGui.QAction(key, self)
-            action.setData([source,key])
+        for title in source.titles:            
+            action = QtGui.QAction(title, self)
+            action.setData([source,title])
             action.setCheckable(True)
             action.setChecked(False)
             menu.addAction(action)
-            action.triggered.connect(self._source_key_triggered)
+            action.triggered.connect(self._source_title_triggered)
 
-    def _source_key_triggered(self):
+    def _source_title_triggered(self):
         action = self.sender()
-        source,key = action.data()
+        source,title = action.data()
         if(action.isChecked()):
-            source.subscribe(key)
+            source.subscribe(title)
         else:
-            source.unsubscribe(key)
+            source.unsubscribe(title)
 
     def _data_source_triggered(self):
         action = self.sender()
@@ -206,11 +213,11 @@ class Interface(QtGui.QMainWindow):
             else:
                 raise ValueError('Unsupported dataWindow type %s' % (type(dw)) )
             enabled_sources = []
-            for source,key in dw.source_and_keys():
+            for source,title in dw.source_and_titles():
                 enabled_sources.append({'hostname': source._hostname,
                                         'port': source._port,
                                         'tunnel': source._ssh_tunnel,
-                                        'key': key})
+                                        'title': title})
 
             dw_settings.append({'geometry': dw.saveGeometry(),
                                 'windowState': dw.saveState(),
