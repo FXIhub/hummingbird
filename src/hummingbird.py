@@ -25,12 +25,12 @@ def main():
     logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s')
     args = parse_cmdline_args()
     if(args.backend is not None):
-        from backend import Backend
+        from backend import Worker
         if(args.backend != True):
-            backend = Backend(args.backend)
+            worker = Worker(args.backend)
         else:
-            backend = Backend(None)
-        backend.start()
+            worker = Worker(None)
+        worker.start()
     elif(args.interface is not False):
         import interface
         interface.start_interface()

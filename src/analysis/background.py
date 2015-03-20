@@ -2,8 +2,6 @@ import collections
 import ipc
 import numpy
 from numpy import abs
-from backend import Backend
-#from plots import MeanMap
 
 photonMaps = {}
 def plotMeanPhotonMap(key, conf, nrPhotons, paramX, paramY, pulseEnergy):

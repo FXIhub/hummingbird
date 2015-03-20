@@ -7,7 +7,7 @@ import imp
 import ipc
 import time 
 
-class Backend(object):
+class Worker(object):
     state = None
     conf = None
     """Coordinates data reading, translation and analysis.
@@ -31,20 +31,20 @@ class Backend(object):
         self._config_file = config_file
         # self.backend_conf = imp.load_source('backend_conf', config_file)
         self.load_conf()
-        Backend.state['_config_file'] = config_file
-        Backend.state['_config_dir'] = os.path.dirname(config_file)
+        Worker.state['_config_file'] = config_file
+        Worker.state['_config_dir'] = os.path.dirname(config_file)
         if(not ipc.mpi.is_master()):
-            self.translator = init_translator(Backend.state)
+            self.translator = init_translator(Worker.state)
         print 'Starting backend...'
 
     def load_conf(self):        
-        Backend.conf = imp.load_source('backend_conf', self._config_file)        
-        if(Backend.state is None):
-            Backend.state = Backend.conf.state
+        Worker.conf = imp.load_source('backend_conf', self._config_file)        
+        if(Worker.state is None):
+            Worker.state = Worker.conf.state
         else:
             # Only copy the keys that exist in the newly loaded state
-            for k in Backend.conf.state:
-                Backend.state[k] = Backend.conf.state[k]
+            for k in Worker.conf.state:
+                Worker.state[k] = Worker.conf.state[k]
 
     def start(self):
         """Start the event loop.
@@ -52,19 +52,19 @@ class Backend(object):
         Sets ``state['running']`` to True. While ``state['running']`` is True, it will
         get events from the translator and process them as fast as possible.
         """
-        Backend.state['running'] = True
+        Worker.state['running'] = True
         self.event_loop()
 
     def event_loop(self):
         while(True):
             try:
-                while(Backend.state['running']):
+                while(Worker.state['running']):
                     if(ipc.mpi.is_master()):
                         ipc.mpi.master_loop()
                     else:
                         evt = self.translator.nextEvent()
                         ipc.set_current_event(evt)
-                        Backend.conf.onEvent(evt)
+                        Worker.conf.onEvent(evt)
             except KeyboardInterrupt:  
                 try:
                     print "Hit Ctrl+c again in the next second to quit..."

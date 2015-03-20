@@ -1,6 +1,5 @@
+"""Translates between LCLS events and Hummingbird ones"""
 import os
-import sys
-import ctypes
 import logging
 from event_translator import EventTranslator
 from record import addRecord, Record

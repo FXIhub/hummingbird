@@ -1,7 +1,7 @@
 from numpy import sum, mean, min, max, std
 import ipc
 import numpy
-from backend import Backend
+from backend import Worker
 
 def printStatistics(detectors):
     for k,r in detectors.iteritems():
@@ -13,7 +13,7 @@ def printStatistics(detectors):
 def plotImages(detectors):
     for k,r in detectors.iteritems():
         v = r.data
-        if('squareImage' in Backend.state and Backend.state['squareImage']):
+        if('squareImage' in Worker.state and Worker.state['squareImage']):
             ipc.new_data(k, v**2)
         else:
             ipc.new_data(k, v)
@@ -28,7 +28,7 @@ def plotDetector(detector):
         image = detector.data.reshape(sh[0]*sh[2], sh[1])
     else:
         image = detector.data
-    #if(not counter % Backend.state["detectorUpdateRate"]):
+    #if(not counter % Worker.state["detectorUpdateRate"]):
     ipc.new_data(detector.name, image)
 
 histograms = {}
@@ -46,7 +46,7 @@ def reshape_detector(detector):
     
 nrPhotons = {}    
 def countNrPhotons(image):
-    return sum(image[image>Backend.state['aduThreshold']]) / float(Backend.state['aduPhoton'])
+    return sum(image[image>Worker.state['aduThreshold']]) / float(Worker.state['aduPhoton'])
 
 def plotNrPhotons(key, nrPhotons):
     ipc.new_data(key, nrPhotons)

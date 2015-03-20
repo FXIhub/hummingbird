@@ -1,7 +1,7 @@
 import logging
 
 from .pint import UnitRegistry
-from .backend import Backend 
+from .worker import Worker 
 from .event_translator import EventTranslator
 from .record import Record, addRecord
 
