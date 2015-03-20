@@ -7,7 +7,6 @@ from ui import AddBackendDialog, PreferencesDialog, PlotWindow, ImageWindow
 from data_source import DataSource
 import os
 import json
-import signal
 
 class GUI(QtGui.QMainWindow):
     """Main Window Class.
@@ -240,22 +239,4 @@ class GUI(QtGui.QMainWindow):
         # Force exit to prevent pyqtgraph from crashing
         os._exit(0)
 
-def start_interface():
-    """Initialize and show the Interface."""
-    QtCore.QCoreApplication.setOrganizationName("SPI")
-    QtCore.QCoreApplication.setOrganizationDomain("spidocs.rtfd.org")
-    QtCore.QCoreApplication.setApplicationName("Hummingbird")
-    app = QtGui.QApplication(sys.argv)
-    GUI().show()
-    sys.exit(app.exec_())
-
-def sigint_handler(*args):
-    """Handler for the SIGINT signal."""
-    if QtGui.QMessageBox.question(None, '', "Are you sure you want to quit?",
-                                  QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
-                                  QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
-        GUI.instance.closeEvent(None)
-
-# This has to be outside a function, for unknown reasons to me
-signal.signal(signal.SIGINT, sigint_handler)
 
