@@ -38,7 +38,7 @@ enable=all
 # --enable=similarities". If you want to run only the classes checker, but have
 # no Warning level messages displayed, use"--disable=all --enable=classes
 # --disable=W"
-disable=superfluous-parens, attribute-defined-outside-init
+disable=superfluous-parens, attribute-defined-outside-init, no-self-use
 
 
 [REPORTS]
@@ -225,7 +225,7 @@ ignore-mixin-members=yes
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis
-ignored-modules=OpenGL.GL, OpenGL.GL.ARB.texture_float
+ignored-modules=OpenGL.GL, OpenGL.GL.ARB.texture_float, numpy, psana
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).

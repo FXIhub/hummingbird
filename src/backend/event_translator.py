@@ -24,5 +24,5 @@ class EventTranslator(object):
             
     def id(self):
         if self._id is None:
-            self._id = self._trans.id(self._evt)
+            self._id = self._trans.event_id(self._evt)
         return self._id
