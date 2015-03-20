@@ -9,7 +9,7 @@ import os
 import json
 import signal
 
-class Interface(QtGui.QMainWindow):
+class GUI(QtGui.QMainWindow):
     """Main Window Class.
 
     Contains only menus and toolbars. The plots will be in their own windows.
@@ -28,7 +28,7 @@ class Interface(QtGui.QMainWindow):
         except KeyError:
             pass
         self._init_timer()
-        Interface.instance = self
+        GUI.instance = self
 
     # Inititialization
     # ----------------
@@ -246,7 +246,7 @@ def start_interface():
     QtCore.QCoreApplication.setOrganizationDomain("spidocs.rtfd.org")
     QtCore.QCoreApplication.setApplicationName("Hummingbird")
     app = QtGui.QApplication(sys.argv)
-    Interface().show()
+    GUI().show()
     sys.exit(app.exec_())
 
 def sigint_handler(*args):
@@ -254,7 +254,7 @@ def sigint_handler(*args):
     if QtGui.QMessageBox.question(None, '', "Are you sure you want to quit?",
                                   QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                                   QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
-        Interface.instance.closeEvent(None)
+        GUI.instance.closeEvent(None)
 
 # This has to be outside a function, for unknown reasons to me
 signal.signal(signal.SIGINT, sigint_handler)

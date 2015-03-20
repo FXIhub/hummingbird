@@ -2,7 +2,7 @@
 """
 
 from Qt import QtGui, QtCore
-from .interface import Interface
+from gui import GUI
 import sys
 
 def start_interface():
@@ -11,7 +11,7 @@ def start_interface():
     QtCore.QCoreApplication.setOrganizationDomain("spidocs.rtfd.org")
     QtCore.QCoreApplication.setApplicationName("Hummingbird")
     app = QtGui.QApplication(sys.argv)
-    mw = Interface()
+    mw = GUI()
     mw.show()
     ret = app.exec_()
     sys.exit(ret)
