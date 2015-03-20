@@ -8,7 +8,6 @@ Ui_preferences, base = loadUiType(uidir + '/preferences.ui')
 Ui_plotWindow, base = loadUiType(uidir + '/plot_window.ui')
 Ui_imageWindow, base = loadUiType(uidir + '/image_window.ui')
 
-
 from add_backend import AddBackendDialog
 from preferences import PreferencesDialog
 from plot_window import PlotWindow

@@ -1,4 +1,4 @@
-from interface.Qt import QtGui, QtCore
+from interface.Qt import QtGui, QtCore, loadUiType
 from interface.ui import Ui_addBackend
 
 class AddBackendDialog(QtGui.QDialog, Ui_addBackend):

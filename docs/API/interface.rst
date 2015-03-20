@@ -3,7 +3,7 @@ interface package
 
 .. automodule:: interface
 
-.. autoclass:: interface.Interface
+.. autoclass:: interface.GUI
     :members:
     :undoc-members:
 

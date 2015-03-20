@@ -4,7 +4,6 @@ import pyqtgraph
 import numpy
 import os
 from IPython.core.debugger import Tracer
-from .ImageView import ImageView
 from data_window import DataWindow
 import datetime
 
@@ -12,6 +11,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
     def __init__(self, parent = None):
         # This also sets up the UI part
         DataWindow.__init__(self,parent)
+        # This is imported here to prevent problems with sphinx
+        from .ImageView import ImageView
         self.plot = ImageView(self.plotFrame, view=pyqtgraph.PlotItem())
         self.plot.ui.roiBtn.hide()
         self.plot.ui.normBtn.hide()

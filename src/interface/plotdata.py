@@ -1,5 +1,4 @@
 from ringbuffer import RingBuffer
-import pyqtgraph
 import numpy
 from Qt import QtGui, QtCore
 from ui import PlotWindow

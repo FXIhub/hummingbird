@@ -3,6 +3,7 @@ import datetime
 import os
 
 class DataWindow(QtGui.QMainWindow):
+#class DataWindow(object):
     def __init__(self, parent = None):
         QtGui.QMainWindow.__init__(self,None)
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
