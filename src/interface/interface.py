@@ -3,7 +3,6 @@
 from Qt import QtGui, QtCore
 import sys
 import pickle
-import pyqtgraph
 from ui import AddBackendDialog, PreferencesDialog, PlotWindow, ImageWindow
 from data_source import DataSource
 import os

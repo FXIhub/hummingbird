@@ -47,5 +47,5 @@ class DummyTranslator(object):
             raise RuntimeError('%s not found in event' % (key))
         return values
 
-    def id(self, evt):
+    def event_id(self, evt):
         return float(time.time())

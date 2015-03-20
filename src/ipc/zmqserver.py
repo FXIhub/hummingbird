@@ -1,6 +1,7 @@
 import zmq
+import zmq.eventloop
+import zmq.eventloop.zmqstream
 import pickle
-from zmq.eventloop import ioloop, zmqstream
 import threading
 import ipc
 import numpy
@@ -15,10 +16,10 @@ class ZmqServer(object):
         self._data_port = 13132
         self._data_socket.setsockopt(zmq.SNDHWM, 10)
         self._data_socket.bind("tcp://*:%d" % (self._data_port))
-        ioloop.install()
+        zmq.eventloop.ioloop.install()
         self._ctrl_socket = self._context.socket(zmq.REP)
         self._ctrl_socket.bind("tcp://*:13131")
-        self._ctrl_stream = zmqstream.ZMQStream(self._ctrl_socket)
+        self._ctrl_stream = zmq.eventloop.zmqstream.ZMQStream(self._ctrl_socket)
         self._ctrl_stream.on_recv_stream(self.answer_command)
         ipc.uuid = ipc.hostname+':'+str(self._data_port)
         t = threading.Thread(target=self.ioloop)
@@ -65,6 +66,6 @@ class ZmqServer(object):
             stream.socket.send_json(['uuid',bytes(ipc.uuid)])
 
     def ioloop(self):
-        ioloop.IOLoop.instance().start()
+        zmq.eventloop.ioloop.IOLoop.instance().start()
         print "ioloop ended"
                 
