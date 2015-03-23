@@ -1,7 +1,7 @@
+"""Implements the server that broadcasts the results from the backend"""
 import zmq
 import zmq.eventloop
 import zmq.eventloop.zmqstream
-import pickle
 import threading
 import ipc
 import numpy
@@ -9,6 +9,7 @@ import hashlib
 import ipc.mpi
 
 class ZmqServer(object):
+    """Implements the server that broadcasts the results from the backend"""
     def __init__(self):
         self._zmq_key = bytes('hummingbird')
         self._context = zmq.Context()
@@ -20,30 +21,34 @@ class ZmqServer(object):
         self._ctrl_socket = self._context.socket(zmq.REP)
         self._ctrl_socket.bind("tcp://*:13131")
         self._ctrl_stream = zmq.eventloop.zmqstream.ZMQStream(self._ctrl_socket)
-        self._ctrl_stream.on_recv_stream(self.answer_command)
+        self._ctrl_stream.on_recv_stream(self._answer_command)
         ipc.uuid = ipc.hostname+':'+str(self._data_port)
-        t = threading.Thread(target=self.ioloop)
+        t = threading.Thread(target=self._ioloop)
         # Make sure the program exists even when the thread exists
         t.daemon = True
         t.start()
 
 
-    def send_array(self, key, A, flags=0, copy=True, track=False):
-            """send a numpy array with metadata"""
-            md = dict(
-                dtype = str(A.dtype),
-                shape = A.shape,
-                strides = A.strides,                
-            )
-            self._data_socket.send_json(md,flags|zmq.SNDMORE)
-            return self._data_socket.send(A, flags, copy=copy, track=track)
+    def _send_array(self, array, flags=0, copy=True, track=False):
+        """Send a numpy array with metadata"""
+        md = dict(
+            dtype=str(array.dtype),
+            shape=array.shape,
+            strides=array.strides,
+        )
+        self._data_socket.send_json(md, flags|zmq.SNDMORE)
+        return self._data_socket.send(array, flags, copy=copy, track=track)
 
     def send(self, title, data):
+        """Send a list of data items to the broadcast named title"""
         array_list = []
         for i in range(len(data)):
-            if(isinstance(data[i],numpy.ndarray)):
+            if(isinstance(data[i], numpy.ndarray)):
                 array_list.append(data[i])
                 data[i] = '__ndarray__'
+        # Use the md5sum of the title as the key to avoid clashing
+        # keys, when one title is a substring or another title
+        # (e.g. "CCD" and "CCD1")
         m = hashlib.md5()
         m.update(bytes(title))
         self._data_socket.send(m.digest(), zmq.SNDMORE)
@@ -53,19 +58,21 @@ class ZmqServer(object):
             self._data_socket.send_json(data)
         for i in range(len(array_list)):
             if(i != len(array_list)-1):
-                self.send_array(title, array_list[i], flags=zmq.SNDMORE)
+                self._send_array(array_list[i], flags=zmq.SNDMORE)
             else:
-                self.send_array(title, array_list[i])
+                self._send_array(array_list[i])
 
-    def answer_command(self, stream, msg):
+    def _answer_command(self, stream, msg):
+        """Reply to commands receied on the _ctrl_stream"""
         if(msg[0] == 'conf'):
-            stream.socket.send_json(['conf',ipc.broadcast.data_conf])
+            stream.socket.send_json(['conf', ipc.broadcast.data_conf])
         if(msg[0] == 'data_port'):
-            stream.socket.send_json(['data_port',bytes(self._data_port)])
+            stream.socket.send_json(['data_port', bytes(self._data_port)])
         if(msg[0] == 'uuid'):
-            stream.socket.send_json(['uuid',bytes(ipc.uuid)])
+            stream.socket.send_json(['uuid', bytes(ipc.uuid)])
 
-    def ioloop(self):
+    def _ioloop(self):
+        """Start the ioloop fires the callbacks when data is received
+        on the control stream. Runs on a separate thread."""
         zmq.eventloop.ioloop.IOLoop.instance().start()
         print "ioloop ended"
-                

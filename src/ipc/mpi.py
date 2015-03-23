@@ -1,17 +1,21 @@
+"""Allows the backend and analysis to run in parallel using MPI"""
 import ipc
 import numpy
 import numbers
 
 def is_master():
+    """Returns True if the process has MPI rank 0 and
+    there are multiple processes"""
     return rank == 0 and size > 1
 
 try:
+    # Try to import MPI and create a group containing all the slaves
     from mpi4py import MPI
 
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
-    slave_group = comm.Get_group().Incl(range(1,size))
+    slave_group = comm.Get_group().Incl(range(1, size))
     slaves_comm = comm.Create(slave_group)
 except ImportError:
     rank = 0
@@ -21,15 +25,21 @@ except ImportError:
 
 
 def is_slave():
+    """Returns True if the process has MPI rank > 0"""
     return rank > 0
 
 def is_main_slave():
+    """Returns True if the process has MPI rank == 1"""
     return rank == 1
 
 def send(title, data):
+    """Send a list of data items to the master node."""
     comm.send([title, data], 0)
 
 def master_loop():
+    """Run the main loop on the master process.
+    It retransmits all received messages using its zmqserver
+    and handles any possible reductions"""
     msg = comm.recv(None, MPI.ANY_SOURCE)
     if(msg[0] == '__data_conf__'):
         ipc.broadcast.data_conf.update(msg[1])
@@ -49,9 +59,11 @@ def master_loop():
     else:
         # Inject a proper UUID
         msg[1][0] = ipc.uuid
-        ipc.zmq().send(msg[0],msg[1])
+        ipc.zmq().send(msg[0], msg[1])
 
 def send_reduce(title, cmd, data_y, data_x, **kwds):
+    """Reduce data and send it to the master. Not currently used, maybe
+    should be removed"""
     # Need an MPI barrier here on the slaves side
     # Otherwise the main_slave can block the master
     # while other slaves are sending data
@@ -63,4 +75,3 @@ def send_reduce(title, cmd, data_y, data_x, **kwds):
         else:
             comm.send(['__reduce__', title, cmd, data_y.shape, data_x, kwds], 0)
     comm.reduce(data_y)
-    
