@@ -43,7 +43,7 @@ def new_data(title, data_y, data_x = None, unit=None, reduce=False,
     check_type(title, data_y)
 
     if(data_x is None):
-        data_x = _evt.id()
+        data_x = _evt.event_id()
     if(ipc.mpi.is_slave()):
         if(reduce):
             ipc.mpi.send_reduce(title, 'new_data', data_y, data_x, **kwds)
