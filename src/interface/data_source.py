@@ -1,14 +1,13 @@
-from Qt import QtGui, QtCore
-from zmq import SUB, REQ, ssh
+"""Manages a connection with one backend"""
+from interface.Qt import QtGui, QtCore
+from zmq import SUB, REQ
 import zmq
-import signal
-from zmqsocket import ZmqSocket
-from time import sleep
-from plotdata import PlotData
-import json
+from interface.zmqsocket import ZmqSocket
+from interface.plotdata import PlotData
 
 class DataSource(QtCore.QObject):
-    def __init__(self, parent, hostname, port, ssh_tunnel = None):
+    """Manages a connection with one backend"""
+    def __init__(self, parent, hostname, port, ssh_tunnel=None):
         QtCore.QObject.__init__(self, parent)
         self._hostname = hostname
         self._port = port
@@ -16,17 +15,19 @@ class DataSource(QtCore.QObject):
         self.connected = False
         self._plotdata = {}
         self._subscribed_titles = {}
-        self._data_socket = ZmqSocket(SUB,self)
-        try:            
-            self.connect()
+        self._data_socket = ZmqSocket(SUB, self)
+        try:
+            self._connect()
             self.connected = True
-            self.get_data_port()
+            self._get_data_port()
             self.titles = None
             self.data_type = None
         except (RuntimeError, zmq.error.ZMQError):
             QtGui.QMessageBox.warning(self.parent(), "Connection failed!", "Could not connect to %s" % self.name())
             raise
+
     def subscribe(self, title, plot):
+        """Subscribe to the broadcast named title, and associate it with the given plot"""
         if title not in self._subscribed_titles:
             self._subscribed_titles[title] = [plot]
             try:
@@ -37,6 +38,8 @@ class DataSource(QtCore.QObject):
         else:
             self._subscribed_titles[title].append(plot)
     def unsubscribe(self, title, plot):
+        """Dissociate the given plot with the broadcast named title.
+        If no one else is associated with it unsubscribe"""
         self._subscribed_titles[title].remove(plot)
         # Check if list is empty
         if not self._subscribed_titles[title]:
@@ -44,20 +47,29 @@ class DataSource(QtCore.QObject):
             self._subscribed_titles.pop(title)
 
     def name(self):
+        """Return a string representation of the data source"""
         if(self._ssh_tunnel):
             return '%s (%s)' % (self._hostname, self._ssh_tunnel)
         else:
             return self._hostname
-    def connect(self):
+
+    def _connect(self):
+        """Connect to the configured backend"""
         self._ctrl_socket = ZmqSocket(REQ)
         addr = "tcp://%s:%d" % (self._hostname, self._port)
-        self._ctrl_socket.readyRead.connect(self._get_command_reply)
+        self._ctrl_socket.readyRead.connect(self._get_request_reply)
         self._ctrl_socket.connect_socket(addr, self._ssh_tunnel)
-    def get_data_port(self):
+
+    def _get_data_port(self):
+        """Ask to the backend for the data port"""
         self._ctrl_socket.send_multipart(['data_port'])
-    def query_configuration(self):
-        self._ctrl_socket.send_multipart(['conf'])        
-    def _get_command_reply(self, socket = None):
+
+    def _query_configuration(self):
+        """Ask to the backend for the configuration"""
+        self._ctrl_socket.send_multipart(['conf'])
+
+    def _get_request_reply(self, socket=None):
+        """Handle the reply of the backend to a previous request"""
         if(socket is None):
             socket=self.sender()
         reply = socket.recv_json()
@@ -70,7 +82,7 @@ class DataSource(QtCore.QObject):
             # Subscribe to stuff already requested
             for title in self._subscribed_titles.keys():
                 self._data_socket.subscribe(bytes(title))
-            self.query_configuration()
+            self._query_configuration()
         elif(reply[0] == 'conf'):
             self.conf = reply[1]
             self.titles = self.conf.keys()
@@ -80,26 +92,27 @@ class DataSource(QtCore.QObject):
                 self._plotdata[k] = PlotData(self, k)
 
     def _get_broadcast(self):
+        """Receive a data package on the data socket"""
         socket = self.sender()
         socket.blockSignals(True)
         QtCore.QCoreApplication.processEvents()
         socket.blockSignals(False)
 
-        title = socket.recv()
+        # Discard key
+        socket.recv()
         data = socket.recv_json()
         for i in range(len(data)):
             if data[i] == '__ndarray__':
                 data[i] = socket.recv_array()
-        self._process_broadcast(data)        
+        self._process_broadcast(data)
 
     def _process_broadcast(self, payload):
-        # The uuid identifies the sender uniquely        
-        uuid = payload[0]
+        """Handle a data package received by the data socket"""
         cmd = payload[1]
         if(cmd == 'set_data'):
             title = payload[2]
             data = payload[3]
-            self.plot(title,data, source)
+            self.plot(title, data)
 
         if(cmd == 'new_data'):
             title = payload[2]
@@ -107,10 +120,12 @@ class DataSource(QtCore.QObject):
             data_x = payload[4]
             conf = payload[5]
             self.conf[title].update(conf)
-            self.plot_append(title,data,data_x)
+            self.plot_append(title, data, data_x)
 
     def plot(self, title, data):
+        """Replace the buffer associated with title with the new data"""
         self._plotdata[title].set_data(data)
 
     def plot_append(self, title, data, data_x):
+        """Append the new data to the buffer associated with title"""
         self._plotdata[title].append(data, data_x)
