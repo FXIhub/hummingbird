@@ -1,12 +1,10 @@
 """Displays the results of the analysis to the user, using images and plots.
 """
-from Qt import QtGui, QtCore
-import sys
-import pickle
-from ui import AddBackendDialog, PreferencesDialog, PlotWindow, ImageWindow
-from data_source import DataSource
+from interface.Qt import QtGui, QtCore
+from interface.ui import AddBackendDialog, PreferencesDialog
+from interface.ui import PlotWindow, ImageWindow
+from interface.data_source import DataSource
 import os
-import json
 
 class GUI(QtGui.QMainWindow):
     """Main Window Class.
@@ -22,7 +20,7 @@ class GUI(QtGui.QMainWindow):
         self._init_geometry()
         self._init_menus()
         loading_sources = self._init_data_sources()
-        try:            
+        try:
             self._restore_data_windows(loading_sources)
         except KeyError:
             pass
@@ -32,6 +30,7 @@ class GUI(QtGui.QMainWindow):
     # Inititialization
     # ----------------
     def _init_geometry(self):
+        """Restores the geometry of the main window."""
         if(self.settings.contains("geometry")):
             self.restoreGeometry(self.settings.value("geometry"))
         if(self.settings.contains("windowState")):
@@ -39,24 +38,26 @@ class GUI(QtGui.QMainWindow):
 
 
     def _restore_data_windows(self, data_sources):
+        """Restores the geometry and data sources of the data windows."""
         if(self.settings.contains("dataWindows")):
             data_windows = self.settings.value("dataWindows")
             for dw in data_windows:
-                try:            
+                try:
                     if(dw['window_type'] == 'ImageWindow'):
                         w = ImageWindow(self)
                     elif(dw['window_type'] == 'PlotWindow'):
-                        w = PlotWindow(self)                    
+                        w = PlotWindow(self)
                     else:
-                        raise ValueError('window_type %s not supported' %(pw['window_type']))
+                        raise ValueError(('window_type %s not supported'
+                                          %(dw['window_type'])))
                     for es in dw['enabled_sources']:
                         for ds in data_sources:
                             if(ds._hostname == es['hostname'] and
                                ds._port == es['port'] and
                                ds._ssh_tunnel == es['tunnel']):
                                 source = ds
-                                title = es['title']      
-                                w.set_source_title(source,title)
+                                title = es['title']
+                                w.set_source_title(source, title)
                     w.restoreGeometry(dw['geometry'])
                     w.restoreState(dw['windowState'])
                     w.show()
@@ -64,9 +65,9 @@ class GUI(QtGui.QMainWindow):
                 # Try to handle some version incompatibilities
                 except KeyError:
                     pass
-        
-            
-    def _init_menus(self):        
+
+    def _init_menus(self):
+        """Initialize the menus."""
         self._backends_menu = self.menuBar().addMenu(self.tr("&Backends"))
 
         self._add_backend_action = QtGui.QAction("Add", self)
@@ -94,43 +95,45 @@ class GUI(QtGui.QMainWindow):
         self._preferences_action.triggered.connect(self._preferencesClicked)
 
     def _init_data_sources(self):
+        """Restore data sources from the settings."""
         loaded_sources = []
-        if(self.settings.contains("dataSources") and 
+        if(self.settings.contains("dataSources") and
            self.settings.value("dataSources") is not None):
             for ds in self.settings.value("dataSources"):
                 ds = DataSource(self, ds[0], ds[1], ds[2])
-                loaded_sources.append(ds)    
+                loaded_sources.append(ds)
         return loaded_sources
 
     def _init_timer(self):
+        """Initialize reploting timer."""
         self._replot_timer = QtCore.QTimer()
         self._replot_timer.setInterval(1000) # Replot every 1000 ms
         self._replot_timer.timeout.connect(self._replot)
         self._replot_timer.start()
 
-    # Add backends to the GUI
-    # -------------------------
-    def add_backend(self, ds):
-        # Add backend to menu if it's not there yet
-        # and append to _data_sources
+    def add_backend(self, data_source):
+        """Add backend to menu if it's not there yet
+        and append to _data_sources"""
         actions = self._backends_menu.actions()
         unique = True
         for a in actions:
-            if(a.text() == ds.name()):
+            if(a.text() == data_source.name()):
                 unique = False
         if(not unique):
-            QtGui.QMessageBox.warning(self, "Duplicate backend", "Duplicate backend. Ignoring %s" % ds.name())
+            QtGui.QMessageBox.warning(self, "Duplicate backend",
+                                      "Duplicate backend. Ignoring %s" % data_source.name())
             return
 
-        self._data_sources.append(ds)
-        action = QtGui.QAction(ds.name(), self)
-        action.setData(ds)
+        self._data_sources.append(data_source)
+        action = QtGui.QAction(data_source.name(), self)
+        action.setData(data_source)
         action.setCheckable(True)
-        action.setChecked(True)        
+        action.setChecked(True)
         self._backends_menu.addAction(action)
         action.triggered.connect(self._data_source_triggered)
 
     def _add_backend_triggered(self):
+        """Create and show the add backend dialog"""
         diag = AddBackendDialog(self)
         if(diag.exec_()):
             ssh_tunnel = None
@@ -141,15 +144,15 @@ class GUI(QtGui.QMainWindow):
                             ssh_tunnel)
 
     def _reload_backend_triggered(self):
+        """Reload backends, asking for brodcasts and configurations"""
         # Go through the data sources and ask for new keys
         for ds in self._data_sources:
             ds.query_titles_and_type()
             # Why do I need to call this explicitly?
             ds._get_command_reply(ds._ctrl_socket)
-            
-    # Add data windows to the GUI
-    # --------------------
+
     def _new_display_triggered(self):
+        """Create a new Data Window to display data broadcasts"""
         if(self.sender() is self._new_plot_action):
             w = PlotWindow(self)
         elif(self.sender() is self._new_image_action):
@@ -157,28 +160,8 @@ class GUI(QtGui.QMainWindow):
         w.show()
         self._data_windows.append(w)
 
-
-    # Add data sources to the plots
-    # -----------------------------
-    def addSource(self, source):
-        menu =  self._backends_menu.addMenu(source.name())
-        for title in source.titles:            
-            action = QtGui.QAction(title, self)
-            action.setData([source,title])
-            action.setCheckable(True)
-            action.setChecked(False)
-            menu.addAction(action)
-            action.triggered.connect(self._source_title_triggered)
-
-    def _source_title_triggered(self):
-        action = self.sender()
-        source,title = action.data()
-        if(action.isChecked()):
-            source.subscribe(title)
-        else:
-            source.unsubscribe(title)
-
     def _data_source_triggered(self):
+        """Start/Stop listening to a particular data source"""
         action = self.sender()
         ds = action.data()
         if(action.isChecked()):
@@ -186,32 +169,30 @@ class GUI(QtGui.QMainWindow):
         else:
             self._data_sources.remove(ds)
 
-    # Refresh plots
-    # -------------
     def _replot(self):
+        """Replot content on all data windows"""
         for p in self._data_windows:
             p.replot()
 
-    # Open preferences dialog
-    # -----------------------
     def _preferencesClicked(self):
+        """Open the preferences dialog"""
         diag = PreferencesDialog(self)
         if(diag.exec_()):
             v = diag.outputPath.text()
             self.settings.setValue("outputPath", v)
-            
 
     def saveDataWindows(self):
+        """Save data windows state and data sources to the settings file"""
         dw_settings = []
         for dw in self._data_windows:
             if(isinstance(dw, PlotWindow)):
                 window_type = 'PlotWindow'
             elif(isinstance(dw, ImageWindow)):
-                window_type = 'ImageWindow'                
+                window_type = 'ImageWindow'
             else:
-                raise ValueError('Unsupported dataWindow type %s' % (type(dw)) )
+                raise ValueError('Unsupported dataWindow type %s' % (type(dw)))
             enabled_sources = []
-            for source,title in dw.source_and_titles():
+            for source, title in dw.source_and_titles():
                 enabled_sources.append({'hostname': source._hostname,
                                         'port': source._port,
                                         'tunnel': source._ssh_tunnel,
@@ -223,20 +204,21 @@ class GUI(QtGui.QMainWindow):
                                 'window_type' : window_type})
         self.settings.setValue("dataWindows", dw_settings)
 
-    # Closing the GUI
-    # ---------------
     def closeEvent(self, event):
+        """Save settings and exit nicely"""
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("windowState", self.saveState())
         # Save data sources
         ds_settings = []
         for ds in self._data_sources:
-            ds_settings.append([ds._hostname, ds._port, ds._ssh_tunnel])        
+            ds_settings.append([ds._hostname, ds._port, ds._ssh_tunnel])
         self.settings.setValue("dataSources", ds_settings)
         self.saveDataWindows()
         # Make sure settings are saved
         del self.settings
         # Force exit to prevent pyqtgraph from crashing
         os._exit(0)
+        # Never gets here, but anyway...
+        event.accept()
 
 
