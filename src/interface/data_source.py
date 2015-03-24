@@ -4,6 +4,7 @@ from zmq import SUB, REQ
 import zmq
 from interface.zmqsocket import ZmqSocket
 from interface.plotdata import PlotData
+import logging
 
 class DataSource(QtCore.QObject):
     """Manages a connection with one backend"""
@@ -32,6 +33,7 @@ class DataSource(QtCore.QObject):
             self._subscribed_titles[title] = [plot]
             try:
                 self._data_socket.subscribe(bytes(title))
+                logging.debug("Subscribing to %s on %s.", title, self.name())
             # socket might still not exist
             except AttributeError:
                 pass
@@ -44,6 +46,7 @@ class DataSource(QtCore.QObject):
         # Check if list is empty
         if not self._subscribed_titles[title]:
             self._data_socket.unsubscribe(bytes(title))
+            logging.debug("Unsubscribing from %s on %s.", title, self.name())
             self._subscribed_titles.pop(title)
 
     def name(self):
@@ -52,6 +55,11 @@ class DataSource(QtCore.QObject):
             return '%s (%s)' % (self._hostname, self._ssh_tunnel)
         else:
             return self._hostname
+
+    @property
+    def plotdata(self):
+        """Returns the data source dictionary of plotdata"""
+        return self._plotdata
 
     def _connect(self):
         """Connect to the configured backend"""
@@ -71,10 +79,11 @@ class DataSource(QtCore.QObject):
     def _get_request_reply(self, socket=None):
         """Handle the reply of the backend to a previous request"""
         if(socket is None):
-            socket=self.sender()
+            socket = self.sender()
         reply = socket.recv_json()
         if(reply[0] == 'data_port'):
             self._data_port = reply[1]
+            logging.debug("Data source '%s' received data_port=%s", self.name(), self._data_port)
             addr = "tcp://%s:%s" % (self._hostname, self._data_port)
             self._data_socket.readyRead.connect(self._get_broadcast)
             self._data_socket.connect_socket(addr, self._ssh_tunnel)
@@ -82,6 +91,7 @@ class DataSource(QtCore.QObject):
             # Subscribe to stuff already requested
             for title in self._subscribed_titles.keys():
                 self._data_socket.subscribe(bytes(title))
+                logging.debug("Subscribing to %s on %s.", title, self.name())
             self._query_configuration()
         elif(reply[0] == 'conf'):
             self.conf = reply[1]
@@ -112,7 +122,7 @@ class DataSource(QtCore.QObject):
         if(cmd == 'set_data'):
             title = payload[2]
             data = payload[3]
-            self.plot(title, data)
+            self._plotdata[title].set_data(data)
 
         if(cmd == 'new_data'):
             title = payload[2]
@@ -120,12 +130,19 @@ class DataSource(QtCore.QObject):
             data_x = payload[4]
             conf = payload[5]
             self.conf[title].update(conf)
-            self.plot_append(title, data, data_x)
+            self._plotdata[title].append(data, data_x)
 
-    def plot(self, title, data):
-        """Replace the buffer associated with title with the new data"""
-        self._plotdata[title].set_data(data)
+    @property
+    def hostname(self):
+        """Give access to the data source hostname"""
+        return self._hostname
 
-    def plot_append(self, title, data, data_x):
-        """Append the new data to the buffer associated with title"""
-        self._plotdata[title].append(data, data_x)
+    @property
+    def port(self):
+        """Give access to the data source port"""
+        return self._port
+
+    @property
+    def ssh_tunnel(self):
+        """Give access to the data source ssh_tunnel"""
+        return self._ssh_tunnel

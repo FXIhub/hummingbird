@@ -225,11 +225,11 @@ ignore-mixin-members=yes
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis
-ignored-modules=OpenGL.GL, OpenGL.GL.ARB.texture_float, numpy, numpy.random, zmq, mpi4py.MPI, QtGui, PyQt5.QtGui, PyQt4.QtGui, PyQt4.QtCore, PyQt5.QtCore
+ignored-modules=OpenGL.GL, OpenGL.GL.ARB.texture_float, numpy, numpy.random, zmq, mpi4py.MPI, QtGui, PyQt5.QtGui, PyQt4.QtGui, PyQt4.QtCore, PyQt5.QtCore, pyqtgraph
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).
-ignored-classes=SQLObject, QtGui, QtCore
+ignored-classes=SQLObject, QtGui, QtCore, PlotWindow, DataSource, DataWindow, GUI, ImageWindow, AddBackendDialog, PreferencesDialog
 
 # When zope mode is activated, add a predefined set of Zope acquired attributes
 # to generated-members.

@@ -1,16 +1,15 @@
-from interface.Qt import QtGui, QtCore
+"""Window to display images"""
+from interface.Qt import QtGui
 from interface.ui import Ui_imageWindow
 import pyqtgraph
 import numpy
-import os
-from IPython.core.debugger import Tracer
-from data_window import DataWindow
-import datetime
+from interface.ui.data_window import DataWindow
 
 class ImageWindow(DataWindow, Ui_imageWindow):
-    def __init__(self, parent = None):
+    """Window to display images"""
+    def __init__(self, parent=None):
         # This also sets up the UI part
-        DataWindow.__init__(self,parent)
+        DataWindow.__init__(self, parent)
         # This is imported here to prevent problems with sphinx
         from .ImageView import ImageView
         self.plot = ImageView(self.plotFrame, view=pyqtgraph.PlotItem())
@@ -22,24 +21,25 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.infoLabel.setText('')
         self.acceptable_data_types = ['image', 'vector']
         self.exclusive_source = True
-            
+
     def replot(self):
-        for source,title in self.source_and_titles():
-            if(title not in source._plotdata):
+        """Replot data"""
+        for source, title in self.source_and_titles():
+            if(title not in source.plotdata):
                 continue
-            pd = source._plotdata[title]
-            if(pd._y is None):
+            pd = source.plotdata[title]
+            if(pd.y is None):
                 continue
             autoLevels = self.actionAuto_Levels.isChecked()
             autoRange = self.actionAuto_Zoom.isChecked()
             autoHistogram = self.actionAuto_Histogram.isChecked()
             transpose_transform = QtGui.QTransform(0, 1, 0,
                                                    1, 0, 0,
-                                                   0, 0, 1)            
+                                                   0, 0, 1)
             xmin = 0
             ymin = 0
-            xmax = pd._y.shape[-1]
-            ymax = pd._y.shape[-2]
+            xmax = pd.y.shape[-1]
+            ymax = pd.y.shape[-2]
             transform = QtGui.QTransform()
 
             if source.data_type[title] == 'image':
@@ -60,14 +60,14 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             if "ymin" in conf:
                 ymin = conf['ymin']
             transform.translate(xmin, ymin)
-            transform.scale(1.0/xmax, 1.0/ymax)                        
+            transform.scale(1.0/xmax, 1.0/ymax)
             if "xmax" in conf:
                 xmax = conf['xmax']
             if "ymax" in conf:
                 ymax = conf['ymax']
             transform.scale(xmax-xmin, ymax-ymin)
             # Tranpose images to make x (last dimension) horizontal
-            axis_labels = ['left','bottom']
+            axis_labels = ['left', 'bottom']
             xlabel_index = 0
             ylabel_index = 1
             if source.data_type[title] == 'image':
@@ -89,16 +89,16 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 last_index = self.plot.image.shape[0]-1
                 # Only update if we're in the last index
                 if(self.plot.currentIndex == last_index):
-                    self.plot.setImage(numpy.array(pd._y), 
-                                       transform = transform,
+                    self.plot.setImage(numpy.array(pd.y),
+                                       transform=transform,
                                        autoRange=autoRange, autoLevels=autoLevels,
                                        autoHistogramRange=autoHistogram)
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index)
 
             else:
-                self.plot.setImage(numpy.array(pd._y),
-                                   transform = transform,
+                self.plot.setImage(numpy.array(pd.y),
+                                   transform=transform,
                                    autoRange=autoRange, autoLevels=autoLevels,
                                    autoHistogramRange=autoHistogram)
                 if(len(self.plot.image.shape) > 2):
@@ -106,7 +106,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index)
 
-            self.setWindowTitle(pd._title)
+            self.setWindowTitle(pd.title)
             self.plot.ui.roiPlot.hide()
             dt = self.get_time()
             # Round to miliseconds

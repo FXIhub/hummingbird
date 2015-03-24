@@ -16,14 +16,24 @@ def parse_cmdline_args():
     group.add_argument('-b', '--backend', metavar='conf.py',
                        type=str, help="start the backend with "
                        "given configuration file", nargs='?', const=True)
+    parser.add_argument("-v", "--verbose", help="increase output verbosity",
+                        action="store_true")
+    parser.add_argument("-d", "--debug", help="output debug messages",
+                        action="store_true")
     if(len(sys.argv) == 1):
         parser.print_help()
     return parser.parse_args()
 
 def main():
     """The entry point of the program"""
-    logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s')
     args = parse_cmdline_args()
+    level = logging.WARNING
+    if args.verbose:
+        level = logging.INFO
+    if args.debug:
+        level = logging.DEBUG
+    logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s', level=level)
+
     if(args.backend is not None):
         from backend import Worker
         if(args.backend != True):

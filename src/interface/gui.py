@@ -4,6 +4,7 @@ from interface.Qt import QtGui, QtCore
 from interface.ui import AddBackendDialog, PreferencesDialog
 from interface.ui import PlotWindow, ImageWindow
 from interface.data_source import DataSource
+import logging
 import os
 
 class GUI(QtGui.QMainWindow):
@@ -19,23 +20,28 @@ class GUI(QtGui.QMainWindow):
         self.settings = QtCore.QSettings()
         self._init_geometry()
         self._init_menus()
-        loading_sources = self._init_data_sources()
+        loaded_sources = []
         try:
-            self._restore_data_windows(loading_sources)
-        except KeyError:
-            pass
+            loaded_sources = self._init_data_sources()
+        except (TypeError, KeyError):
+            # Be a bit more resilient against configuration problems
+            logging.warning("Failed to load data source settings! Continuing...")
+        try:
+            self._restore_data_windows(loaded_sources)
+        except (TypeError, KeyError):
+            # Be a bit more resilient against configuration problems
+            logging.warning("Failed to load data windows settings! Continuing...")
+
+
         self._init_timer()
         GUI.instance = self
 
-    # Inititialization
-    # ----------------
     def _init_geometry(self):
         """Restores the geometry of the main window."""
         if(self.settings.contains("geometry")):
             self.restoreGeometry(self.settings.value("geometry"))
         if(self.settings.contains("windowState")):
             self.restoreState(self.settings.value("windowState"))
-
 
     def _restore_data_windows(self, data_sources):
         """Restores the geometry and data sources of the data windows."""
@@ -52,9 +58,9 @@ class GUI(QtGui.QMainWindow):
                                           %(dw['window_type'])))
                     for es in dw['enabled_sources']:
                         for ds in data_sources:
-                            if(ds._hostname == es['hostname'] and
-                               ds._port == es['port'] and
-                               ds._ssh_tunnel == es['tunnel']):
+                            if(ds.hostname == es['hostname'] and
+                               ds.port == es['port'] and
+                               ds.ssh_tunnel == es['tunnel']):
                                 source = ds
                                 title = es['title']
                                 w.set_source_title(source, title)
@@ -62,6 +68,7 @@ class GUI(QtGui.QMainWindow):
                     w.restoreState(dw['windowState'])
                     w.show()
                     self._data_windows.append(w)
+                    logging.debug("Loaded %s from settings", type(w).__name__)
                 # Try to handle some version incompatibilities
                 except KeyError:
                     pass
@@ -102,6 +109,7 @@ class GUI(QtGui.QMainWindow):
             for ds in self.settings.value("dataSources"):
                 ds = DataSource(self, ds[0], ds[1], ds[2])
                 loaded_sources.append(ds)
+                logging.debug("Loaded data source '%s' from settings", ds.name())
         return loaded_sources
 
     def _init_timer(self):
@@ -125,6 +133,7 @@ class GUI(QtGui.QMainWindow):
             return
 
         self._data_sources.append(data_source)
+        logging.debug("Registering data source '%s' in the GUI", data_source.name())
         action = QtGui.QAction(data_source.name(), self)
         action.setData(data_source)
         action.setCheckable(True)
@@ -142,13 +151,14 @@ class GUI(QtGui.QMainWindow):
             ds = DataSource(self, diag.hostname.text(),
                             diag.port.value(),
                             ssh_tunnel)
+            logging.debug("Adding new data source '%s'", ds.name())
 
     def _reload_backend_triggered(self):
         """Reload backends, asking for brodcasts and configurations"""
         # Go through the data sources and ask for new keys
         for ds in self._data_sources:
             ds.query_titles_and_type()
-            # Why do I need to call this explicitly?
+            # Why do I need to call this explicitly??
             ds._get_command_reply(ds._ctrl_socket)
 
     def _new_display_triggered(self):
@@ -193,9 +203,9 @@ class GUI(QtGui.QMainWindow):
                 raise ValueError('Unsupported dataWindow type %s' % (type(dw)))
             enabled_sources = []
             for source, title in dw.source_and_titles():
-                enabled_sources.append({'hostname': source._hostname,
-                                        'port': source._port,
-                                        'tunnel': source._ssh_tunnel,
+                enabled_sources.append({'hostname': source.hostname,
+                                        'port': source.port,
+                                        'tunnel': source.ssh_tunnel,
                                         'title': title})
 
             dw_settings.append({'geometry': dw.saveGeometry(),
@@ -211,14 +221,22 @@ class GUI(QtGui.QMainWindow):
         # Save data sources
         ds_settings = []
         for ds in self._data_sources:
-            ds_settings.append([ds._hostname, ds._port, ds._ssh_tunnel])
+            ds_settings.append([ds.hostname, ds.port, ds.ssh_tunnel])
         self.settings.setValue("dataSources", ds_settings)
         self.saveDataWindows()
         # Make sure settings are saved
         del self.settings
         # Force exit to prevent pyqtgraph from crashing
-        os._exit(0)
+        os._exit(0) #pylint: disable=protected-access
         # Never gets here, but anyway...
         event.accept()
 
+    @property
+    def data_sources(self):
+        """Provide access to the GUI data sources"""
+        return self._data_sources
 
+    @property
+    def data_windows(self):
+        """Provide access to the GUI data widows"""
+        return self._data_windows

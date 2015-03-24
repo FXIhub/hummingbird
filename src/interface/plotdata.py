@@ -35,3 +35,18 @@ class PlotData(object):
             self._x = RingBuffer(self._maxlen)
         self._y.append(y)
         self._x.append(x)
+
+    @property
+    def title(self):
+        """Returns the plot data title"""
+        return self._title
+
+    @property
+    def y(self):
+        """Gives access to the y buffer"""
+        return self._y
+
+    @property
+    def x(self):
+        """Gives access to the x buffer"""
+        return self._x

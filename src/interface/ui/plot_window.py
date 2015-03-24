@@ -1,18 +1,17 @@
-from interface.Qt import QtGui, QtCore
+"""Window to display 2D plots"""
 from interface.ui import Ui_plotWindow
 import pyqtgraph
 import numpy
-import os
-import datetime
-from data_window import DataWindow
+from interface.ui.data_window import DataWindow
 
 class PlotWindow(DataWindow, Ui_plotWindow):
+    """Window to display 2D plots"""
     lineColors = [(252, 175, 62), (114, 159, 207), (255, 255, 255), (239, 41, 41), (138, 226, 52), (173, 127, 168)]
-    def __init__(self, parent = None):
+    def __init__(self, parent=None):
         DataWindow.__init__(self, parent)
         self.plot = pyqtgraph.PlotWidget(self.plotFrame, antialiasing=True)
         self.plot.hideAxis('bottom')
-        self.legend = self.plot.addLegend()        
+        self.legend = self.plot.addLegend()
         self.legend.hide()
         self.finish_layout()
         self.actionLegend_Box.triggered.connect(self.onViewLegendBox)
@@ -22,6 +21,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.exclusive_source = False
 
     def onViewLegendBox(self):
+        """Show/hide legend box"""
         action = self.sender()
         if(action.isChecked()):
             self.legend.show()
@@ -29,6 +29,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             self.legend.hide()
 
     def onViewXAxis(self):
+        """Show/hide X axis"""
         action = self.sender()
         if(action.isChecked()):
             self.plot.showAxis('bottom')
@@ -36,6 +37,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             self.plot.hideAxis('bottom')
 
     def onViewYAxis(self):
+        """Show/hide Y axis"""
         action = self.sender()
         if(action.isChecked()):
             self.plot.showAxis('left')
@@ -43,25 +45,22 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             self.plot.hideAxis('left')
 
     def replot(self):
+        """Replot data"""
         self.plot.clear()
         color_index = 0
         titlebar = []
         self.plot.plotItem.legend.items = []
-
-        for source,title in self.source_and_titles():
-            if(title not in source._plotdata):
+        for source, title in self.source_and_titles():
+            if(title not in source.plotdata or source.plotdata[title].y is None):
                 continue
-            pd = source._plotdata[title]
-            if(pd._y is None):
-                continue
-            titlebar.append(pd._title)
+            pd = source.plotdata[title]
+            titlebar.append(pd.title)
 
             color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
             pen = None
             symbol = None
             symbolPen = None
             symbolBrush = None
-            symbolSize = 3
             if(self.actionLines.isChecked()):
                 pen = color
             if(self.actionPoints.isChecked()):
@@ -72,24 +71,24 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             conf = source.conf[title]
             if(self.actionX_axis.isChecked()):
                 if 'xlabel' in conf:
-                    self.plot.setLabel('bottom', conf['xlabel'])                
+                    self.plot.setLabel('bottom', conf['xlabel'])
             if(self.actionY_axis.isChecked()):
                 if 'ylabel' in conf:
                     self.plot.setLabel('left', conf['ylabel'])
 
             if(source.data_type[title] == 'scalar'):
-                y = pd._y
+                y = pd.y
             elif(source.data_type[title] == 'vector'):
-                y = pd._y[-1,:]
+                y = pd.y[-1, :]
 
-            if(pd._x is not None and source.data_type[title] == 'scalar'):
-                plt = self.plot.plot(x=numpy.array(pd._x, copy=False),
+            if(pd.x is not None and source.data_type[title] == 'scalar'):
+                plt = self.plot.plot(x=numpy.array(pd.x, copy=False),
                                      y=numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol,
-                                     symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=symbolSize)
+                                     symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=3)
             else:
-                plt = self.plot.plot(numpy.array(y, copy=False), clear=False,  pen=pen, symbol=symbol,
-                                     symbolPen=symbolPen, symbolBrush=symbolBrush,symbolSize=symbolSize)
-            self.legend.addItem(plt,pd._title)
+                plt = self.plot.plot(numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol,
+                                     symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=3)
+            self.legend.addItem(plt, pd.title)
             color_index += 1
         self.setWindowTitle(", ".join(titlebar))
         dt = self.get_time()
