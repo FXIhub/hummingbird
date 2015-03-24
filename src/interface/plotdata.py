@@ -8,7 +8,6 @@ class PlotData(object):
         self._title = title
         self._y = None # pylint: disable=invalid-name
         self._x = None # pylint: disable=invalid-name
-        self._widget = None
         self._parent = parent
         self._maxlen = maxlen
         if('history_length' in parent.conf[title]):
