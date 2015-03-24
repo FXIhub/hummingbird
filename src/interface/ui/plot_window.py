@@ -2,7 +2,7 @@
 from interface.ui import Ui_plotWindow
 import pyqtgraph
 import numpy
-from interface.ui.data_window import DataWindow
+from interface.ui import DataWindow
 
 class PlotWindow(DataWindow, Ui_plotWindow):
     """Window to display 2D plots"""

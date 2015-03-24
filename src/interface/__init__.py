@@ -2,7 +2,6 @@
 """
 
 from Qt import QtGui, QtCore
-from gui import GUI
 import sys
 import signal
 
@@ -25,3 +24,9 @@ def sigint_handler(*args):
         GUI.instance.closeEvent(None)
 
 
+from interface.data_source import DataSource # pylint: disable=unused-import
+from interface.plotdata import PlotData # pylint: disable=unused-import
+from interface.ringbuffer import RingBuffer # pylint: disable=unused-import
+from interface.zmqcontext import ZmqContext # pylint: disable=unused-import
+from interface.zmqsocket import ZmqSocket # pylint: disable=unused-import
+from gui import GUI

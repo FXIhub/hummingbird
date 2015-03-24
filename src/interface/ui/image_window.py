@@ -3,7 +3,7 @@ from interface.Qt import QtGui
 from interface.ui import Ui_imageWindow
 import pyqtgraph
 import numpy
-from interface.ui.data_window import DataWindow
+from interface.ui import DataWindow
 
 class ImageWindow(DataWindow, Ui_imageWindow):
     """Window to display images"""

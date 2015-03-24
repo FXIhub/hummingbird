@@ -1,4 +1,5 @@
-"""Implements the server that broadcasts the results from the backend"""
+"""Implements the server that broadcasts the results from the backend.
+Analysis users do not need to deal with it."""
 import zmq
 import zmq.eventloop
 import zmq.eventloop.zmqstream
@@ -9,7 +10,8 @@ import hashlib
 import ipc.mpi
 
 class ZmqServer(object):
-    """Implements the server that broadcasts the results from the backend"""
+    """Implements the server that broadcasts the results from the backend.
+    Analysis users do not need to deal with it."""
     def __init__(self):
         self._zmq_key = bytes('hummingbird')
         self._context = zmq.Context()

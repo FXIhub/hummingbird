@@ -3,7 +3,7 @@
 from interface.Qt import QtGui, QtCore
 from interface.ui import AddBackendDialog, PreferencesDialog
 from interface.ui import PlotWindow, ImageWindow
-from interface.data_source import DataSource
+from interface import DataSource
 import logging
 import os
 

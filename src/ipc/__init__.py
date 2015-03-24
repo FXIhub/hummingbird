@@ -9,7 +9,7 @@ uuid = None
 
 def zmq():
     """Returns the ZmqServer for process.
-    If it does not yet exist create one first"""
+    If it does not yet exist create one first."""
     global _server # pylint: disable=global-statement
     if(_server is None):
         _server = ZmqServer()

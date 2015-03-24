@@ -1,4 +1,4 @@
-"""Broadcasts the analysed data to be displayed in the interface"""
+"""Broadcasts the analysed data to be displayed in the interface."""
 import numpy
 import ipc
 

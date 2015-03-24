@@ -1,6 +1,11 @@
 backend package
 ===============
 
+.. automodule:: backend
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 .. autoclass:: backend.Worker
     :members:
     :undoc-members:
