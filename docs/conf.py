@@ -21,7 +21,10 @@ import os
 #sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(0, os.path.abspath('../src'))
 
-import sys
+# Make sure NOT to write bytecode. ReadTheDocs does not clean the build directory
+# before every checkout so leftover pyc files can cause import problems if they
+# cause name clashes, or other unforseen problems.
+sys.dont_write_bytecode = True
 
 # Try to use mock modules to be able to build documentation even it's not
 # possible to import certain modules

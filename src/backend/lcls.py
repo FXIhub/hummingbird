@@ -3,8 +3,15 @@ import os
 import logging
 import sys
 if 'sphinx' in sys.modules:
-    print sys.path
+    # Remove left overs
+    import glob
+    import os
+    for f in glob.glob('%s/*.pyc' % os.path.dirname(__file__)):
+        # Remove left overs
+        print f
+        os.remove(f) 
     print os.listdir(os.path.dirname(__file__))
+
 from backend.event_translator import EventTranslator
 from backend.record import addRecord, Record
 import psana

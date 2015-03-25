@@ -1,8 +1,18 @@
 """Displays the results of the analysis to the user, using images and plots.
 """
 
-from Qt import QtGui, QtCore
 import sys
+
+if 'sphinx' in sys.modules:
+    import glob
+    import os
+    for f in glob.glob('%s/*.pyc' % os.path.dirname(__file__)):
+        # Remove left overs
+        print f
+        os.remove(f) 
+    print os.listdir(os.path.dirname(__file__))
+
+from interface.Qt import QtGui, QtCore
 import signal
 
 def start_interface():
