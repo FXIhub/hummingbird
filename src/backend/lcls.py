@@ -1,6 +1,9 @@
 """Translates between LCLS events and Hummingbird ones"""
 import os
 import logging
+import sys
+if 'sphinx' in sys.modules:
+    print sys.path
 from backend.event_translator import EventTranslator
 from backend.record import addRecord, Record
 import psana
