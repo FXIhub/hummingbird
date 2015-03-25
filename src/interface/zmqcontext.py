@@ -14,6 +14,10 @@ class ZmqContext(object):
     def __del__(self):
         self._context.term()
 
+    def socket(self, socket_type):
+        """Creates and returns a socket of the given type"""
+        return self._context.socket(socket_type)
+
     @staticmethod
     def instance(iothreads=4):
         """Returns the singleton instance of the ZeroMQ context"""

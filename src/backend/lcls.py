@@ -1,9 +1,8 @@
 """Translates between LCLS events and Hummingbird ones"""
 import os
 import logging
-import sys
 from backend.event_translator import EventTranslator
-from backend.record import addRecord, Record
+from backend.record import add_record, Record
 import psana
 import numpy
 import datetime
@@ -78,29 +77,29 @@ class LCLSTranslator(object):
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.0)'] = 'Acqiris 0'
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.1)'] = 'Acqiris 1'
 
-    def nextEvent(self):
+    def next_event(self):
         """Grabs the next event and returns the translated version"""
         evt = self.data_source.events().next()
         return EventTranslator(evt, self)
 
-    def eventKeys(self, evt):
+    def event_keys(self, evt):
         """Returns the translated keys available"""
         native_keys = evt.keys()
         common_keys = set()
         for k in native_keys:
-            for c in self.nativeToCommon(k):
+            for c in self._native_to_common(k):
                 common_keys.add(c)
         # parameters corresponds to the EPICS values
         return list(common_keys)+['parameters']
 
-    def nativeToCommon(self, key):
+    def _native_to_common(self, key):
         """Translates a native key to a hummingbird one"""
         if(key.type() in self._n2c):
             return [self._n2c[key.type()]]
         else:
             return []
 
-    def eventNativeKeys(self, evt):
+    def event_native_keys(self, evt):
         """Returns the native keys available"""
         return evt.keys()
 
@@ -109,7 +108,7 @@ class LCLSTranslator(object):
         if(key in self._c2n):
             return self.translate_core(evt, key)
         elif(key == 'parameters'):
-            return self.trEPICS()
+            return self._tr_epics()
         else:
             # check if the key matches any of the existing keys in the event
             event_keys = evt.keys()
@@ -119,8 +118,8 @@ class LCLSTranslator(object):
                 if(k.key() == key):
                     obj = evt.get(k.type(), k.src(), k.key())
                     found = True
-                    addRecord(values, self._s2c[str(k.src())] + ' ['+key+']',
-                              obj, ureg.ADU)
+                    add_record(values, self._s2c[str(k.src())] + ' ['+key+']',
+                               obj, ureg.ADU)
             if(found):
                 return values
             else:
@@ -139,22 +138,22 @@ class LCLSTranslator(object):
                 obj = evt.get(k.type(), k.src(), k.key())
                 if(isinstance(obj, psana.Bld.BldDataFEEGasDetEnergy) or
                    isinstance(obj, psana.Bld.BldDataFEEGasDetEnergyV1)):
-                    self.trBldDataFEEGasDetEnergy(values, obj)
+                    self._tr_bld_data_fee_gas_det_energy(values, obj)
                 elif(isinstance(obj, psana.Lusi.IpmFexV1)):
-                    self.trLusiIpmFex(values, obj, k)
+                    self._tr_lusi_ipm_fex(values, obj, k)
                 elif(key == 'photonEnergies'):
-                    self.trBldDataEBeam(values, obj)
+                    self._tr_bld_data_ebeam(values, obj)
                 elif(isinstance(obj, psana.CsPad2x2.ElementV1)):
-                    self.trCsPad2x2(values, obj)
+                    self._tr_cspad2x2(values, obj)
                 elif(isinstance(obj, psana.CsPad.DataV2)):
-                    self.trCsPad(values, obj, k)
+                    self._tr_cspad(values, obj, k)
                 elif(isinstance(obj, psana.Acqiris.DataDescV1)):
-                    self.trAcqiris(values, obj, k)
+                    self._tr_acqiris(values, obj, k)
                 elif(isinstance(obj, psana.EventId)):
-                    self.trEventID(values, obj)
+                    self._tr_event_id(values, obj)
                 elif(isinstance(obj, psana.EvrData.DataV3) or
                      isinstance(obj, psana.EvrData.DataV4)):
-                    self.trEventCodes(values, obj)
+                    self._tr_event_codes(values, obj)
                 else:
                     print type(obj)
                     print k
@@ -166,66 +165,66 @@ class LCLSTranslator(object):
         shot and increase monotonically"""
         return float(self.translate(evt, 'eventID')['Timestamp'].timestamp)
 
-    def trBldDataEBeam(self, values, obj):
+    def _tr_bld_data_ebeam(self, values, obj):
         """Translates BldDataEBeam to hummingbird photon energy"""
-        photonEnergyeV = -1
+        photon_energy_ev = -1
         if(isinstance(obj, psana.Bld.BldDataEBeamV6)):
-            photonEnergyeV = obj.ebeamPhotonEnergy()
+            photon_energy_ev = obj.ebeamPhotonEnergy()
         else:
-            peakCurrent = obj.ebeamPkCurrBC2()
+            peak_current = obj.ebeamPkCurrBC2()
             dl2_energy_gev = 0.001*obj.ebeamL3Energy()
 
         # If we don't have direct access to photonEnergy
         # we need to calculate it
-        if(photonEnergyeV == -1):
-            ltu_wake_loss = 0.0016293*peakCurrent
+        if(photon_energy_ev == -1):
+            ltu_wake_loss = 0.0016293*peak_current
             # Spontaneous radiation loss per segment
             sr_loss_per_segment = 0.63*dl2_energy_gev
             # wakeloss in an undulator segment
-            wake_loss_per_segment = 0.0003*peakCurrent
+            wake_loss_per_segment = 0.0003*peak_current
             # energy loss per segment
             energy_loss_per_segment = (sr_loss_per_segment +
                                        wake_loss_per_segment)
             # energy in first active undulator segment [GeV]
-            energyProfile = (dl2_energy_gev - 0.001*ltu_wake_loss -
-                             0.0005*energy_loss_per_segment)
+            energy_profile = (dl2_energy_gev - 0.001*ltu_wake_loss -
+                              0.0005*energy_loss_per_segment)
             # Calculate the resonant photon energy of the first active segment
-            photonEnergyeV = 44.42*energyProfile*energyProfile
+            photon_energy_ev = 44.42*energy_profile*energy_profile
 
-        addRecord(values, 'photon energy', photonEnergyeV, ureg.eV)
+        add_record(values, 'photon energy', photon_energy_ev, ureg.eV)
 
-    def trBldDataFEEGasDetEnergy(self, values, obj):
+    def _tr_bld_data_fee_gas_det_energy(self, values, obj):
         """Translates gas monitor detector to hummingbird pulse energy"""
         # convert from mJ to J
-        addRecord(values, 'f_11_ENRC', obj.f_11_ENRC(), ureg.mJ)
-        addRecord(values, 'f_12_ENRC', obj.f_12_ENRC(), ureg.mJ)
-        addRecord(values, 'f_21_ENRC', obj.f_21_ENRC(), ureg.mJ)
-        addRecord(values, 'f_22_ENRC', obj.f_22_ENRC(), ureg.mJ)
+        add_record(values, 'f_11_ENRC', obj.f_11_ENRC(), ureg.mJ)
+        add_record(values, 'f_12_ENRC', obj.f_12_ENRC(), ureg.mJ)
+        add_record(values, 'f_21_ENRC', obj.f_21_ENRC(), ureg.mJ)
+        add_record(values, 'f_22_ENRC', obj.f_22_ENRC(), ureg.mJ)
 
-    def trLusiIpmFex(self, values, obj, evt_key):
+    def _tr_lusi_ipm_fex(self, values, obj, evt_key):
         """Translates Ipm relative pulse energy monitor
         to hummingbird pulse energy"""
-        addRecord(values, 'IpmFex '+str(evt_key.src()), obj.sum(), ureg.ADU)
+        add_record(values, 'IpmFex '+str(evt_key.src()), obj.sum(), ureg.ADU)
 
-    def trCsPad2x2(self, values, obj):
+    def _tr_cspad2x2(self, values, obj):
         """Translates CsPad2x2 to hummingbird numpy array"""
-        addRecord(values, 'CsPad2x2', obj.data(), ureg.ADU)
+        add_record(values, 'CsPad2x2', obj.data(), ureg.ADU)
 
-    def trCsPad(self, values, obj, evt_key):
+    def _tr_cspad(self, values, obj, evt_key):
         """Translates CsPad to hummingbird numpy array, quad by quad"""
-        nQuads = obj.quads_shape()[0]
-        for i in range(0, nQuads):
-            addRecord(values, '%s Quad %d' % (self._s2c[str(evt_key.src())], i),
-                      obj.quads(i).data(), ureg.ADU)
+        n_quads = obj.quads_shape()[0]
+        for i in range(0, n_quads):
+            add_record(values, '%s Quad %d' % (self._s2c[str(evt_key.src())], i),
+                       obj.quads(i).data(), ureg.ADU)
 
-    def trAcqiris(self, values, obj, evt_key):
+    def _tr_acqiris(self, values, obj, evt_key):
         """Translates Acqiris TOF data to hummingbird numpy array"""
         config_store = self.data_source.env().configStore()
-        acqConfig = config_store.get(psana.Acqiris.ConfigV1, evt_key.src())
-        sampInterval = acqConfig.horiz().sampInterval()
-        nChannels = obj.data_shape()[0]
-        for i in range(0, nChannels):
-            vert = acqConfig.vert()[i]
+        acq_config = config_store.get(psana.Acqiris.ConfigV1, evt_key.src())
+        samp_interval = acq_config.horiz().sampInterval()
+        n_channels = obj.data_shape()[0]
+        for i in range(0, n_channels):
+            vert = acq_config.vert()[i]
             elem = obj.data(i)
             timestamp = elem.timestamp()[0].value()
             raw = elem.waveforms()[0]
@@ -236,10 +235,10 @@ class LCLSTranslator(object):
             rec = Record('%s Channel %d' %(self._s2c[str(evt_key.src())], i),
                          data, ureg.V)
             rec.time = (timestamp +
-                        sampInterval * numpy.arange(0, elem.nbrSamplesInSeg()))
+                        samp_interval * numpy.arange(0, elem.nbrSamplesInSeg()))
             values[rec.name] = rec
 
-    def trEventID(self, values, obj):
+    def _tr_event_id(self, values, obj):
         """Translates LCLS eventID into a hummingbird one"""
         timestamp = obj.time()[0]+obj.time()[1]*1e-9
         time = datetime.datetime.fromtimestamp(timestamp, tz=timezone('utc'))
@@ -254,14 +253,14 @@ class LCLSTranslator(object):
         rec.timestamp = timestamp
         values[rec.name] = rec
 
-    def trEventCodes(self, values, obj):
+    def _tr_event_codes(self, values, obj):
         """Translates LCLS event codes into a hummingbird ones"""
         codes = []
-        for fifoEvent in obj.fifoEvents():
-            codes.append(fifoEvent.eventCode())
-        addRecord(values, 'EvrEventCodes', codes)
+        for fifo_event in obj.fifoEvents():
+            codes.append(fifo_event.eventCode())
+        add_record(values, 'EvrEventCodes', codes)
 
-    def trEPICS(self):
+    def _tr_epics(self):
         """Returns an EPICSdict that provides access to EPICS parameters.
 
         Check the EPICSdict class for more details.
@@ -297,6 +296,6 @@ class EPICSdict(object):
             if(pv is None):
                 raise KeyError('%s is not a valid EPICS key' %(key))
             rec = Record(key, pv.value(0))
-            rec.PV = pv
+            rec.pv = pv
             self._cache[key] = rec
         return self._cache[key]

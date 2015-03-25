@@ -99,7 +99,7 @@ class GUI(QtGui.QMainWindow):
         self._options_menu = self.menuBar().addMenu(self.tr("&Options"))
         self._preferences_action = QtGui.QAction("Preferences", self)
         self._options_menu.addAction(self._preferences_action)
-        self._preferences_action.triggered.connect(self._preferencesClicked)
+        self._preferences_action.triggered.connect(self._preferences_clicked)
 
     def _init_data_sources(self):
         """Restore data sources from the settings."""
@@ -157,9 +157,9 @@ class GUI(QtGui.QMainWindow):
         """Reload backends, asking for brodcasts and configurations"""
         # Go through the data sources and ask for new keys
         for ds in self._data_sources:
-            ds.query_titles_and_type()
+            ds.query_configuration()
             # Why do I need to call this explicitly??
-            ds._get_command_reply(ds._ctrl_socket)
+            ds._get_request_reply(ds._ctrl_socket)
 
     def _new_display_triggered(self):
         """Create a new Data Window to display data broadcasts"""
@@ -184,14 +184,14 @@ class GUI(QtGui.QMainWindow):
         for p in self._data_windows:
             p.replot()
 
-    def _preferencesClicked(self):
+    def _preferences_clicked(self):
         """Open the preferences dialog"""
         diag = PreferencesDialog(self)
         if(diag.exec_()):
             v = diag.outputPath.text()
             self.settings.setValue("outputPath", v)
 
-    def saveDataWindows(self):
+    def save_data_windows(self):
         """Save data windows state and data sources to the settings file"""
         dw_settings = []
         for dw in self._data_windows:
@@ -214,7 +214,7 @@ class GUI(QtGui.QMainWindow):
                                 'window_type' : window_type})
         self.settings.setValue("dataWindows", dw_settings)
 
-    def closeEvent(self, event):
+    def closeEvent(self, event): #pylint: disable=invalid-name
         """Save settings and exit nicely"""
         self.settings.setValue("geometry", self.saveGeometry())
         self.settings.setValue("windowState", self.saveState())
@@ -223,7 +223,7 @@ class GUI(QtGui.QMainWindow):
         for ds in self._data_sources:
             ds_settings.append([ds.hostname, ds.port, ds.ssh_tunnel])
         self.settings.setValue("dataSources", ds_settings)
-        self.saveDataWindows()
+        self.save_data_windows()
         # Make sure settings are saved
         del self.settings
         # Force exit to prevent pyqtgraph from crashing

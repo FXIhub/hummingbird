@@ -17,8 +17,8 @@ class DataWindow(QtGui.QMainWindow):
 
     def _setup_connections(self):
         """Initialize connections"""
-        self.menuData_Sources.aboutToShow.connect(self.onMenuShow)
-        self.actionSaveToJPG.triggered.connect(self.onSaveToJPG)
+        self.menuData_Sources.aboutToShow.connect(self.on_menu_show)
+        self.actionSaveToJPG.triggered.connect(self.on_save_to_jpg)
         self.actionSaveToJPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
 
     def finish_layout(self):
@@ -30,13 +30,13 @@ class DataWindow(QtGui.QMainWindow):
         icon = QtGui.QPixmap(icon_path)
         self.logoLabel.setPixmap(icon)
         self.plot_title = str(self.title.text())
-        self.title.textChanged.connect(self.onTitleChange)
+        self.title.textChanged.connect(self.on_title_change)
 
-    def onTitleChange(self, title):
+    def on_title_change(self, title):
         """Change the name of the data window"""
         self.plot_title = str(title)
 
-    def onMenuShow(self):
+    def on_menu_show(self):
         """Show what data sources are available"""
         # Go through all the available data sources and add them
         self.menuData_Sources.clear()
@@ -57,7 +57,7 @@ class DataWindow(QtGui.QMainWindow):
                     menu.addAction(action)
                     action.triggered.connect(self._source_title_triggered)
 
-    def onSaveToJPG(self):
+    def on_save_to_jpg(self):
         """Save a screenshot of the window"""
         dt = self.get_time()
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))

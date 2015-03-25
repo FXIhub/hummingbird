@@ -8,12 +8,12 @@ class EventTranslator(object):
     The evt argument of onEvent(), which must be defined in every
     configuration file is actually an EventTranslator.
     """
-    def __init__(self, event, sourceTranslator):
+    def __init__(self, event, source_translator):
         self._evt = event
-        self._trans = sourceTranslator
+        self._trans = source_translator
         self._cache = {}
         self._keys = None
-        self._nativeKeys = None
+        self._native_keys = None
         self._id = None
 
     def __getitem__(self, key):
@@ -24,14 +24,14 @@ class EventTranslator(object):
     def keys(self):
         """Returns the translated keys available"""
         if self._keys is None:
-            self._keys = self._trans.eventKeys(self._evt)
+            self._keys = self._trans.event_keys(self._evt)
         return self._keys
 
-    def nativeKeys(self):
+    def native_keys(self):
         """Returns the keys, with facility specific names, available"""
-        if self._nativeKeys is None:
-            self._nativeKeys = self._trans.eventNativeKeys(self._evt)
-        return self._nativeKeys
+        if self._native_keys is None:
+            self._native_keys = self._trans.event_native_keys(self._evt)
+        return self._native_keys
 
     def event_id(self):
         """Returns an id which should be unique for each

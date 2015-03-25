@@ -64,7 +64,7 @@ class Worker(object):
                     if(ipc.mpi.is_master()):
                         ipc.mpi.master_loop()
                     else:
-                        evt = self.translator.nextEvent()
+                        evt = self.translator.next_event()
                         ipc.set_current_event(evt)
                         Worker.conf.onEvent(evt)
             except KeyboardInterrupt:

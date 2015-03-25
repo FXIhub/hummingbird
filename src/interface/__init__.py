@@ -16,7 +16,7 @@ def start_interface():
     GUI().show()
     sys.exit(app.exec_())
 
-def sigint_handler(*args):
+def sigint_handler(*_):
     """Handler for the SIGINT signal."""
     if QtGui.QMessageBox.question(None, '', "Are you sure you want to quit?",
                                   QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
@@ -29,4 +29,4 @@ from interface.plotdata import PlotData # pylint: disable=unused-import
 from interface.ringbuffer import RingBuffer # pylint: disable=unused-import
 from interface.zmqcontext import ZmqContext # pylint: disable=unused-import
 from interface.zmqsocket import ZmqSocket # pylint: disable=unused-import
-from gui import GUI
+from interface.gui import GUI

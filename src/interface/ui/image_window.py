@@ -30,9 +30,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             pd = source.plotdata[title]
             if(pd.y is None):
                 continue
-            autoLevels = self.actionAuto_Levels.isChecked()
-            autoRange = self.actionAuto_Zoom.isChecked()
-            autoHistogram = self.actionAuto_Histogram.isChecked()
+            auto_levels = self.actionAuto_Levels.isChecked()
+            auto_range = self.actionAuto_Zoom.isChecked()
+            auto_histogram = self.actionAuto_Histogram.isChecked()
             transpose_transform = QtGui.QTransform(0, 1, 0,
                                                    1, 0, 0,
                                                    0, 0, 1)
@@ -91,16 +91,16 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 if(self.plot.currentIndex == last_index):
                     self.plot.setImage(numpy.array(pd.y),
                                        transform=transform,
-                                       autoRange=autoRange, autoLevels=autoLevels,
-                                       autoHistogramRange=autoHistogram)
+                                       autoRange=auto_range, autoLevels=auto_levels,
+                                       autoHistogramRange=auto_histogram)
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index)
 
             else:
                 self.plot.setImage(numpy.array(pd.y),
                                    transform=transform,
-                                   autoRange=autoRange, autoLevels=autoLevels,
-                                   autoHistogramRange=autoHistogram)
+                                   autoRange=auto_range, autoLevels=auto_levels,
+                                   autoHistogramRange=auto_histogram)
                 if(len(self.plot.image.shape) > 2):
                     # Make sure to go to the last image
                     last_index = self.plot.image.shape[0]-1

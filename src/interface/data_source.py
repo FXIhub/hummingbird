@@ -65,14 +65,14 @@ class DataSource(QtCore.QObject):
         """Connect to the configured backend"""
         self._ctrl_socket = ZmqSocket(REQ)
         addr = "tcp://%s:%d" % (self._hostname, self._port)
-        self._ctrl_socket.readyRead.connect(self._get_request_reply)
+        self._ctrl_socket.ready_read.connect(self._get_request_reply)
         self._ctrl_socket.connect_socket(addr, self._ssh_tunnel)
 
     def _get_data_port(self):
         """Ask to the backend for the data port"""
         self._ctrl_socket.send_multipart(['data_port'])
 
-    def _query_configuration(self):
+    def query_configuration(self):
         """Ask to the backend for the configuration"""
         self._ctrl_socket.send_multipart(['conf'])
 
@@ -85,21 +85,31 @@ class DataSource(QtCore.QObject):
             self._data_port = reply[1]
             logging.debug("Data source '%s' received data_port=%s", self.name(), self._data_port)
             addr = "tcp://%s:%s" % (self._hostname, self._data_port)
-            self._data_socket.readyRead.connect(self._get_broadcast)
+            self._data_socket.ready_read.connect(self._get_broadcast)
             self._data_socket.connect_socket(addr, self._ssh_tunnel)
             self.parent().add_backend(self)
             # Subscribe to stuff already requested
             for title in self._subscribed_titles.keys():
                 self._data_socket.subscribe(bytes(title))
                 logging.debug("Subscribing to %s on %s.", title, self.name())
-            self._query_configuration()
+            self.query_configuration()
         elif(reply[0] == 'conf'):
             self.conf = reply[1]
             self.titles = self.conf.keys()
             self.data_type = {}
-            for k in self.titles:
+            for k in self.conf.keys():
+                if('data_type' not in self.conf[k]):
+                    # Broadcasts without any data will not have a data_type
+                    # Let's remove them from the title list and continue
+                    self.titles.remove(k)
+                    continue
                 self.data_type[k] = self.conf[k]['data_type']
-                self._plotdata[k] = PlotData(self, k)
+                if(k not in self._plotdata):
+                    self._plotdata[k] = PlotData(self, k)
+            # Remove PlotData which is no longer in the conf
+            for k in self._plotdata.keys():
+                if k not in self.titles:
+                    self._plotdata.pop(k)
 
     def _get_broadcast(self):
         """Receive a data package on the data socket"""
@@ -119,14 +129,18 @@ class DataSource(QtCore.QObject):
     def _process_broadcast(self, payload):
         """Handle a data package received by the data socket"""
         cmd = payload[1]
+        title = payload[2]
+        data = payload[3]
+        if(title not in self.conf):
+            # We're getting data we were not expecting
+            # Let's discard it and order an immediate reconfigure
+            logging.debug("Received unexpected data with title %s on %s. Reconfiguring...", title, self.name())
+            self.query_configuration()
+            return
         if(cmd == 'set_data'):
-            title = payload[2]
-            data = payload[3]
             self._plotdata[title].set_data(data)
 
         if(cmd == 'new_data'):
-            title = payload[2]
-            data = payload[3]
             data_x = payload[4]
             conf = payload[5]
             self.conf[title].update(conf)

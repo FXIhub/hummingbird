@@ -94,13 +94,13 @@ name-group=
 include-naming-hint=no
 
 # Regular expression matching correct function names
-function-rgx=[a-z_][A-Za-z0-9_]{2,30}$
+function-rgx=[a-z_][a-z0-9_]{2,30}$
 
 # Naming hint for function names
 function-name-hint=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression matching correct variable names
-variable-rgx=[a-z_][A-Za-z0-9_]{0,30}$
+variable-rgx=[a-z_][a-z0-9_]{0,30}$
 
 # Naming hint for variable names
 variable-name-hint=[a-z_][a-z0-9_]{2,30}$
@@ -112,22 +112,22 @@ const-rgx=(([A-Za-z_][A-Za-z0-9_]*)|(__.*__))$
 const-name-hint=(([A-Z_][A-Z0-9_]*)|(__.*__))$
 
 # Regular expression matching correct attribute names
-attr-rgx=[a-z_][A-Za-z0-9_]{2,30}$
+attr-rgx=[a-z_][a-z0-9_]{2,30}$
 
 # Naming hint for attribute names
 attr-name-hint=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression matching correct argument names
-argument-rgx=[a-z_][A-Za-z0-9_]{2,30}$
+argument-rgx=[a-z_][a-z0-9_]{2,30}$
 
 # Naming hint for argument names
 argument-name-hint=[a-z_][a-z0-9_]{2,30}$
 
 # Regular expression matching correct class attribute names
-class-attribute-rgx=([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$
+class-attribute-rgx=([a-z_][a-z0-9_]{2,30}|(__.*__))$
 
 # Naming hint for class attribute names
-class-attribute-name-hint=([A-Za-z_][A-Za-z0-9_]{2,30}|(__.*__))$
+class-attribute-name-hint=([a-z_][a-z0-9_]{2,30}|(__.*__))$
 
 # Regular expression matching correct inline iteration names
 inlinevar-rgx=[A-Za-z_][A-Za-z0-9_]*$
@@ -148,7 +148,7 @@ module-rgx=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
 module-name-hint=(([a-z_][a-z0-9_]*)|([A-Z][a-zA-Z0-9]+))$
 
 # Regular expression matching correct method names
-method-rgx=[a-z_][A-Za-z0-9_]{2,30}$
+method-rgx=[a-z_][a-z0-9_]{2,30}|setupUi|closeEvent$
 
 # Naming hint for method names
 method-name-hint=[a-z_][a-z0-9_]{2,30}$
@@ -225,7 +225,7 @@ ignore-mixin-members=yes
 # List of module names for which member attributes should not be checked
 # (useful for modules/projects where namespaces are manipulated during runtime
 # and thus existing member attributes cannot be deduced by static analysis
-ignored-modules=OpenGL.GL, OpenGL.GL.ARB.texture_float, numpy, numpy.random, zmq, mpi4py.MPI, QtGui, PyQt5.QtGui, PyQt4.QtGui, PyQt4.QtCore, PyQt5.QtCore, pyqtgraph
+ignored-modules=OpenGL.GL, OpenGL.GL.ARB.texture_float, numpy, numpy.random, zmq, mpi4py.MPI, QtGui, PyQt5.QtGui, PyQt4.QtGui, PyQt4.QtCore, PyQt5.QtCore, pyqtgraph, PySide.QtCore, PySide.QtGui
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).

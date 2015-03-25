@@ -1,6 +1,6 @@
 """Generic storage class for a name/data pair extracted from an event"""
 
-def addRecord(values, name, data, unit=None):
+def add_record(values, name, data, unit=None):
     """Convenience function to add a new Record
     to an existing Records dictionary."""
     values[name] = Record(name, data, unit)

@@ -2,7 +2,7 @@
 import time
 import random
 from backend.event_translator import EventTranslator
-from backend.record import addRecord
+from backend.record import add_record
 from . import ureg
 import numpy
 
@@ -11,7 +11,7 @@ class DummyTranslator(object):
     def __init__(self, state):
         pass
 
-    def nextEvent(self):
+    def next_event(self):
         """Generates and returns the next event"""
         evt = {}
         evt['pr1'] = random.random()
@@ -26,11 +26,11 @@ class DummyTranslator(object):
         evt['apY'] = (numpy.random.random() + 2.0) * 2.0
         return EventTranslator(evt, self)
 
-    def eventKeys(self, _):
+    def event_keys(self, _):
         """Returns the translated keys available"""
         return ['pulseEnergies', 'parameters']
 
-    def eventNativeKeys(self, evt):
+    def event_native_keys(self, evt):
         """Returns the native keys available"""
         return evt.keys()
 
@@ -38,17 +38,17 @@ class DummyTranslator(object):
         """Returns a dict of Records that match a given Humminbird key"""
         values = {}
         if(key == 'pulseEnergies'):
-            addRecord(values, 'pulseEnergy1', evt['pr1'], ureg.mJ)
-            addRecord(values, 'pulseEnergy2', evt['pr2'], ureg.mJ)
+            add_record(values, 'pulseEnergy1', evt['pr1'], ureg.mJ)
+            add_record(values, 'pulseEnergy2', evt['pr2'], ureg.mJ)
         elif(key == 'ionTOFs'):
-            addRecord(values, 'tof', evt['tof'], ureg.mJ)
+            add_record(values, 'tof', evt['tof'], ureg.mJ)
         elif(key == 'photonPixelDetectors'):
-            addRecord(values, 'CCD', evt['ccd'], ureg.ADU)
-            addRecord(values, 'CCD1', evt['ccd1'], ureg.ADU)
-            addRecord(values, 'CCD2', evt['ccd2'], ureg.ADU)
+            add_record(values, 'CCD', evt['ccd'], ureg.ADU)
+            add_record(values, 'CCD1', evt['ccd1'], ureg.ADU)
+            add_record(values, 'CCD2', evt['ccd2'], ureg.ADU)
         elif(key == 'parameters'):
-            addRecord(values, 'apertureX', evt['apX'], ureg.mm)
-            addRecord(values, 'apertureY', evt['apY'], ureg.mm)
+            add_record(values, 'apertureX', evt['apX'], ureg.mm)
+            add_record(values, 'apertureY', evt['apY'], ureg.mm)
         else:
             raise RuntimeError('%s not found in event' % (key))
         return values

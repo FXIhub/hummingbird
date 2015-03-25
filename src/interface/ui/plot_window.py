@@ -6,7 +6,6 @@ from interface.ui import DataWindow
 
 class PlotWindow(DataWindow, Ui_plotWindow):
     """Window to display 2D plots"""
-    lineColors = [(252, 175, 62), (114, 159, 207), (255, 255, 255), (239, 41, 41), (138, 226, 52), (173, 127, 168)]
     def __init__(self, parent=None):
         DataWindow.__init__(self, parent)
         self.plot = pyqtgraph.PlotWidget(self.plotFrame, antialiasing=True)
@@ -14,13 +13,15 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.legend = self.plot.addLegend()
         self.legend.hide()
         self.finish_layout()
-        self.actionLegend_Box.triggered.connect(self.onViewLegendBox)
-        self.actionX_axis.triggered.connect(self.onViewXAxis)
-        self.actionY_axis.triggered.connect(self.onViewYAxis)
+        self.actionLegend_Box.triggered.connect(self.on_view_legend_box)
+        self.actionX_axis.triggered.connect(self.on_view_x_axis)
+        self.actionY_axis.triggered.connect(self.on_view_y_axis)
         self.acceptable_data_types = ['scalar', 'vector']
         self.exclusive_source = False
+        self.line_colors = [(252, 175, 62), (114, 159, 207), (255, 255, 255),
+                            (239, 41, 41), (138, 226, 52), (173, 127, 168)]
 
-    def onViewLegendBox(self):
+    def on_view_legend_box(self):
         """Show/hide legend box"""
         action = self.sender()
         if(action.isChecked()):
@@ -28,7 +29,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         else:
             self.legend.hide()
 
-    def onViewXAxis(self):
+    def on_view_x_axis(self):
         """Show/hide X axis"""
         action = self.sender()
         if(action.isChecked()):
@@ -36,7 +37,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         else:
             self.plot.hideAxis('bottom')
 
-    def onViewYAxis(self):
+    def on_view_y_axis(self):
         """Show/hide Y axis"""
         action = self.sender()
         if(action.isChecked()):
@@ -56,17 +57,17 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             pd = source.plotdata[title]
             titlebar.append(pd.title)
 
-            color = PlotWindow.lineColors[color_index % len(PlotWindow.lineColors)]
+            color = self.line_colors[color_index % len(self.line_colors)]
             pen = None
             symbol = None
-            symbolPen = None
-            symbolBrush = None
+            symbol_pen = None
+            symbol_brush = None
             if(self.actionLines.isChecked()):
                 pen = color
             if(self.actionPoints.isChecked()):
                 symbol = 'o'
-                symbolPen = color
-                symbolBrush = color
+                symbol_pen = color
+                symbol_brush = color
 
             conf = source.conf[title]
             if(self.actionX_axis.isChecked()):
@@ -84,10 +85,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             if(pd.x is not None and source.data_type[title] == 'scalar'):
                 plt = self.plot.plot(x=numpy.array(pd.x, copy=False),
                                      y=numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol,
-                                     symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=3)
+                                     symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
             else:
                 plt = self.plot.plot(numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol,
-                                     symbolPen=symbolPen, symbolBrush=symbolBrush, symbolSize=3)
+                                     symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
             self.legend.addItem(plt, pd.title)
             color_index += 1
         self.setWindowTitle(", ".join(titlebar))

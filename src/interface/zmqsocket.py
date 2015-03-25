@@ -10,13 +10,13 @@ import hashlib
 
 class ZmqSocket(QtCore.QObject):
     """Wrapper around a zmq socket. Provides Qt signal handling"""
-    readyRead = QtCore.Signal()
-    readyWrite = QtCore.Signal()
+    ready_read = QtCore.Signal()
+    ready_write = QtCore.Signal()
     def __init__(self, _type, parent=None, **kwargs):
         QtCore.QObject.__init__(self, parent, **kwargs)
 
         ctx = ZmqContext.instance()
-        self._socket = ctx._context.socket(_type)
+        self._socket = ctx.socket(_type)
 
         fd = self._socket.getsockopt(FD)
         self._notifier = QtCore.QSocketNotifier(fd, QtCore.QSocketNotifier.Read, self)
@@ -27,7 +27,7 @@ class ZmqSocket(QtCore.QObject):
         """Close socket on deletion"""
         self._socket.close()
 
-    def setIdentity(self, name):
+    def set_identity(self, name):
         """Set zmq socket identity"""
         self._socket.setsockopt(IDENTITY, name)
 
@@ -67,7 +67,7 @@ class ZmqSocket(QtCore.QObject):
         """Callback run when there's activity on the socket"""
         self._notifier.setEnabled(False)
         while(self._socket.getsockopt(EVENTS) & POLLIN):
-            self.readyRead.emit()
+            self.ready_read.emit()
         self._notifier.setEnabled(True)
 
     def recv(self, flags=0):
