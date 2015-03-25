@@ -26,6 +26,14 @@ sys.path.insert(0, os.path.abspath('../src'))
 # cause name clashes, or other unforseen problems.
 sys.dont_write_bytecode = True
 
+print 'My conf'
+import glob
+files = glob.glob('../src/interface/*.pyc')
+files += glob.glob('../src/backend/*.pyc')
+for f in files:
+    os.remove(f)
+
+
 # Try to use mock modules to be able to build documentation even it's not
 # possible to import certain modules
 try:
