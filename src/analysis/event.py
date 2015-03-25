@@ -48,11 +48,11 @@ def printProcessingRate(evt = None):
     dt = processingTimes[0] - processingTimes[-1]
     proc_rate = ((len(processingTimes)-1)/dt.total_seconds())
     if(ipc.mpi.size > 1):
-        reduce=True
+        mpi_reduce=True
     else:
-        reduce=False
+        mpi_reduce=False
         print "Processing at %g Hz" % (proc_rate)
-    ipc.new_data('Processing Rate', proc_rate, reduce=reduce)
+    ipc.new_data('Processing Rate', proc_rate, mpi_reduce=mpi_reduce)
 
 
     

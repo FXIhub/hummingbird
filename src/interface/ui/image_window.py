@@ -85,19 +85,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             if "ylabel" in conf:
                 self.plot.getView().setLabel(axis_labels[ylabel_index], conf['ylabel'])
 
-            if(self.plot.image is not None and len(self.plot.image.shape) > 2):
-                last_index = self.plot.image.shape[0]-1
-                # Only update if we're in the last index
-                if(self.plot.currentIndex == last_index):
-                    self.plot.setImage(numpy.array(pd.y),
-                                       transform=transform,
-                                       autoRange=auto_range, autoLevels=auto_levels,
-                                       autoHistogramRange=auto_histogram)
-                    last_index = self.plot.image.shape[0]-1
-                    self.plot.setCurrentIndex(last_index)
-
-            else:
-                self.plot.setImage(numpy.array(pd.y),
+            if(self.plot.image is None or # Plot if first image
+               len(self.plot.image.shape) < 3 or # Plot if there's no history
+               self.plot.image.shape[0]-1 == self.plot.currentIndex): # Plot if we're at the last image in history
+                self.plot.setImage(numpy.array(pd.y, copy=False),
                                    transform=transform,
                                    autoRange=auto_range, autoLevels=auto_levels,
                                    autoHistogramRange=auto_histogram)

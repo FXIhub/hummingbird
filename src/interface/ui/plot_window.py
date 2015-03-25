@@ -78,17 +78,17 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     self.plot.setLabel('left', conf['ylabel'])
 
             if(source.data_type[title] == 'scalar'):
-                y = pd.y
+                y = numpy.array(pd.y, copy=False)
             elif(source.data_type[title] == 'vector'):
-                y = pd.y[-1, :]
+                y = numpy.array(pd.y[-1, :], copy=False)
 
-            if(pd.x is not None and source.data_type[title] == 'scalar'):
-                plt = self.plot.plot(x=numpy.array(pd.x, copy=False),
-                                     y=numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol,
-                                     symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
-            else:
-                plt = self.plot.plot(numpy.array(y, copy=False), clear=False, pen=pen, symbol=symbol,
-                                     symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
+            x = None
+            if(source.data_type[title] == 'scalar'):
+                x = numpy.array(pd.x, copy=False)
+
+            plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
+                                 symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
+
             self.legend.addItem(plt, pd.title)
             color_index += 1
         self.setWindowTitle(", ".join(titlebar))

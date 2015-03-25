@@ -15,4 +15,4 @@ def zmq():
         _server = ZmqServer()
     return _server
 
-from ipc.broadcast import set_data, new_data, set_current_event # pylint: disable=unused-import
+from ipc.broadcast import new_data, set_current_event # pylint: disable=unused-import

@@ -36,25 +36,16 @@ def _check_type(title, data_y):
         if(ipc.mpi.is_slave()):
             ipc.mpi.send('__data_conf__', data_conf)
 
-def set_data(title, data_y, data_x=None):
-    """Send a stream of data, which should erase and replace
-    any existing values at the interface. I think it's currently
-    unused so maybe should be removed."""
-    _check_type(title, data_y)
-    if(ipc.mpi.is_slave()):
-        ipc.mpi.send(title, [ipc.uuid, 'set_data', title, data_y, data_x])
-    else:
-        ipc.zmq().send(title, [ipc.uuid, 'set_data', title, data_y, data_x])
-
-def new_data(title, data_y, data_x=None, **kwds):
+def new_data(title, data_y, data_x=None, mpi_reduce=False, **kwds):
     """Send a new data item, which will be appended to any existing
-    values at the interface. All keywords pairs given will also be
+    values at the interface. If mpi_reduce is True data_y will be
+    summed over all the slaves. All keywords pairs given will also be
     transmitted and available at the interface."""
     _check_type(title, data_y)
     if(data_x is None):
         data_x = ipc.broadcast.evt.event_id()
     if(ipc.mpi.is_slave()):
-        if(reduce):
+        if(mpi_reduce):
             ipc.mpi.send_reduce(title, 'new_data', data_y, data_x, **kwds)
         else:
             ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y,

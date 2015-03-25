@@ -137,9 +137,6 @@ class DataSource(QtCore.QObject):
             logging.debug("Received unexpected data with title %s on %s. Reconfiguring...", title, self.name())
             self.query_configuration()
             return
-        if(cmd == 'set_data'):
-            self._plotdata[title].set_data(data)
-
         if(cmd == 'new_data'):
             data_x = payload[4]
             conf = payload[5]
