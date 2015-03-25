@@ -21,7 +21,7 @@ backend package
     :undoc-members:
     :show-inheritance:
 
-.. autofunction:: backend.addRecord
+.. autofunction:: backend.add_record
 
 backend.lcls module
 -------------------
