@@ -158,8 +158,6 @@ class GUI(QtGui.QMainWindow):
         # Go through the data sources and ask for new keys
         for ds in self._data_sources:
             ds.query_configuration()
-            # Why do I need to call this explicitly??
-            ds._get_request_reply(ds._ctrl_socket)
 
     def _new_display_triggered(self):
         """Create a new Data Window to display data broadcasts"""
