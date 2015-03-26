@@ -77,6 +77,17 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         else:
             return datetime.datetime.now()
 
+    def _configure_axis(self, source, title):
+        """Configures the x and y axis of the plot, according to the
+        source/title configuration and content type"""
+        conf = source.conf[title]
+        if(self.actionX_axis.isChecked()):
+            if 'xlabel' in conf:
+                self.plot.setLabel('bottom', conf['xlabel'])
+        if(self.actionY_axis.isChecked()):
+            if 'ylabel' in conf:
+                self.plot.setLabel('left', conf['ylabel'])
+
     def replot(self):
         """Replot data"""
         self.plot.clear()
@@ -100,14 +111,6 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 symbol = 'o'
                 symbol_pen = color
                 symbol_brush = color
-
-            conf = source.conf[title]
-            if(self.actionX_axis.isChecked()):
-                if 'xlabel' in conf:
-                    self.plot.setLabel('bottom', conf['xlabel'])
-            if(self.actionY_axis.isChecked()):
-                if 'ylabel' in conf:
-                    self.plot.setLabel('left', conf['ylabel'])
 
             if(source.data_type[title] == 'scalar'):
                 y = numpy.array(pd.y, copy=False)
