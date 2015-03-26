@@ -90,7 +90,7 @@ class RingBuffer(object):
         else:
             if args < 0:
                 args = self._len + args
-            return args
+            return self._maxlen+self._index-self._len + args
 
     def __getitem__(self, args):
         """Returns items from the buffer, just like a numpy array"""

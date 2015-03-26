@@ -18,6 +18,7 @@ def onEvent(evt):
     ipc.new_data('CCD', evt['photonPixelDetectors']['CCD'].data, xlabel='x', ylabel='y', xmax=112.0, xmin=100, ymin=-50)
     ipc.new_data('CCD_flipped', evt['photonPixelDetectors']['CCD'].data, flipy=True, xlabel='x', ylabel='y', xmax=112.0, xmin=100, ymin=-50)
     ipc.new_data('CCD_tranposed', evt['photonPixelDetectors']['CCD'].data, transpose=True, xlabel='x', ylabel='y', xmax=112.0, xmin=100, ymin=-50)
+    ipc.new_data('CCD_noisy', evt['photonPixelDetectors']['CCD1'].data)
     ipc.new_data('tof', evt['ionTOFs']['tof'].data, xlabel='foo')
     t1 = time.time()
 #    print 1.0/(t1-t0)
