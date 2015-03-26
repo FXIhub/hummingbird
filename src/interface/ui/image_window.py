@@ -4,6 +4,7 @@ from interface.ui import Ui_imageWindow
 import pyqtgraph
 import numpy
 from interface.ui import DataWindow
+import datetime
 
 class ImageWindow(DataWindow, Ui_imageWindow):
     """Window to display images"""
@@ -21,6 +22,28 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.infoLabel.setText('')
         self.acceptable_data_types = ['image', 'vector']
         self.exclusive_source = True
+
+    def get_time(self, index=None):
+        """Returns the time of the given index, or the time of the last data point"""
+        if index is None:
+            index = self.plot.currentIndex
+        # Check if we have enabled_sources
+        source = None
+        if(self._enabled_sources):
+            for ds in self._enabled_sources.keys():
+                if(len(self._enabled_sources[ds])):
+                    title = self._enabled_sources[ds][0]
+                    source = ds
+                    break
+
+        # There might be no data yet, so no plotdata
+        if(source is not None and title in source.plotdata and
+           source.plotdata[title].x is not None):
+            pd = source.plotdata[title]
+            dt = datetime.datetime.fromtimestamp(pd.x[index])
+            return dt
+        else:
+            return datetime.datetime.now()
 
     def replot(self):
         """Replot data"""
@@ -81,9 +104,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 ylabel_index = (ylabel_index+1)%2
 
             if "xlabel" in conf:
-                self.plot.getView().setLabel(axis_labels[xlabel_index], conf['xlabel'])
+                self.plot.getView().setLabel(axis_labels[xlabel_index], conf['xlabel']) #pylint: disable=no-member
             if "ylabel" in conf:
-                self.plot.getView().setLabel(axis_labels[ylabel_index], conf['ylabel'])
+                self.plot.getView().setLabel(axis_labels[ylabel_index], conf['ylabel'])  #pylint: disable=no-member
 
             if(self.plot.image is None or # Plot if first image
                len(self.plot.image.shape) < 3 or # Plot if there's no history

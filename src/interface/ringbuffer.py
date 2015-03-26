@@ -61,7 +61,7 @@ class RingBuffer(object):
     def shape(self):
         """Returns the shape of the buffer, like a numpy array"""
         if(len(self._data.shape) == 1):
-            return (self._len)
+            return (self._len,)
         else:
             return (self._len,)+self._data.shape[1:]
 

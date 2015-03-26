@@ -1,6 +1,5 @@
 """Base class for all the data display windows"""
 from interface.Qt import QtGui, QtCore
-import datetime
 import os
 
 class DataWindow(QtGui.QMainWindow):
@@ -87,30 +86,6 @@ class DataWindow(QtGui.QMainWindow):
         else:
             source.unsubscribe(title, self)
             self._enabled_sources[source].remove(title)
-
-    def get_time(self, index=None):
-        """Returns the time of the given index, or the time of the last data point"""
-        if index is None:
-            try:
-                index = self.plot.currentIndex
-            except NameError:
-                index = -1
-        # Check if we have enabled_sources
-        source = None
-        if(self._enabled_sources):
-            for ds in self._enabled_sources.keys():
-                if(len(self._enabled_sources[ds])):
-                    title = self._enabled_sources[ds][0]
-                    source = ds
-                    break
-        # There might be no data yet, so no plotdata
-        if(source is not None and title in source.plotdata and
-           source.plotdata[title].x is not None):
-            pd = source.plotdata[title]
-            dt = datetime.datetime.fromtimestamp(pd.x[index])
-            return dt
-        else:
-            return datetime.datetime.now()
 
     def closeEvent(self, event):
         """Unsubscribe to any remaining broadcasts before closing"""

@@ -3,6 +3,8 @@ from interface.ui import Ui_plotWindow
 import pyqtgraph
 import numpy
 from interface.ui import DataWindow
+from interface.Qt import QtCore
+import datetime
 
 class PlotWindow(DataWindow, Ui_plotWindow):
     """Window to display 2D plots"""
@@ -20,6 +22,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.exclusive_source = False
         self.line_colors = [(252, 175, 62), (114, 159, 207), (255, 255, 255),
                             (239, 41, 41), (138, 226, 52), (173, 127, 168)]
+        self.current_index = -1
+        self.last_vector_y = None
+        self.last_vector_x = None
 
     def on_view_legend_box(self):
         """Show/hide legend box"""
@@ -44,6 +49,33 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             self.plot.showAxis('left')
         else:
             self.plot.hideAxis('left')
+
+    def get_time(self, index=None):
+        """Returns the time of the given index, or the time of the last data point"""
+        if index is None:
+            index = self.current_index
+        # Check if we have last_vector
+        if(self.last_vector_x is not None):
+            dt = datetime.datetime.fromtimestamp(self.last_vector_x[index])
+            return dt
+
+        # Check if we have enabled_sources
+        source = None
+        if(self._enabled_sources):
+            for ds in self._enabled_sources.keys():
+                if(len(self._enabled_sources[ds])):
+                    title = self._enabled_sources[ds][0]
+                    source = ds
+                    break
+
+        # There might be no data yet, so no plotdata
+        if(source is not None and title in source.plotdata and
+           source.plotdata[title].x is not None):
+            pd = source.plotdata[title]
+            dt = datetime.datetime.fromtimestamp(pd.x[index])
+            return dt
+        else:
+            return datetime.datetime.now()
 
     def replot(self):
         """Replot data"""
@@ -79,8 +111,15 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
             if(source.data_type[title] == 'scalar'):
                 y = numpy.array(pd.y, copy=False)
+                self.last_vector_y = None
+                self.last_vector_x = None
             elif(source.data_type[title] == 'vector'):
-                y = numpy.array(pd.y[-1, :], copy=False)
+                if(self.current_index == -1):
+                    y = numpy.array(pd.y[self.current_index, :], copy=False)
+                    self.last_vector_y = numpy.array(pd.y)
+                    self.last_vector_x = numpy.array(pd.x)
+                else:
+                    y = self.last_vector_y[self.current_index, :]
 
             x = None
             if(source.data_type[title] == 'scalar'):
@@ -91,8 +130,29 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
             self.legend.addItem(plt, pd.title)
             color_index += 1
+
         self.setWindowTitle(", ".join(titlebar))
         dt = self.get_time()
         # Round to miliseconds
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         self.dateLabel.setText(str(dt.date()))
+
+    def _change_index_by(self, amount):
+        """Changes the history index when displaying a vector"""
+        if(self.last_vector_x is None):
+            return
+        self.current_index += amount
+        if(self.current_index > -1):
+            self.current_index = -1
+        if(self.current_index < -len(self.last_vector_x)):
+            self.current_index = -len(self.last_vector_x)
+
+    def keyPressEvent(self, event):
+        """Handle key presses"""
+        key = event.key()
+        if key == QtCore.Qt.Key_Right:
+            self._change_index_by(1)
+            self.replot()
+        elif key == QtCore.Qt.Key_Left:
+            self._change_index_by(-1)
+            self.replot()
