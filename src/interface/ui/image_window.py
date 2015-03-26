@@ -5,6 +5,7 @@ import pyqtgraph
 import numpy
 from interface.ui import DataWindow
 import datetime
+import logging
 
 class ImageWindow(DataWindow, Ui_imageWindow):
     """Window to display images"""
@@ -50,28 +51,46 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         pd = source.plotdata[title]
         xmin = 0
         ymin = 0
-        xmax = pd.y.shape[-1]
-        ymax = pd.y.shape[-2]
-        transform = QtGui.QTransform()
-        transpose_transform = QtGui.QTransform(0, 1, 0,
-                                               1, 0, 0,
-                                               0, 0, 1)
         conf = source.conf[title]
+
+
         if "xmin" in conf:
             xmin = conf['xmin']
         if "ymin" in conf:
             ymin = conf['ymin']
-        transform.translate(xmin, ymin)
-        transform.scale(1.0/xmax, 1.0/ymax)
+        translate_transform = QtGui.QTransform().translate(ymin, xmin)
+        xmax = pd.y.shape[-1] + xmin
+        ymax = pd.y.shape[-2] + ymin
+
         if "xmax" in conf:
-            xmax = conf['xmax']
+            if(conf['xmax'] <= xmin):
+                logging.warning("xmax <= xmin for title %s on %s. Ignoring xmax", title, source.name())
+            else:
+                xmax = conf['xmax']
         if "ymax" in conf:
-            ymax = conf['ymax']
-        transform.scale(xmax-xmin, ymax-ymin)
+            if(conf['ymax'] <= ymin):
+                logging.warning("ymax <= ymin for title %s on %s. Ignoring xmax", title, source.name())
+            else:
+                ymax = conf['ymax']
+        # The order of dimensions in the scale call is (y,x) as in the numpy
+        # array the last dimension corresponds to the x.
+        scale_transform = QtGui.QTransform().scale((ymax-ymin)/pd.y.shape[-2],
+                                                   (xmax-xmin)/pd.y.shape[-1])
+
+        transpose_transform = QtGui.QTransform()
         if source.data_type[title] == 'image':
-            transform = transpose_transform*transform
+            transpose_transform *= QtGui.QTransform(0, 1, 0,
+                                                    1, 0, 0,
+                                                    0, 0, 1)
         if "transpose" in conf:
-            transform = transpose_transform*transform
+            transpose_transform *= QtGui.QTransform(0, 1, 0,
+                                                    1, 0, 0,
+                                                    0, 0, 1)
+        transform = scale_transform*translate_transform*transpose_transform
+
+        # print '|%f %f %f|' % (transform.m11(), transform.m12(), transform.m13())
+        # print '|%f %f %f|' % (transform.m21(), transform.m22(), transform.m23())
+        # print '|%f %f %f|' % (transform.m31(), transform.m32(), transform.m33())
         return transform
 
     def _configure_axis(self, source, title):

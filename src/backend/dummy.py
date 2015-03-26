@@ -17,7 +17,11 @@ class DummyTranslator(object):
         evt['pr1'] = random.random()
         evt['pr2'] = random.random()
         # CCD data 128px wide, 256px tall
-        evt['ccd'] = numpy.random.rand(256, 128)
+        evt['ccd'] = numpy.zeros((256, 128))
+        evt['ccd'][0:128,0:64] = 1
+        evt['ccd'][0:128,64:] = 2
+        evt['ccd'][128:,0:64] = 3
+        
         evt['ccd1'] = numpy.random.rand(128, 256)**3
         evt['tof'] = numpy.random.rand(256)
 #        evt['tof'] = numpy.linspace(0,100,256)
