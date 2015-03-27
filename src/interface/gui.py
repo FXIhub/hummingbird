@@ -4,10 +4,11 @@ from interface.Qt import QtGui, QtCore
 from interface.ui import AddBackendDialog, PreferencesDialog
 from interface.ui import PlotWindow, ImageWindow
 from interface import DataSource
+from interface.ui import Ui_mainWindow
 import logging
 import os
 
-class GUI(QtGui.QMainWindow):
+class GUI(QtGui.QMainWindow, Ui_mainWindow):
     """Main Window Class.
 
     Contains only menus and toolbars. The plots will be in their own windows.
@@ -18,6 +19,7 @@ class GUI(QtGui.QMainWindow):
         self._data_windows = []
         self._data_sources = []
         self.settings = QtCore.QSettings()
+        self.setupUi(self)
         self._init_geometry()
         self._init_menus()
         loaded_sources = []
@@ -75,30 +77,30 @@ class GUI(QtGui.QMainWindow):
 
     def _init_menus(self):
         """Initialize the menus."""
-        self._backends_menu = self.menuBar().addMenu(self.tr("&Backends"))
+        # self._backends_menu = self.menuBar().addMenu(self.tr("&Backends"))
 
-        self._add_backend_action = QtGui.QAction("Add", self)
-        self._backends_menu.addAction(self._add_backend_action)
-        self._add_backend_action.triggered.connect(self._add_backend_triggered)
+        # self._add_backend_action = QtGui.QAction("Add", self)
+        # self._backends_menu.addAction(self._add_backend_action)
+#        self._add_backend_action.triggered.connect(self._add_backend_triggered)
 
-        self._reload_backend_action = QtGui.QAction("Reload", self)
-        self._backends_menu.addAction(self._reload_backend_action)
+        # self._reload_backend_action = QtGui.QAction("Reload", self)
+        # self._backends_menu.addAction(self._reload_backend_action)
         self._reload_backend_action.triggered.connect(self._reload_backend_triggered)
 
-        self._backends_menu.addSeparator()
+        # self._backends_menu.addSeparator()
 
-        self._displays_menu = self.menuBar().addMenu(self.tr("&Displays"))
-        self._new_plot_action = QtGui.QAction("New Line Plot", self)
-        self._displays_menu.addAction(self._new_plot_action)
+        # self._displays_menu = self.menuBar().addMenu(self.tr("&Displays"))
+        # self._new_plot_action = QtGui.QAction("New Line Plot", self)
+        # self._displays_menu.addAction(self._new_plot_action)
         self._new_plot_action.triggered.connect(self._new_display_triggered)
 
-        self._new_image_action = QtGui.QAction("New Image Viewer", self)
-        self._displays_menu.addAction(self._new_image_action)
+        # self._new_image_action = QtGui.QAction("New Image Viewer", self)
+        # self._displays_menu.addAction(self._new_image_action)
         self._new_image_action.triggered.connect(self._new_display_triggered)
 
-        self._options_menu = self.menuBar().addMenu(self.tr("&Options"))
-        self._preferences_action = QtGui.QAction("Preferences", self)
-        self._options_menu.addAction(self._preferences_action)
+        # self._options_menu = self.menuBar().addMenu(self.tr("&Options"))
+        # self._preferences_action = QtGui.QAction("Preferences", self)
+        # self._options_menu.addAction(self._preferences_action)
         self._preferences_action.triggered.connect(self._preferences_clicked)
 
     def _init_data_sources(self):

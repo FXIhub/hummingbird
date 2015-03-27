@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>605</width>
+    <height>490</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="currentIndex">
+       <number>1</number>
+      </property>
+      <widget class="QWidget" name="_plotdata_widget"/>
+      <widget class="QWidget" name="page_2"/>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>605</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="_backends_menu">
+    <property name="title">
+     <string>Backends</string>
+    </property>
+    <addaction name="_add_backend_action"/>
+    <addaction name="_reload_backend_action"/>
+    <addaction name="separator"/>
+   </widget>
+   <widget class="QMenu" name="_displays_menu">
+    <property name="title">
+     <string>Displays</string>
+    </property>
+    <addaction name="_new_plot_action"/>
+    <addaction name="_new_image_action"/>
+   </widget>
+   <widget class="QMenu" name="_options_menu">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="_preferences_action"/>
+   </widget>
+   <addaction name="_backends_menu"/>
+   <addaction name="_displays_menu"/>
+   <addaction name="_options_menu"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="_add_backend_action"/>
+   <addaction name="_reload_backend_action"/>
+   <addaction name="separator"/>
+   <addaction name="_new_plot_action"/>
+   <addaction name="_new_image_action"/>
+   <addaction name="separator"/>
+   <addaction name="_preferences_action"/>
+  </widget>
+  <action name="_add_backend_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/add_backend.svg</normaloff>:/svg_icons/add_backend.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add</string>
+   </property>
+   <property name="toolTip">
+    <string>Add Backend</string>
+   </property>
+  </action>
+  <action name="_reload_backend_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/reload_backend.svg</normaloff>:/svg_icons/reload_backend.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Reload</string>
+   </property>
+  </action>
+  <action name="_new_plot_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/add_line_plot.svg</normaloff>:/svg_icons/add_line_plot.svg</iconset>
+   </property>
+   <property name="text">
+    <string>New Line Plot</string>
+   </property>
+  </action>
+  <action name="_new_image_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/add_image_plot.svg</normaloff>:/svg_icons/add_image_plot.svg</iconset>
+   </property>
+   <property name="text">
+    <string>New Image Viewer</string>
+   </property>
+  </action>
+  <action name="_preferences_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/settings.svg</normaloff>:/svg_icons/settings.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Preferences</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../images/resources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>_add_backend_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_add_backend_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>_add_backend_triggered()</slot>
+ </slots>
+</ui>
