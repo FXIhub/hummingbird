@@ -12,13 +12,11 @@ Widget used for displaying 2D or 3D data. Features:
   - ROI plotting
   - Image normalization through a variety of methods
 """
-from interface.Qt import QtCore, QtGui, USE_PYSIDE
+from interface.Qt import QtCore, QtGui, loadUiType
+import interface.ui
 
-if USE_PYSIDE:
-    from .ImageViewTemplate_pyside import *
-else:
-    from .ImageViewTemplate_pyqt import *
-    
+Ui_Form, base = loadUiType(interface.ui.uidir + '/ImageViewTemplate.ui')
+
 from pyqtgraph.graphicsItems.ImageItem import *
 from pyqtgraph.graphicsItems.ROI import *
 from pyqtgraph.graphicsItems.LinearRegionItem import *
