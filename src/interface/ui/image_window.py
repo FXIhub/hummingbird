@@ -14,11 +14,11 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         DataWindow.__init__(self, parent)
         # This is imported here to prevent problems with sphinx
         from .ImageView import ImageView
-        self.plot = ImageView(self.plotFrame, view=pyqtgraph.PlotItem())
-        self.plot.ui.roiBtn.hide()
-        self.plot.ui.normBtn.hide()
-        self.plot.ui.normBtn.hide()
-        self.plot.ui.roiPlot.hide()
+        self.plot = ImageView(self, view=pyqtgraph.PlotItem())
+        # self.plot.ui.roiBtn.hide()
+        # self.plot.ui.normBtn.hide()
+        # self.plot.ui.normBtn.hide()
+        # self.plot.ui.roiPlot.hide()
         self._finish_layout()
         self.infoLabel.setText('')
         self.acceptable_data_types = ['image', 'vector']
@@ -154,7 +154,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     self.plot.setCurrentIndex(last_index)
 
             self.setWindowTitle(pd.title)
-            self.plot.ui.roiPlot.hide()
+#            self.plot.ui.roiPlot.hide()
             dt = self.get_time()
             # Round to miliseconds
             self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
