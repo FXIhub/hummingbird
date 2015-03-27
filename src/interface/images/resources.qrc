@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>logo_48_transparent.png</file>
     <file>svg_icons/settings.svg</file>
     <file>svg_icons/add_image_plot.svg</file>
     <file>svg_icons/add_line_plot.svg</file>

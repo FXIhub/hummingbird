@@ -94,10 +94,14 @@
   <action name="_reload_backend_action">
    <property name="icon">
     <iconset resource="../images/resources.qrc">
-     <normaloff>:/svg_icons/reload_backend.svg</normaloff>:/svg_icons/reload_backend.svg</iconset>
+     <normaloff>:/svg_icons/reload_backend.svg</normaloff>
+     <normalon>:/svg_icons/reload_backend_pressed.svg</normalon>:/svg_icons/reload_backend.svg</iconset>
    </property>
    <property name="text">
     <string>Reload</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload Backends</string>
    </property>
   </action>
   <action name="_new_plot_action">
@@ -148,8 +152,75 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>_new_image_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_new_display_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_new_plot_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_new_display_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_reload_backend_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_reload_backend_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_preferences_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_preferences_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>_add_backend_triggered()</slot>
+  <slot>_reload_backend_triggered()</slot>
+  <slot>_new_display_triggered()</slot>
+  <slot>_preferences_clicked()</slot>
  </slots>
 </ui>

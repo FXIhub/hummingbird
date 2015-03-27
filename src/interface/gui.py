@@ -21,7 +21,6 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self.settings = QtCore.QSettings()
         self.setupUi(self)
         self._init_geometry()
-        self._init_menus()
         loaded_sources = []
         try:
             loaded_sources = self._init_data_sources()
@@ -75,34 +74,6 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
                 except KeyError:
                     pass
 
-    def _init_menus(self):
-        """Initialize the menus."""
-        # self._backends_menu = self.menuBar().addMenu(self.tr("&Backends"))
-
-        # self._add_backend_action = QtGui.QAction("Add", self)
-        # self._backends_menu.addAction(self._add_backend_action)
-#        self._add_backend_action.triggered.connect(self._add_backend_triggered)
-
-        # self._reload_backend_action = QtGui.QAction("Reload", self)
-        # self._backends_menu.addAction(self._reload_backend_action)
-        self._reload_backend_action.triggered.connect(self._reload_backend_triggered)
-
-        # self._backends_menu.addSeparator()
-
-        # self._displays_menu = self.menuBar().addMenu(self.tr("&Displays"))
-        # self._new_plot_action = QtGui.QAction("New Line Plot", self)
-        # self._displays_menu.addAction(self._new_plot_action)
-        self._new_plot_action.triggered.connect(self._new_display_triggered)
-
-        # self._new_image_action = QtGui.QAction("New Image Viewer", self)
-        # self._displays_menu.addAction(self._new_image_action)
-        self._new_image_action.triggered.connect(self._new_display_triggered)
-
-        # self._options_menu = self.menuBar().addMenu(self.tr("&Options"))
-        # self._preferences_action = QtGui.QAction("Preferences", self)
-        # self._options_menu.addAction(self._preferences_action)
-        self._preferences_action.triggered.connect(self._preferences_clicked)
-
     def _init_data_sources(self):
         """Restore data sources from the settings."""
         loaded_sources = []
@@ -142,6 +113,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         action.setChecked(True)
         self._backends_menu.addAction(action)
         action.triggered.connect(self._data_source_triggered)
+        self._status_message("Backend '%s' connected." % (data_source.name()), 5000)
 
     def _add_backend_triggered(self):
         """Create and show the add backend dialog"""
@@ -158,8 +130,10 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
     def _reload_backend_triggered(self):
         """Reload backends, asking for brodcasts and configurations"""
         # Go through the data sources and ask for new keys
+        self._status_message("Reloading backends...")
         for ds in self._data_sources:
             ds.query_configuration()
+        self._status_message("Reloading backends...done.", 3000)
 
     def _new_display_triggered(self):
         """Create a new Data Window to display data broadcasts"""
@@ -240,3 +214,10 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
     def data_windows(self):
         """Provide access to the GUI data widows"""
         return self._data_windows
+
+    def _status_message(self, msg, timeout=0, process_events=True):
+        """Set statusBar message and make sure to show it!"""
+        self.statusbar.showMessage(msg, timeout)
+        # Without this it might not actually be shown
+        if(process_events):
+            QtCore.QCoreApplication.processEvents()

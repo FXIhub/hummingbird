@@ -307,6 +307,9 @@
         </disabled>
        </palette>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::ClickFocus</enum>
+      </property>
       <property name="text">
        <string>Line Plot</string>
       </property>
@@ -757,6 +760,9 @@
         <property name="text">
          <string/>
         </property>
+        <property name="pixmap">
+         <pixmap resource="../images/resources.qrc">:/logo_48_transparent.png</pixmap>
+        </property>
        </widget>
       </item>
      </layout>
@@ -789,9 +795,10 @@
    </widget>
    <widget class="QMenu" name="menuSave">
     <property name="title">
-     <string>Save</string>
+     <string>Tools</string>
     </property>
     <addaction name="actionSaveToJPG"/>
+    <addaction name="actionSettings"/>
    </widget>
    <addaction name="menuData_Sources"/>
    <addaction name="menuView"/>
@@ -848,7 +855,34 @@
     <string>Lines</string>
    </property>
   </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>Plot Settings</string>
+   </property>
+  </action>
  </widget>
- <resources/>
- <connections/>
+ <resources>
+  <include location="../images/resources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>actionSettings</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_on_plot_settings()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>266</x>
+     <y>214</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>_on_plot_settings()</slot>
+ </slots>
 </ui>

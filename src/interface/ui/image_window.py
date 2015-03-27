@@ -19,7 +19,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.plot.ui.normBtn.hide()
         self.plot.ui.normBtn.hide()
         self.plot.ui.roiPlot.hide()
-        self.finish_layout()
+        self._finish_layout()
         self.infoLabel.setText('')
         self.acceptable_data_types = ['image', 'vector']
         self.exclusive_source = True

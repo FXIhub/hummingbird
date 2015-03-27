@@ -14,7 +14,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.plot.hideAxis('bottom')
         self.legend = self.plot.addLegend()
         self.legend.hide()
-        self.finish_layout()
+        self._finish_layout()
         self.actionLegend_Box.triggered.connect(self.on_view_legend_box)
         self.actionX_axis.triggered.connect(self.on_view_x_axis)
         self.actionY_axis.triggered.connect(self.on_view_y_axis)
@@ -25,6 +25,11 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.current_index = -1
         self.last_vector_y = None
         self.last_vector_x = None
+        self._settings_diag = LinePlotSettings(self)
+        self.x_auto = True
+        self.y_auto = True
+        self.x_label = ''
+        self.y_label = ''
 
     def on_view_legend_box(self):
         """Show/hide legend box"""
@@ -49,6 +54,22 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             self.plot.showAxis('left')
         else:
             self.plot.hideAxis('left')
+
+    def _on_plot_settings(self):
+        """Show the plot settings dialog"""
+        self._settings_diag.x_auto.setChecked(self.x_auto)
+        self._settings_diag.y_auto.setChecked(self.y_auto)
+        self._settings_diag.x_label.setText(self.x_label)
+        self._settings_diag.y_label.setText(self.y_label)
+        if(self._settings_diag.exec_()):
+            self.x_auto = self._settings_diag.x_auto.isChecked()
+            if(self.x_auto is False):
+                self.x_label = self._settings_diag.x_label.text()
+            self.y_auto = self._settings_diag.y_auto.isChecked()
+            if(self.y_auto is False):
+                self.y_label = self._settings_diag.y_label.text()
+            # Show changes immediately
+            self.replot()
 
     def get_time(self, index=None):
         """Returns the time of the given index, or the time of the last data point"""
@@ -82,11 +103,13 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         source/title configuration and content type"""
         conf = source.conf[title]
         if(self.actionX_axis.isChecked()):
-            if 'xlabel' in conf:
-                self.plot.setLabel('bottom', conf['xlabel'])
+            if 'xlabel' in conf and self.x_auto:
+                self.x_label = conf['xlabel']
+            self.plot.setLabel('bottom', self.x_label)
         if(self.actionY_axis.isChecked()):
-            if 'ylabel' in conf:
-                self.plot.setLabel('left', conf['ylabel'])
+            if 'ylabel' in conf and self.y_auto:
+                self.y_label = conf['ylabel']
+            self.plot.setLabel('left', self.y_label)
 
     def replot(self):
         """Replot data"""
@@ -111,6 +134,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 symbol = 'o'
                 symbol_pen = color
                 symbol_brush = color
+
+            self._configure_axis(source, title)
 
             if(source.data_type[title] == 'scalar'):
                 y = numpy.array(pd.y, copy=False)
@@ -159,3 +184,5 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         elif key == QtCore.Qt.Key_Left:
             self._change_index_by(-1)
             self.replot()
+
+from interface.ui import LinePlotSettings

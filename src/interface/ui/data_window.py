@@ -1,6 +1,5 @@
 """Base class for all the data display windows"""
 from interface.Qt import QtGui, QtCore
-import os
 
 class DataWindow(QtGui.QMainWindow):
     """Base class for all the data display windows
@@ -20,18 +19,15 @@ class DataWindow(QtGui.QMainWindow):
         self.actionSaveToJPG.triggered.connect(self.on_save_to_jpg)
         self.actionSaveToJPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
 
-    def finish_layout(self):
+    def _finish_layout(self):
         """This is called after the derived classes finish settings up so
         that the lower common section of the window can be setup. Kinda ugly."""
         layout = QtGui.QVBoxLayout(self.plotFrame)
         layout.addWidget(self.plot)
-        icon_path = os.path.dirname(os.path.realpath(__file__)) + "/../images/logo_48_transparent.png"
-        icon = QtGui.QPixmap(icon_path)
-        self.logoLabel.setPixmap(icon)
         self.plot_title = str(self.title.text())
-        self.title.textChanged.connect(self.on_title_change)
+        self.title.textChanged.connect(self._on_title_change)
 
-    def on_title_change(self, title):
+    def _on_title_change(self, title):
         """Change the name of the data window"""
         self.plot_title = str(title)
 

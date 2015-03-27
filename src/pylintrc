@@ -229,7 +229,7 @@ ignored-modules=OpenGL.GL, OpenGL.GL.ARB.texture_float, numpy, numpy.random, zmq
 
 # List of classes names for which member attributes should not be checked
 # (useful for classes with attributes dynamically set).
-ignored-classes=SQLObject, QtGui, QtCore, PlotWindow, DataSource, DataWindow, GUI, ImageWindow, AddBackendDialog, PreferencesDialog
+ignored-classes=SQLObject, QtGui, QtCore, PlotWindow, DataSource, DataWindow, GUI, ImageWindow, AddBackendDialog, PreferencesDialog, LinePlotSettings
 
 # When zope mode is activated, add a predefined set of Zope acquired attributes
 # to generated-members.

@@ -25,7 +25,7 @@ def onEvent(evt):
 #    analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
     ipc.broadcast.init_data('pulseEnergy1', xlabel='foo', ylabel='bar2', history_length=3)
     ipc.new_data('pulse1', evt['pulseEnergies']['pulseEnergy1'].data)
-    ipc.new_data('pulse3', evt['pulseEnergies']['pulseEnergy1'].data)
+    ipc.new_data('pulse3', evt['pulseEnergies']['pulseEnergy1'].data, xlabel='foo')
 #    analysis.beamline.plotPulseEnergy(evt['pulseEnergies'])
     #analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.event.printProcessingRate(evt)

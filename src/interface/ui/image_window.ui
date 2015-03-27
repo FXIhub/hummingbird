@@ -160,6 +160,16 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="0">
+     <widget class="QWidget" name="plotFrame" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+     </widget>
+    </item>
     <item row="0" column="0">
      <widget class="QLineEdit" name="title">
       <property name="palette">
@@ -226,6 +236,9 @@
         </disabled>
        </palette>
       </property>
+      <property name="focusPolicy">
+       <enum>Qt::ClickFocus</enum>
+      </property>
       <property name="text">
        <string>Image Plot</string>
       </property>
@@ -237,17 +250,7 @@
       </property>
      </widget>
     </item>
-    <item row="1" column="0">
-     <widget class="QWidget" name="plotFrame" native="true">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-     </widget>
-    </item>
-    <item row="2" column="0">
+    <item row="3" column="0">
      <layout class="QHBoxLayout" name="horizontalLayout_4">
       <item>
        <widget class="QLabel" name="infoLabel">
@@ -507,9 +510,15 @@
         <property name="text">
          <string/>
         </property>
+        <property name="pixmap">
+         <pixmap resource="../images/resources.qrc">:/logo_48_transparent.png</pixmap>
+        </property>
        </widget>
       </item>
      </layout>
+    </item>
+    <item row="2" column="0">
+     <widget class="QWidget" name="widget" native="true"/>
     </item>
    </layout>
   </widget>
@@ -584,6 +593,8 @@
    </property>
   </action>
  </widget>
- <resources/>
+ <resources>
+  <include location="../images/resources.qrc"/>
+ </resources>
  <connections/>
 </ui>
