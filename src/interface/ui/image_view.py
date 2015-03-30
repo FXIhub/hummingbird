@@ -17,34 +17,26 @@ import interface.ui
 
 Ui_Form, base = loadUiType(interface.ui.uidir + '/image_view.ui')
 
-from pyqtgraph.graphicsItems.ImageItem import *
-from pyqtgraph.graphicsItems.LinearRegionItem import *
-from pyqtgraph.graphicsItems.InfiniteLine import *
-from pyqtgraph.graphicsItems.ViewBox import *
-import sys
-#from numpy import ndarray
-import pyqtgraph.ptime as ptime
-import numpy as np
-import pyqtgraph.debug as debug
-
+import pyqtgraph
+import numpy
 
 class ImageView(QtGui.QWidget):
     """
     Widget used for display and analysis of image data.
     Implements many features:
-    
+
     * Displays 2D and 3D image data. For 3D data, a z-axis
       slider is displayed allowing the user to select which frame is displayed.
     * Displays histogram of image data with movable region defining the dark/light levels
-    * Editable gradient provides a color lookup table 
+    * Editable gradient provides a color lookup table
     * Frame slider may also be moved using left/right arrow keys as well as pgup, pgdn, home, and end.
     * Basic analysis features including:
-    
+
         * ROI and embedded plot for measuring image values across frames
-        * Image normalization / background subtraction 
-    
+        * Image normalization / background subtraction
+
     Basic Usage::
-    
+
         imv = pg.ImageView()
         imv.show()
         imv.setImage(data)
@@ -70,7 +62,7 @@ class ImageView(QtGui.QWidget):
         self.scene = self.ui.graphicsView.scene()
         
         if view is None:
-            self.view = ViewBox()
+            self.view = pyqtgraph.ViewBox()
         else:
             self.view = view
         self.ui.graphicsView.setCentralItem(self.view)
@@ -78,7 +70,7 @@ class ImageView(QtGui.QWidget):
         self.view.invertY()
         
         if imageItem is None:
-            self.imageItem = ImageItem()
+            self.imageItem = pyqtgraph.ImageItem()
         else:
             self.imageItem = imageItem
         self.view.addItem(self.imageItem)
@@ -124,12 +116,10 @@ class ImageView(QtGui.QWidget):
                            image data.
         ================== =======================================================================
         """
-        prof = debug.Profiler('ImageView.setImage', disabled=True)
-        
         if hasattr(img, 'implements') and img.implements('MetaArray'):
             img = img.asarray()
         
-        if not isinstance(img, np.ndarray):
+        if not isinstance(img, numpy.ndarray):
             raise Exception("Image must be specified as ndarray.")
         self.image = img
         
@@ -139,11 +129,9 @@ class ImageView(QtGui.QWidget):
             try:
                 self.tVals = img.xvals(0)
             except:
-                self.tVals = np.arange(img.shape[0])
+                self.tVals = numpy.arange(img.shape[0])
         else:
-            self.tVals = np.arange(img.shape[0])
-        
-        prof.mark('1')
+            self.tVals = numpy.arange(img.shape[0])
         
         if axes is None:
             if img.ndim == 2:
@@ -168,12 +156,8 @@ class ImageView(QtGui.QWidget):
             
         for x in ['t', 'x', 'y', 'c']:
             self.axes[x] = self.axes.get(x, None)
-        prof.mark('2')
             
         self.imageDisp = None
-        
-        
-        prof.mark('3')
         
         self.currentIndex = 0
         self.updateImage(autoHistogramRange=autoHistogramRange)
@@ -181,9 +165,6 @@ class ImageView(QtGui.QWidget):
             self.autoLevels()
         if levels is not None:  ## this does nothing since getProcessedImage sets these values again.
             self.setLevels(*levels)
-            
-        prof.mark('4')
-            
             
         if self.axes['t'] is not None:
             if len(self.tVals) > 1:
@@ -195,7 +176,6 @@ class ImageView(QtGui.QWidget):
             else:
                 start = 0
                 stop = 1
-        prof.mark('5')
             
         self.imageItem.resetTransform()
         if scale is not None:
@@ -204,12 +184,9 @@ class ImageView(QtGui.QWidget):
             self.imageItem.setPos(*pos)
         if transform is not None:
             self.imageItem.setTransform(transform)
-        prof.mark('6')
             
         if autoRange:
             self.autoRange()
-        prof.mark('7')
-        prof.finish()
 
     def autoLevels(self):
         """Set the min/max intensity levels automatically to match the image data."""
@@ -238,7 +215,6 @@ class ImageView(QtGui.QWidget):
         
     def close(self):
         """Closes the widget nicely, making sure to clear the graphics scene and release memory."""
-        self.ui.roiPlot.close()
         self.ui.graphicsView.close()
         self.scene.clear()
         del self.image
@@ -276,8 +252,8 @@ class ImageView(QtGui.QWidget):
             self.evalKeyState()
         else:
             QtGui.QWidget.keyReleaseEvent(self, ev)
-        
-        
+
+
     def evalKeyState(self):
         if len(self.keysPressed) == 1:
             key = list(self.keysPressed.keys())[0]
@@ -294,10 +270,10 @@ class ImageView(QtGui.QWidget):
             elif key == QtCore.Qt.Key_PageDown:
                 self.jumpFrames(100)
 
-        
+
     def setCurrentIndex(self, ind):
         """Set the currently displayed frame index."""
-        self.currentIndex = np.clip(ind, 0, self.getProcessedImage().shape[0]-1)
+        self.currentIndex = numpy.clip(ind, 0, self.getProcessedImage().shape[0]-1)
         self.updateImage()
 
     def jumpFrames(self, n):
@@ -312,7 +288,7 @@ class ImageView(QtGui.QWidget):
     @staticmethod
     def quickMinMax(data):
         while data.size > 1e6:
-            ax = np.argmax(data.shape)
+            ax = numpy.argmax(data.shape)
             sl = [slice(None)] * data.ndim
             sl[ax] = slice(None, None, 2)
             data = data[sl]
@@ -320,15 +296,15 @@ class ImageView(QtGui.QWidget):
 
     def normalize(self, image):
         return image
-        
+
 
     def updateImage(self, autoHistogramRange=True):
         ## Redraw image on screen
         if self.image is None:
             return
-            
+
         image = self.getProcessedImage()
-        
+
         if autoHistogramRange:
             self.ui.histogram.setHistogramRange(self.levelMin, self.levelMax)
         if self.axes['t'] is None:
@@ -336,15 +312,15 @@ class ImageView(QtGui.QWidget):
         else:
 #            self.ui.roiPlot.show()
             self.imageItem.updateImage(image[self.currentIndex])
-                        
+
     def getView(self):
         """Return the ViewBox (or other compatible object) which displays the ImageItem"""
         return self.view
-        
+
     def getImageItem(self):
         """Return the ImageItem for this ImageView."""
         return self.imageItem
-        
+
     def getHistogramWidget(self):
         """Return the HistogramLUTWidget for this ImageView"""
         return self.ui.histogram
