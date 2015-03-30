@@ -12,7 +12,6 @@ Ui_plotWindow, base = loadUiType(uidir + '/plot_window.ui')
 Ui_imageWindow, base = loadUiType(uidir + '/image_window.ui')
 Ui_mainWindow, base = loadUiType(uidir + '/main_window.ui')
 Ui_linePlotSettings, base = loadUiType(uidir + '/line_plot_settings.ui')
-Ui_imageViewTemplate, base = loadUiType(uidir + '/ImageViewTemplate.ui')
 
 from interface.ui.data_window import DataWindow # pylint: disable=unused-import
 from interface.ui.add_backend import AddBackendDialog # pylint: disable=unused-import

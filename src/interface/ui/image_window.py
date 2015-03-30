@@ -13,7 +13,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         # This also sets up the UI part
         DataWindow.__init__(self, parent)
         # This is imported here to prevent problems with sphinx
-        from .ImageView import ImageView
+        from .image_view import ImageView
         self.plot = ImageView(self, view=pyqtgraph.PlotItem())
         # self.plot.ui.roiBtn.hide()
         # self.plot.ui.normBtn.hide()

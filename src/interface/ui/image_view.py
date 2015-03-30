@@ -15,7 +15,7 @@ Widget used for displaying 2D or 3D data. Features:
 from interface.Qt import QtCore, QtGui, loadUiType
 import interface.ui
 
-Ui_Form, base = loadUiType(interface.ui.uidir + '/ImageViewTemplate.ui')
+Ui_Form, base = loadUiType(interface.ui.uidir + '/image_view.ui')
 
 from pyqtgraph.graphicsItems.ImageItem import *
 from pyqtgraph.graphicsItems.LinearRegionItem import *
@@ -27,13 +27,6 @@ import pyqtgraph.ptime as ptime
 import numpy as np
 import pyqtgraph.debug as debug
 
-
-#try:
-    #import pyqtgraph.metaarray as metaarray
-    #HAVE_METAARRAY = True
-#except:
-    #HAVE_METAARRAY = False
-    
 
 class ImageView(QtGui.QWidget):
     """
