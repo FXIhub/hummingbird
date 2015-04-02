@@ -22,24 +22,6 @@
        </color>
       </brush>
      </colorrole>
-     <colorrole role="Text">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>0</red>
-        <green>0</green>
-        <blue>0</blue>
-       </color>
-      </brush>
-     </colorrole>
-     <colorrole role="ButtonText">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>0</red>
-        <green>0</green>
-        <blue>0</blue>
-       </color>
-      </brush>
-     </colorrole>
      <colorrole role="Base">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
@@ -66,24 +48,6 @@
         <red>255</red>
         <green>255</green>
         <blue>255</blue>
-       </color>
-      </brush>
-     </colorrole>
-     <colorrole role="Text">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>0</red>
-        <green>0</green>
-        <blue>0</blue>
-       </color>
-      </brush>
-     </colorrole>
-     <colorrole role="ButtonText">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>0</red>
-        <green>0</green>
-        <blue>0</blue>
        </color>
       </brush>
      </colorrole>
@@ -116,24 +80,6 @@
        </color>
       </brush>
      </colorrole>
-     <colorrole role="Text">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>127</red>
-        <green>127</green>
-        <blue>127</blue>
-       </color>
-      </brush>
-     </colorrole>
-     <colorrole role="ButtonText">
-      <brush brushstyle="SolidPattern">
-       <color alpha="255">
-        <red>148</red>
-        <green>148</green>
-        <blue>148</blue>
-       </color>
-      </brush>
-     </colorrole>
      <colorrole role="Base">
       <brush brushstyle="SolidPattern">
        <color alpha="255">
@@ -159,19 +105,15 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QGridLayout" name="gridLayout">
-    <item row="1" column="0">
-     <widget class="QWidget" name="plotFrame" native="true">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLineEdit" name="title">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-     </widget>
-    </item>
-    <item row="0" column="0">
-     <widget class="QLineEdit" name="title">
       <property name="palette">
        <palette>
         <active>
@@ -186,10 +128,10 @@
          </colorrole>
          <colorrole role="Base">
           <brush brushstyle="SolidPattern">
-           <color alpha="255">
-            <red>0</red>
-            <green>0</green>
-            <blue>0</blue>
+           <color alpha="0">
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
            </color>
           </brush>
          </colorrole>
@@ -206,10 +148,10 @@
          </colorrole>
          <colorrole role="Base">
           <brush brushstyle="SolidPattern">
-           <color alpha="255">
-            <red>0</red>
-            <green>0</green>
-            <blue>0</blue>
+           <color alpha="0">
+            <red>255</red>
+            <green>255</green>
+            <blue>255</blue>
            </color>
           </brush>
          </colorrole>
@@ -218,18 +160,18 @@
          <colorrole role="Text">
           <brush brushstyle="SolidPattern">
            <color alpha="255">
-            <red>69</red>
-            <green>69</green>
-            <blue>69</blue>
+            <red>127</red>
+            <green>127</green>
+            <blue>127</blue>
            </color>
           </brush>
          </colorrole>
          <colorrole role="Base">
           <brush brushstyle="SolidPattern">
            <color alpha="255">
-            <red>0</red>
-            <green>0</green>
-            <blue>0</blue>
+            <red>237</red>
+            <green>237</green>
+            <blue>237</blue>
            </color>
           </brush>
          </colorrole>
@@ -250,7 +192,23 @@
       </property>
      </widget>
     </item>
-    <item row="3" column="0">
+    <item>
+     <widget class="QWidget" name="plotFrame" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::ClickFocus</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="ImageWindowSettings" name="settingsWidget" native="true"/>
+    </item>
+    <item>
      <layout class="QHBoxLayout" name="horizontalLayout_4">
       <item>
        <widget class="QLabel" name="infoLabel">
@@ -317,9 +275,9 @@
                <colorrole role="WindowText">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
-                  <red>250</red>
-                  <green>250</green>
-                  <blue>250</blue>
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -328,9 +286,9 @@
                <colorrole role="WindowText">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
-                  <red>250</red>
-                  <green>250</green>
-                  <blue>250</blue>
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -367,9 +325,9 @@
                <colorrole role="WindowText">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
-                  <red>250</red>
-                  <green>250</green>
-                  <blue>250</blue>
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -378,9 +336,9 @@
                <colorrole role="WindowText">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
-                  <red>250</red>
-                  <green>250</green>
-                  <blue>250</blue>
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -415,9 +373,9 @@
                <colorrole role="WindowText">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
-                  <red>251</red>
-                  <green>251</green>
-                  <blue>251</blue>
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -426,9 +384,9 @@
                <colorrole role="WindowText">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
-                  <red>251</red>
-                  <green>251</green>
-                  <blue>251</blue>
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -465,9 +423,9 @@
                <colorrole role="WindowText">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
-                  <red>250</red>
-                  <green>250</green>
-                  <blue>250</blue>
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -476,9 +434,9 @@
                <colorrole role="WindowText">
                 <brush brushstyle="SolidPattern">
                  <color alpha="255">
-                  <red>250</red>
-                  <green>250</green>
-                  <blue>250</blue>
+                  <red>255</red>
+                  <green>255</green>
+                  <blue>255</blue>
                  </color>
                 </brush>
                </colorrole>
@@ -517,9 +475,6 @@
       </item>
      </layout>
     </item>
-    <item row="2" column="0">
-     <widget class="QWidget" name="widget" native="true"/>
-    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
@@ -542,59 +497,60 @@
     </property>
     <addaction name="actionSaveToJPG"/>
    </widget>
-   <widget class="QMenu" name="menuOptions">
+   <widget class="QMenu" name="menuView">
     <property name="title">
-     <string>Settings</string>
+     <string>View</string>
     </property>
-    <addaction name="actionAuto_Zoom"/>
-    <addaction name="actionAuto_Levels"/>
-    <addaction name="actionAuto_Histogram"/>
+    <addaction name="actionPlotSettings"/>
    </widget>
    <addaction name="menuData_Sources"/>
    <addaction name="menuSave"/>
-   <addaction name="menuOptions"/>
+   <addaction name="menuView"/>
   </widget>
   <action name="actionSaveToJPG">
    <property name="text">
     <string>Save to JPG</string>
    </property>
   </action>
-  <action name="actionAuto_Zoom">
+  <action name="actionPlotSettings">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="checked">
-    <bool>true</bool>
+    <bool>false</bool>
    </property>
    <property name="text">
-    <string>Auto Zoom</string>
-   </property>
-  </action>
-  <action name="actionAuto_Levels">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Auto Levels</string>
-   </property>
-  </action>
-  <action name="actionAuto_Histogram">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="checked">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Auto Histogram</string>
+    <string>Plot Settings</string>
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImageWindowSettings</class>
+   <extends>QWidget</extends>
+   <header>interface.ui.image_window_settings</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../images/resources.qrc"/>
  </resources>
- <connections/>
+ <connections>
+  <connection>
+   <sender>title</sender>
+   <signal>editingFinished()</signal>
+   <receiver>plotFrame</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>266</x>
+     <y>44</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>266</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

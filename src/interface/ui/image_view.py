@@ -271,10 +271,10 @@ class ImageView(QtGui.QWidget):
                 self.jumpFrames(100)
 
 
-    def setCurrentIndex(self, ind):
+    def setCurrentIndex(self, ind, autoHistogramRange=True):
         """Set the currently displayed frame index."""
         self.currentIndex = numpy.clip(ind, 0, self.getProcessedImage().shape[0]-1)
-        self.updateImage()
+        self.updateImage(autoHistogramRange=autoHistogramRange)
 
     def jumpFrames(self, n):
         """Move video frame ahead n frames (may be negative)"""
@@ -310,7 +310,6 @@ class ImageView(QtGui.QWidget):
         if self.axes['t'] is None:
             self.imageItem.updateImage(image)
         else:
-#            self.ui.roiPlot.show()
             self.imageItem.updateImage(image[self.currentIndex])
 
     def getView(self):
