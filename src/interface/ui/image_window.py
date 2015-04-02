@@ -19,16 +19,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.infoLabel.setText('')
         self.acceptable_data_types = ['image', 'vector']
         self.exclusive_source = True
-        # Hack to disable auto updating of the menus
-        self.plot.getView().vb.menu.updateState = lambda: None
-        self.plot.getHistogramWidget().vb.menu.updateState = lambda: None
-        for axis in [0, 1]:
-            self.plot.getView().vb.menu.ctrl[axis].minText.editingFinished.connect(self._disableAutoZoom)
-            self.plot.getView().vb.menu.ctrl[axis].maxText.editingFinished.connect(self._disableAutoZoom)
-            self.plot.getHistogramWidget().vb.menu.ctrl[axis].minText.editingFinished.connect(self._disableAutoHistogram)
-            self.plot.getHistogramWidget().vb.menu.ctrl[axis].maxText.editingFinished.connect(self._disableAutoHistogram)
-        #Disable useless menu
-        self.plot.getHistogramWidget().vb.menu.axes = [self.plot.getHistogramWidget().vb.menu.axes[1]]
+
         self.settingsWidget.setVisible(self.actionPlotSettings.isChecked())
         self.settingsWidget.ui.colormap_min.editingFinished.connect(self.set_colormap_range)
         self.settingsWidget.ui.colormap_max.editingFinished.connect(self.set_colormap_range)
@@ -38,17 +29,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
         self.plot.getHistogramWidget().region.sigRegionChangeFinished.connect(self.set_colormap_range)
         self.actionPlotSettings.triggered.connect(self.toggle_settings)
-        # menu = self.plot.getHistogramWidget().vb.menu
-        # menu.removeAction(menu.axes[0].menuAction())
-        # menu.removeAction(menu.axes[1].menuAction())
 
         # Make sure to disable native menus
         self.plot.getView().setMenuEnabled(False)
         self.plot.getHistogramWidget().vb.setMenuEnabled(False)
-        # # Filter events to the axis so we can get a more decent menu
-        # self.plot.getView().getAxis('bottom').installEventFilter(self)
-        # self.plot.getView().getAxis('left').installEventFilter(self)
-        # self.plot.getHistogramWidget().axis.installEventFilter(self)
 
     def get_time(self, index=None):
         """Returns the time of the given index, or the time of the last data point"""
@@ -205,30 +189,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             # Round to miliseconds
             self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
             self.dateLabel.setText(str(dt.date()))
-
-    def eventFilter(self, obj, event):
-        """Handle filtered events"""
-        if(event.type() == QtCore.QEvent.GraphicsSceneMousePress and
-           event.button() == QtCore.Qt.RightButton):
-            if(obj == self.plot.getView().getAxis('bottom')):
-                print 'Clicking on X %s' % (event.type())
-            if(obj == self.plot.getView().getAxis('left')):
-                print 'Clicking on Y %s' % (event.type())
-            if(obj == self.plot.getHistogramWidget().axis):
-                print 'Clicking on Histogram %s' % (event.type())
-            return True
-        return QtCore.QObject.eventFilter(self, obj, event)
-
-    def _disableAutoZoom(self):
-        """Disable auto zoom"""
-        self.actionAuto_Zoom.setChecked(False)
-
-    def _disableAutoHistogram(self):
-        """Disable auto histogram"""
-        self.actionAuto_Histogram.setChecked(False)
-
-    def _test_slot(self):
-        print 'here'
 
     def set_colormap_full_range(self):
         if(self.plot.image is None):
