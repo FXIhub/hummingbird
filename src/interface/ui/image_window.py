@@ -27,12 +27,26 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.settingsWidget.ui.colormap_max.setValidator(QtGui.QDoubleValidator())
         self.settingsWidget.ui.colormap_full_range.clicked.connect(self.set_colormap_full_range)
 
+        self.settingsWidget.ui.histogram_show.toggled.connect(self.plot.getHistogramWidget().setVisible)
+        self.actionHistogram.triggered.connect(self.plot.getHistogramWidget().setVisible)
+        self.actionHistogram.triggered.connect(self.settingsWidget.ui.histogram_show.setChecked)
+        self.settingsWidget.ui.histogram_show.toggled.connect(self.actionHistogram.setChecked)
+        
+        self.settingsWidget.ui.x_show.toggled.connect(self.toggle_axis)
+        self.actionX_axis.triggered.connect(self.toggle_axis)        
+        self.settingsWidget.ui.y_show.toggled.connect(self.toggle_axis)
+        self.actionY_axis.triggered.connect(self.toggle_axis)        
+        self.settingsWidget.ui.histogram_show.toggled.connect(self.toggle_axis)
+        self.actionHistogram.triggered.connect(self.toggle_axis)        
+
         self.plot.getHistogramWidget().region.sigRegionChangeFinished.connect(self.set_colormap_range)
         self.actionPlotSettings.triggered.connect(self.toggle_settings)
 
         # Make sure to disable native menus
         self.plot.getView().setMenuEnabled(False)
         self.plot.getHistogramWidget().vb.setMenuEnabled(False)
+        self.x_axis_name = 'left'
+        self.y_axis_name = 'bottom'
 
     def get_time(self, index=None):
         """Returns the time of the given index, or the time of the last data point"""
@@ -134,16 +148,21 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             xlabel_index = (xlabel_index+1)%2
             ylabel_index = (ylabel_index+1)%2
 
-        if(self.settingsWidget.ui.x_label_auto.isChecked() and 
-           "xlabel" in conf):
-            self.plot.getView().setLabel(axis_labels[xlabel_index], conf['xlabel']) #pylint: disable=no-member
-        else:
-            self.plot.getView().setLabel(axis_labels[xlabel_index], self.settingsWidget.ui.x_label.text()) #pylint: disable=no-member
-        if(self.settingsWidget.ui.y_label_auto.isChecked() and 
-           "ylabel" in conf):
-            self.plot.getView().setLabel(axis_labels[ylabel_index], conf['ylabel'])  #pylint: disable=no-member
-        else:
-            self.plot.getView().setLabel(axis_labels[ylabel_index], self.settingsWidget.ui.y_label.text()) #pylint: disable=no-member
+        self.x_axis_name =  axis_labels[xlabel_index]
+        self.y_axis_name =  axis_labels[ylabel_index]
+        if(self.actionX_axis.isChecked()):
+            if(self.settingsWidget.ui.x_label_auto.isChecked() and 
+               "xlabel" in conf):
+                self.plot.getView().setLabel(axis_labels[xlabel_index], conf['xlabel']) #pylint: disable=no-member
+            else:
+                self.plot.getView().setLabel(axis_labels[xlabel_index], self.settingsWidget.ui.x_label.text()) #pylint: disable=no-member
+
+        if(self.actionY_axis.isChecked()):
+            if(self.settingsWidget.ui.y_label_auto.isChecked() and 
+               "ylabel" in conf):
+                self.plot.getView().setLabel(axis_labels[ylabel_index], conf['ylabel'])  #pylint: disable=no-member
+            else:
+                self.plot.getView().setLabel(axis_labels[ylabel_index], self.settingsWidget.ui.y_label.text()) #pylint: disable=no-member
 
     def replot(self):
         """Replot data"""
@@ -168,7 +187,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 auto_levels = False
                 auto_range = False
                 auto_histogram = False
-                if(self.plot.image is None):
+                if(self.plot.image is None and self.restored == False):
                     # Turn on auto on the first image
                     auto_levels = True
                     auto_rage = True
@@ -184,13 +203,13 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
 
             self.setWindowTitle(pd.title)
-#            self.plot.ui.roiPlot.hide()
             dt = self.get_time()
             # Round to miliseconds
             self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
             self.dateLabel.setText(str(dt.date()))
 
     def set_colormap_full_range(self):
+        """Ensures that the colormap covers the full range of values in the data"""
         if(self.plot.image is None):
             return
         
@@ -203,6 +222,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.set_colormap_range()
 
     def set_colormap_range(self):
+        """Set the minimum and maximum values for the colormap"""
         cmin = self.settingsWidget.ui.colormap_min
         cmax = self.settingsWidget.ui.colormap_max
         region = self.plot.getHistogramWidget().region
@@ -227,6 +247,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             return
 
     def toggle_settings(self, visible):
+        """Show/hide settings widget"""
         # if(visible):
         #     new_size = self.size() + QtCore.QSize(0,self.settingsWidget.sizeHint().height()+10)
         # else:
@@ -234,3 +255,71 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         # self.resize(new_size)
         self.settingsWidget.setVisible(visible)
 
+    def get_state(self, _settings = None):
+        """Returns settings that can be used to restore the widget to the current state"""
+        settings = _settings or {}
+        settings['window_type'] = 'ImageWindow'
+        settings['actionPlotSettings'] = self.actionPlotSettings.isChecked()
+        # Disabled QLineEdits are confusing to QSettings. Store a dummy _
+        settings['x_label'] = "_" + self.settingsWidget.ui.x_label.text()
+        settings['y_label'] = "_" + self.settingsWidget.ui.y_label.text()
+        settings['x_label_auto'] = self.settingsWidget.ui.x_label_auto.isChecked()
+        settings['y_label_auto'] = self.settingsWidget.ui.y_label_auto.isChecked()
+        settings['colormap_min'] = str(self.settingsWidget.ui.colormap_min.text())
+        settings['colormap_max'] = str(self.settingsWidget.ui.colormap_max.text())
+        settings['transpose'] = self.settingsWidget.ui.transpose.currentText()
+        settings['flipy'] = self.settingsWidget.ui.flipy.currentText()
+        settings['viewbox'] = self.plot.getView().getViewBox().getState()
+        settings['x_view'] = self.actionX_axis.isChecked()
+        settings['y_view'] = self.actionY_axis.isChecked()
+        settings['histogram_view'] = self.actionHistogram.isChecked()
+        
+        return DataWindow.get_state(self, settings)
+
+    def restore_from_state(self, settings, data_sources):
+        """Restores the widget to the same state as when the settings were generated"""
+        self.actionPlotSettings.setChecked(settings['actionPlotSettings'])
+        self.actionPlotSettings.triggered.emit(self.actionPlotSettings.isChecked())
+        self.settingsWidget.ui.x_label.setText(settings['x_label'][1:])
+        self.settingsWidget.ui.y_label.setText(settings['y_label'][1:])
+        self.settingsWidget.ui.x_label_auto.setChecked(settings['x_label_auto'])
+        self.settingsWidget.ui.x_label_auto.toggled.emit(settings['x_label_auto'])
+        self.settingsWidget.ui.y_label_auto.setChecked(settings['y_label_auto'])
+        self.settingsWidget.ui.y_label_auto.toggled.emit(settings['y_label_auto'])
+        self.settingsWidget.ui.colormap_min.setText(settings['colormap_min'])
+        self.settingsWidget.ui.colormap_max.setText(settings['colormap_max'])
+        self.settingsWidget.ui.colormap_max.editingFinished.emit()
+        transpose = self.settingsWidget.ui.transpose
+        transpose.setCurrentIndex(transpose.findText(settings['transpose']))
+        flipy = self.settingsWidget.ui.flipy
+        flipy.setCurrentIndex(flipy.findText(settings['flipy']))
+        self.plot.getView().getViewBox().setState(settings['viewbox'])
+        self.actionX_axis.setChecked(settings['x_view'])
+        self.actionX_axis.triggered.emit(settings['x_view'])
+        self.actionY_axis.setChecked(settings['y_view'])
+        self.actionY_axis.triggered.emit(settings['y_view'])
+        self.actionHistogram.setChecked(settings['histogram_view'])
+        self.actionHistogram.triggered.emit(settings['histogram_view'])
+
+        return DataWindow.restore_from_state(self, settings, data_sources)
+
+    def toggle_axis(self, visible):
+        if(self.sender() == self.actionX_axis or 
+           self.sender() == self.settingsWidget.ui.x_show):
+            self.plot.getView().getAxis(self.x_axis_name).setVisible(visible)
+            self.settingsWidget.ui.x_show.setChecked(visible)
+            self.actionX_axis.setChecked(visible)
+
+        if(self.sender() == self.actionY_axis or 
+           self.sender() == self.settingsWidget.ui.y_show):
+            self.plot.getView().getAxis(self.y_axis_name).setVisible(visible)
+            self.settingsWidget.ui.y_show.setChecked(visible)
+            self.actionY_axis.setChecked(visible)
+
+        if(self.sender() == self.actionHistogram or 
+           self.sender() == self.settingsWidget.ui.histogram_show):
+            self.plot.getHistogramWidget().setVisible(visible)
+            self.settingsWidget.ui.histogram_show.setChecked(visible)
+            self.actionHistogram.setChecked(visible)
+
+        

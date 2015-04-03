@@ -30,6 +30,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         try:
             self._restore_data_windows(loaded_sources)
         except (TypeError, KeyError):
+#            raise
             # Be a bit more resilient against configuration problems
             logging.warning("Failed to load data windows settings! Continuing...")
 
@@ -55,23 +56,13 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
                     elif(dw['window_type'] == 'PlotWindow'):
                         w = PlotWindow(self)
                     else:
-                        raise ValueError(('window_type %s not supported'
-                                          %(dw['window_type'])))
-                    for es in dw['enabled_sources']:
-                        for ds in data_sources:
-                            if(ds.hostname == es['hostname'] and
-                               ds.port == es['port'] and
-                               ds.ssh_tunnel == es['tunnel']):
-                                source = ds
-                                title = es['title']
-                                w.set_source_title(source, title)
-                    w.restoreGeometry(dw['geometry'])
-                    w.restoreState(dw['windowState'])
-                    w.show()
+                        raise ValueError(('window_type %s not supported' %(dw['window_type'])))
+                    w.restore_from_state(dw, data_sources)
                     self._data_windows.append(w)
                     logging.debug("Loaded %s from settings", type(w).__name__)
                 # Try to handle some version incompatibilities
                 except KeyError:
+                    raise
                     pass
 
     def _init_data_sources(self):
@@ -169,23 +160,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         """Save data windows state and data sources to the settings file"""
         dw_settings = []
         for dw in self._data_windows:
-            if(isinstance(dw, PlotWindow)):
-                window_type = 'PlotWindow'
-            elif(isinstance(dw, ImageWindow)):
-                window_type = 'ImageWindow'
-            else:
-                raise ValueError('Unsupported dataWindow type %s' % (type(dw)))
-            enabled_sources = []
-            for source, title in dw.source_and_titles():
-                enabled_sources.append({'hostname': source.hostname,
-                                        'port': source.port,
-                                        'tunnel': source.ssh_tunnel,
-                                        'title': title})
-
-            dw_settings.append({'geometry': dw.saveGeometry(),
-                                'windowState': dw.saveState(),
-                                'enabled_sources': enabled_sources,
-                                'window_type' : window_type})
+            dw_settings.append(dw.get_state())
         self.settings.setValue("dataWindows", dw_settings)
 
     def closeEvent(self, event): #pylint: disable=invalid-name

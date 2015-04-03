@@ -1,5 +1,6 @@
 """Base class for all the data display windows"""
 from interface.Qt import QtGui, QtCore
+import logging
 
 class DataWindow(QtGui.QMainWindow):
     """Base class for all the data display windows
@@ -12,6 +13,8 @@ class DataWindow(QtGui.QMainWindow):
         self.setupUi(self)
         self._setup_connections()
         self._parent = parent
+        # If True this DataWindow was restored from saved settings
+        self.restored = False
 
     def _setup_connections(self):
         """Initialize connections"""
@@ -99,3 +102,36 @@ class DataWindow(QtGui.QMainWindow):
         for source in self._enabled_sources.keys():
             for title in self._enabled_sources[source]:
                 yield source, title
+
+    def get_state(self, settings):
+        """Returns settings that can be used to restore the widget to the current state"""
+        enabled_sources = []
+        for source, title in self.source_and_titles():
+            enabled_sources.append({'hostname': source.hostname,
+                                    'port': source.port,
+                                    'tunnel': source.ssh_tunnel,
+                                    'title': title})
+        settings['geometry'] = self.saveGeometry()
+        settings['windowState'] = self.saveState()
+        settings['enabled_sources'] = enabled_sources
+        settings['window title'] = str(self.title.text())
+
+        return settings
+
+    def restore_from_state(self, settings, data_sources):
+        """Restores the widget to the same state as when the settings were generated"""
+        for es in settings['enabled_sources']:
+            for ds in data_sources:
+                if(ds.hostname == es['hostname'] and
+                   ds.port == es['port'] and
+                   ds.ssh_tunnel == es['tunnel']):
+                    source = ds
+                    title = es['title']
+                    self.set_source_title(source, title)
+        self.restoreGeometry(settings['geometry'])
+        self.restoreState(settings['windowState'])
+        self.title.setText(settings['window title'])
+        self.show()
+        self.restored = True
+        logging.debug("Loaded %s from settings", type(self).__name__)
+        

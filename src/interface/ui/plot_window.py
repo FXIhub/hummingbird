@@ -185,4 +185,29 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             self._change_index_by(-1)
             self.replot()
 
+    def get_state(self, _settings = None):
+        """Returns settings that can be used to restore the widget to the current state"""
+        settings = _settings or {}
+        settings['window_type'] = 'PlotWindow'
+        settings['viewbox'] = self.plot.getViewBox().getState()
+        settings['x_view'] = self.actionX_axis.isChecked()
+        settings['y_view'] = self.actionY_axis.isChecked()
+        settings['lines'] = self.actionLines.isChecked()
+        settings['points'] = self.actionPoints.isChecked()
+        settings['legend'] = self.actionLegend_Box.isChecked()
+
+        return DataWindow.get_state(self, settings)
+
+    def restore_from_state(self, settings, data_sources):
+        self.plot.getViewBox().setState(settings['viewbox'])
+        self.actionX_axis.setChecked(settings['x_view'])
+        self.actionX_axis.triggered.emit(settings['x_view'])
+        self.actionY_axis.setChecked(settings['y_view'])
+        self.actionY_axis.triggered.emit(settings['y_view'])
+        self.actionLines.setChecked(settings['lines'])
+        self.actionPoints.setChecked(settings['points'])
+        self.actionLegend_Box.setChecked(settings['legend'])
+        self.actionLegend_Box.triggered.emit(settings['legend'])
+        return DataWindow.restore_from_state(self, settings, data_sources)
+
 from interface.ui import LinePlotSettings
