@@ -11,8 +11,8 @@ class PlotDataTable(QtGui.QWidget):
         vbox.addWidget(label)
 
         self.table = QtGui.QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(['Backend', 'Title','Buffer Capacity','Subscribed'])
+        self.table.setColumnCount(3)
+        self.table.setHorizontalHeaderLabels(['Backend', 'Title','Buffer Capacity'])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setHighlightSections(False)
         self.table.verticalHeader().hide()
@@ -41,7 +41,7 @@ class PlotDataTable(QtGui.QWidget):
         source.plotdata_added.connect(self._on_plotdata_added)
         source.unsubscribed.connect(self._on_unsubscribe)
         source.subscribed.connect(self._on_subscribe)
-        
+
     def _on_plotdata_added(self, plotdata):
         source = self.sender()
         self.add_row(source, plotdata)
@@ -58,14 +58,11 @@ class PlotDataTable(QtGui.QWidget):
         bar = QtGui.QProgressBar()        
         self.table.setItem(row, 2, QtGui.QTableWidgetItem())
         self.table.setCellWidget(row, 2, self._center_widget(bar))
-        checkbox = QtGui.QCheckBox()
-        item = QtGui.QTableWidgetItem()
-        self.table.setItem(row, 3, item)
-        self.table.setCellWidget(row, 3, self._center_widget(checkbox))
+
+        # Mark existing subscriptions        
         if(plotdata.title in source.subscribed_titles):
-            checkbox.setChecked(True)
-        checkbox.toggled.connect(self._on_subscribe_clicked)
-        checkbox.item = item
+            self._set_subscription(source, plotdata.title, True)
+
 
     def _on_unsubscribe(self, title):
         source = self.sender()
@@ -78,7 +75,15 @@ class PlotDataTable(QtGui.QWidget):
         for row in range(0,self.table.rowCount()):
             if (self.table.item(row,0).text() == source.name() and
                 self.table.item(row,1).text() == title):
-                self.table.cellWidget(row,3).findChild(QtGui.QCheckBox).setChecked(value)
+                if(value):
+                    self.table.item(row,0).setBackground(QtGui.QBrush(QtGui.QColor(182,255,182)))
+                    self.table.item(row,1).setBackground(QtGui.QBrush(QtGui.QColor(182,255,182)))
+                    self.table.item(row,2).setBackground(QtGui.QBrush(QtGui.QColor(182,255,182)))
+                else:
+                    self.table.item(row,0).setBackground(QtGui.QBrush())
+                    self.table.item(row,1).setBackground(QtGui.QBrush())
+                    self.table.item(row,2).setBackground(QtGui.QBrush())
+
                                     
     def _center_widget(self, widget):
         w = QtGui.QWidget(self)
@@ -109,16 +114,6 @@ class PlotDataTable(QtGui.QWidget):
         if(state is not None):
             self.table.horizontalHeader().restoreState(state)
 
-    def _on_subscribe_clicked(self):
-        checkbox = self.sender()
-        row = checkbox.item.row()
-        source = self.table.item(row, 0).data(QtCore.Qt.UserRole)
-        title = self.table.item(row, 1).text()
-        if(checkbox.isChecked()):
-            source._data_socket.subscribe(bytes(title))
-        else:
-            source._data_socket.unsubscribe(bytes(title))
-        
     def _on_selection_changed(self):
         table = self.sender()
         if(len(table.selectedItems())):      
