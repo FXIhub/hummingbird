@@ -11,8 +11,8 @@ class PlotDataTable(QtGui.QWidget):
         vbox.addWidget(label)
 
         self.table = QtGui.QTableWidget()
-        self.table.setColumnCount(3)
-        self.table.setHorizontalHeaderLabels(['Backend', 'Title','Buffer Capacity'])
+        self.table.setColumnCount(4)
+        self.table.setHorizontalHeaderLabels(['Backend', 'Title','Buffer Capacity','Save on Exit'])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setHighlightSections(False)
         self.table.verticalHeader().hide()
@@ -24,6 +24,10 @@ class PlotDataTable(QtGui.QWidget):
         vbox.addWidget(self.table)
         hbox = QtGui.QHBoxLayout()
         hbox.addStretch()
+        self.clear_buffer = QtGui.QPushButton('Clear Buffer',self)
+        self.clear_buffer.setEnabled(False)
+        self.clear_buffer.clicked.connect(self._on_clear_buffer_clicked)
+        hbox.addWidget(self.clear_buffer)
         self.buffer_size = QtGui.QPushButton('Set Buffer Capacity',self)
         self.buffer_size.setEnabled(False)
         self.buffer_size.clicked.connect(self._on_buffer_size_clicked)
@@ -58,6 +62,9 @@ class PlotDataTable(QtGui.QWidget):
         bar = QtGui.QProgressBar()        
         self.table.setItem(row, 2, QtGui.QTableWidgetItem())
         self.table.setCellWidget(row, 2, self._center_widget(bar))
+        checkbox = QtGui.QCheckBox()        
+        self.table.setItem(row, 3, QtGui.QTableWidgetItem())
+        self.table.setCellWidget(row, 3, self._center_widget(checkbox))
 
         # Mark existing subscriptions        
         if(plotdata.title in source.subscribed_titles):
@@ -76,14 +83,11 @@ class PlotDataTable(QtGui.QWidget):
             if (self.table.item(row,0).text() == source.name() and
                 self.table.item(row,1).text() == title):
                 if(value):
-                    self.table.item(row,0).setBackground(QtGui.QBrush(QtGui.QColor(182,255,182)))
-                    self.table.item(row,1).setBackground(QtGui.QBrush(QtGui.QColor(182,255,182)))
-                    self.table.item(row,2).setBackground(QtGui.QBrush(QtGui.QColor(182,255,182)))
+                    brush = QtGui.QBrush(QtGui.QColor(230,255,230))
                 else:
-                    self.table.item(row,0).setBackground(QtGui.QBrush())
-                    self.table.item(row,1).setBackground(QtGui.QBrush())
-                    self.table.item(row,2).setBackground(QtGui.QBrush())
-
+                    brush = QtGui.QBrush()
+                for column in range(0,self.table.columnCount()):
+                    self.table.item(row, column).setBackground(brush)
                                     
     def _center_widget(self, widget):
         w = QtGui.QWidget(self)
@@ -119,6 +123,7 @@ class PlotDataTable(QtGui.QWidget):
         if(len(table.selectedItems())):      
             self.buffer_size.setEnabled(True)
             self.buffer_spin.setEnabled(True)
+            self.clear_buffer.setEnabled(True)
             row = table.currentRow()
             item = table.item(row, 1)
             plotdata = item.data(QtCore.Qt.UserRole)
@@ -126,6 +131,8 @@ class PlotDataTable(QtGui.QWidget):
         else:
             self.buffer_size.setEnabled(False)
             self.buffer_spin.setEnabled(False)
+            self.clear_buffer.setEnabled(False)
+
 
     def _on_buffer_size_clicked(self):
         table = self.table
@@ -133,6 +140,13 @@ class PlotDataTable(QtGui.QWidget):
         item = table.item(row, 1)
         plotdata = item.data(QtCore.Qt.UserRole)
         plotdata.resize(self.buffer_spin.value())
+
+    def _on_clear_buffer_clicked(self):
+        table = self.table
+        row = table.currentRow()
+        item = table.item(row, 1)
+        plotdata = item.data(QtCore.Qt.UserRole)
+        plotdata.clear()
 
 def _sizeof_fmt(num, suffix='B'):
     for unit in ['','K','M','G','T','P','E','Z']:

@@ -50,6 +50,13 @@ class PlotData(object):
             self._x.resize(new_maxlen)
         self._maxlen = new_maxlen
 
+    def clear(self):
+        """Clear the buffers"""
+        if(self._y is not None):
+            self._y.clear()
+        if(self._x is not None):
+            self._x.clear()
+
     @property
     def title(self):
         """Returns the plot data title"""

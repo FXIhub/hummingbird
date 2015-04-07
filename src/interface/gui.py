@@ -19,6 +19,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self._data_windows = []
         self._data_sources = []
         self.settings = QtCore.QSettings()
+        print self.settings.fileName()
         self.setupUi(self)
         self._init_geometry()
         loaded_sources = []

@@ -170,7 +170,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             if(title not in source.plotdata):
                 continue
             pd = source.plotdata[title]
-            if(pd.y is None):
+            if(pd.y is None or len(pd.y) == 0):
                 continue
 
             conf = source.conf[title]
