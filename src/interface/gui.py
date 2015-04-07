@@ -34,6 +34,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             # Be a bit more resilient against configuration problems
             logging.warning("Failed to load data windows settings! Continuing...")
 
+        self.plotdata_widget.restore_state(self.settings)
 
         self._init_timer()
         GUI.instance = self
@@ -104,6 +105,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         action.setChecked(True)
         self._backends_menu.addAction(action)
         action.triggered.connect(self._data_source_triggered)
+        self.plotdata_widget.add_source(data_source)
         self._status_message("Backend '%s' connected." % (data_source.name()), 5000)
 
     def _add_backend_triggered(self):
@@ -148,6 +150,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         """Replot content on all data windows"""
         for p in self._data_windows:
             p.replot()
+        self.plotdata_widget.update()
 
     def _preferences_clicked(self):
         """Open the preferences dialog"""
@@ -172,6 +175,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         for ds in self._data_sources:
             ds_settings.append([ds.hostname, ds.port, ds.ssh_tunnel])
         self.settings.setValue("dataSources", ds_settings)
+        self.plotdata_widget.save_state(self.settings)
         self.save_data_windows()
         # Make sure settings are saved
         del self.settings

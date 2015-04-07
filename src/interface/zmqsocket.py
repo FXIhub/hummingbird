@@ -22,6 +22,7 @@ class ZmqSocket(QtCore.QObject):
         self._notifier = QtCore.QSocketNotifier(fd, QtCore.QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.activity)
         self._socket.setsockopt(RCVHWM, 10)
+        self.filters = []
 
     def __del__(self):
         """Close socket on deletion"""
@@ -37,16 +38,21 @@ class ZmqSocket(QtCore.QObject):
 
     def subscribe(self, title):
         """Subscribe to a broadcast with the given title"""
-        # scramble the filter to avoid spurious matches (like CCD matching CCD1)
+        # only subscribe if we're not already subscribed
+        if title in self.filters:
+            return
+        # scramble the filter to avoid spurious matches (like CCD matching CCD1)        
         m = hashlib.md5()
         m.update(title)
         self._socket.setsockopt(SUBSCRIBE, m.digest())
+        self.filters.append(title)
 
     def unsubscribe(self, title):
         """Unsubscribe to a broadcast with the given title"""
         m = hashlib.md5()
         m.update(title)
         self._socket.setsockopt(UNSUBSCRIBE, m.digest())
+        self.filters.remove(title)
 
     def bind(self, addr):
         """Bind socket to address"""

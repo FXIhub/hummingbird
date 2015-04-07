@@ -36,6 +36,21 @@ class RingBuffer(object):
         if(self._len < self._maxlen):
             self._len += 1
 
+    def resize(self, new_maxlen):
+        """Change the capacity of the buffers"""
+        tmp_data = self._data
+        x = self[-1]
+        # Initialize new array
+        prev_maxlen = self._maxlen
+        self._maxlen = new_maxlen
+        self._init_data(x)
+        # Copy existing data
+        self._len = min(self._len,new_maxlen)
+        self._data[0:self._len] = tmp_data[prev_maxlen+self._index-self._len:prev_maxlen+self._index]
+        self._data[self._maxlen:self._maxlen+self._len] = tmp_data[prev_maxlen+self._index-self._len:prev_maxlen+self._index]
+        self._index = self._len % self._maxlen
+
+
     def _init_data(self, x):
         """Initialize the buffer with the given data"""
         try:
@@ -101,5 +116,7 @@ class RingBuffer(object):
         else:
             return self._data[self._convert_dim(args)]
 
-
-
+    @property
+    def nbytes(self):
+        """Returns the number of bytes taken by the buffer"""
+        return self._data.nbytes

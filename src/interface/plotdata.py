@@ -42,6 +42,14 @@ class PlotData(object):
         self._y.append(y)
         self._x.append(x)
 
+    def resize(self, new_maxlen):
+        """Change the capacity of the buffers"""
+        if(self._y is not None):
+            self._y.resize(new_maxlen)
+        if(self._x is not None):
+            self._x.resize(new_maxlen)
+        self._maxlen = new_maxlen
+
     @property
     def title(self):
         """Returns the plot data title"""
@@ -56,3 +64,22 @@ class PlotData(object):
     def x(self):
         """Gives access to the x buffer"""
         return self._x
+
+    @property
+    def maxlen(self):
+        """Gives access to maximum size of the buffers"""
+        return self._maxlen
+
+    def __len__(self):
+        """Returns the number of elements in the buffers"""
+        if(self._y is not None):
+            return len(self._y)
+        else:
+            return 0
+
+    @property
+    def nbytes(self):
+        """Returns the number of bytes taken by the two buffers"""
+        if(self._y is not None):
+            return self._y.nbytes + self._x.nbytes
+        return 0

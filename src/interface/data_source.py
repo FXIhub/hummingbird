@@ -8,6 +8,9 @@ import logging
 
 class DataSource(QtCore.QObject):
     """Manages a connection with one backend"""
+    plotdata_added = QtCore.Signal(PlotData)
+    subscribed = QtCore.Signal(str)
+    unsubscribed = QtCore.Signal(str)
     def __init__(self, parent, hostname, port, ssh_tunnel=None):
         QtCore.QObject.__init__(self, parent)
         self._hostname = hostname
@@ -33,6 +36,7 @@ class DataSource(QtCore.QObject):
             self._subscribed_titles[title] = [plot]
             try:
                 self._data_socket.subscribe(bytes(title))
+                self.subscribed.emit(title)
                 logging.debug("Subscribing to %s on %s.", title, self.name())
             # socket might still not exist
             except AttributeError:
@@ -46,6 +50,7 @@ class DataSource(QtCore.QObject):
         # Check if list is empty
         if not self._subscribed_titles[title]:
             self._data_socket.unsubscribe(bytes(title))
+            self.unsubscribed.emit(title)
             logging.debug("Unsubscribing from %s on %s.", title, self.name())
             self._subscribed_titles.pop(title)
 
@@ -91,6 +96,7 @@ class DataSource(QtCore.QObject):
             # Subscribe to stuff already requested
             for title in self._subscribed_titles.keys():
                 self._data_socket.subscribe(bytes(title))
+                self.subscribed.emit(title)
                 logging.debug("Subscribing to %s on %s.", title, self.name())
             self.query_configuration()
         elif(reply[0] == 'conf'):
@@ -106,6 +112,7 @@ class DataSource(QtCore.QObject):
                 self.data_type[k] = self.conf[k]['data_type']
                 if(k not in self._plotdata):
                     self._plotdata[k] = PlotData(self, k)
+                    self.plotdata_added.emit(self._plotdata[k])
             # Remove PlotData which is no longer in the conf
             for k in self._plotdata.keys():
                 if k not in self.titles:
@@ -157,3 +164,8 @@ class DataSource(QtCore.QObject):
     def ssh_tunnel(self):
         """Give access to the data source ssh_tunnel"""
         return self._ssh_tunnel
+
+    @property
+    def subscribed_titles(self):
+        """Returns the currently subscribed titles"""
+        return self._subscribed_titles.keys()

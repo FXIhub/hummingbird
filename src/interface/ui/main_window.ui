@@ -18,10 +18,10 @@
     <item>
      <widget class="QStackedWidget" name="stackedWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
-      <widget class="QWidget" name="_plotdata_widget"/>
-      <widget class="QWidget" name="page_2"/>
+      <widget class="PlotDataTable" name="plotdata_widget"/>
+      <widget class="QWidget" name="page"/>
      </widget>
     </item>
    </layout>
@@ -132,6 +132,14 @@
    </property>
   </action>
  </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotDataTable</class>
+   <extends>QWidget</extends>
+   <header>interface.ui.plotdata_table</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
  <resources>
   <include location="../images/resources.qrc"/>
  </resources>
