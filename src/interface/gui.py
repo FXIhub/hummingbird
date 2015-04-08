@@ -19,19 +19,18 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self._data_windows = []
         self._data_sources = []
         self.settings = QtCore.QSettings()
-        print self.settings.fileName()
         self.setupUi(self)
         self._init_geometry()
         loaded_sources = []
         try:
             loaded_sources = self._init_data_sources()
         except (TypeError, KeyError):
+            raise
             # Be a bit more resilient against configuration problems
             logging.warning("Failed to load data source settings! Continuing...")
         try:
             self._restore_data_windows(loaded_sources)
         except (TypeError, KeyError):
-#            raise
             # Be a bit more resilient against configuration problems
             logging.warning("Failed to load data windows settings! Continuing...")
 
@@ -70,10 +69,16 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
     def _init_data_sources(self):
         """Restore data sources from the settings."""
         loaded_sources = []
+        pd_settings = []
+        if(self.settings.contains("plotData") and
+           self.settings.value("plotData") is not None):
+            pd_settings = self.settings.value("plotData")
+
         if(self.settings.contains("dataSources") and
            self.settings.value("dataSources") is not None):
             for ds in self.settings.value("dataSources"):
                 ds = DataSource(self, ds[0], ds[1], ds[2])
+                ds.restore_state(pd_settings)
                 loaded_sources.append(ds)
                 logging.debug("Loaded data source '%s' from settings", ds.name())
         return loaded_sources
@@ -165,7 +170,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         dw_settings = []
         for dw in self._data_windows:
             dw_settings.append(dw.get_state())
-        self.settings.setValue("dataWindows", dw_settings)
+        return dw_settings
 
     def closeEvent(self, event): #pylint: disable=invalid-name
         """Save settings and exit nicely"""
@@ -177,7 +182,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             ds_settings.append([ds.hostname, ds.port, ds.ssh_tunnel])
         self.settings.setValue("dataSources", ds_settings)
         self.plotdata_widget.save_state(self.settings)
-        self.save_data_windows()
+        self.settings.setValue("plotData", self.plotdata_widget.save_plotdata())
+        self.settings.setValue("dataWindows", self.save_data_windows())
         # Make sure settings are saved
         del self.settings
         # Force exit to prevent pyqtgraph from crashing

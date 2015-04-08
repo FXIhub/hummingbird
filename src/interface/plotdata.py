@@ -10,7 +10,8 @@ class PlotData(object):
         self._x = None # pylint: disable=invalid-name
         self._parent = parent
         self._maxlen = maxlen
-        if('history_length' in parent.conf[title]):
+        self.restored = False
+        if(title in parent.conf and 'history_length' in parent.conf[title]):
             self._maxlen = parent.conf[title]['history_length']
 
     def set_data(self, y, x):
@@ -90,3 +91,24 @@ class PlotData(object):
         if(self._y is not None):
             return self._y.nbytes + self._x.nbytes
         return 0
+
+    def save_state(self):
+        """Return a serialized representation of the PlotData for saving to disk"""
+        pds = {}
+        pds['data_source'] = [self._parent.hostname, self._parent.port, self._parent.ssh_tunnel]
+        pds['x'] = self.x.save_state()
+        pds['y'] = self.y.save_state()
+        pds['title'] = self.title
+        pds['maxlen'] = self.maxlen
+        return pds
+
+
+    def restore_state(self, state, parent):
+        """Restore a previous stored state"""
+        self.parent = parent
+        self._x = RingBuffer.restore_state(state['x'])
+        self._y = RingBuffer.restore_state(state['y'])
+        self._title = state['title']
+        self._maxlen = state['maxlen']
+        self.restored = True
+

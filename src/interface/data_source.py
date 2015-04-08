@@ -20,6 +20,7 @@ class DataSource(QtCore.QObject):
         self._plotdata = {}
         self._subscribed_titles = {}
         self._data_socket = ZmqSocket(SUB, self)
+        self.conf = {}
         try:
             self._connect()
             self.connected = True
@@ -169,3 +170,16 @@ class DataSource(QtCore.QObject):
     def subscribed_titles(self):
         """Returns the currently subscribed titles"""
         return self._subscribed_titles.keys()
+
+    def restore_state(self, state):
+        """Restores any plotdata that are saved in the state"""
+        for pds in state:
+            if(pds['data_source'][0] == self.hostname and
+               pds['data_source'][1] == self.port and
+               pds['data_source'][2] == self.ssh_tunnel):
+                # It's a match!
+                k = pds['title']
+                pd = PlotData(self, k)
+                pd.restore_state(pds, self)
+                self._plotdata[k] = pd            
+                self.plotdata_added.emit(self._plotdata[k])

@@ -14,11 +14,11 @@ class RingBuffer(object):
     it's a bit slower to add data, and it takes twice as much memory as a
     regular buffer.
     """
-    def __init__(self, maxlen):
-        self._index = 0
-        self._len = 0
+    def __init__(self, maxlen, data = None, index = 0, length = 0):
+        self._index = index
+        self._len = length
         self._maxlen = maxlen
-        self._data = None
+        self._data = data
     def append(self, x):
         """Append a value to the end of the buffer"""
         if(self._data is None):
@@ -120,3 +120,23 @@ class RingBuffer(object):
     def nbytes(self):
         """Returns the number of bytes taken by the buffer"""
         return self._data.nbytes
+
+    def save_state(self):
+        """Return a serialized representation of the RingBuffer for saving to disk"""
+        rs = {}
+        rs['index'] = self._index
+        rs['len'] = self._len
+        rs['maxlen'] = self._maxlen
+        rs['data'] = self._data
+        return rs
+        
+    @staticmethod
+    def restore_state(state):
+        data = state['data']
+        index = state['index']
+        length = state['len']
+        maxlen = state['maxlen']
+        rb = RingBuffer(maxlen, data = data, index = index, length = length)
+        return rb
+        
+        

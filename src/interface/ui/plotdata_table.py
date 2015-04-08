@@ -43,6 +43,9 @@ class PlotDataTable(QtGui.QWidget):
 
     def add_source(self, source):
         source.plotdata_added.connect(self._on_plotdata_added)
+        # Add existing plotdata
+        for plotdata in source.plotdata.values():
+            self.add_row(source,plotdata)
         source.unsubscribed.connect(self._on_unsubscribe)
         source.subscribed.connect(self._on_subscribe)
 
@@ -62,7 +65,8 @@ class PlotDataTable(QtGui.QWidget):
         bar = QtGui.QProgressBar()        
         self.table.setItem(row, 2, QtGui.QTableWidgetItem())
         self.table.setCellWidget(row, 2, self._center_widget(bar))
-        checkbox = QtGui.QCheckBox()        
+        checkbox = QtGui.QCheckBox()
+        checkbox.setChecked(plotdata.restored)
         self.table.setItem(row, 3, QtGui.QTableWidgetItem())
         self.table.setCellWidget(row, 3, self._center_widget(checkbox))
 
@@ -111,6 +115,20 @@ class PlotDataTable(QtGui.QWidget):
     def save_state(self, settings):
         """Save the current header state to disk"""
         settings.setValue("plotDataTable", self.table.horizontalHeader().saveState())
+
+    def save_plotdata(self):
+        """Save PlotData that are marked for saving"""
+        pd_settings = []
+        for row in range(0,self.table.rowCount()):
+            # Check if this row is marked for saving
+            checkbox = self.table.cellWidget(row, 3).findChild(QtGui.QCheckBox)
+            if(not checkbox.isChecked()):
+                continue                
+            item = self.table.item(row, 1)
+            plotdata = item.data(QtCore.Qt.UserRole)
+            pd_settings.append(plotdata.save_state())
+        return pd_settings
+
 
     def restore_state(self, settings):
         """Restores the a previous header state"""
