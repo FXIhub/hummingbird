@@ -56,6 +56,14 @@
     </property>
     <addaction name="_preferences_action"/>
    </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionSave_Settings_As"/>
+    <addaction name="actionLoad_Settings"/>
+   </widget>
+   <addaction name="menuFile"/>
    <addaction name="_backends_menu"/>
    <addaction name="_displays_menu"/>
    <addaction name="_options_menu"/>
@@ -129,6 +137,16 @@
    </property>
    <property name="text">
     <string>Preferences</string>
+   </property>
+  </action>
+  <action name="actionSave_Settings_As">
+   <property name="text">
+    <string>Save Settings As...</string>
+   </property>
+  </action>
+  <action name="actionLoad_Settings">
+   <property name="text">
+    <string>Load Settings</string>
    </property>
   </action>
  </widget>
@@ -224,11 +242,45 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>actionSave_Settings_As</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_on_save_settings_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionLoad_Settings</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_on_load_settings_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>_add_backend_triggered()</slot>
   <slot>_reload_backend_triggered()</slot>
   <slot>_new_display_triggered()</slot>
   <slot>_preferences_clicked()</slot>
+  <slot>_on_save_settings_triggered()</slot>
+  <slot>_on_load_settings_triggered()</slot>
  </slots>
 </ui>

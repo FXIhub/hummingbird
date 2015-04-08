@@ -89,6 +89,7 @@ class DataWindow(QtGui.QMainWindow):
     def closeEvent(self, event):
         """Unsubscribe to any remaining broadcasts before closing"""
         # Unsibscribe all everything
+        logging.debug("Closing DataWindow %s" % (self))
         for source in self._enabled_sources.keys():
             for title in self._enabled_sources[source]:
                 source.unsubscribe(title, self)

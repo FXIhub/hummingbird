@@ -18,38 +18,70 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         QtGui.QMainWindow.__init__(self)
         self._data_windows = []
         self._data_sources = []
-        self.settings = QtCore.QSettings()
+        self.settings = None
         self.setupUi(self)
-        self._init_geometry()
+        self.restore_settings()
+        self._init_timer()
+        GUI.instance = self
+
+
+    def clear(self):
+        """Closes all DataWindows and remove all DataSources"""
+        # Need to copy self._data_windows before iterating
+        # as the original list gets modified in the close() call
+        # screwing a simple iteration
+        for dw in list(self._data_windows):
+            dw.close()
+            del dw
+        self._data_windows = []
+
+        for ds in self._data_sources:
+            del ds
+        self._data_sources = []
+        self.plotdata_widget.table.clearContents()
+        self.plotdata_widget.table.setRowCount(0)
+        actions = self._backends_menu.actions()
+        for a in actions:
+            # All the added backups have a data() element
+            if(a.data()):
+                # Remove them                
+                self._backends_menu.removeAction(a)
+
+    def restore_settings(self, filename = None):
+        if(filename):
+            s = QtCore.QSettings(filename, QtCore.QSettings.IniFormat)
+        else:
+            s = QtCore.QSettings()
+        self._init_geometry(s)
         loaded_sources = []
         try:
-            loaded_sources = self._init_data_sources()
+            loaded_sources = self._init_data_sources(s)
         except (TypeError, KeyError):
             raise
             # Be a bit more resilient against configuration problems
             logging.warning("Failed to load data source settings! Continuing...")
         try:
-            self._restore_data_windows(loaded_sources)
+            self._restore_data_windows(s, loaded_sources)
         except (TypeError, KeyError):
             # Be a bit more resilient against configuration problems
             logging.warning("Failed to load data windows settings! Continuing...")
 
-        self.plotdata_widget.restore_state(self.settings)
+        self.plotdata_widget.restore_state(s)
+        self.settings = s
 
-        self._init_timer()
-        GUI.instance = self
 
-    def _init_geometry(self):
+
+    def _init_geometry(self, settings):
         """Restores the geometry of the main window."""
-        if(self.settings.contains("geometry")):
-            self.restoreGeometry(self.settings.value("geometry"))
-        if(self.settings.contains("windowState")):
-            self.restoreState(self.settings.value("windowState"))
+        if(settings.contains("geometry")):
+            self.restoreGeometry(settings.value("geometry"))
+        if(settings.contains("windowState")):
+            self.restoreState(settings.value("windowState"))
 
-    def _restore_data_windows(self, data_sources):
+    def _restore_data_windows(self, settings, data_sources):
         """Restores the geometry and data sources of the data windows."""
-        if(self.settings.contains("dataWindows")):
-            data_windows = self.settings.value("dataWindows")
+        if(settings.contains("dataWindows")):
+            data_windows = settings.value("dataWindows")
             for dw in data_windows:
                 try:
                     if(dw['window_type'] == 'ImageWindow'):
@@ -66,17 +98,17 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
                     raise
                     pass
 
-    def _init_data_sources(self):
+    def _init_data_sources(self, settings):
         """Restore data sources from the settings."""
         loaded_sources = []
         pd_settings = []
-        if(self.settings.contains("plotData") and
-           self.settings.value("plotData") is not None):
-            pd_settings = self.settings.value("plotData")
+        if(settings.contains("plotData") and
+           settings.value("plotData") is not None):
+            pd_settings = settings.value("plotData")
 
-        if(self.settings.contains("dataSources") and
-           self.settings.value("dataSources") is not None):
-            for ds in self.settings.value("dataSources"):
+        if(settings.contains("dataSources") and
+           settings.value("dataSources") is not None):
+            for ds in settings.value("dataSources"):
                 ds = DataSource(self, ds[0], ds[1], ds[2])
                 ds.restore_state(pd_settings)
                 loaded_sources.append(ds)
@@ -172,20 +204,44 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             dw_settings.append(dw.get_state())
         return dw_settings
 
-    def closeEvent(self, event): #pylint: disable=invalid-name
-        """Save settings and exit nicely"""
-        self.settings.setValue("geometry", self.saveGeometry())
-        self.settings.setValue("windowState", self.saveState())
+    def _on_save_settings_triggered(self):
+        # We need a non native dialog to work around a Qt bug
+        # https://bugreports.qt.io/browse/QTBUG-16722        
+        fname = QtGui.QFileDialog.getSaveFileName(self, "Save Settings", filter="Humminbird Settings (*.hum)", 
+                                                  options=QtGui.QFileDialog.DontUseNativeDialog)
+        if(fname):
+            self.save_settings(fname)
+
+    def _on_load_settings_triggered(self):
+        # We need a non native dialog to work around a Qt bug
+        # https://bugreports.qt.io/browse/QTBUG-16722        
+        fname = QtGui.QFileDialog.getOpenFileName(self, "Load Settings", filter="Humminbird Settings (*.hum)", 
+                                                  options=QtGui.QFileDialog.DontUseNativeDialog)
+        if(fname):
+            self.clear()
+            self.restore_settings(fname)
+
+    def save_settings(self, filename=None):
+        if(filename):
+            s = QtCore.QSettings(filename, QtCore.QSettings.IniFormat)
+        else:
+            s = QtCore.QSettings()
+        s.setValue("geometry", self.saveGeometry())
+        s.setValue("windowState", self.saveState())
         # Save data sources
         ds_settings = []
         for ds in self._data_sources:
             ds_settings.append([ds.hostname, ds.port, ds.ssh_tunnel])
-        self.settings.setValue("dataSources", ds_settings)
-        self.plotdata_widget.save_state(self.settings)
-        self.settings.setValue("plotData", self.plotdata_widget.save_plotdata())
-        self.settings.setValue("dataWindows", self.save_data_windows())
+        s.setValue("dataSources", ds_settings)
+        self.plotdata_widget.save_state(s)
+        s.setValue("plotData", self.plotdata_widget.save_plotdata())
+        s.setValue("dataWindows", self.save_data_windows())
         # Make sure settings are saved
-        del self.settings
+        s.sync()
+
+    def closeEvent(self, event): #pylint: disable=invalid-name
+        """Save settings and exit nicely"""
+        self.save_settings()
         # Force exit to prevent pyqtgraph from crashing
         os._exit(0) #pylint: disable=protected-access
         # Never gets here, but anyway...
