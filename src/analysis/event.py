@@ -6,7 +6,7 @@ def printKeys(evt):
     print evt.keys()    
 
 def printNativeKeys(evt):
-    print evt.nativeKeys()
+    print evt.native_keys()
 
 def printID(eventID):
     for k,v in eventID.iteritems():
