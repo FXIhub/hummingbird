@@ -4,30 +4,25 @@ import analysis.beamline
 import analysis.background
 import analysis.pixel_detector
 import ipc
+import numpy
+from backend import ureg
 
 state = {
-    'Facility': 'dummy',
-    'squareImage' : True,
+    'Facility': 'Dummy',
 
-    'aduThreshold': 10,
-    'aduPhoton':    30,
-
-    'meanPhotonMap/initialize': True,
-    'meanPhotonMap/paramXmin': -2,
-    'meanPhotonMap/paramXmax':  2,
-    'meanPhotonMap/paramYmin': -2,
-    'meanPhotonMap/paramYmax':  2,
-    'meanPhotonMap/paramXbin':  0.01,
-    'meanPhotonMap/paramYbin':  0.01,
-    'meanPhotonMap/updateRate': 100
+    'Dummy': {
+        'Repetition Rate' : 1,
+        'Data Sources': {
+            'CCD': {
+                'data': lambda: numpy.random.rand(256,128),
+                'unit': ureg.ADU,                                       
+                'type': 'photonPixelDetectors'
+            }
+        }        
+    }
 }
 
 def onEvent(evt):
-    #nrPhotons = analysis.pixel_detector.countNrPhotons(evt['photonPixelDetectors']['CCD'].data)
-    #analysis.background.plotMeanPhotonMap(nrPhotons, evt['parameters']['apertureX'].data, evt['parameters']['apertureY'].data)    
-    #print "Available keys: ", evt.keys()
     ipc.broadcast.init_data('CCD', xmin=10,ymin=10)
     analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
-    #analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.event.printProcessingRate(evt)
-    time.sleep(0.1)
