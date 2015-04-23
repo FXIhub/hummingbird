@@ -82,10 +82,10 @@ def init_translator(state):
     """Initialize the translator, depending on the state['Facility']."""
     if('Facility' not in state):
         raise ValueError("You need to set the 'Facility' in the configuration")
-    elif(state['Facility'] == 'LCLS'):
+    elif(state['Facility'].lower() == 'lcls'):
         from backend.lcls import LCLSTranslator
         return LCLSTranslator(state)
-    elif(state['Facility'] == 'dummy'):
+    elif(state['Facility'].lower() == 'dummy'):
         from backend.dummy import DummyTranslator
         return DummyTranslator(state)
     else:
