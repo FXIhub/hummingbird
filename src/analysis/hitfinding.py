@@ -1,6 +1,6 @@
 import ipc
 import numpy
-from backend import Backend
+#from backend import Worker
 from scipy.sparse import lil_matrix
 #from plots import MeanMap
 
@@ -10,9 +10,43 @@ def counting(hit):
     else: counter.append(False)
     return counter
 
-def countLitPixels(image):
-    hitscore = (image > Backend.state["aduThreshold"]).sum()
-    return hitscore > Backend.state["hitscoreMinCount"], hitscore
+# JAS: made countLitPixels independent of Worker module by using arguments instead of state keys/values
+def countLitPixels(image, thresholdADU=20, thresholdLitPixels=200):
+    hitscore = (image > thresholdADU).sum()
+    return hitscore > thresholdLitPixels, hitscore
+
+correlation = []
+xArray = []
+yArray = []
+def correlate(x, y):
+    xArray.append(x)
+    yArray.append(y)
+    correlation.append(x*y/(numpy.mean(xArray)*numpy.mean(yArray)))
+    return correlation
+
+initialized = False
+correlation2D = None
+def correlate2D(x, y, xMin=0, xMax=1, xNbins=10, yMin=0, yMax=1, yNbins=10):
+    global correlation2D, initialized
+    if not initialized:
+        # initiate (y, x) in 2D array to get correct orientation of image
+        correlation2D = numpy.zeros((yNbins, xNbins), dtype=int)
+        initialized = True
+    deltaX = (xMax - float(xMin))/xNbins
+    deltaY = (yMax - float(yMin))/yNbins
+    nx = numpy.ceil((x - xMin)/deltaX)
+    if (nx < 0):
+        nx = 0
+    elif (nx >= xNbins):
+        nx = xNbins - 1
+    ny = numpy.ceil((y - yMin)/deltaY)
+    if (ny < 0):
+        ny = 0
+    elif (ny >= yNbins):
+        ny = yNbins - 1
+    # assign y to row and x to col in 2D array
+    correlation2D[ny, nx] += 1
+    return correlation2D
 
 def plotHitscore(hitscore):
     ipc.new_data("Hitscore", hitscore)
