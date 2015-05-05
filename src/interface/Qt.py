@@ -29,7 +29,7 @@ if 'sphinx' in sys.modules:
         class QObject(object):
             pass
         @classmethod
-        def Signal(caller):
+        def Signal(caller=1,argument=2):
             pass    
         pass
     def loadUiType(str):
