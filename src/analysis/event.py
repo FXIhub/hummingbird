@@ -1,6 +1,7 @@
 import collections
 import datetime
 import ipc
+import numpy
 
 def printKeys(evt):
     print evt.keys()    
@@ -46,13 +47,12 @@ def printProcessingRate(evt = None):
     if(len(processingTimes) < 2):
         return
     dt = processingTimes[0] - processingTimes[-1]
-    proc_rate = ((len(processingTimes)-1)/dt.total_seconds())
-    if(ipc.mpi.size > 1):
-        mpi_reduce=True
-    else:
-        mpi_reduce=False
-        print "Processing at %g Hz" % (proc_rate)
-    ipc.new_data('Processing Rate', proc_rate, mpi_reduce=mpi_reduce)
+    proc_rate = numpy.array((len(processingTimes)-1)/dt.total_seconds())
+    
+    ipc.mpi.sum(proc_rate)
+    if(ipc.mpi.is_main_worker()):
+        ipc.new_data('Processing Rate', proc_rate[()])
+
 
 
     
