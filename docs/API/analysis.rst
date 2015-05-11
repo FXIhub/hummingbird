@@ -1,6 +1,14 @@
 analysis package
 ================
 
+analysis.background module
+--------------------------
+
+.. automodule:: analysis.background
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 analysis.beamline module
 ------------------------
 
@@ -13,6 +21,14 @@ analysis.event module
 ---------------------
 
 .. automodule:: analysis.event
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+analysis.hitfinding module
+--------------------------
+
+.. automodule:: analysis.hitfinding
     :members:
     :undoc-members:
     :show-inheritance:
