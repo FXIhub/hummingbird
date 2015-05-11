@@ -110,7 +110,7 @@ def logical_and(array):
     The result is only available in the main_worker()."""
     _reduce(array, MPI.LAND)
 
-def _reduce(array, op=MPI.SUM):
+def _reduce(array, op):
     """Reduce a numpy array with the given MPI op across all the slave processes"""
     if(not isinstance(array,numpy.ndarray)):
         raise TypeError("argument must be a numpy ndarray")
