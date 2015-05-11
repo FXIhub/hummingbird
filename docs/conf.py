@@ -29,6 +29,9 @@ sys.dont_write_bytecode = True
 import glob
 files = glob.glob('../src/interface/*.pyc')
 files += glob.glob('../src/backend/*.pyc')
+files += glob.glob('../src/analysis/*.pyc')
+files += glob.glob('../src/plotting/*.pyc')
+files += glob.glob('../src/ipc/*.pyc')
 for f in files:
     os.remove(f)
 
@@ -49,7 +52,7 @@ try:
         def __getattr__(cls, name):
             return Mock()
 
-    MOCK_MODULES = ['PyQt4','psana','sip','numpy','scipy','zmq','pytz','zmq.eventloop','zmq.eventloop.zmqstream','pyqtgraph']
+    MOCK_MODULES = ['PyQt4','psana','sip','numpy','scipy','scipy.sparse', 'zmq','zmq.eventloop','zmq.eventloop.zmqstream','pyqtgraph', 'pytz']
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 except ImportError:
     pass

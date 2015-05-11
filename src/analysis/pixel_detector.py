@@ -1,7 +1,8 @@
 from numpy import sum, mean, min, max, std
 import ipc
-import numpy
-from backend import Worker
+import numpy as np
+from backend import ureg
+from backend import Record
 
 def printStatistics(detectors):
     for k,r in detectors.iteritems():
@@ -10,46 +11,33 @@ def printStatistics(detectors):
                                                                 sum(v), mean(v),
                                                                 min(v), max(v),
                                                                 std(v))
-def plotImages(detectors):
-    for k,r in detectors.iteritems():
-        v = r.data
-        if('squareImage' in Worker.state and Worker.state['squareImage']):
-            ipc.new_data(k, v**2)
-        else:
-            ipc.new_data(k, v)
 
-detectors = {}
-def plotDetector(detector):
-    if(not detector.name in detectors):
-        ipc.broadcast.init_data(detector.name, data_type='image', history_length=10)
-        detectors[detector.name] = 1
-    sh = detector.data.shape
-    if (detector.data.ndim == 3):
-        image = detector.data.reshape(sh[0]*sh[2], sh[1])
-    else:
-        image = detector.data
-    #if(not counter % Worker.state["detectorUpdateRate"]):
-    ipc.new_data(detector.name, image)
-
-histograms = {}
-def plotHistogram(key, detector, conf):
-    if(not key in histograms):
-        ipc.broadcast.init_data(key, data_type='vector', history_length=100)
-    hist, bins = numpy.histogram(detector.flat, range=(conf["hmin"], conf["hmax"]), bins=conf["nbins"])
-    ipc.new_data(key, hist, xmin=bins.min(), xmax=bins.max())
-
-def reshape_detector(detector):
+def getCentral4Asics(detector):
+    """Returns the 4 centermost asics of the CsPAD detector as a one-dimensionsal stack.
+    Args:
+        :cspad(Record): A detector record
+    Returns:
+        Record central4Asics
+    """
     central = []
     for i in range(4):
         central.append(detector.data[i*8+1,:,:194])
-    return numpy.hstack(central)
+    return Record("central4Asics", np.hstack(central), detector.unit)
     
 nrPhotons = {}    
-def countNrPhotons(image):
-    return sum(image[image>Worker.state['aduThreshold']]) / float(Worker.state['aduPhoton'])
-
-def plotNrPhotons(key, nrPhotons):
-    ipc.new_data(key, nrPhotons)
+def totalNrPhotons(detector, aduPhoton=1, aduThreshold=0):
+    """Return an estimate for the total nr. of photons on the detector
+    Args:
+        :detector(Record): A detector record
+    Kwargs:
+        :aduPhoton(int):    ADU count per photon, default = 1
+        :aduThreshold(int): only pixels above this threshold are valid, default = 0
+    Returns:
+        Record nrPhotons
+    """
+    data  = detector.data.flat
+    valid = data > aduThreshold
+    return Record("nrPhotons - " + detector.name , sum(data[valid]) / float(aduPhoton))
 
 """
 import numpy
