@@ -27,11 +27,11 @@ sys.path.insert(0, os.path.abspath('../src'))
 sys.dont_write_bytecode = True
 
 import glob
-files = glob.glob('../src/interface/*.pyc')
+files = glob.glob('../src/analysis/*.pyc')
 files += glob.glob('../src/backend/*.pyc')
-files += glob.glob('../src/analysis/*.pyc')
-files += glob.glob('../src/plotting/*.pyc')
+files += glob.glob('../src/interface/*.pyc')
 files += glob.glob('../src/ipc/*.pyc')
+files += glob.glob('../src/plotting/*.pyc')
 for f in files:
     os.remove(f)
 
@@ -53,6 +53,7 @@ try:
             return Mock()
 
     MOCK_MODULES = ['PyQt4','psana','sip','numpy','scipy','scipy.sparse', 'zmq','zmq.eventloop','zmq.eventloop.zmqstream','pyqtgraph', 'pytz']
+
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 except ImportError:
     pass
