@@ -8,3 +8,4 @@ Reference API
    backend
    interface
    ipc
+   plotting

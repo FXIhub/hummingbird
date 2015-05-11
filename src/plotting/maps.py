@@ -1,3 +1,4 @@
+"""A collection for plotting of 2D maps"""
 import numpy
 import ipc
 from scipy.sparse import lil_matrix
@@ -77,8 +78,20 @@ class MeanMap:
         self.gridMap[visited] = 1
         self.gridMap[current] = 2
 
+
+# Public Plotting functions - Put new plotting functions here!
+# ------------------------------------------------------------
 meanMaps = {}
 def plotMeanMap(key, conf, paramX, paramY, paramZ, normZ, msg=''):
+    """Plotting the mean of quantity Z as a function of quantities X and Y (a mean map).
+    
+    Args:
+        key (str): A key
+
+    Kwargs:
+        msg (str): A message
+
+    """
     if not key in meanMaps:
         meanMaps[key] = MeanMap(key,conf)
     m = meanMaps[key]

@@ -24,7 +24,7 @@ def correlate(x, y):
     correlation.append(x*y/(numpy.mean(xArray)*numpy.mean(yArray)))
     return correlation
 
-initialized = False
+icnitialized = False
 correlation2D = None
 def correlate2D(x, y, xMin=0, xMax=1, xNbins=10, yMin=0, yMax=1, yNbins=10):
     global correlation2D, initialized

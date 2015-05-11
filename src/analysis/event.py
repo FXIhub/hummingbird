@@ -41,7 +41,6 @@ def plotFiducial(eventID):
         ipc.new_data(k, v.fiducials)
 
 processingTimes = collections.deque([], 100)
-
 def printProcessingRate(evt = None):
     processingTimes.appendleft(datetime.datetime.now())
     if(len(processingTimes) < 2):
