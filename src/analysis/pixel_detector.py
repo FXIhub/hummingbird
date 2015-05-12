@@ -14,6 +14,7 @@ def printStatistics(detectors):
 
 def getCentral4Asics(detector):
     """Returns the 4 centermost asics of the CsPAD detector as a one-dimensionsal stack.
+
     Args:
         :cspad(Record): A detector record
     Returns:
@@ -27,6 +28,7 @@ def getCentral4Asics(detector):
 nrPhotons = {}    
 def totalNrPhotons(detector, aduPhoton=1, aduThreshold=0):
     """Return an estimate for the total nr. of photons on the detector
+
     Args:
         :detector(Record): A detector record
     Kwargs:

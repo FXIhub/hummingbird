@@ -1,5 +1,7 @@
 import ipc
-import numpy
+from backend import Record
+import numpy as np
+
 
 counter = []
 def counting(hit):
@@ -9,6 +11,7 @@ def counting(hit):
 
 def countLitPixels(detector, aduThreshold=20, litPixelThreshold=200):
     """Finding hits by counting nr. of lit pixels on the detector
+
     Args:
         :detector(Record):  A detector record
     Kwargs:
@@ -27,25 +30,25 @@ yArray = []
 def correlate(x, y):
     xArray.append(x)
     yArray.append(y)
-    correlation.append(x*y/(numpy.mean(xArray)*numpy.mean(yArray)))
+    correlation.append(x*y/(np.mean(xArray)*np.mean(yArray)))
     return correlation
 
-icnitialized = False
+initialized = False
 correlation2D = None
 def correlate2D(x, y, xMin=0, xMax=1, xNbins=10, yMin=0, yMax=1, yNbins=10):
     global correlation2D, initialized
     if not initialized:
         # initiate (y, x) in 2D array to get correct orientation of image
-        correlation2D = numpy.zeros((yNbins, xNbins), dtype=int)
+        correlation2D = np.zeros((yNbins, xNbins), dtype=int)
         initialized = True
     deltaX = (xMax - float(xMin))/xNbins
     deltaY = (yMax - float(yMin))/yNbins
-    nx = numpy.ceil((x - xMin)/deltaX)
+    nx = np.ceil((x - xMin)/deltaX)
     if (nx < 0):
         nx = 0
     elif (nx >= xNbins):
         nx = xNbins - 1
-    ny = numpy.ceil((y - yMin)/deltaY)
+    ny = np.ceil((y - yMin)/deltaY)
     if (ny < 0):
         ny = 0
     elif (ny >= yNbins):

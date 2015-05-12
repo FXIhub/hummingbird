@@ -6,6 +6,7 @@ from backend import Record
 
 def averagePulseEnergy(pulseEnergies):
     """Returns the average pulse energy    
+
     Args:
         :pulseEnergies(dict(Record)): A dictionary of pulseEnergy records.
     Returns:
@@ -22,6 +23,7 @@ def averagePulseEnergy(pulseEnergies):
 
 def printPulseEnergy(pulseEnergies):
     """Prints pulse energies to screen
+
     Args:
         :pulseEnergies(dict(Record)): A dictionary of pulseEnergy records.
     """
@@ -30,6 +32,7 @@ def printPulseEnergy(pulseEnergies):
 
 def printPhotonEnergy(photonEnergies):
     """Prints photon energues to screen
+
     Args:
         :photonEnergies(dict(Record)): A dictionary of photonEnergy records.
     """

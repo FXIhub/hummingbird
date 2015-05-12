@@ -1,5 +1,4 @@
 plotting package
-<<<<<<< HEAD
 ================
 
 plotting.line module
