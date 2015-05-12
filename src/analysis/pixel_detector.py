@@ -35,7 +35,7 @@ def totalNrPhotons(detector, aduPhoton=1, aduThreshold=0):
         :aduPhoton(int):    ADU count per photon, default = 1
         :aduThreshold(int): only pixels above this threshold are valid, default = 0
     Returns:
-        Record nrPhotons
+        Record. Estimated nr. of photons
     """
     data  = detector.data.flat
     valid = data > aduThreshold

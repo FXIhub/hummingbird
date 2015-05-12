@@ -17,10 +17,10 @@ plotting.image module
     :undoc-members:
     :show-inheritance:
 
-plotting.map module
+plotting.correlation module
 --------------------
 
-.. automodule:: plotting.map
+.. automodule:: plotting.correlation
     :members:
     :undoc-members:
     :show-inheritance:

@@ -16,6 +16,11 @@ class EventTranslator(object):
         self._native_keys = None
         self._id = None
 
+    def __setitem__(self, key, value):
+        self._evt[key] = value
+        self._cache[key] = value
+        self._keys.append(key)
+        
     def __getitem__(self, key):
         if key not in self._cache:
             self._cache[key] = self._trans.translate(self._evt, key)

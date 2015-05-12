@@ -1,5 +1,5 @@
-"""A plotting module for maps"""
-import numpy
+"""A plotting module for correlations and maps"""
+import numpy as np
 import ipc
 from scipy.sparse import lil_matrix
 
@@ -10,24 +10,24 @@ class _MeanMap:
 
         # Initialize local map
         self.localRadius = localRadius
-        self.xrange = numpy.linspace(xmin, xmax, (xmax-xmin)/float(step))
-        self.yrange = numpy.linspace(ymin, ymax, (ymax-ymin)/float(step))
+        self.xrange = np.linspace(xmin, xmax, (xmax-xmin)/float(step))
+        self.yrange = np.linspace(ymin, ymax, (ymax-ymin)/float(step))
         Nx = self.xrange.shape[0]
         Ny = self.yrange.shape[0]
         self.localXmin = self.xrange[Nx/2-self.localRadius]
         self.localXmax = self.xrange[Nx/2+self.localRadius+1]
         self.localYmin = self.yrange[Ny/2-self.localRadius]
         self.localYmax = self.yrange[Ny/2+self.localRadius+1]
-        self.sparseSum  = lil_matrix((Ny, Nx), dtype=numpy.float32)
-        self.sparseNorm = lil_matrix((Ny, Nx), dtype=numpy.float32)
-        self.localMap   = numpy.zeros((2*self.localRadius, 2*self.localRadius))
+        self.sparseSum  = lil_matrix((Ny, Nx), dtype=np.float32)
+        self.sparseNorm = lil_matrix((Ny, Nx), dtype=np.float32)
+        self.localMap   = np.zeros((2*self.localRadius, 2*self.localRadius))
 
         # Initialize overview map
-        self.overviewXrange = numpy.linspace(xmin, xmax, (xmax-xmin)/float(overviewStep))
-        self.overviewYrange = numpy.linspace(ymin, ymax, (ymax-ymin)/float(overviewStep))
+        self.overviewXrange = np.linspace(xmin, xmax, (xmax-xmin)/float(overviewStep))
+        self.overviewYrange = np.linspace(ymin, ymax, (ymax-ymin)/float(overviewStep))
         overviewNx = self.overviewXrange.shape[0]
         overviewNy = self.overviewYrange.shape[0]
-        self.overviewMap = numpy.zeros((overviewNy, overviewNx))
+        self.overviewMap = np.zeros((overviewNy, overviewNx))
 
         # Initialize plots
         self.counter    = 0
@@ -122,3 +122,63 @@ def plotMeanMap(plotid, X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, 
             ipc.new_data(plotid+' -> Local', m.localMap, msg=msg, \
                          xmin=m.localXmin, xmax=m.localXmax, ymin=m.localYmin, ymax=m.localYmax)
             ipc.new_data(plotid+' -> Overview', m.overviewMap) 
+
+
+
+correlations = {}
+xArray = []
+yArray = []
+def plotCorrelation(X, Y, history=100):
+    """Plotting the correlation of two variables X and Y over time.
+    
+    Args:
+        :X(Record): An event record
+        :Y(Record): An event record
+    Kwargs: 
+        :history(int): Buffer length
+    """
+    plotid = "Corr(%s,%s)" %(X.name, Y.name)
+    if (not plotid in correlations):
+        ipc.broadcast.init_data(plotid, history_length=100)
+        correlations[plotid] = True
+    x,y = (X.data, Y.data)
+    xArray.append(x)
+    yArray.append(y)
+    correlation = x*y/(np.mean(xArray)*np.mean(yArray))
+    ipc.new_data(plotid, correlation)
+
+heatmaps = {}
+def plotHeatmap(X, Y, xMin=0, xMax=1, xNbins=10, yMin=0, yMax=1, yNbins=10):
+    """Plotting the heatmap of two variables X and Y.
+
+    Args:
+        :X(Record): An event record
+        :Y(Record): An event record
+    Kwargs:
+        :xMin(int): default = 0
+        :xMax(int): default = 1
+        :xNbins(int): default = 10
+        :yMin(int): default = 0
+        :yMax(int): default = 1
+        :yNbins(int): default = 10
+    """
+    plotid = "Heatmap(%s,%s)" %(X.name, Y.name)
+    if not(plotid in heatmaps):        
+        # initiate (y, x) in 2D array to get correct orientation of image
+        heatmaps[plotid] = np.zeros((yNbins, xNbins), dtype=int)
+        ipc.broadcast.init_data(plotid, data_type="image")
+    deltaX = (xMax - float(xMin))/xNbins
+    deltaY = (yMax - float(yMin))/yNbins
+    nx = np.ceil((X.data - xMin)/deltaX)
+    if (nx < 0):
+        nx = 0
+    elif (nx >= xNbins):
+        nx = xNbins - 1
+    ny = np.ceil((Y.data - yMin)/deltaY)
+    if (ny < 0):
+        ny = 0
+    elif (ny >= yNbins):
+        ny = yNbins - 1
+    # assign y to row and x to col in 2D array
+    heatmaps[plotid][ny, nx] += 1
+    ipc.new_data(plotid, heatmaps[plotid])

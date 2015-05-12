@@ -1,5 +1,8 @@
 import analysis.event
 import analysis.hitfinding
+import plotting.image
+import plotting.line
+import plotting.correlation
 import ipc
 import random
 from backend import ureg
@@ -44,21 +47,32 @@ correlationNbinsY = 10
 
 
 def onEvent(evt):
+    # Look at available sources
     analysis.event.printKeys(evt)
-    print evt['photonPixelDetectors'].keys()
-    ipc.new_data('CCD', evt['photonPixelDetectors']['CCD'].data)
-    ipc.new_data('PulseEnergy1', evt['pulseEnergies']['pulseEnergy1'].data)
-    hit, hitscore = analysis.hitfinding.countLitPixels(evt['photonPixelDetectors']['CCD'], aduThreshold, hitscoreMinCount)
-    ipc.new_data("Hitscore", hitscore.data)
-    hitCounter = numpy.array(analysis.hitfinding.counting(hit))
-    print "%d lit pixels (%d accumulated hits)" % (hitscore.data, hitCounter.sum())
+    analysis.event.printKeys(evt['photonPixelDetectors'])
+
+    # Plot CCD/PulseEnergy
+    plotting.image.plotImage(evt['photonPixelDetectors']['CCD'], vmin=0.9, vmax=1)
+    plotting.line.plotHistory(evt['pulseEnergies']['pulseEnergy1'])
+    
+    # Hitfinding
+    hit, evt["hitscore"] = analysis.hitfinding.countLitPixels(evt['photonPixelDetectors']['CCD'], aduThreshold, hitscoreMinCount)
+    
+    # Plot Hitscore
+    plotting.line.plotHistory(evt["hitscore"])
+
+    # Count Hits and Blanks
+    evt["nrHits"], evt["nrBlanks"] = analysis.hitfinding.countHits(hit)
+    print "%d lit pixels (%d accumulated hits)" % (evt["hitscore"].data, evt["nrHits"].data)
+
     # correlation normalizes by the mean of the accumulated x/y-arrays, if x or y are zero for the first events you may receive:
     #    RuntimeWarning: invalid value encountered in double_scalars
-    correlation = numpy.array(analysis.hitfinding.correlate(evt['pulseEnergies']['pulseEnergy1'].data, hitscore.data))
-    ipc.new_data('Correlation', correlation[-1])
+    plotting.correlation.plotCorrelation(evt['pulseEnergies']['pulseEnergy1'], evt["hitscore"])
+    
     # correlate2D takes arguments x, y in 2D image, and optional arguments for xMin, xMax, xNbins, yMin, yMax, yNbins
     # correlationMinX, correlationMaxX, and correlationNbinsX are equal to default values of xMin, xMax, and xNbins
     #    => only need to set yMin, yMax, yNbins
-    correlation2D = analysis.hitfinding.correlate2D(evt['pulseEnergies']['pulseEnergy1'].data, hitscore.data, yMin=correlationMinY, yMax=correlationMaxY, yNbins=correlationNbinsY)
-    ipc.new_data("Correlation2D", correlation2D, xlabel='pulseEnergy1 bins', ylabel='Lit pixel bins')
+    plotting.correlation.plotHeatmap(evt['pulseEnergies']['pulseEnergy1'], evt["hitscore"], yMin=correlationMinY, yMax=correlationMaxY, yNbins=correlationNbinsY)
+
+    # Processing rate
     analysis.event.printProcessingRate()

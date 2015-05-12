@@ -14,9 +14,9 @@ def plotHistory(record, history=100):
         :history(int):   Length of history buffer
     """
     if (not record.name in histories):
-        ipc.broadcast.init_data(record.name, data_type='vector', history_length=history)
+        ipc.broadcast.init_data(record.name, history_length=history)
         histories[record.name] = True
-    ipc.new_data(plot_id, record.data)
+    ipc.new_data(record.name, record.data)
 
 histograms = {}
 def plotHistogram(record, hmin=0, hmax=100, bins=100, history=100):
