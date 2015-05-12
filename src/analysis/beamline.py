@@ -4,18 +4,10 @@ import numpy as np
 from backend import  ureg
 from backend import Record
 
-def printPulseEnergy(pulseEnergies):
-    for k,v in pulseEnergies.iteritems():
-        print "%s = %s" % (k, (v.data*v.unit))
-
-def printPhotonEnergy(photonEnergies):
-    for k,v in photonEnergies.iteritems():
-        print "%s = %s" % (k, v.data*v.unit)
-
 def averagePulseEnergy(pulseEnergies):
-    """returns the average pulse energy    
+    """Returns the average pulse energy    
     Args:
-        :pulseEnergies(dict(Record)): A dictionary of pulse energies
+        :pulseEnergies(dict(Record)): A dictionary of pulseEnergy records.
     Returns:
         Record average
     """
@@ -27,3 +19,19 @@ def averagePulseEnergy(pulseEnergies):
         return
     else:
         return Record("averagePulseEnergy", np.mean(pulseEnergy), ureg.mJ)
+
+def printPulseEnergy(pulseEnergies):
+    """Prints pulse energies to screen
+    Args:
+        :pulseEnergies(dict(Record)): A dictionary of pulseEnergy records.
+    """
+    for k,v in pulseEnergies.iteritems():
+        print "%s = %s" % (k, (v.data*v.unit))
+
+def printPhotonEnergy(photonEnergies):
+    """Prints photon energues to screen
+    Args:
+        :photonEnergies(dict(Record)): A dictionary of photonEnergy records.
+    """
+    for k,v in photonEnergies.iteritems():
+        print "%s = %s" % (k, v.data*v.unit)

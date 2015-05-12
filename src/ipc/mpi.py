@@ -83,32 +83,32 @@ def send_reduce(title, cmd, data_y, data_x, **kwds):
 def sum(array):
     """Element-wise sum of a numpy array across all the slave processes.
     The result is only available in the main_slave (rank 1)."""
-    _reduce(array, MPI.SUM)
+    _reduce(array, "SUM")
 
 def max(array):
     """Element-wise max of a numpy array across all the slave processes.
     The result is only available in the main_slave (rank 1)."""
-    _reduce(array, MPI.MAX)
+    _reduce(array, "MAX")
 
 def min(array):
     """Element-wise max of a numpy array across all the slave processes.
     The result is only available in the main_slave (rank 1)."""
-    _reduce(array, MPI.MIN)
+    _reduce(array, "MPI.MIN")
 
 def prod(array):
     """Element-wise product of a numpy array across all the slave processes.
     The result is only available in the main_slave (rank 1)."""
-    _reduce(array, MPI.PROD)
+    _reduce(array, "MPI.PROD")
 
 def logical_or(array):
     """Element-wise logical OR of a numpy array across all the slave processes.
     The result is only available in the main_slave (rank 1)."""
-    _reduce(array, MPI.LOR)
+    _reduce(array, "MPI.LOR")
 
 def logical_and(array):
     """Element-wise logical AND of a numpy array across all the slave processes.
     The result is only available in the main_worker()."""
-    _reduce(array, MPI.LAND)
+    _reduce(array, "MPI.LAND")
 
 def _reduce(array, op):
     """Reduce a numpy array with the given MPI op across all the slave processes"""
@@ -116,6 +116,6 @@ def _reduce(array, op):
         raise TypeError("argument must be a numpy ndarray")
     if(slaves_comm):
         if(is_main_slave()):
-            slaves_comm.Reduce(MPI.IN_PLACE, array, op=op)
+            slaves_comm.Reduce(MPI.IN_PLACE, array, op=getattr(MPI,op))
         else:
             slaves_comm.Reduce(array,  None, op=op)

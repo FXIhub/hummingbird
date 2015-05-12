@@ -3,6 +3,7 @@ import analysis.event
 import analysis.beamline
 import analysis.background
 import analysis.pixel_detector
+import plotting.image
 import ipc
 import numpy
 from backend import ureg
@@ -34,5 +35,6 @@ state = {
 
 def onEvent(evt):
     ipc.broadcast.init_data('CCD', xmin=10,ymin=10)
-    analysis.pixel_detector.plotImages(evt['photonPixelDetectors'])
-    analysis.event.printProcessingRate(evt)
+    for k,v in evt['photonPixelDetectors'].iteritems():
+        plotting.image.plotImage(v)
+    analysis.event.printProcessingRate()
