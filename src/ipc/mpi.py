@@ -118,4 +118,4 @@ def _reduce(array, op):
         if(is_main_slave()):
             slaves_comm.Reduce(MPI.IN_PLACE, array, op=getattr(MPI,op))
         else:
-            slaves_comm.Reduce(array,  None, op=op)
+            slaves_comm.Reduce(array,  None, op=getattr(MPI,op))
