@@ -56,23 +56,23 @@ def onEvent(evt):
     plotting.line.plotHistory(evt['pulseEnergies']['pulseEnergy1'])
     
     # Hitfinding
-    hit, evt["hitscore"] = analysis.hitfinding.countLitPixels(evt['photonPixelDetectors']['CCD'], aduThreshold, hitscoreMinCount)
+    analysis.hitfinding.countLitPixels(evt, evt['photonPixelDetectors']['CCD'], aduThreshold, hitscoreMinCount)
     
     # Plot Hitscore
-    plotting.line.plotHistory(evt["hitscore"])
+    plotting.line.plotHistory(evt["hitscore - CCD"])
 
     # Count Hits and Blanks
-    evt["nrHits"], evt["nrBlanks"] = analysis.hitfinding.countHits(hit)
-    print "%d lit pixels (%d accumulated hits)" % (evt["hitscore"].data, evt["nrHits"].data)
+    analysis.hitfinding.countHits(evt, evt["isHit"])
+    print "%d lit pixels (%d accumulated hits)" % (evt["hitscore - CCD"].data, evt["nrHit"].data)
 
     # correlation normalizes by the mean of the accumulated x/y-arrays, if x or y are zero for the first events you may receive:
     #    RuntimeWarning: invalid value encountered in double_scalars
-    plotting.correlation.plotCorrelation(evt['pulseEnergies']['pulseEnergy1'], evt["hitscore"])
+    plotting.correlation.plotCorrelation(evt['pulseEnergies']['pulseEnergy1'], evt["hitscore - CCD"])
     
     # correlate2D takes arguments x, y in 2D image, and optional arguments for xMin, xMax, xNbins, yMin, yMax, yNbins
     # correlationMinX, correlationMaxX, and correlationNbinsX are equal to default values of xMin, xMax, and xNbins
     #    => only need to set yMin, yMax, yNbins
-    plotting.correlation.plotHeatmap(evt['pulseEnergies']['pulseEnergy1'], evt["hitscore"], ymin=correlationMinY, ymax=correlationMaxY, ybins=correlationNbinsY)
+    plotting.correlation.plotHeatmap(evt['pulseEnergies']['pulseEnergy1'], evt["hitscore - CCD"], ymin=correlationMinY, ymax=correlationMaxY, ybins=correlationNbinsY)
 
     # Processing rate
     analysis.event.printProcessingRate()

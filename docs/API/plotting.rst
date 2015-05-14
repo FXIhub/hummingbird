@@ -18,7 +18,7 @@ plotting.image module
     :show-inheritance:
 
 plotting.correlation module
---------------------
+---------------------------
 
 .. automodule:: plotting.correlation
     :members:

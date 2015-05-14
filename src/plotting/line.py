@@ -4,27 +4,27 @@ import ipc
 
 
 histories = {}
-def plotHistory(record, history=100):
-    """Plotting history of record.data 
+def plotHistory(param, history=100):
+    """Plotting history of a parameter.
 
     Args:
-        :record(Record): Record to be added to history and plotted
+        :param(Record):  The history is based on param.data
 
     Kwargs:
         :history(int):   Length of history buffer
     """
-    plotid = "History(%s)" %record.name
-    if (not record.name in histories):
+    plotid = "History(%s)" %param.name
+    if (not param.name in histories):
         ipc.broadcast.init_data(plotid, history_length=history)
-        histories[record.name] = True
-    ipc.new_data(plotid, record.data)
+        histories[param.name] = True
+    ipc.new_data(plotid, param.data)
 
 histograms = {}
-def plotHistogram(record, hmin=None, hmax=None, bins=100, history=100):
-    """Plotting a histogram of record.data.flat
+def plotHistogram(param, hmin=None, hmax=None, bins=100, history=100):
+    """Plotting a histogram.
     
     Args:
-        :record(Record):   Record to be histogrammed.
+        :param(Record):   The histogram is based on param.data.flat
 
     Kwargs:
         :hmin(float):  Minimum, default = record.data.min()
@@ -32,13 +32,13 @@ def plotHistogram(record, hmin=None, hmax=None, bins=100, history=100):
         :bins(int):    Nr. of bins, default = 100
         :history(int): Length of history buffer
     """
-    plotid = "Histogram(%s)" %record.name
-    if(not record.name in histograms):
+    plotid = "Histogram(%s)" %param.name
+    if(not param.name in histograms):
         ipc.broadcast.init_data(plotid, data_type='vector', history_length=history)
-        histograms[record.name] = True
-    if hmin is None: hmin = record.data.min()
-    if hmax is None: hmax = record.data.max()
-    H,B = np.histogram(record.data.flat, range=(hmin, hmax), bins=bins)
+        histograms[param.name] = True
+    if hmin is None: hmin = param.data.min()
+    if hmax is None: hmax = param.data.max()
+    H,B = np.histogram(param.data.flat, range=(hmin, hmax), bins=bins)
     ipc.new_data(plotid, H, xmin=B.min(), xmax=B.max())
 
 

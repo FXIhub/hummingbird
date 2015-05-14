@@ -12,34 +12,27 @@ def printStatistics(detectors):
                                                                 min(v), max(v),
                                                                 std(v))
 
-def getCentral4Asics(detector):
-    """Returns the 4 centermost asics of the CsPAD detector as a one-dimensionsal stack.
-
-    Args:
-        :cspad(Record): A detector record
-    Returns:
-        Record central4Asics
-    """
+def getCentral4Asics(evt, detector):
+    """Takes a detector ``Record`` of a CsPAD an adds a one-dimensional stack of its 4 centermost asics
+    to ``evt["central4Asics"]``."""
     central = []
     for i in range(4):
         central.append(detector.data[i*8+1,:,:194])
-    return Record("central4Asics", np.hstack(central), detector.unit)
+    evt["central4Asics"] = Record("central4Asics", np.hstack(central), detector.unit)
     
 nrPhotons = {}    
-def totalNrPhotons(detector, aduPhoton=1, aduThreshold=0):
-    """Return an estimate for the total nr. of photons on the detector
+def totalNrPhotons(evt, detector, aduPhoton=1, aduThreshold=0):
+    """Estimates the total nr. of photons on the detector and adds it to ``evt["nrPhotons - " + detector.name]``.
 
     Args:
-        :detector(Record): A detector record
+        :detector(Record):  Photons are counted based on detector.data.flat
     Kwargs:
         :aduPhoton(int):    ADU count per photon, default = 1
         :aduThreshold(int): only pixels above this threshold are valid, default = 0
-    Returns:
-        Record. Estimated nr. of photons
     """
     data  = detector.data.flat
     valid = data > aduThreshold
-    return Record("nrPhotons - " + detector.name , sum(data[valid]) / float(aduPhoton))
+    evt["nrPhotons - " + detector.name] = Record("nrPhotons - " + detector.name , sum(data[valid]) / float(aduPhoton))
 
 """
 import numpy

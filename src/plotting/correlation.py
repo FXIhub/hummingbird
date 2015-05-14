@@ -82,15 +82,14 @@ class _MeanMap:
 # Public Plotting functions - Put new plotting functions here!
 # ------------------------------------------------------------
 meanMaps = {}
-def plotMeanMap(plotid, X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, ymax=100, step=10, \
+def plotMeanMap(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, ymax=100, step=10, \
                 localRadius=100, overviewStep=100, xlabel=None, ylabel=None):
-    """Plotting the mean of quantity Z.data as a function of quantities X.data and Y.data (a 2D mean map).
+    """Plotting the mean of parameter Z as a function of parameters X and Y.
 
     Args:
-       :plotid (str): A unique ID, the plot will appear with this ID in the frontend.
-       :X (Record):   An event parameter e.g. Motor position in X
-       :Y (Record):   An event parameter e.g. Motor position in Y
-       :Z (Record):   An event parameter e.g. Intensity
+       :X(Record):     An event parameter e.g. Motor position in X
+       :Y(Record):     An event parameter e.g. Motor position in Y
+       :Z(Record):     An event parameter e.g. Intensity
 
     Kwargs:
         :norm(int):    Z is normalized by a given value, e.g. gmd (default = 1)
@@ -106,6 +105,7 @@ def plotMeanMap(plotid, X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, 
         :localRadius (int):  The radius of a square neighborehood around the current position (X.data, Y.data) (default = 100)
         :overviewStep (int): The resolution of the overiew map (default = 100)
     """
+    plotid = "%s(%s,%s)" %(Z.name, X.name, Y.name)
     if (not plotid in meanMaps):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
@@ -129,11 +129,11 @@ correlations = {}
 xArray = []
 yArray = []
 def plotCorrelation(X, Y, history=100):
-    """Plotting the correlation of two variables X and Y over time.
+    """Plotting the correlation of two parameters X and Y over time.
     
     Args:
-        :X(Record): An event record
-        :Y(Record): An event record
+        :X(Record): An event parameter, e.g. hit rate
+        :Y(Record): An event parameter, e.g. some motor position
     Kwargs: 
         :history(int): Buffer length
     """
@@ -149,18 +149,18 @@ def plotCorrelation(X, Y, history=100):
 
 heatmaps = {}
 def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
-    """Plotting the heatmap of two variables X and Y.
+    """Plotting the heatmap of two parameters X and Y.
 
     Args:
-        :X(Record): An event record
-        :Y(Record): An event record
+        :X(Record): An event parameter, e.g. hit rate
+        :Y(Record): An event parameter, e.g. some motor position
     Kwargs:
-        :xMin(int): default = 0
-        :xMax(int): default = 1
-        :xNbins(int): default = 10
-        :yMin(int): default = 0
-        :yMax(int): default = 1
-        :yNbins(int): default = 10
+        :xmin(int):  default = 0
+        :xmax(int):  default = 1
+        :xbins(int): default = 10
+        :ymin(int):  default = 0
+        :ymax(int):  default = 1
+        :ybins(int): default = 10
     """
     plotid = "Heatmap(%s,%s)" %(X.name, Y.name)
     if not(plotid in heatmaps):        

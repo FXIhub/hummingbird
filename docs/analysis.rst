@@ -1,7 +1,8 @@
 Contributing Algorithms
 =======================
 
-You can find all the analysis algorithms inside the ``src/analysis`` directory.
+You can find all the analysis algorithms inside the ``src/analysis`` directory and
+plotting functions inside the ``src/plotting`` directory.
 
 To add your own analysis algorithm to Hummingbird first check if there is
 already an algorithm that already does, or could be easily extended to do what
@@ -11,12 +12,13 @@ In many cases you will have to start from scratch though. Start by choosing to
 what module you should add your algorithm (e.g. ``event.py``), or create a new
 module if you think it does not fit in any existing one.
 
-Most algorithms take as argument a dictionary of ``Records``
+Most algorithms take as argument a ``Record`` (e.g. ``evt['pixel_detectors']['CCD']``) or a dictionary of ``Records``
 (e.g. ``evt['pulseEnergies']``), although many also take the entire event
 variable. You are free to choose, as long as you document it. 
 
 If you want to keep some result from your algorithm to be used by subsequent
-algorithms just assign it to a new key of the event variable.
+algorithms just return as a ``Record`` object and assign it to a new key of the
+event variable in the conf file (e.g. ``examples/dummy/conf.py``)
 
 .. note::
 

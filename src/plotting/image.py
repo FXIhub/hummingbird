@@ -4,10 +4,10 @@ import ipc
 
 images = {}
 def plotImage(record, history=10, vmin=None, vmax=None):
-    """Plotting record.data as an image
+    """Plotting an image.
 
     Args:
-        :record(Record): Record to be plotted as an image
+        :record(Record): record.data is plotted as an image
 
     Kwargs:
         :history(int):  Length of history buffer
