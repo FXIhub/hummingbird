@@ -37,10 +37,6 @@ You can run Hummingbird in either interface (`-i`) or backend (`-b`) mode.
 When running in interface mode the program will wait for connections from
 backends and display any data that the backends send to it. 
 
-.. note::
-   
-   The interface has not yet been implemented.
-
 When running in backend mode the program will read and analyse data according
 to the provided configuration file.
 
