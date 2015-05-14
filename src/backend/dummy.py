@@ -35,7 +35,10 @@ class DummyTranslator(object):
             evt['CCD'] = numpy.random.rand((128, 128))
             self.keys.add('photonPixelDetectors')
             return EventTranslator(evt, self)
-            
+
+        if('Dummy' in self.state and 'Simulation' in self.state['Dummy']):
+            self.state['Dummy']['Simulation'].next_event()
+        
         for ds in self.state['Dummy']['Data Sources']:
             evt[ds] = self.state['Dummy']['Data Sources'][ds]['data']()
             self.keys.add(self.state['Dummy']['Data Sources'][ds]['type'])

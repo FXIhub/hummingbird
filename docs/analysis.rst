@@ -1,7 +1,7 @@
 Contributing Algorithms
 =======================
 
-You can find all the analysis algorithms inside the ``src/analysis`` directory and
+You can find all the analysis algorithms inside the ``src/analysis`` directory and all
 plotting functions inside the ``src/plotting`` directory.
 
 To add your own analysis algorithm to Hummingbird first check if there is
