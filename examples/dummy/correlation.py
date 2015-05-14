@@ -72,7 +72,7 @@ def onEvent(evt):
     # correlate2D takes arguments x, y in 2D image, and optional arguments for xMin, xMax, xNbins, yMin, yMax, yNbins
     # correlationMinX, correlationMaxX, and correlationNbinsX are equal to default values of xMin, xMax, and xNbins
     #    => only need to set yMin, yMax, yNbins
-    plotting.correlation.plotHeatmap(evt['pulseEnergies']['pulseEnergy1'], evt["hitscore"], yMin=correlationMinY, yMax=correlationMaxY, yNbins=correlationNbinsY)
+    plotting.correlation.plotHeatmap(evt['pulseEnergies']['pulseEnergy1'], evt["hitscore"], ymin=correlationMinY, ymax=correlationMaxY, ybins=correlationNbinsY)
 
     # Processing rate
     analysis.event.printProcessingRate()

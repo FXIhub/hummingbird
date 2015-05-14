@@ -148,7 +148,7 @@ def plotCorrelation(X, Y, history=100):
     ipc.new_data(plotid, correlation)
 
 heatmaps = {}
-def plotHeatmap(X, Y, xMin=0, xMax=1, xNbins=10, yMin=0, yMax=1, yNbins=10):
+def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
     """Plotting the heatmap of two variables X and Y.
 
     Args:
@@ -165,20 +165,20 @@ def plotHeatmap(X, Y, xMin=0, xMax=1, xNbins=10, yMin=0, yMax=1, yNbins=10):
     plotid = "Heatmap(%s,%s)" %(X.name, Y.name)
     if not(plotid in heatmaps):        
         # initiate (y, x) in 2D array to get correct orientation of image
-        heatmaps[plotid] = np.zeros((yNbins, xNbins), dtype=int)
+        heatmaps[plotid] = np.zeros((ybins, xbins), dtype=int)
         ipc.broadcast.init_data(plotid, data_type="image")
-    deltaX = (xMax - float(xMin))/xNbins
-    deltaY = (yMax - float(yMin))/yNbins
-    nx = np.ceil((X.data - xMin)/deltaX)
+    deltaX = (xmax - float(xmin))/xbins
+    deltaY = (ymax - float(ymin))/ybins
+    nx = np.ceil((X.data - xmin)/deltaX)
     if (nx < 0):
         nx = 0
-    elif (nx >= xNbins):
-        nx = xNbins - 1
-    ny = np.ceil((Y.data - yMin)/deltaY)
+    elif (nx >= xbins):
+        nx = xbins - 1
+    ny = np.ceil((Y.data - ymin)/deltaY)
     if (ny < 0):
         ny = 0
-    elif (ny >= yNbins):
-        ny = yNbins - 1
+    elif (ny >= ybins):
+        ny = ybins - 1
     # assign y to row and x to col in 2D array
     heatmaps[plotid][ny, nx] += 1
     ipc.new_data(plotid, heatmaps[plotid])
