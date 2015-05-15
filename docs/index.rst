@@ -97,6 +97,7 @@ BitBucket.
    requirements
    getting_started
    configuration
+   tutorials
    analysis
    Architecture <architecture>
    API/modules

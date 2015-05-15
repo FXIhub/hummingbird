@@ -67,7 +67,7 @@ class DummyTranslator(object):
         
         for ds in self.state['Dummy']['Data Sources']:
             if self.state['Dummy']['Data Sources'][ds]['type'] == key:
-                add_record(values, ds, evt[ds], self.state['Dummy']['Data Sources'][ds]['unit'])
+                add_record(values, ds, evt[ds], getattr(ureg, self.state['Dummy']['Data Sources'][ds]['unit']))
         if(values == {}):
             raise RuntimeError('%s not found in event' % (key))
         return values
