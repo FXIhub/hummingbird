@@ -34,8 +34,24 @@ available options of Hummingbird:
 
 You can run Hummingbird in either interface (`-i`) or backend (`-b`) mode.
 
-When running in interface mode the program will wait for connections from
-backends and display any data that the backends send to it. 
+Frontend
+********
+
+When running in interface mode the GUI program will be launched:
+
+.. image:: images/frontend_nosources.jpg
+   :scale: 100 %
+   :align: center
+
+After adding a backend (upper left button) the program is waiting for connections from
+backends and can display any data that the backends send to it:
+
+.. image:: images/frontend_sources.jpg
+   :scale: 100 %
+   :align: center
+
+Backend
+*******
 
 When running in backend mode the program will read and analyse data according
 to the provided configuration file.

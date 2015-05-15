@@ -19,5 +19,6 @@ Software Dependencies
 * Numpy
 * Scipy
 * Pyzmq
+* pexpect
 
 If you have installed all the necessary requirements, it's time to get started.
