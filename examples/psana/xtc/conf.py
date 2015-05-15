@@ -4,9 +4,9 @@ import analysis.pixel_detector
    
 state = {
     'Facility': 'LCLS',
-    'LCLS/DataSource': '/data/rawdata/cxic9714/xtc/e419-r0203-s00-c00.xtc'
+    'LCLS/DataSource': '/data/rawdata/LCLS/cxi/cxic9714/xtc/e419-r0203-s01-c00.xtc'
 }
-   
+
 def onEvent(evt):
     analysis.beamline.printPulseEnergy(evt['pulseEnergies'])
     analysis.beamline.printPhotonEnergy(evt['photonEnergies'])

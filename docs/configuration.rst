@@ -20,7 +20,7 @@ about a run stored in an XTC file:
    
    state = {
        'Facility': 'LCLS',
-       'LCLS/DataSource': '/data/rawdata/LCLS/cxi/cxic9714/xtc/e419-r0203-s00-c00.xtc'
+       'LCLS/DataSource': '/data/rawdata/LCLS/cxi/cxic9714/xtc/e419-r0203-s01-c00.xtc'
    }
    
    def onEvent(evt):
@@ -30,7 +30,7 @@ about a run stored in an XTC file:
        analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
        analysis.pixel_detector.printStatistics(evt['ionTOFs'])
        analysis.event.printID(evt['eventID'])
-       analysis.event.printProcessingRate(evt)
+       analysis.event.printProcessingRate()
 
 One can divide in three sections. In the first one the necessary analysis
 modules are imported:
@@ -42,7 +42,7 @@ modules are imported:
    import analysis.pixel_detector
 
 In this case three modules are imported. You can find what modules are available
-by peeking into the ``src/analysis`` directory or by browsing the 
+by peeking into the ``src/analysis`` and ``src/plotting`` directory or by browsing the 
 :doc:`API documentation <API/modules>`.
 
 
@@ -53,7 +53,7 @@ In the second section of the configuration file the global options for the progr
 
    state = {
        'Facility': 'LCLS',
-       'LCLS/DataSource': '/data/rawdata/LCLS/cxi/cxic9714/xtc/e419-r0203-s00-c00.xtc'
+       'LCLS/DataSource': '/data/rawdata/LCLS/cxi/cxic9714/xtc/e419-r0203-s01-c00.xtc'
    }
 
 The global options must always called ``state``. In this particular example
@@ -75,7 +75,7 @@ run on each of the events are defined:
        analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
        analysis.pixel_detector.printStatistics(evt['ionTOFs'])
        analysis.event.printID(evt['eventID'])
-       analysis.event.printProcessingRate(evt)
+       analysis.event.printProcessingRate()
 
 The list of algorithms to run must always be defined inside the ``onEvent``
 function, which must take exactly one argument, named ``evt`` in this case. 
@@ -97,4 +97,4 @@ new key. That way future analysis can use the output of previous ones.
 
 For a list of available analysis algorithms please check the relevant :doc:`API documentation <API/analysis>`.
 
-You can find more example configurations inside the directories in ``examples``.
+This examples is ``examples/psana/xtc/conf.py``. You can find more example configurations inside the directories in ``examples`` and explained in :doc:`Examples <examples>`.
