@@ -3,6 +3,9 @@ import datetime
 import ipc
 import numpy as np
 
+from backend import Record
+from backend import EventTranslator
+
 processingTimes = collections.deque([], 100)
 def printProcessingRate():
     """Prints processing rate to screen"""
@@ -14,12 +17,17 @@ def printProcessingRate():
     
     ipc.mpi.sum(proc_rate)
     if(ipc.mpi.is_main_worker()):
-        print 'Processing Rate', proc_rate[()]
+        print 'Processing Rate %.2f Hz' %proc_rate[()]
 
         
-def printKeys(evt):
+def printKeys(evt, _type=None):
     """prints available keys of Hummingbird event"""
-    print evt.keys()    
+    if isinstance(evt, EventTranslator) and _type is None:
+        print "The event has the following keys: ", evt.keys()
+    elif isinstance(evt, EventTranslator) and _type:
+        print "The event dict ''%s'' has the following keys: " %(_type), evt[_type].keys()
+    else:
+        print evt.keys()    
 
 def printNativeKeys(evt):
     """prints available keys of Native event"""

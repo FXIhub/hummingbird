@@ -5,7 +5,6 @@ import analysis.background
 import analysis.pixel_detector
 import ipc
 import random
-from backend import ureg
 import numpy
 
 state = {
@@ -16,22 +15,22 @@ state = {
         'Data Sources': {
             'CCD': {
                 'data': lambda: numpy.random.rand(256,128),
-                'unit': ureg.ADU,     
+                'unit': 'ADU',     
                 'type': 'photonPixelDetectors'
             },
             'CCD1': {
                 'data': lambda: numpy.random.rand(64,64),
-                'unit': ureg.ADU,     
+                'unit': 'ADU',     
                 'type': 'photonPixelDetectors'
             },
             'tof': {
                 'data': lambda: numpy.random.rand(256),
-                'unit': ureg.mJ,
+                'unit': 'mJ',
                 'type': 'ionTOFs'
             },
             'pulseEnergy1': {
                 'data': lambda: random.random(),
-                'unit': ureg.mJ,
+                'unit': 'mJ',
                 'type': 'pulseEnergies'
             }
         }        
@@ -40,4 +39,4 @@ state = {
 
 
 def onEvent(evt):
-    analysis.event.printProcessingRate(evt)
+    analysis.event.printProcessingRate()

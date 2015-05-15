@@ -11,6 +11,6 @@ def onEvent(evt):
     analysis.event.printNativeKeys(evt)
     analysis.beamline.printPulseEnergy(evt['pulseEnergies'])
     analysis.beamline.printPhotonEnergy(evt['photonEnergies'])
-    analysis.event.printProcessingRate(evt)
+    analysis.event.printProcessingRate()
 
 

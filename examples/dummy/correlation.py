@@ -5,7 +5,6 @@ import plotting.line
 import plotting.correlation
 import ipc
 import random
-from backend import ureg
 import numpy
 
 state = {
@@ -15,12 +14,12 @@ state = {
         'Data Sources': {
             'CCD': {
                 'data': lambda: numpy.random.rand(256,128),
-                'unit': ureg.ADU,     
+                'unit': 'ADU',     
                 'type': 'photonPixelDetectors'
             },
             'pulseEnergy1': {
                 'data': lambda: random.random(),
-                'unit': ureg.mJ,
+                'unit': 'mJ',
                 'type': 'pulseEnergies'
             }
         }        

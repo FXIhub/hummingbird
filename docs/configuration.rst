@@ -63,9 +63,6 @@ The following line defines where data is read from. It accepts any format that
 ``exp=XCS/xcstut13:run=15``, or a shared memory string like
 ``shmem=0_21_psana_AMO.0:stop=no``.
 
-The behaviour of certain analysis algorithms may also depend on ``state``
-variable. Please see the documentation of individual algorithms for details.
-
 In the third and final section of the configuration file the algorithms that are
 run on each of the events are defined:
 

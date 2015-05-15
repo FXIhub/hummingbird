@@ -14,4 +14,4 @@ def onEvent(evt):
     analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.pixel_detector.printStatistics(evt['ionTOFs'])
     analysis.event.printID(evt['eventID'])
-    analysis.event.printProcessingRate(evt)
+    analysis.event.printProcessingRate()

@@ -15,7 +15,7 @@ state = {
     'Facility': 'Dummy',
 
     'Dummy': {
-        'Repetition Rate' : 1,
+        'Repetition Rate' : 120,
         'Simulation': sim,
         'Data Sources': {
             'CCD': {
@@ -32,14 +32,22 @@ state = {
                 'data': sim.get_position_x,
                 'unit': 'm',
                 'type': 'parameters'
+            },
+            'inj_y': {
+                'data': sim.get_position_y,
+                'unit': 'm',
+                'type': 'parameters'
+            },
+            'inj_z': {
+                'data': sim.get_position_z,
+                'unit': 'm',
+                'type': 'parameters'
             }
         }        
     }
 }
 
 def onEvent(evt):
-    plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
-    plotting.line.plotHistory(evt["parameters"]["inj_x"])
-    plotting.line.plotHistory(evt["pulseEnergies"]["pulseEnergy"])
     analysis.event.printProcessingRate()
     analysis.event.printKeys(evt)
+    analysis.event.printKeys(evt, "parameters")
