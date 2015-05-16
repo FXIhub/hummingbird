@@ -21,14 +21,14 @@ def getCentral4Asics(evt, detector):
     evt["central4Asics"] = Record("central4Asics", np.hstack(central), detector.unit)
     
 nrPhotons = {}    
-def totalNrPhotons(evt, detector, aduPhoton=1, aduThreshold=0):
+def totalNrPhotons(evt, detector, aduPhoton=1, aduThreshold=0.5):
     """Estimates the total nr. of photons on the detector and adds it to ``evt["nrPhotons - " + detector.name]``.
 
     Args:
         :detector(Record):  Photons are counted based on detector.data.flat
     Kwargs:
         :aduPhoton(int):    ADU count per photon, default = 1
-        :aduThreshold(int): only pixels above this threshold are valid, default = 0
+        :aduThreshold(int): only pixels above this threshold given in units of ADUs are valid, default = 0.5
     """
     data  = detector.data.flat
     valid = data > aduThreshold

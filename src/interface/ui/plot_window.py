@@ -111,6 +111,15 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self.y_label = conf['ylabel']
             self.plot.setLabel('left', self.y_label)
 
+    def _configure_xlimits(self, source, title):
+        conf = source.conf[title]
+        xmin = 0
+        xmax = source.plotdata[title].y.shape[-1] + xmin
+        if 'xmin' in conf and 'xmax' in conf:
+            xmin = conf['xmin']
+            xmax = conf['xmax']
+        return xmin, xmax
+            
     def replot(self):
         """Replot data"""
         self.plot.clear()
@@ -152,7 +161,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             x = None
             if(source.data_type[title] == 'scalar'):
                 x = numpy.array(pd.x, copy=False)
-
+            elif(source.data_type[title] == 'vector'):
+                xmin, xmax = self._configure_xlimits(source, title)
+                x = numpy.linspace(xmin,xmax, pd.y.shape[-1])
             plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
 

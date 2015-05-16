@@ -1,26 +1,19 @@
 import simulation.simple
 import analysis.event
-import analysis.beamline
-import analysis.background
-import analysis.pixel_detector
-import plotting.image
-import plotting.line
-import plotting.correlation
 
 sim = simulation.simple.Simulation("examples/simulation/virus.conf")
-sim.reprate = 120.
 sim.hitrate = 0.1
 
 state = {
     'Facility': 'Dummy',
 
     'Dummy': {
-        'Repetition Rate' : 120,
+        'Repetition Rate' : 1,
         'Simulation': sim,
         'Data Sources': {
             'CCD': {
                 'data': sim.get_pattern,
-                'unit': 'ph',
+                'unit': 'count',
                 'type': 'photonPixelDetectors'
             },
             'pulseEnergy': {

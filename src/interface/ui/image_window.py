@@ -101,7 +101,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         # array the last dimension corresponds to the x.
         scale_transform = QtGui.QTransform().scale((ymax-ymin)/pd.y.shape[-2],
                                                    (xmax-xmin)/pd.y.shape[-1])
-
         transpose_transform = QtGui.QTransform()
         if source.data_type[title] == 'image':
             transpose_transform *= QtGui.QTransform(0, 1, 0,
@@ -200,7 +199,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     # Make sure to go to the last image
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index, autoHistogramRange=auto_histogram)
-
 
             self.setWindowTitle(pd.title)
             dt = self.get_time()
