@@ -177,6 +177,18 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 msg = conf['msg']
                 self.infoLabel.setText(msg)
 
+            
+            if(self.settingsWidget.ui.ignore_source.isChecked() is False):
+                if 'vmin' in conf and conf['vmin'] is not None:
+                    cmin = self.settingsWidget.ui.colormap_min
+                    cmin.setText(str(conf['vmin']))
+                if 'vmax' in conf and conf['vmax'] is not None:
+                    cmax = self.settingsWidget.ui.colormap_max
+                    cmax.setText(str(conf['vmax']))
+                if 'vmin' in conf or 'vmax' in conf:
+                    self.set_colormap_range()
+                        
+
             self._configure_axis(source, title)
             transform = self._image_transform(source, title)
             
