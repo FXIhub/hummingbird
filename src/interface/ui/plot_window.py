@@ -164,6 +164,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             elif(source.data_type[title] == 'vector'):
                 xmin, xmax = self._configure_xlimits(source, title)
                 x = numpy.linspace(xmin,xmax, pd.y.shape[-1])
+
+            if(self._settings_diag.histogram.isChecked()):
+                y,x = numpy.histogram(y)
+                x = (x[:-1]+x[1:])/2.0
             plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
 
