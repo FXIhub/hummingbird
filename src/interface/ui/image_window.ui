@@ -506,9 +506,16 @@
     <addaction name="actionY_axis"/>
     <addaction name="actionHistogram"/>
    </widget>
+   <widget class="QMenu" name="menuSound">
+    <property name="title">
+     <string>Sound</string>
+    </property>
+    <addaction name="actionAlert"/>
+   </widget>
    <addaction name="menuData_Sources"/>
    <addaction name="menuSave"/>
    <addaction name="menuView"/>
+   <addaction name="menuSound"/>
   </widget>
   <action name="actionSaveToJPG">
    <property name="text">
@@ -557,6 +564,14 @@
    </property>
    <property name="text">
     <string>Histogram</string>
+   </property>
+  </action>
+  <action name="actionAlert">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Alert</string>
    </property>
   </action>
  </widget>
