@@ -98,18 +98,24 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         else:
             return datetime.datetime.now()
 
-    def _configure_axis(self, source, title):
+    def _configure_axis(self, source, title, hist=False):
         """Configures the x and y axis of the plot, according to the
         source/title configuration and content type"""
         conf = source.conf[title]
         if(self.actionX_axis.isChecked()):
             if 'xlabel' in conf and self.x_auto:
                 self.x_label = conf['xlabel']
-            self.plot.setLabel('bottom', self.x_label)
+            if hist:
+                self.plot.setLabel('bottom', self.y_label)
+            else:
+                self.plot.setLabel('bottom', self.x_label)
         if(self.actionY_axis.isChecked()):
             if 'ylabel' in conf and self.y_auto:
                 self.y_label = conf['ylabel']
-            self.plot.setLabel('left', self.y_label)
+            if hist:
+                self.plot.setLabel('left', 'Counts')
+            else:
+                self.plot.setLabel('left', self.y_label)
 
     def _configure_xlimits(self, source, title):
         conf = source.conf[title]
@@ -144,8 +150,6 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 symbol_pen = color
                 symbol_brush = color
 
-            self._configure_axis(source, title)
-
             if(source.data_type[title] == 'scalar'):
                 y = numpy.array(pd.y, copy=False)
                 self.last_vector_y = None
@@ -166,8 +170,17 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 x = numpy.linspace(xmin,xmax, pd.y.shape[-1])
 
             if(self._settings_diag.histogram.isChecked()):
-                y,x = numpy.histogram(y)
+                bins = int(self._settings_diag.histBins.text())
+                if (self._settings_diag.histAutorange.isChecked()):
+                    hmin, hmax = x.min(), x.max()
+                else:
+                    hmin = int(self._settings_diag.histMin.text())
+                    hmax = int(self._settings_diag.histMax.text())
+                y,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
                 x = (x[:-1]+x[1:])/2.0
+                self._configure_axis(source, title, hist=True)
+            else:
+                self._configure_axis(source, title)
             plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
 

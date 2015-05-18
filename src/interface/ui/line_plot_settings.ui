@@ -14,20 +14,6 @@
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="2">
-    <widget class="QCheckBox" name="x_auto">
-     <property name="text">
-      <string>Auto</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="2">
-    <widget class="QCheckBox" name="y_auto">
-     <property name="text">
-      <string>Auto</string>
-     </property>
-    </widget>
-   </item>
    <item row="0" column="0">
     <widget class="QLabel" name="label_2">
      <property name="text">
@@ -35,19 +21,13 @@
      </property>
     </widget>
    </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="y_label"/>
-   </item>
-   <item row="0" column="1">
+   <item row="0" column="1" colspan="6">
     <widget class="QLineEdit" name="x_label"/>
    </item>
-   <item row="5" column="1" colspan="2">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   <item row="0" column="7">
+    <widget class="QCheckBox" name="x_auto">
+     <property name="text">
+      <string>Auto</string>
      </property>
     </widget>
    </item>
@@ -58,10 +38,82 @@
      </property>
     </widget>
    </item>
-   <item row="4" column="1">
+   <item row="1" column="1" colspan="6">
+    <widget class="QLineEdit" name="y_label"/>
+   </item>
+   <item row="1" column="7">
+    <widget class="QCheckBox" name="y_auto">
+     <property name="text">
+      <string>Auto</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" colspan="4">
     <widget class="QCheckBox" name="histogram">
      <property name="text">
       <string>Histogram Data</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="5" colspan="2">
+    <widget class="QLabel" name="label_1">
+     <property name="text">
+      <string>bins:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="7">
+    <widget class="QLineEdit" name="histBins">
+     <property name="text">
+      <string>100</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>hmin:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="2">
+    <widget class="QLineEdit" name="histMin">
+     <property name="text">
+      <string>0</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="3">
+    <widget class="QLabel" name="label_4">
+     <property name="text">
+      <string>hmax:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="1" colspan="5">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="7">
+    <widget class="QCheckBox" name="histAutorange">
+     <property name="text">
+      <string>Auto</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="4" colspan="3">
+    <widget class="QLineEdit" name="histMax">
+     <property name="text">
+      <string>100</string>
      </property>
     </widget>
    </item>
