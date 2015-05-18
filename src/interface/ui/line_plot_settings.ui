@@ -78,6 +78,9 @@
    </item>
    <item row="3" column="2">
     <widget class="QLineEdit" name="histMin">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>0</string>
      </property>
@@ -112,8 +115,14 @@
    </item>
    <item row="3" column="4" colspan="3">
     <widget class="QLineEdit" name="histMax">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
      <property name="text">
       <string>100</string>
+     </property>
+     <property name="dragEnabled">
+      <bool>false</bool>
      </property>
     </widget>
    </item>

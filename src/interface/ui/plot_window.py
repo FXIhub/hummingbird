@@ -61,6 +61,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self._settings_diag.y_auto.setChecked(self.y_auto)
         self._settings_diag.x_label.setText(self.x_label)
         self._settings_diag.y_label.setText(self.y_label)
+        self._settings_diag.histAutorange.toggled.connect(self._on_histogram_autorange)
         if(self._settings_diag.exec_()):
             self.x_auto = self._settings_diag.x_auto.isChecked()
             if(self.x_auto is False):
@@ -70,6 +71,14 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self.y_label = self._settings_diag.y_label.text()
             # Show changes immediately
             self.replot()
+
+    def _on_histogram_autorange(self, checked):
+        if checked:
+            self._settings_diag.histMin.setEnabled(False)
+            self._settings_diag.histMax.setEnabled(False)
+        else:
+            self._settings_diag.histMin.setEnabled(True)
+            self._settings_diag.histMax.setEnabled(True)
 
     def get_time(self, index=None):
         """Returns the time of the given index, or the time of the last data point"""
@@ -172,7 +181,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             if(self._settings_diag.histogram.isChecked()):
                 bins = int(self._settings_diag.histBins.text())
                 if (self._settings_diag.histAutorange.isChecked()):
-                    hmin, hmax = x.min(), x.max()
+                    hmin, hmax = int(x.min()), int(x.max())
+                    self._settings_diag.histMin.setText(str(hmin))
+                    self._settings_diag.histMax.setText(str(hmax))
                 else:
                     hmin = int(self._settings_diag.histMin.text())
                     hmax = int(self._settings_diag.histMax.text())
