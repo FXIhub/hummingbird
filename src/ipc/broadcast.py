@@ -53,8 +53,10 @@ def new_data(title, data_y, data_x=None, mpi_reduce=False, **kwds):
     else:
         ipc.zmq().send(title, [ipc.uuid, 'new_data', title, data_y,
                                data_x, kwds])
-
+        
 def set_current_event(_evt):
     """Updates the current event, such that it can
     be accessed easily in analysis code"""
     ipc.broadcast.evt = _evt
+
+

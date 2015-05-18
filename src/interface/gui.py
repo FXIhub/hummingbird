@@ -196,7 +196,9 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         if(diag.exec_()):
             v = diag.outputPath.text()
             self.settings.setValue("outputPath", v)
-
+            self.alert_sound = diag.alert_sound.isChecked()
+            self.alert_msg = diag.alert_msg.isChecked()
+                
     def save_data_windows(self):
         """Save data windows state and data sources to the settings file"""
         dw_settings = []
