@@ -203,7 +203,11 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     auto_levels = True
                     auto_rage = True
                     auto_histogram = True
-                self.plot.setImage(numpy.array(pd.y, copy=False),
+                img = numpy.array(pd.y, copy=False)
+                if (self.settingsWidget.ui.show_trend.isChecked()):
+                    _trend = getattr(numpy, str(self.settingsWidget.ui.trend_options.currentText()))
+                    img = _trend(img, axis=0)
+                self.plot.setImage(img,
                                    transform=transform,
                                    autoRange=auto_range, autoLevels=auto_levels,
                                    autoHistogramRange=auto_histogram)
