@@ -41,6 +41,10 @@ state = {
 }
 
 def onEvent(evt):
+
+    # Processing rate
     analysis.event.printProcessingRate()
+
+    # Available datasets
     analysis.event.printKeys(evt)
     analysis.event.printKeys(evt, "parameters")

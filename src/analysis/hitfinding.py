@@ -1,18 +1,27 @@
 import ipc
 from backend import Record
 import numpy as np
+import collections
 
-
-counter = []
-def countHits(evt, hit):
+counter = collections.deque([])
+def countHits(evt, hit, history=100):
     """Takes a boolean (True for hit, False for miss) and adds accumulated nr. of hits to ``evt["nrHit"]`` and 
     accumulated nr. of misses to ``evt["nrMiss"]``"""
+    global counter
+    if counter.maxlen is None or (counter.maxlen is not history):
+        counter = collections.deque([], history)
     if hit: counter.append(True)
     else: counter.append(False)
-    evt["nrHit"]  = Record("nrHit",  sum(counter))
-    evt["nrMiss"] = Record("nrMiss", len(counter) - sum(counter))
+    evt["nrHit"]  = Record("nrHit",  counter.count(True))
+    evt["nrMiss"] = Record("nrMiss", counter.count(False))
 
-def countLitPixels(evt, detector, aduThreshold=20, litPixelThreshold=200):
+def hitrate(evt, hit, *kwargs):
+    """Takes a boolean (True for hit, False for miss) and adds the hit rate in % to ``evt["hitrate"]``"""
+    countHits(evt, hit, *kwargs)
+    hitrate = 100 * evt["nrHit"].data / float(evt["nrHit"].data + evt["nrMiss"].data)
+    evt["hitrate"] = Record("hitrate", hitrate, unit='%')
+
+def countLitPixels(evt, detector, aduThreshold=20, hitscoreThreshold=200):
     """A simple hitfinder. Takes a detector ``Record``, counts the number of lit pixels and
     adds a boolean to ``evt["isHit"]`` and  the hitscore to ``evt["hitscore - " + detector.name]``.
 
@@ -20,8 +29,8 @@ def countLitPixels(evt, detector, aduThreshold=20, litPixelThreshold=200):
         :detector(Record):       Hitfinding is based on detector.data
     Kwargs:
         :aduThreshold(int):      only pixels above this threshold (in ADUs) are valid, default=20
-        :litPixelThreshold(int): events with lit pixels above this threshold are hits, default=200
+        :hitscoreThreshold(int): events with hitscore (Nr. of lit pixels)  above this threshold are hits, default=200
     """
     hitscore = (detector.data > aduThreshold).sum()
-    evt["isHit"] = hitscore > litPixelThreshold
+    evt["isHit"] = hitscore > hitscoreThreshold
     evt["hitscore - " + detector.name] = Record("hitscore - " + detector.name, hitscore)

@@ -12,14 +12,15 @@ class EventTranslator(object):
         self._evt = event
         self._trans = source_translator
         self._cache = {}
-        self._keys = None
+        self._trans_keys = None
+        self._new_keys = []
         self._native_keys = None
         self._id = None
 
     def __setitem__(self, key, value):
         self._evt[key] = value
         self._cache[key] = value
-        self._keys.append(key)
+        self._new_keys.append(key)
         
     def __getitem__(self, key):
         if key not in self._cache:
@@ -28,9 +29,9 @@ class EventTranslator(object):
 
     def keys(self):
         """Returns the translated keys available"""
-        if self._keys is None:
-            self._keys = self._trans.event_keys(self._evt)
-        return self._keys
+        if self._trans_keys is None:
+            self._trans_keys.append(self._trans.event_keys(self._evt))
+        return self._trans_keys + self._new_keys
 
     def native_keys(self):
         """Returns the keys, with facility specific names, available"""

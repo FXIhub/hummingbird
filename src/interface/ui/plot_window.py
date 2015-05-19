@@ -181,12 +181,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             if(self._settings_diag.histogram.isChecked()):
                 bins = int(self._settings_diag.histBins.text())
                 if (self._settings_diag.histAutorange.isChecked()):
-                    hmin, hmax = int(y.min()), int(y.max())
-                    self._settings_diag.histMin.setText(str(hmin))
-                    self._settings_diag.histMax.setText(str(hmax))
+                    hmin, hmax = y.min(), y.max()
+                    self._settings_diag.histMin.setText("%.2f"%hmin)
+                    self._settings_diag.histMax.setText("%.2f"%hmax)
                 else:
-                    hmin = int(self._settings_diag.histMin.text())
-                    hmax = int(self._settings_diag.histMax.text())
+                    hmin = float(self._settings_diag.histMin.text())
+                    hmax = float(self._settings_diag.histMax.text())
                 y,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
                 x = (x[:-1]+x[1:])/2.0
                 self._configure_axis(source, title, hist=True)

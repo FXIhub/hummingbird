@@ -111,13 +111,9 @@ giving the following output:
 
    $ ./hummingbird -b examples/detector/conf.py
    Processing Rate 0.65 Hz
-   The event has the following keys:  ['pulseEnergies', 'photonPixelDetectors', 'parameters']
-   The event dict ''parameters'' has the following keys:  ['inj_y', 'inj_x', 'inj_z']
    CCD (count): sum=-79.434 mean=-0.000463453 min=-0.412553 max=0.506501 std=0.100154
    1/1 (1 particle)
    Processing Rate 0.65 Hz
-   The event has the following keys:  ['pulseEnergies', 'photonPixelDetectors', 'parameters']
-   The event dict ''parameters'' has the following keys:  ['inj_y', 'inj_x', 'inj_z']
    CCD (count): sum=-46.7338 mean=-0.000272666 min=-0.456227 max=0.47392 std=0.100047
    1/1 (1 particle)
 
@@ -189,6 +185,40 @@ The latest image of the buffer (50 images) is displayed on the left, the per-pix
 
 Hitfinding
 ----------
+In this example, a simple hitfinder is introduced. This makes it possible to monitor the hit rate and plot only detector images of hits. This configuration file ``examples/detector/conf.py`` is based on the previous on, in addition the hitfinding module needs to be imported:
+
+::
+
+   import analysis.hitfinding
+
+
+The hitfinder used here simply counts the number of lit pixels on the detector, it needs a threshold to stay above the ADU noise level and another threshold that is above the hitscore of the background. In order to tune this parameters, it helps to plot the hitscore and look at the histogram (see plotting below). Based on the given hit/miss counts, a hit rate is estimated. The ``history`` parameter determines how many events are considered for the calculation of the rate.
+   
+::
+
+   # Simple hitfinding (Count Nr. of lit pixels)
+   analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["CCD"], aduThreshold=0.5, hitscoreThreshold=10)
+
+   # Compute the hitrate
+   analysis.hitfinding.hitrate(evt, evt["isHit"], history=100)
+
+
+Like in the previous examples, results are plotted as history plots and images. Because of the hitfinding, the detector image needs to be only plotted for hits. Looking at the previous example, it is possible to look at trends (mean, std, min, max) of either hits, misses or both.
+    
+::
+
+   # Plot the hitscore
+   plotting.line.plotHistory(evt["hitscore - CCD"], label='Nr. of lit pixels')
+
+   # Plot the hitrate
+   plotting.line.plotHistory(evt["hitrate"], label='Hit rate [%]')
+     
+   # Plot hit images
+   if evt["isHit"]:
+       plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
+
+   
+When looking at the hit images, it is possible to jump back and forth in time using the arrow keys. This way, interesting hits can revisited if they passed by too quickly. Jumping all the way to the reight (most recent hit), enables live updating again.
 
 
 Sizing

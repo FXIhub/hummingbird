@@ -1,10 +1,11 @@
 import simulation.simple
 import analysis.event
 import analysis.pixel_detector
+import analysis.hitfinding
 import plotting.line
 import plotting.image
 
-sim = simulation.simple.Simulation("examples/detector/virus.conf")
+sim = simulation.simple.Simulation("examples/hitfinding/virus.conf")
 sim.hitrate = 0.1
 
 state = {
@@ -64,8 +65,18 @@ def onEvent(evt):
     analysis.pixel_detector.totalNrPhotons(evt, evt["photonPixelDetectors"]["CCD"])
     plotting.line.plotHistory(evt["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
 
-    # Detector histogram
-    plotting.line.plotHistogram(evt["photonPixelDetectors"]["CCD"], **histogramCCD)
- 
-    # Detector images
-    plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
+    # Simple hitfinding (Count Nr. of lit pixels)
+    analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["CCD"], aduThreshold=0.5, hitscoreThreshold=10)
+
+    # Compute the hitrate
+    analysis.hitfinding.hitrate(evt, evt["isHit"])
+    
+    # Plot the hitscore
+    plotting.line.plotHistory(evt["hitscore - CCD"], label='Nr. of lit pixels')
+
+    # Plot the hitrate
+    plotting.line.plotHistory(evt["hitrate"], label='Hit rate [%]')
+     
+    # Plot hit images
+    if evt["isHit"]:
+        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
