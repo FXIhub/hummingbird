@@ -3,18 +3,18 @@ More examples
 
 Simulation
 ----------
-For most of the following examples, simulated data provided through `Condor <http://lmb.icm.uu.se/condor/simulation>`_ is used. In order to run these examples on real data, the only thing to change really is the ``stat[Facility]`` variable and maybe some more datasource specific configurations, see the basic example in :doc:`Configuration <configuration>`.
+For most of the following examples, simulated data provided through `Condor <http://lmb.icm.uu.se/condor/simulation>`_ is used. In order to run these examples on real data, the only thing to change is the ``state[Facility]`` variable and maybe some more lightsource specific configurations. See the basic example in :doc:`Configuration <configuration>`.
 
 The speciman used for the simulation is a icosahedron-shaped virus with a diameter of 60 nm with reasonable conditions for experiments inside the 100nm chamber of the CXI beamline. The full Condor configuration file is located in ``examples/simulation/virus.conf``.
 
-Now, lets have a look at the configuration file, located in ``examples/simulation/conf.py``. First, we are importing the ``simulation`` and the ``analysis.event`` module:
+Now, lets have a look at the configuration file, located in ``examples/simulation/conf.py``. First, the modules ``simulation`` and ``analysis.event`` are imported:
 
 ::
 
    import simulation.simple
    import analysis.event
 
-We load the `Condor <http://lmb.icm.uu.se/condor/simulation>`_ configuration file and specify a hitrate of 10%:
+The `Condor <http://lmb.icm.uu.se/condor/simulation>`_ configuration file is loaded and a hitrate of 10% is specified:
 
 ::
 
