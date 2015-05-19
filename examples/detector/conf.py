@@ -2,9 +2,9 @@ import simulation.simple
 import analysis.event
 import analysis.pixel_detector
 import plotting.line
+import plotting.image
 
-
-sim = simulation.simple.Simulation("examples/simulation/virus.conf")
+sim = simulation.simple.Simulation("examples/detector/virus.conf")
 sim.hitrate = 0.1
 
 state = {
@@ -70,3 +70,6 @@ def onEvent(evt):
 
     # Detector histogram
     plotting.line.plotHistogram(evt["photonPixelDetectors"]["CCD"], **histogramCCD)
+ 
+    # Detector images
+    plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])

@@ -181,7 +181,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             if(self._settings_diag.histogram.isChecked()):
                 bins = int(self._settings_diag.histBins.text())
                 if (self._settings_diag.histAutorange.isChecked()):
-                    hmin, hmax = int(x.min()), int(x.max())
+                    hmin, hmax = int(y.min()), int(y.max())
                     self._settings_diag.histMin.setText(str(hmin))
                     self._settings_diag.histMax.setText(str(hmax))
                 else:

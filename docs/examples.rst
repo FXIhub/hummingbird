@@ -3,9 +3,9 @@ More examples
 
 Simulation
 ----------
-For most of our examples, we are using simulated data which is provided through `Condor <http://lmb.icm.uu.se/condor/simulation>`_. If you want to know how to run these examples on real data, checkout the basic example in :doc:`Configuration <configuration>`.
+For most of the following examples, simulated data provided through `Condor <http://lmb.icm.uu.se/condor/simulation>`_ is used. In order to run these examples on real data, the only thing to change really is the ``stat[Facility]`` variable and maybe some more datasource specific configurations, see the basic example in :doc:`Configuration <configuration>`.
 
-We are simulating a icosahedron-shaped virus with a diameter of 60 nm under reasonable experimental conditions at the CXI beamline. The full Condor configuration file is located in ``examples/simulation/virus.conf``.
+The speciman used for the simulation is a icosahedron-shaped virus with a diameter of 60 nm with reasonable conditions for experiments inside the 100nm chamber of the CXI beamline. The full Condor configuration file is located in ``examples/simulation/virus.conf``.
 
 Now, lets have a look at the configuration file, located in ``examples/simulation/conf.py``. First, we are importing the ``simulation`` and the ``analysis.event`` module:
 
@@ -21,7 +21,7 @@ We load the `Condor <http://lmb.icm.uu.se/condor/simulation>`_ configuration fil
    sim = simulation.simple.Simulation("examples/simulation/virus.conf")
    sim.hitrate = 0.1
 
-In the ``state`` variable, we need to provide the simulation ``sim`` and specify the datasets we want to extract:
+In the ``state`` variable, it is necessary to provide the simulation ``sim`` and specify the datasets to be extracted:
 
 ::
 
@@ -61,7 +61,7 @@ In the ``state`` variable, we need to provide the simulation ``sim`` and specify
        }
    }
 
-Inside the ``onEvent`` function we can now run algorithms on our simulated datasets and send plots to the frontend, for now we are just printing some extracted information:
+Inside the ``onEvent`` function it is possible to apply analsyis algorithms to the simulated datasets and send plots to the frontend, for now some extracted information is printed:
 
 ::
 
@@ -70,7 +70,7 @@ Inside the ``onEvent`` function we can now run algorithms on our simulated datas
        analysis.event.printKeys(evt)
        analysis.event.printKeys(evt, "parameters")
 
-Lets run our small simulation example:
+Here is the output of this small simulation example:
 
 ::
 
@@ -87,7 +87,7 @@ Lets run our small simulation example:
 
 Detector characteristics
 ------------------------
-In this example we are plotting some detector-specific characteristics (histograms, averages, ... ). The configuration file ``examples/detector/conf.py`` is based on the simulation example, but in addition we are importing some more modules:
+In this example it is shown how detector-specific characteristics (histograms, averages, ... ) can be visualized. This is very important for a robust tuning of more advanced analysis (hitfinding, sizing, ...). The configuration file ``examples/detector/conf.py`` is based on the simulation example, but some more modulues need to be imported:
 
 ::
 
@@ -95,22 +95,17 @@ In this example we are plotting some detector-specific characteristics (histogra
    import analysis.event
    import analysis.pixel_detector
    import plotting.line
-
-In the ``onEvent`` function we add a few lines in order to look at some characteristics of the detector:
+   import plotting.image
+   
+In the ``onEvent`` some more lines are added. First, some detector statistics are printed
 
 ::
 
    # Detector statistics
    analysis.pixel_detector.printStatistics(evt["photonPixelDetectors"])
 
-   # Count Nr. of Photons
-   analysis.pixel_detector.totalNrPhotons(evt, evt["photonPixelDetectors"]["CCD"])
-   plotting.line.plotHistory(evt["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
 
-   # Detector histogram
-   plotting.line.plotHistogram(evt["photonPixelDetectors"]["CCD"], **histogramCCD)
-
-On the backend side, we can now see some detector statistics
+giving the following output:
 
 ::
 
@@ -126,15 +121,31 @@ On the backend side, we can now see some detector statistics
    CCD (count): sum=-46.7338 mean=-0.000272666 min=-0.456227 max=0.47392 std=0.100047
    1/1 (1 particle)
 
-On the frontend, we can see that there a two data sources available, a history of photon counts and a histogram of the CCD:
+Then, the total nr. of photons is counted on the CCD pixel detector and the result is being sent to the frontend, so that it is possible to follow the history of the total photon count.
 
-.. image:: images/examples/detector/all.jpg
-   :scale: 100%
+::
+   
+   # Count Nr. of Photons
+   analysis.pixel_detector.totalNrPhotons(evt, evt["photonPixelDetectors"]["CCD"])
+   plotting.line.plotHistory(evt["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
+
+On the frontend, this history can be displayed by opening a Line plot and subscribing to the data source ``History(nrPhotons - CCD)``:
+
+.. image:: images/examples/detector/nrphotons.jpg
+
+Inside the ``View`` -> ``Plot settings`` dialog there is an option to display a histogram of the current buffer instead of the updating history:
+
+.. image:: images/examples/detector/nrphotons_hist.jpg
    :align: center
+	   
+The next useful detector feature to look is a frame histogram of the entrie CCD:
 
-The history of photon counts, we can only visualize as a line plot (upper right), whereas the histogram can be display a a line plot (lower left) and as an image (lower right). All these plots give us information on signal and noise on the detector.
+::
+   
+   # Detector histogram
+   plotting.line.plotHistogram(evt["photonPixelDetectors"]["CCD"], **histogramCCD)
 
-In the configuration file, The plotting parameters for the histogram (as for any plotting function) can be given as keyword arguments or defined outside the ``onEvent`` function as a dictionary which is then passed as a whole to the plotting function:
+The parameters for the histogram plot (as for any other plot) can be given as keyword arguments or defined outside the ``onEvent`` function as a dictionary which is then passed as a whole to the plotting function:
 
 ::
 
@@ -151,8 +162,31 @@ In the configuration file, The plotting parameters for the histogram (as for any
        plotting.line.plotHistory(..., history=50)
        plotting.line.plotHistogram(..., **histogramCCD)
 
+Subscribing to the detector histogram ``Hist(CCD)`` in a Line plot, the visual output looks like this:
 
+.. image:: images/examples/detector/histogram_hit.jpg
+   :align: center
+
+Subscribing to the same data source in an Image Plot, the output is a history of histograms looking like this:
+
+.. image:: images/examples/detector/histogram_history.jpg
+   :align: center
+	   
+Finally, it is possible to just send every detector frame (or a subset of it based on e.g. hitfinding) as an image
+
+::
    
+    # Detector images
+    plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
+
+and display it on the frontend. Instead displaying only the latest image, it is possible to toggle the visualization of the trend (mean, min, max, std) inside the ``View`` -> ``Plot settings`` dialog:
+
+.. image:: images/examples/detector/buffer.jpg
+   :align: center
+
+The latest image of the buffer (50 images) is displayed on the left, the per-pixel maximum of the buffer in the middle and the per-pixel mean on the right.	   
+	   
+
 Hitfinding
 ----------
 
