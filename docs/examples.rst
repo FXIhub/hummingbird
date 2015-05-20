@@ -218,7 +218,7 @@ Like in the previous examples, results are plotted as history plots and images. 
        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
 
    
-When looking at the hit images, it is possible to jump back and forth in time using the arrow keys. This way, interesting hits can revisited if they passed by too quickly. Jumping all the way to the reight (most recent hit), enables live updating again.
+When looking at the hit images, it is possible to jump back and forth in time using the arrow keys. This way, interesting hits can revisited if they passed by too quickly. Jumping all the way to the hight (most recent hit), enables live updating again.
 
 
 Sizing
