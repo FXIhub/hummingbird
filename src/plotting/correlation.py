@@ -114,7 +114,7 @@ def plotMeanMap(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, 
     m.append(X, Y, Z, norm)
     if(not m.counter % update):
         m.gatherSumsAndNorms()
-        if(ipc.mpi.size == 1 or ipc.mpi.is_main_slave()):
+        if(ipc.mpi.is_main_worker()):
             m.updateCenter(X, Y)
             m.updateLocalLimits()
             m.updateLocalMap()
@@ -149,7 +149,7 @@ def plotCorrelation(X, Y, history=100):
 
 heatmaps = {}
 def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
-    """Plotting the heatmap of two parameters X and Y.
+    """Plotting the heatmap of two parameters X and Y. Has been tested in MPI mode.
 
     Args:
         :X(Record): An event parameter, e.g. hit rate
@@ -181,4 +181,7 @@ def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
         ny = ybins - 1
     # assign y to row and x to col in 2D array
     heatmaps[plotid][ny, nx] += 1
-    ipc.new_data(plotid, heatmaps[plotid])
+    current_heatmap = np.copy(heatmaps[plotid])
+    ipc.mpi.sum(current_heatmap)
+    if ipc.mpi.is_main_worker():
+        ipc.new_data(plotid, current_heatmap[()])

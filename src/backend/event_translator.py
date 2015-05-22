@@ -30,7 +30,7 @@ class EventTranslator(object):
     def keys(self):
         """Returns the translated keys available"""
         if self._trans_keys is None:
-            self._trans_keys.append(self._trans.event_keys(self._evt))
+            self._trans_keys = self._trans.event_keys(self._evt)
         return self._trans_keys + self._new_keys
 
     def native_keys(self):

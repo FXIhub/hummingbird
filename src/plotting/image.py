@@ -14,6 +14,8 @@ def plotImage(record, history=10, vmin=None, vmax=None):
         :vmin(float):   Minimum value
         :vmax(float):   Maximum value
     """
+    if record is None:
+        return
     if(not record.name in images):
         ipc.broadcast.init_data(record.name, data_type='image', history_length=history, vmin=vmin, vmax=vmax)
         images[record.name] = True

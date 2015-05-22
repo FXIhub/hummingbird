@@ -16,10 +16,14 @@ def countHits(evt, hit, history=100):
     evt["nrMiss"] = Record("nrMiss", counter.count(False))
 
 def hitrate(evt, hit, *kwargs):
-    """Takes a boolean (True for hit, False for miss) and adds the hit rate in % to ``evt["hitrate"]``"""
+    """Takes a boolean (True for hit, False for miss) and adds the hit rate in % to ``evt["hitrate"]`` if called by main worker, otherwise it returns None. Has been tested in MPI mode"""
     countHits(evt, hit, *kwargs)
-    hitrate = 100 * evt["nrHit"].data / float(evt["nrHit"].data + evt["nrMiss"].data)
-    evt["hitrate"] = Record("hitrate", hitrate, unit='%')
+    hitrate = np.array(100 * evt["nrHit"].data / float(evt["nrHit"].data + evt["nrMiss"].data))
+    ipc.mpi.sum(hitrate)
+    if(ipc.mpi.is_main_worker()):
+        evt["hitrate"] = Record("hitrate", hitrate[()]/ipc.mpi.size, unit='%')
+    else:
+        evt["hitrate"] = None
 
 def countLitPixels(evt, detector, aduThreshold=20, hitscoreThreshold=200):
     """A simple hitfinder. Takes a detector ``Record``, counts the number of lit pixels and

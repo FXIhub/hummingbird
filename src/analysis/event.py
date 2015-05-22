@@ -14,12 +14,10 @@ def printProcessingRate():
         return
     dt = processingTimes[0] - processingTimes[-1]
     proc_rate = np.array((len(processingTimes)-1)/dt.total_seconds())
-    
     ipc.mpi.sum(proc_rate)
     if(ipc.mpi.is_main_worker()):
         print 'Processing Rate %.2f Hz' %proc_rate[()]
 
-        
 def printKeys(evt, _type=None):
     """prints available keys of Hummingbird event"""
     if isinstance(evt, EventTranslator) and _type is None:

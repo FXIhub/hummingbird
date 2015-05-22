@@ -14,6 +14,8 @@ def plotHistory(param, label='', history=100):
         :label(str):     Label for param
         :history(int):   Length of history buffer
     """
+    if param is None:
+        return
     plotid = "History(%s)" %param.name
     if (not param.name in histories):
         ipc.broadcast.init_data(plotid, ylabel=label, history_length=history)
@@ -35,6 +37,8 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
         :density(bool): If True, the integral of the histogram is 1
         :history(int):  Length of history buffer
     """
+    if param is None:
+        return
     plotid = "Histogram(%s)" %param.name
     if(not param.name in histograms):
         ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, history_length=history)
