@@ -6,6 +6,7 @@ import logging
 import imp
 import ipc
 import time
+import signal
 
 class Worker(object):
     """Coordinates data reading, translation and analysis.
@@ -35,8 +36,13 @@ class Worker(object):
         Worker.state['_config_dir'] = os.path.dirname(config_file)
         if(not ipc.mpi.is_master()):
             self.translator = init_translator(Worker.state)
+        signal.signal(signal.SIGUSR1, self.raise_interruption)
+        with open('.pid', 'w') as file: file.write(str(os.getppid()))
         print 'Starting backend...'
 
+    def raise_interruption(self, signum, stack):
+        raise KeyboardInterrupt
+        
     def load_conf(self):
         """Load or reload the configuration file."""
         Worker.conf = imp.load_source('backend_conf', self._config_file)
