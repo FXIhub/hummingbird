@@ -192,6 +192,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self._configure_axis(source, title, hist=True)
             else:
                 self._configure_axis(source, title)
+            self.plot.setLogMode(x=self._settings_diag.logx.isChecked(),
+                                 y=self._settings_diag.logy.isChecked())
             plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
 

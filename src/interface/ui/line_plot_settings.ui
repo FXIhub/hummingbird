@@ -6,90 +6,27 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>308</width>
-    <height>156</height>
+    <width>396</width>
+    <height>178</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
   <layout class="QGridLayout" name="gridLayout">
-   <item row="0" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>X Axis:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1" colspan="6">
-    <widget class="QLineEdit" name="x_label"/>
-   </item>
-   <item row="0" column="7">
-    <widget class="QCheckBox" name="x_auto">
-     <property name="text">
-      <string>Auto</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="0">
-    <widget class="QLabel" name="label_3">
-     <property name="text">
-      <string>Y Axis:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1" colspan="6">
-    <widget class="QLineEdit" name="y_label"/>
-   </item>
-   <item row="1" column="7">
-    <widget class="QCheckBox" name="y_auto">
-     <property name="text">
-      <string>Auto</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="1" colspan="4">
-    <widget class="QCheckBox" name="histogram">
-     <property name="text">
-      <string>Histogram Data</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="5" colspan="2">
-    <widget class="QLabel" name="label_1">
-     <property name="text">
-      <string>bins:</string>
-     </property>
-    </widget>
-   </item>
-   <item row="2" column="7">
-    <widget class="QLineEdit" name="histBins">
-     <property name="text">
-      <string>100</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="1">
-    <widget class="QLabel" name="label">
-     <property name="text">
-      <string>hmin:</string>
-     </property>
-    </widget>
-   </item>
    <item row="3" column="2">
     <widget class="QLineEdit" name="histMin">
      <property name="enabled">
       <bool>false</bool>
      </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
       <string>0</string>
-     </property>
-    </widget>
-   </item>
-   <item row="3" column="3">
-    <widget class="QLabel" name="label_4">
-     <property name="text">
-      <string>hmax:</string>
      </property>
     </widget>
    </item>
@@ -103,13 +40,63 @@
      </property>
     </widget>
    </item>
-   <item row="3" column="7">
-    <widget class="QCheckBox" name="histAutorange">
+   <item row="0" column="1" colspan="6">
+    <widget class="QLineEdit" name="x_label"/>
+   </item>
+   <item row="3" column="3">
+    <widget class="QLabel" name="label_4">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>hmax:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="1">
+    <widget class="QLabel" name="label">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>hmin:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="1" colspan="6">
+    <widget class="QLineEdit" name="y_label"/>
+   </item>
+   <item row="1" column="0">
+    <widget class="QLabel" name="label_3">
+     <property name="text">
+      <string>Y Axis:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>X Axis:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="8">
+    <widget class="QCheckBox" name="x_auto">
      <property name="text">
       <string>Auto</string>
      </property>
-     <property name="checked">
-      <bool>true</bool>
+    </widget>
+   </item>
+   <item row="1" column="8">
+    <widget class="QCheckBox" name="y_auto">
+     <property name="text">
+      <string>Auto</string>
      </property>
     </widget>
    </item>
@@ -118,11 +105,68 @@
      <property name="enabled">
       <bool>false</bool>
      </property>
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="text">
       <string>100</string>
      </property>
      <property name="dragEnabled">
       <bool>false</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="9">
+    <widget class="QCheckBox" name="logx">
+     <property name="text">
+      <string>log</string>
+     </property>
+    </widget>
+   </item>
+   <item row="1" column="9">
+    <widget class="QCheckBox" name="logy">
+     <property name="text">
+      <string>log</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="9">
+    <widget class="QLineEdit" name="histBins">
+     <property name="text">
+      <string>100</string>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="8">
+    <widget class="QLabel" name="label_1">
+     <property name="text">
+      <string>bins:</string>
+     </property>
+    </widget>
+   </item>
+   <item row="3" column="8" colspan="2">
+    <widget class="QCheckBox" name="histAutorange">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+       <horstretch>1</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
+     <property name="text">
+      <string>Auto</string>
+     </property>
+     <property name="checked">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+   <item row="2" column="1" colspan="5">
+    <widget class="QCheckBox" name="histogram">
+     <property name="text">
+      <string>Histogram Data</string>
      </property>
     </widget>
    </item>
