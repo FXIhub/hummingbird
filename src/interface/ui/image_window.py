@@ -47,6 +47,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.plot.getHistogramWidget().vb.setMenuEnabled(False)
         self.x_axis_name = 'left'
         self.y_axis_name = 'bottom'
+        self._set_logscale_lookuptable()
 
     def get_time(self, index=None):
         """Returns the time of the given index, or the time of the last data point"""
@@ -163,6 +164,19 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             else:
                 self.plot.getView().setLabel(axis_labels[ylabel_index], self.settingsWidget.ui.y_label.text()) #pylint: disable=no-member
 
+    def _set_logscale_lookuptable(self):
+        N = 1000000
+        self.lut = numpy.empty((N,4), dtype=numpy.ubyte)
+        grad = numpy.log(numpy.linspace(1, 1e5, N))
+        self.lut[:,:3] = (255 * grad / grad.max()).reshape(N,1)
+        self.lut[:, 3] = 255
+        
+    def _set_logscale(self, source, title):
+        conf = source.conf[title]
+        if source.data_type[title] == 'image' and ("log" in conf):
+            if conf["log"]:
+                self.plot.imageItem.setLookupTable(self.lut)
+            
     def replot(self):
         """Replot data"""
         for source, title in self.source_and_titles():
@@ -215,6 +229,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     # Make sure to go to the last image
                     last_index = self.plot.image.shape[0]-1
                     self.plot.setCurrentIndex(last_index, autoHistogramRange=auto_histogram)
+                self._set_logscale(source, title)
 
             self.setWindowTitle(pd.title)
             dt = self.get_time()
