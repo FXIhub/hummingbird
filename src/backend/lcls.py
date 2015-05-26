@@ -89,8 +89,8 @@ class LCLSTranslator(object):
         for k in native_keys:
             for c in self._native_to_common(k):
                 common_keys.add(c)
-        # parameters corresponds to the EPICS values
-        return list(common_keys)+['parameters']
+        # parameters corresponds to the EPICS values, analysis is for values added lateron
+        return list(common_keys)+['parameters']+['analysis']
 
     def _native_to_common(self, key):
         """Translates a native key to a hummingbird one"""
@@ -109,6 +109,8 @@ class LCLSTranslator(object):
             return self.translate_core(evt, key)
         elif(key == 'parameters'):
             return self._tr_epics()
+        elif(key == 'analysis'):
+            return {}
         else:
             # check if the key matches any of the existing keys in the event
             event_keys = evt.keys()

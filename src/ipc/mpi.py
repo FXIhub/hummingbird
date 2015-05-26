@@ -17,11 +17,13 @@ try:
     size = comm.Get_size()
     slave_group = comm.Get_group().Incl(range(1, size))
     slaves_comm = comm.Create(slave_group)
+    nr_workers = size - 1
 except ImportError:
     rank = 0
     size = 1
     comm = None
     slaves_comm = None
+    nr_workers = 1
 
 
 def is_slave():

@@ -11,13 +11,14 @@ class DummyTranslator(object):
     def __init__(self, state):
         self.state = state
         self.keys = set()
+        self.keys.add('analysis')
         self._last_event_time = -1
         pass
 
     def next_event(self):
         """Generates and returns the next event"""
         evt = {}        
-
+        
         # Check if we need to sleep
         if(self._last_event_time > 0):
             rep_rate = 1
@@ -68,7 +69,7 @@ class DummyTranslator(object):
         for ds in self.state['Dummy']['Data Sources']:
             if self.state['Dummy']['Data Sources'][ds]['type'] == key:
                 add_record(values, ds, evt[ds], getattr(ureg, self.state['Dummy']['Data Sources'][ds]['unit']))
-        if(values == {}):
+        if(values == {} and not key == 'analysis'):
             raise RuntimeError('%s not found in event' % (key))
         return values
 

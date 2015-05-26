@@ -197,26 +197,24 @@ The hitfinder used here simply counts the number of lit pixels on the detector, 
 ::
 
    # Simple hitfinding (Count Nr. of lit pixels)
-   analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["CCD"], aduThreshold=0.5, hitscoreThreshold=10)
-
+   analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD", aduThreshold=0.5, hitscoreThreshold=10)
+  
    # Compute the hitrate
-   analysis.hitfinding.hitrate(evt, evt["isHit"], history=100)
-
+   analysis.hitfinding.hitrate(evt, evt["analysis"]["isHit - CCD"], history=100)
 
 Like in the previous examples, results are plotted as history plots and images. Because of the hitfinding, the detector image needs to be only plotted for hits. Looking at the previous example, it is possible to look at trends (mean, std, min, max) of either hits, misses or both.
     
 ::
 
    # Plot the hitscore
-   plotting.line.plotHistory(evt["hitscore - CCD"], label='Nr. of lit pixels')
+   plotting.line.plotHistory(evt["analysis"]["hitscore - CCD"], label='Nr. of lit pixels')
 
    # Plot the hitrate
-   plotting.line.plotHistory(evt["hitrate"], label='Hit rate [%]')
+   plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
      
    # Plot hit images
-   if evt["isHit"]:
-       plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
-
+   if evt["analysis"]["isHit - CCD"]:
+   plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
    
 When looking at the hit images, it is possible to jump back and forth in time using the arrow keys. This way, interesting hits can revisited if they passed by too quickly. Jumping all the way to the hight (most recent hit), enables live updating again.
 

@@ -66,17 +66,17 @@ def onEvent(evt):
     plotting.line.plotHistory(evt["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
 
     # Simple hitfinding (Count Nr. of lit pixels)
-    analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["CCD"], aduThreshold=0.5, hitscoreThreshold=10)
+    analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD", aduThreshold=0.5, hitscoreThreshold=10)
 
     # Compute the hitrate
-    analysis.hitfinding.hitrate(evt, evt["isHit"])
+    analysis.hitfinding.hitrate(evt, evt["analysis"]["isHit - CCD"], history=100)
     
     # Plot the hitscore
-    plotting.line.plotHistory(evt["hitscore - CCD"], label='Nr. of lit pixels')
+    plotting.line.plotHistory(evt["analysis"]["hitscore - CCD"], label='Nr. of lit pixels')
 
     # Plot the hitrate
-    plotting.line.plotHistory(evt["hitrate"], label='Hit rate [%]')
+    plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
      
     # Plot hit images
-    if evt["isHit"]:
+    if evt["analysis"]["isHit - CCD"]:
         plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
