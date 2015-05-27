@@ -17,18 +17,18 @@ def countHits(evt, hit, history=100):
 
 def hitrate(evt, hit, history=100):
     """Takes a boolean (True for hit, False for miss) and adds the hit rate in % to ``evt["analysis"]["hitrate"]`` if called by main worker, otherwise it returns None. Has been tested in MPI mode"""
-    countHits(evt, hit, history/ipc.mpi.nr_workers)
+    countHits(evt, hit, history/ipc.mpi.nr_workers())
     hits = evt["analysis"]["nrHit"].data
     misses = evt["analysis"]["nrMiss"].data
     hitrate = np.array(100 * hits / float(hits + misses))
     ipc.mpi.sum(hitrate)
     if(ipc.mpi.is_main_worker()):
-        evt["analysis"]["hitrate"] = Record("hitrate", hitrate[()]/ipc.mpi.nr_workers, unit='%')
+        evt["analysis"]["hitrate"] = Record("hitrate", hitrate[()]/ipc.mpi.nr_workers(), unit='%')
     else:
         evt["analysis"]["hitrate"] = None
 
 def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200):
-    """A simple hitfinder. Takes the event variable, event type (e.g. photonPixelDetectors) and a key (e.g. CCD)The hitfinder counts the number of lit pixels and
+    """A simple hitfinder that counts the number of lit pixels and
     adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
 
     Args:

@@ -62,8 +62,8 @@ def onEvent(evt):
     analysis.pixel_detector.printStatistics(evt["photonPixelDetectors"])
 
     # Count Nr. of Photons
-    analysis.pixel_detector.totalNrPhotons(evt, evt["photonPixelDetectors"]["CCD"])
-    plotting.line.plotHistory(evt["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
+    analysis.pixel_detector.totalNrPhotons(evt,"photonPixelDetectors", "CCD")
+    plotting.line.plotHistory(evt["analysis"]["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
 
     # Simple hitfinding (Count Nr. of lit pixels)
     analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD", aduThreshold=0.5, hitscoreThreshold=10)

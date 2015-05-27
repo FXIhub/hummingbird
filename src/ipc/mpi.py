@@ -8,6 +8,12 @@ def is_master():
     there are multiple processes."""
     return rank == 0 and size > 1
 
+def nr_workers():
+    if size > 1:
+        return size - 1
+    else:
+        return size
+
 try:
     # Try to import MPI and create a group containing all the slaves
     from mpi4py import MPI
@@ -16,15 +22,12 @@ try:
     rank = comm.Get_rank()
     size = comm.Get_size()
     slave_group = comm.Get_group().Incl(range(1, size))
-    slaves_comm = comm.Create(slave_group)
-    nr_workers = size - 1
+    slaves_comm = comm.Create(slave_group)        
 except ImportError:
     rank = 0
     size = 1
     comm = None
     slaves_comm = None
-    nr_workers = 1
-
 
 def is_slave():
     """Returns True if the process has MPI rank > 0."""

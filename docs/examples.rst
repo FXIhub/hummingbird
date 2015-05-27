@@ -122,8 +122,8 @@ Then, the total nr. of photons is counted on the CCD pixel detector and the resu
 ::
    
    # Count Nr. of Photons
-   analysis.pixel_detector.totalNrPhotons(evt, evt["photonPixelDetectors"]["CCD"])
-   plotting.line.plotHistory(evt["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
+   analysis.pixel_detector.totalNrPhotons(evt, "photonPixelDetectors", "CCD")
+   plotting.line.plotHistory(evt["analysis"]["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
 
 On the frontend, this history can be displayed by opening a Line plot and subscribing to the data source ``History(nrPhotons - CCD)``:
 
@@ -185,7 +185,7 @@ The latest image of the buffer (50 images) is displayed on the left, the per-pix
 
 Hitfinding
 ----------
-In this example, a simple hitfinder is introduced. This makes it possible to monitor the hit rate and plot only detector images of hits. This configuration file ``examples/detector/conf.py`` is based on the previous on, in addition the hitfinding module needs to be imported:
+In this example, a simple hitfinder is introduced. This makes it possible to monitor the hit rate and plot only detector images of hits. This configuration file ``examples/hitfinding/conf.py`` is based on the previous on, in addition the hitfinding module needs to be imported:
 
 ::
 

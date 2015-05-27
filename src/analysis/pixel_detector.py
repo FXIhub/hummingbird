@@ -12,27 +12,38 @@ def printStatistics(detectors):
                                                                 min(v), max(v),
                                                                 std(v))
 
-def getCentral4Asics(evt, detector):
-    """Takes a detector ``Record`` of a CsPAD an adds a one-dimensional stack of its 4 centermost asics
-    to ``evt["central4Asics"]``."""
-    central = []
-    for i in range(4):
-        central.append(detector.data[i*8+1,:,:194])
-    evt["central4Asics"] = Record("central4Asics", np.hstack(central), detector.unit)
-    
-nrPhotons = {}    
-def totalNrPhotons(evt, detector, aduPhoton=1, aduThreshold=0.5):
-    """Estimates the total nr. of photons on the detector and adds it to ``evt["nrPhotons - " + detector.name]``.
+def getCentral4Asics(evt, type, key):
+    """Adds a one-dimensional stack of its 4 centermost asics
+    to ``evt["analysis"]["central4Asics"]``.
 
     Args:
-        :detector(Record):  Photons are counted based on detector.data.flat
+        :evt:       The event variable
+        :type(str): The event type (e.g. photonPixelDetectors)
+        :key(str):  The event key (e.g. CCD)
+    """
+    central = []
+    detector = evt[type][key]
+    for i in range(4):
+        central.append(detector.data[i*8+1,:,:194])
+    evt["analysis"]["central4Asics"] = Record("central4Asics", np.hstack(central), detector.unit)
+    
+nrPhotons = {}    
+def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
+    """Estimates the total nr. of photons on the detector and adds it to ``evt["analysis"]["nrPhotons - " + key]``.
+
+    Args:
+        :evt:       The event variable
+        :type(str): The event type (e.g. photonPixelDetectors)
+        :key(str):  The event key (e.g. CCD)
+
     Kwargs:
         :aduPhoton(int):    ADU count per photon, default = 1
         :aduThreshold(int): only pixels above this threshold given in units of ADUs are valid, default = 0.5
     """
+    detector = evt[type][key]
     data  = detector.data.flat
     valid = data > aduThreshold
-    evt["nrPhotons - " + detector.name] = Record("nrPhotons - " + detector.name , sum(data[valid]) / float(aduPhoton))
+    evt["analysis"]["nrPhotons - " + key] = Record("nrPhotons - " + key , sum(data[valid]) / float(aduPhoton))
 
 """
 import numpy
