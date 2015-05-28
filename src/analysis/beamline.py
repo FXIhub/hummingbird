@@ -4,17 +4,20 @@ import numpy as np
 from backend import  ureg
 from backend import Record
 
-def averagePulseEnergy(evt, pulseEnergies):
-    """Expects a dictionary of pulse energy ``Records`` and adds the
-    average pulse energy to ``evt["averagePulseEnergy"]``."""
+def averagePulseEnergy(evt, type):
+    """Averages pulse energies. Expects an event and an event type and adds the
+    average pulse energy to ``evt["analysis"]["averagePulseEnergy"]``.
+    
+    :Authors:
+        Filipe Maia
+    """
+    pulseEnergies = evt[type]
     pulseEnergy = []
     for pE in pulseEnergies.values():
         if (pE.unit == ureg.mJ):
             pulseEnergy.append(pE.data)
-    if not pulseEnergy:
-        return
-    else:
-        return Record("averagePulseEnergy", np.mean(pulseEnergy), ureg.mJ)
+    if pulseEnergy:
+        evt["analysis"]["averagePulsEnergy"] = Record("averagePulseEnergy", np.mean(pulseEnergy), ureg.mJ)
 
 def printPulseEnergy(pulseEnergies):
     """Expects a dictionary of pulse energy ``Records`` and prints pulse energies to screen."""

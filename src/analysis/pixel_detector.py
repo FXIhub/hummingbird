@@ -20,6 +20,9 @@ def getCentral4Asics(evt, type, key):
         :evt:       The event variable
         :type(str): The event type (e.g. photonPixelDetectors)
         :key(str):  The event key (e.g. CCD)
+
+    :Authors:
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
     central = []
     detector = evt[type][key]
@@ -39,6 +42,9 @@ def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
     Kwargs:
         :aduPhoton(int):    ADU count per photon, default = 1
         :aduThreshold(int): only pixels above this threshold given in units of ADUs are valid, default = 0.5
+    
+    :Authors:
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
     detector = evt[type][key]
     data  = detector.data.flat

@@ -40,3 +40,11 @@ analysis.pixel_detector module
     :members:
     :undoc-members:
     :show-inheritance:
+
+analysis.template module
+------------------------------
+
+.. automodule:: analysis.template
+    :members:
+    :undoc-members:
+    :show-inheritance:
