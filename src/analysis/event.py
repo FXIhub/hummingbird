@@ -18,12 +18,12 @@ def printProcessingRate():
     if(ipc.mpi.is_main_worker()):
         print 'Processing Rate %.2f Hz' %proc_rate[()]
 
-def printKeys(evt, _type=None):
+def printKeys(evt, type=None):
     """prints available keys of Hummingbird event"""
-    if isinstance(evt, EventTranslator) and _type is None:
+    if isinstance(evt, EventTranslator) and type is None:
         print "The event has the following keys: ", evt.keys()
-    elif isinstance(evt, EventTranslator) and _type:
-        print "The event dict ''%s'' has the following keys: " %(_type), evt[_type].keys()
+    elif isinstance(evt, EventTranslator) and type:
+        print "The event dict ''%s'' has the following keys: " %(type), evt[type].keys()
     else:
         print evt.keys()    
 
