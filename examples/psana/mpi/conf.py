@@ -1,10 +1,12 @@
 import analysis.event
 import analysis.beamline
 import analysis.pixel_detector
+import ipc   
 
 state = {
     'Facility': 'LCLS',
-    'LCLS/DataSource':'/data/rawdata/LCLS/cxi/cxic9714/xtc/e419-r0203-s01-c00.xtc'
+    'LCLS/DataSource': ipc.mpi.get_source(['/data/rawdata/LCLS/cxi/cxic9714/xtc/e419-r0203-s01-c00.xtc', 
+                                           '/data/rawdata/LCLS/cxi/cxic9714/xtc/e419-r0204-s01-c00.xtc'])
 }
 
 def onEvent(evt):
@@ -13,5 +15,5 @@ def onEvent(evt):
     print "EPICS photon energy = %g eV" %(evt['parameters']['SIOC:SYS0:ML00:AO541'].data)
     analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.pixel_detector.printStatistics(evt['ionTOFs'])
-    analysis.event.printID(evt['eventID'])
+    print "Rank = ", ipc.mpi.rank, analysis.event.printID(evt['eventID'])
     analysis.event.printProcessingRate()

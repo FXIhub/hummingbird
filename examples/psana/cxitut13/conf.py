@@ -1,10 +1,9 @@
 import analysis.event
 import analysis.beamline
-import ipc
 
 state = {
     'Facility': 'LCLS',
-    'LCLS/DataSource': ipc.mpi.get_source(['exp=XCS/xcstut13:run=15', 'shmem2'])
+    'LCLS/DataSource': 'exp=XCS/xcstut13:run=15'
 }
 
 def onEvent(evt):

@@ -16,9 +16,7 @@ def get_source(sources):
     """Returns source based on a given list of sources and 
     given the rank of the current process. Slaves are distributed equally 
     across available data sources."""
-    if is_slave():
-        nr_sources = len(sources)
-        print nr_workers / nr_sources
+    return sources[rank % len(sources)]
         
 try:
     # Try to import MPI and create a group containing all the slaves
