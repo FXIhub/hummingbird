@@ -229,29 +229,41 @@ Correlations
 
 MPI
 ---
-In order to speed up things, it is possible to run ``Hummingbird`` in MPI mode, simply run:
+In order to speed up things, it is possible to run ``Hummingbird`` in MPI mode, simply use:
 
 ::
 
-   mpirun -n 4 ./hummingbird.py -b examples/hitfinding/conf.py
+   $ mpirun -n 4 ./hummingbird.py -b examples/hitfinding/conf.py
 
 In this mode, ``Hummingbird`` reserves one process (rank 0) for sending data to the frontend, the rest of the processes (slaves with rank > 1) are used to process incoming data. If necessary (e.g. for hitrate), the  main slave (rank = 1) is doing the reduction and sending the reduced data to the frontend.
 
-In the above example, the slaves are still reading all from the same data source (e.g. shared memory string defined in ``state['Facility/DataSource']``). If there are multiple data sources available (e.g. multiple shared memory streams defined by individual shared memory strings), it is possible to distribute slaves across these data sources like this:
+In the above example, the slaves are still reading all from the same data source (e.g. shared memory string defined in ``state['Facility/DataSource']``). If there are multiple data sources available (e.g. multiple shared memory streams defined by individual shared memory strings), it is possible to distribute slaves across these data sources. The configuration file needs to be slightly modified:
 
 ::
 
-   sources = ['shmem1', 'shmem2', 'shmem3']
+   import ipc
    
    state = {
-   'Facility': 'LCLS',
-   'LCLS/DataSource': ipc.mpi.get_source(sources),
+       'Facility': 'LCLS',
+       'LCLS/DataSource': ipc.mpi.get_source(['shmem1', 'shmem2', 'shmem3'])
+   }
 
+There is a small example in ``examples/psana/mpi/conf.py`` running from 2 XTCs at the same time.
 
 
 Psana configuration
 -------------------
+It is possible load a ``psana`` configuration file in order to run some `Psana modules <https://confluence.slac.stanford.edu/display/PSDM/psana+-+Module+Examples>`_ prior to ``Hummingbird`` analysis modules, just specify ``LCLS/PsanaConf`` inside the ``state`` variable:
 
+::
+
+   state = {
+        'Facility': 'LCLS',
+	'LCLS/DataSource': 'shmem=...',
+	'LCLS/PsanaConf': 'psana.cfg',
+   }
+
+Output keys defined inside ``psana.cfg`` will appear as ``Hummingbird`` keys.
 
 
 Loading extra files

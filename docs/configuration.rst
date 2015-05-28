@@ -97,4 +97,4 @@ new key. That way future analysis can use the output of previous ones.
 
 For a list of available analysis algorithms please check the relevant :doc:`API documentation <API/analysis>`.
 
-This examples is ``examples/psana/xtc/conf.py``. You can find more example configurations inside the directories in ``examples`` and explained in :doc:`More examples <examples>`.
+This example is ``examples/psana/xtc/conf.py``. You can find more example configurations inside the directories in ``examples`` and explained in :doc:`More examples <examples>`.
