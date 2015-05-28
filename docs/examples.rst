@@ -223,7 +223,39 @@ Sizing
 ------
 
 
-
 Correlations
 ------------
+
+
+MPI
+---
+In order to speed up things, it is possible to run ``Hummingbird`` in MPI mode, simply run:
+
+::
+
+   mpirun -n 4 ./hummingbird.py -b examples/hitfinding/conf.py
+
+In this mode, ``Hummingbird`` reserves one process (rank 0) for sending data to the frontend, the rest of the processes (slaves with rank > 1) are used to process incoming data. If necessary (e.g. for hitrate), the  main slave (rank = 1) is doing the reduction and sending the reduced data to the frontend.
+
+In the above example, the slaves are still reading all from the same data source (e.g. shared memory string defined in ``state['Facility/DataSource']``). If there are multiple data sources available (e.g. multiple shared memory streams defined by individual shared memory strings), it is possible to distribute slaves across these data sources like this:
+
+::
+
+   sources = ['shmem1', 'shmem2', 'shmem3']
+   
+   state = {
+   'Facility': 'LCLS',
+   'LCLS/DataSource': ipc.mpi.get_source(sources),
+
+
+
+Psana configuration
+-------------------
+
+
+
+Loading extra files
+-------------------
+
+
 

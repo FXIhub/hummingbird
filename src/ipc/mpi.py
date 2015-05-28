@@ -9,11 +9,17 @@ def is_master():
     return rank == 0 and size > 1
 
 def nr_workers():
-    if size > 1:
-        return size - 1
-    else:
-        return size
+    """Returns nr. of available workers."""
+    return (size - 1) if (size > 1) else size
 
+def get_source(sources):
+    """Returns source based on a given list of sources and 
+    given the rank of the current process. Slaves are distributed equally 
+    across available data sources."""
+    if is_slave():
+        nr_sources = len(sources)
+        print nr_workers / nr_sources
+        
 try:
     # Try to import MPI and create a group containing all the slaves
     from mpi4py import MPI
