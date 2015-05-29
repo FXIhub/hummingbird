@@ -20,6 +20,8 @@ If you want to keep some result from your algorithm to be used by subsequent
 algorithms just return as a ``Record`` object and assign it to a new key of the
 event variable in the conf file (e.g. ``examples/dummy/conf.py``)
 
+There is a template for new analysis modules in ``src/analysis/template.py``.
+
 .. note::
 
    Algorithms that want to keep results for further processing by other
