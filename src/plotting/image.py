@@ -3,7 +3,7 @@ import numpy as np
 import ipc
 
 images = {}
-def plotImage(record, history=10, vmin=None, vmax=None, log=False):
+def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None):
     """Plotting an image.
 
     Args:
@@ -14,6 +14,7 @@ def plotImage(record, history=10, vmin=None, vmax=None, log=False):
         :vmin(float):   Minimum value
         :vmax(float):   Maximum value
         :log(boolean):  Plot image in log scale (needs restart of GUI, only works with grayscale colormap)
+        :mask(boolean or int): Multiply image with mask
     """
     if record is None:
         return
@@ -24,4 +25,6 @@ def plotImage(record, history=10, vmin=None, vmax=None, log=False):
     sh = image.shape
     if (image.ndim == 3):
         image = image.reshape(sh[0]*sh[2], sh[1])
-    ipc.new_data(record.name, image)
+    if mask is None:
+        mask = np.ones_like(image)
+    ipc.new_data(record.name, image*mask)
