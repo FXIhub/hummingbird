@@ -3,6 +3,7 @@ import ipc
 import numpy as np
 from backend import ureg
 from backend import Record
+import utils.array
 
 def printStatistics(detectors):
     for k,r in detectors.iteritems():
@@ -30,7 +31,6 @@ def getCentral4Asics(evt, type, key):
         central.append(detector.data[i*8+1,:,:194])
     evt["analysis"]["central4Asics"] = Record("central4Asics", np.hstack(central), detector.unit)
     
-nrPhotons = {}    
 def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
     """Estimates the total nr. of photons on the detector and adds it to ``evt["analysis"]["nrPhotons - " + key]``.
 
@@ -46,31 +46,48 @@ def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    detector = evt[type][key]
-    data  = detector.data.flat
+    data  = evt[type][key].data.flat
     valid = data > aduThreshold
     evt["analysis"]["nrPhotons - " + key] = Record("nrPhotons - " + key , sum(data[valid]) / float(aduPhoton))
 
-"""
-import numpy
-def slacH5ToCheetah(slacArr):
-    out_arr = numpy.zeros((8*185, 4*388))
-    for c in range(4):
-        for r in range(8):
-            slacPos = r + c*8
-            (rB, rE) = (r*185, (r+1)*185)
-            (cB, cE) = (c*388, (c+1)*388)
-            out_arr[rB:rE, cB:cE] = (slacArr[slacPos])
-    return out_arr
+initialized = {}
+def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
+    """Assembles a detector image given some geometry and adds assembled image to ``evt["analysis"]["assembled - " + key]``.
 
+    Args:
+        :evt:        The event variable
+        :type(str):  The event type (e.g. photonPixelDetectors)
+        :key(str):   The event key (e.g. CCD)
+        :x(int ndarray): X coordinates
+        :y(int ndarray): Y coordinates
 
-def cheetahToSlacH5(cheetahArr):
-    out_arr = numpy.zeros((32, 185, 388))
-    for c in range(4):
-        for r in range(8):
-            slacPos = r + c*8
-            (rB, rE) = (r*185, (r+1)*185)
-            (cB, cE) = (c*388, (c+1)*388)
-            out_arr[slacPos] = cheetahArr[rB:rE, cB:cE]
-    return out_arr
-"""
+    Kwargs:
+        :nx(int):    Total width of assembled image (zero padding)
+        :ny(int):    Total height of assembled image (zero padding)
+
+    :Authors:
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
+    """
+    if not key in initialized:
+        assembled, height, width, shape, y, x = utils.array.assembleImage(x,y,nx=nx,ny=ny, return_indices=True)
+        initialized[key] = {
+            'assembled':assembled,
+            'height':height,
+            'width':width,
+            'shape':shape,
+            'y':y,
+            'x':x
+        }
+    assembled = initialized[key]['assembled']
+    height = initialized[key]['height']
+    width = initialized[key]['width']
+    shape = initialized[key]['shape']
+    y = initialized[key]['y']
+    x = initialized[key]['x']
+    assembled[height-shape[0]:height, :shape[1]][y,x] = evt[type][key].data
+    if outkey is None:
+        evt["analysis"]["assembled - " + key] = Record("assembled - " + key, assembled)
+    else:
+        evt["analysis"][outkey] = Record(outkey, assembled)
+
+    

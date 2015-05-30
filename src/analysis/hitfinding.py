@@ -36,7 +36,7 @@ def hitrate(evt, hit, history=100):
     else:
         evt["analysis"]["hitrate"] = None
 
-def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200):
+def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, mask=None):
     """A simple hitfinder that counts the number of lit pixels and
     adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
 
@@ -47,11 +47,12 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200):
     Kwargs:
         :aduThreshold(int):      only pixels above this threshold (in ADUs) are valid, default=20
         :hitscoreThreshold(int): events with hitscore (Nr. of lit pixels)  above this threshold are hits, default=200
-
+        :mask(int, bool):        only use masked pixel (mask == True or 1) for counting
+    
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
     detector = evt[type][key]
-    hitscore = (detector.data > aduThreshold).sum()
+    hitscore = (detector.data[mask] > aduThreshold).sum()
     evt["analysis"]["isHit - " + key] = hitscore > hitscoreThreshold
     evt["analysis"]["hitscore - " + key] = Record("hitscore - " + key, hitscore)

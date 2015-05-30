@@ -268,8 +268,52 @@ Output keys defined inside ``psana.cfg`` will appear as ``Hummingbird`` keys.
 
 Loading extra files
 -------------------
+In case the incoming data has no geometry applied (important e.g. for sizing), it is possible to load a geometry file and assemble incoming data. There is a ``GeometryReeader`` in the ``utils`` module and an ``assemble`` function in the ``analysis.pixel_detector`` module
+
+::
+
+   import utils.reader
+   
+   # Reading geometry
+   # ----------------
+   greader = utils.reader.GeometryReader('examples/extra_files/geometry.h5')
+
+   def onEvent(evt):
+
+   
+       # Assemble images (apply geometry)
+       analysis.pixel_detector.assemble(evt, "photonPixelDetectors", "CCD", \
+                                     greader.x, greader.y, nx=414, ny=414, outkey="CCD")
 
 
 
+It is also possible to load a mask using the ``MaskReader`` from the ``utils`` module:
 
+::
+
+   import utils.reader
+   
+   # Reading mask
+   # ------------
+   mreader = utils.reader.MaskReader('examples/extra_files/mask.h5', 'data/data')
+
+   def onEvent(evt):
+
+       # Simple hitfinding (Count Nr. of lit pixels)
+       analysis.hitfinding.countLitPixels(evt, "analysis", "CCD", \
+                                       aduThreshold=0.5, hitscoreThreshold=10, mask=mreader.boolean_mask)
+
+       # Plot hit images
+       if evt["analysis"]["isHit - CCD"]:
+           plotting.image.plotImage(evt["analysis"]["CCD"], mask=mreader.integer_mask)
+
+Here, the mask is passed as booleans to the hitfinder (only use True pixels) and as integers when plotting an image (multiplyin image and mask).
+
+Using the ``H5Reader`` any data can be written from a given HDF5 file and used for analysis/plotting:
+
+::
+
+   # Reading something else
+   # ----------------------
+   reader = utils.reader.H5Reader('examples/extra_files/something.h5', 'somekey')
 
