@@ -260,7 +260,9 @@ Output keys defined inside ``psana.cfg`` will appear as ``Hummingbird`` keys.
 
 Loading extra files
 -------------------
-In case the incoming data has no geometry applied (important e.g. for sizing), it is possible to load a geometry file and assemble incoming data. There is a ``GeometryReeader`` in the ``utils`` module and an ``assemble`` function in the ``analysis.pixel_detector`` module
+This example is in ``examples/extra_files/conf.py``.
+
+In case the incoming data has no geometry applied (important e.g. for sizing), it is possible to load a geometry file and assemble incoming data. There is a ``GeometryReeader`` in the ``utils`` module and an ``assemble`` function in the ``analysis.pixel_detector`` module:
 
 ::
 
