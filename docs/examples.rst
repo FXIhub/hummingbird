@@ -314,7 +314,7 @@ Using the ``H5Reader`` any data can be written from a given HDF5 file and used f
 
 Recording to file
 -----------------
-In the frontend it is possible to record any existing ``History(...)`` data source to file. Just select the variables of interest and hit ``Recording`` (the button with the red dot):
+In the frontend it is possible to record any existing ``History(...)`` data source to file. Just select the variables of interest (using the Record history column) and hit ``Recording`` (the button with the red dot):
 
 .. image:: images/examples/recording/before.jpg
    :align: center
