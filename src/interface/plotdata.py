@@ -11,6 +11,8 @@ class PlotData(object):
         self._parent = parent
         self._maxlen = maxlen
         self.restored = False
+        self.ishistory = title[:7] == 'History'
+        self.recordhistory = False
         if(title in parent.conf and 'history_length' in parent.conf[title]):
             self._maxlen = parent.conf[title]['history_length']
 
@@ -100,8 +102,8 @@ class PlotData(object):
         pds['y'] = self.y.save_state()
         pds['title'] = self.title
         pds['maxlen'] = self.maxlen
+        pds['recordhistory'] = self.recordhistory
         return pds
-
 
     def restore_state(self, state, parent):
         """Restore a previous stored state"""
@@ -110,5 +112,6 @@ class PlotData(object):
         self._y = RingBuffer.restore_state(state['y'])
         self._title = state['title']
         self._maxlen = state['maxlen']
+        self.recordhistory = state['recordhistory']
         self.restored = True
 

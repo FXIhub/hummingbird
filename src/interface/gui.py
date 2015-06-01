@@ -3,8 +3,9 @@
 from interface.Qt import QtGui, QtCore
 from interface.ui import AddBackendDialog, PreferencesDialog
 from interface.ui import PlotWindow, ImageWindow
-from interface import DataSource
 from interface.ui import Ui_mainWindow
+from interface.recorder import H5Recorder
+from interface import DataSource
 import logging
 import os
 
@@ -18,6 +19,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         QtGui.QMainWindow.__init__(self)
         self._data_windows = []
         self._data_sources = []
+        self._recorder = None
         self.settings = None
         self.setupUi(self)
         self.restore_settings()
@@ -67,9 +69,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             logging.warning("Failed to load data windows settings! Continuing...")
 
         self.plotdata_widget.restore_state(s)
+        self._init_recorder(s)
         self.settings = s
-
-
 
     def _init_geometry(self, settings):
         """Restores the geometry of the main window."""
@@ -77,6 +78,10 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             self.restoreGeometry(settings.value("geometry"))
         if(settings.contains("windowState")):
             self.restoreState(settings.value("windowState"))
+
+    def _init_recorder(self, settings):
+        """Initializes the recorder"""
+        self._recorder = H5Recorder(settings.value("outputPath"))
 
     def _restore_data_windows(self, settings, data_sources):
         """Restores the geometry and data sources of the data windows."""
@@ -134,7 +139,6 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             QtGui.QMessageBox.warning(self, "Duplicate backend",
                                       "Duplicate backend. Ignoring %s" % data_source.name())
             return
-
         self._data_sources.append(data_source)
         logging.debug("Registering data source '%s' in the GUI", data_source.name())
         action = QtGui.QAction(data_source.name(), self)
@@ -144,6 +148,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self._backends_menu.addAction(action)
         action.triggered.connect(self._data_source_triggered)
         self.plotdata_widget.add_source(data_source)
+        data_source._recorder = self._recorder
         self._status_message("Backend '%s' connected." % (data_source.name()), 5000)
 
     def _add_backend_triggered(self):
@@ -196,8 +201,30 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         if(diag.exec_()):
             v = diag.outputPath.text()
             self.settings.setValue("outputPath", v)
+            self._recorder.outpath = v
             self.alert_sound = diag.alert_sound.isChecked()
             self.alert_msg = diag.alert_msg.isChecked()
+
+    def _recorder_toggled(self, turn_on):
+        """Start/Stop the recorder"""
+        if self._recorder is None:
+            return
+        if (turn_on):
+            self._recorder.openfile()
+            record_titles = self.plotdata_widget.record_titles(True)
+            for ds in self._data_sources:
+                if ds.name() in record_titles:
+                    for title in record_titles[ds.name()]:
+                        ds.subscribe_for_recording(title)
+            #self._recorder.start()
+        else:
+            self._recorder.closefile()
+            record_titles = self.plotdata_widget.record_titles(False)
+            for ds in self._data_sources:
+                if ds.name() in record_titles:
+                    for title in record_titles[ds.name()]:
+                        ds.unsubscribe_for_recording(title)
+            #self._recorder.stop()
                 
     def save_data_windows(self):
         """Save data windows state and data sources to the settings file"""

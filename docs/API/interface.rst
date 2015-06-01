@@ -18,6 +18,11 @@ interface package
     :undoc-members:
     :show-inheritance:
 
+.. autoclass:: interface.H5Recorder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+       
 .. autoclass:: interface.RingBuffer
     :members:
     :undoc-members:
