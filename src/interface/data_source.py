@@ -19,6 +19,8 @@ class DataSource(QtCore.QObject):
         self.connected = False
         self._plotdata = {}
         self._subscribed_titles = {}
+        self._recorded_titles = {}
+        self._recorder = None
         self._data_socket = ZmqSocket(SUB, self)
         self.conf = {}
         try:
@@ -44,6 +46,7 @@ class DataSource(QtCore.QObject):
                 pass
         else:
             self._subscribed_titles[title].append(plot)
+            
     def unsubscribe(self, title, plot):
         """Dissociate the given plot with the broadcast named title.
         If no one else is associated with it unsubscribe"""
@@ -55,6 +58,31 @@ class DataSource(QtCore.QObject):
             logging.debug("Unsubscribing from %s on %s.", title, self.name())
             self._subscribed_titles.pop(title)
 
+    def subscribe_for_recording(self, title):
+        """Subscribe to the broadcast named title, and associate it with recorder"""
+        # Only subscribe if we are not already subscribing for plotting
+        if title in self._subscribed_titles:
+            return
+        if title not in self._recorded_titles:
+            self._recorded_titles[title] = True
+            try:
+                self._data_socket.subscribe(bytes(title))
+                self.subscribed.emit(title)
+                logging.debug("Subscribing to %s on %s.", title, self.name())
+            # socket might still not exist
+            except AttributeError:
+                pass
+
+    def unsubscribe_for_recording(self, title):
+        """Dissociate the recorder with the broadcast named title.
+        If no one else is associated with it unsubscrine"""
+        self._recorded_titles[title] = False
+        if not title in self._subscribed_titles:
+            self._data_socket.unsubscribe(bytes(title))
+            self.unsubscribed.emit(title)
+            logging.debug("Unsubscribing from %s on %s.", title, self.name())
+            self._recorded_titles.pop(title)
+            
     def name(self):
         """Return a string representation of the data source"""
         if(self._ssh_tunnel):
@@ -149,6 +177,8 @@ class DataSource(QtCore.QObject):
             data_x = payload[4]
             conf = payload[5]
             self.conf[title].update(conf)
+            if self._plotdata[title].recordhistory:
+                self._recorder.append(title, data, data_x)
             self._plotdata[title].append(data, data_x)
 
     @property

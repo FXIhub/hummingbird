@@ -1,43 +1,82 @@
-<?xml version="1.0" encoding="iso-8859-1"?>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <!-- Generator: Adobe Illustrator 18.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
-<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
-<svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 viewBox="0 0 315.58 315.58" style="enable-background:new 0 0 315.58 315.58;" xml:space="preserve">
-<g>
-	<path d="M310.58,33.331H5c-2.761,0-5,2.238-5,5v238.918c0,2.762,2.239,5,5,5h305.58c2.763,0,5-2.238,5-5V38.331
-		C315.58,35.569,313.343,33.331,310.58,33.331z M285.58,242.386l-68.766-71.214c-0.76-0.785-2.003-0.836-2.823-0.114l-47.695,41.979
-		l-60.962-75.061c-0.396-0.49-0.975-0.77-1.63-0.756c-0.631,0.013-1.22,0.316-1.597,0.822L30,234.797V63.331h255.58V242.386z"/>
-	<path d="M210.059,135.555c13.538,0,24.529-10.982,24.529-24.531c0-13.545-10.991-24.533-24.529-24.533
-		c-13.549,0-24.528,10.988-24.528,24.533C185.531,124.572,196.511,135.555,210.059,135.555z"/>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-</svg>
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="Capa_1"
+   x="0px"
+   y="0px"
+   viewBox="0 0 28 28"
+   xml:space="preserve"
+   inkscape:version="0.48.5 r10040"
+   width="100%"
+   height="100%"
+   sodipodi:docname="add_image_plot.svg"><metadata
+     id="metadata3129"><rdf:RDF><cc:Work
+         rdf:about=""><dc:format>image/svg+xml</dc:format><dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" /></cc:Work></rdf:RDF></metadata><defs
+     id="defs3127" /><sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1415"
+     inkscape:window-height="863"
+     id="namedview3125"
+     showgrid="false"
+     inkscape:zoom="10.25"
+     inkscape:cx="32"
+     inkscape:cy="32"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="g3089" /><g
+     id="g3089"
+     transform="matrix(0.08872552,0,0,0.08872552,0,2.9573104)"><path
+       d="M 310.58,-33.331004 H 5 c -2.761,0 -5,2.837351 -5,6.339034 v 302.90193 c 0,3.50169 2.239,6.33904 5,6.33904 h 305.58 c 2.763,0 5,-2.83735 5,-6.33904 V -26.99197 c 0,-3.501683 -2.237,-6.339034 -5,-6.339034 z m -25,265.041404 -68.766,-90.2856 c -0.76,-0.99523 -2.003,-1.0599 -2.823,-0.14454 l -47.695,53.22128 -60.962,-95.16287 c -0.396,-0.621225 -0.975,-0.976219 -1.63,-0.95846 -0.631,0.01645 -1.22,0.400627 -1.597,1.042137 L 30,222.08902 V 4.7032081 H 285.58 V 231.7104 z"
+       id="path3091"
+       inkscape:connector-curvature="0" /><path
+       d="m 210.059,90.472141 c 13.538,0 24.529,-10.982 24.529,-24.530999 0,-13.545 -10.991,-24.533 -24.529,-24.533 -13.549,0 -24.528,10.988 -24.528,24.533 0,13.547999 10.98,24.530999 24.528,24.530999 z"
+       id="path3093"
+       inkscape:connector-curvature="0" /></g><g
+     id="g3095"
+     transform="translate(0,-287.58001)" /><g
+     id="g3097"
+     transform="translate(0,-287.58001)" /><g
+     id="g3099"
+     transform="translate(0,-287.58001)" /><g
+     id="g3101"
+     transform="translate(0,-287.58001)" /><g
+     id="g3103"
+     transform="translate(0,-287.58001)" /><g
+     id="g3105"
+     transform="translate(0,-287.58001)" /><g
+     id="g3107"
+     transform="translate(0,-287.58001)" /><g
+     id="g3109"
+     transform="translate(0,-287.58001)" /><g
+     id="g3111"
+     transform="translate(0,-287.58001)" /><g
+     id="g3113"
+     transform="translate(0,-287.58001)" /><g
+     id="g3115"
+     transform="translate(0,-287.58001)" /><g
+     id="g3117"
+     transform="translate(0,-287.58001)" /><g
+     id="g3119"
+     transform="translate(0,-287.58001)" /><g
+     id="g3121"
+     transform="translate(0,-287.58001)" /><g
+     id="g3123"
+     transform="translate(0,-287.58001)" /></svg>

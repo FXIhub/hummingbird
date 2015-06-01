@@ -219,14 +219,6 @@ Like in the previous examples, results are plotted as history plots and images. 
 When looking at the hit images, it is possible to jump back and forth in time using the arrow keys. This way, interesting hits can revisited if they passed by too quickly. Jumping all the way to the hight (most recent hit), enables live updating again.
 
 
-Sizing
-------
-
-
-Correlations
-------------
-
-
 MPI
 ---
 In order to speed up things, it is possible to run ``Hummingbird`` in MPI mode, simply use:
@@ -316,4 +308,42 @@ Using the ``H5Reader`` any data can be written from a given HDF5 file and used f
    # Reading something else
    # ----------------------
    reader = utils.reader.H5Reader('examples/extra_files/something.h5', 'somekey')
+
+
+Recording to file
+-----------------
+In the frontend it is possible to record any existing ``History(...)`` data source to file. Just select the variables of interest and hit ``Recording`` (the button with the red dot):
+
+.. image:: images/examples/recording/before.jpg
+   :align: center
+
+All selected variables are saved to an HDF5 file (saved in the output path defined in te settings) together with the corresponding timestamps:
+
+.. image:: images/examples/recording/after.jpg
+   :align: center
+
+The recorded information can now easily be analyized outside of ``Hummingbird``, e.g. using ipython:
+
+>>> In [1]: import h5py, numpy
+>>> In [2]: file = h5py.File('history_20150531_1708.h5', 'r')
+>>> In [3]: file.keys()
+>>> Out[3]: [u'hitrate', u'hitscore - CCD', u'nrPhotons - CCD']
+>>> In [4]: hitscore_time = file["hitscore - CCD"][0]
+>>> In [5]: hitscore = file["hitscore - CCD"][1][numpy.argsort(hitscore_time)]
+>>> In [6]: nrPhotons_time = file["nrPhotons - CCD"][0]
+>>> In [7]: nrPhotons = file["nrPhotons - CCD"][1][numpy.argsort(nrPhotons_time)]
+>>> In [8]: import matplotlib.pyplot as plt
+>>> In [9]: plt.scatter(nrPhotons, hitscore)
+>>> In [10]: plt.gca().set_xlabel('Nr. of Photons'); plt.gca().set_ylabel('Hitscore')
+
+.. image:: images/examples/recording/scatter.png
+   :align: center
+	   	   
+   
+Sizing
+------
+
+
+Correlations
+------------
 

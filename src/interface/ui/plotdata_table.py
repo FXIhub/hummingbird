@@ -11,8 +11,8 @@ class PlotDataTable(QtGui.QWidget):
         vbox.addWidget(label)
 
         self.table = QtGui.QTableWidget()
-        self.table.setColumnCount(4)
-        self.table.setHorizontalHeaderLabels(['Backend', 'Title','Buffer Capacity','Save on Exit'])
+        self.table.setColumnCount(5)
+        self.table.setHorizontalHeaderLabels(['Backend', 'Title','Buffer Capacity','Save on Exit', 'Record History'])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setHighlightSections(False)
         self.table.verticalHeader().hide()
@@ -38,7 +38,6 @@ class PlotDataTable(QtGui.QWidget):
         hbox.addWidget(self.buffer_spin)
         hbox.addStretch()
         vbox.addLayout(hbox)
-
 #        vbox.addStretch()
 
     def add_source(self, source):
@@ -69,8 +68,13 @@ class PlotDataTable(QtGui.QWidget):
         checkbox.setChecked(plotdata.restored)
         self.table.setItem(row, 3, QtGui.QTableWidgetItem())
         self.table.setCellWidget(row, 3, self._center_widget(checkbox))
+        checkbox = QtGui.QCheckBox()
+        checkbox.setEnabled(plotdata.ishistory)
+        checkbox.setChecked(plotdata.recordhistory)
+        self.table.setItem(row, 4, QtGui.QTableWidgetItem())
+        self.table.setCellWidget(row, 4, self._center_widget(checkbox))
 
-        # Mark existing subscriptions        
+        # Mark existing subscriptions     
         if(plotdata.title in source.subscribed_titles):
             self._set_subscription(source, plotdata.title, True)
 
@@ -111,7 +115,7 @@ class PlotDataTable(QtGui.QWidget):
             bar.setValue(len(plotdata))
             bar.setToolTip('%d/%d (%s allocated)' % (len(plotdata), plotdata.maxlen, _sizeof_fmt(plotdata.nbytes)))
             bar.setTextVisible(True)            
-        
+            
     def save_state(self, settings):
         """Save the current header state to disk"""
         settings.setValue("plotDataTable", self.table.horizontalHeader().saveState())
@@ -129,13 +133,32 @@ class PlotDataTable(QtGui.QWidget):
             pd_settings.append(plotdata.save_state())
         return pd_settings
 
-
     def restore_state(self, settings):
         """Restores the a previous header state"""
         state = settings.value('plotDataTable')
         if(state is not None):
             self.table.horizontalHeader().restoreState(state)
 
+    def record_titles(self, is_recording):
+        titles = {}
+        for row in range(0, self.table.rowCount()):
+            #Check if this row is marked for recording
+            checkbox = self.table.cellWidget(row,4).findChild(QtGui.QCheckBox)
+            item = self.table.item(row,0)
+            source = item.data(QtCore.Qt.UserRole)
+            item = self.table.item(row,1)
+            plotdata = item.data(QtCore.Qt.UserRole)
+            if plotdata.ishistory:
+                checkbox.setDisabled(is_recording)
+            if(not checkbox.isChecked()):
+                continue
+            if source.name() not in titles:
+                titles[source.name()] = []
+            titles[source.name()].append(plotdata._title)
+            if is_recording:
+                plotdata.recordhistory = is_recording
+        return titles
+        
     def _on_selection_changed(self):
         table = self.sender()
         if(len(table.selectedItems())):      

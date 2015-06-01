@@ -1,5 +1,7 @@
 <RCC>
   <qresource>
+    <file>svg_icons/recorder.svg</file>
+    <file>svg_icons/recorder_red.svg</file>
     <file>logo_48_transparent.png</file>
     <file>svg_icons/settings.svg</file>
     <file>svg_icons/add_image_plot.svg</file>

@@ -26,6 +26,7 @@ def sigint_handler(*_):
 
 from interface.data_source import DataSource # pylint: disable=unused-import
 from interface.plotdata import PlotData # pylint: disable=unused-import
+from interface.recorder import H5Recorder # pylint: disable=unused-import
 from interface.ringbuffer import RingBuffer # pylint: disable=unused-import
 from interface.zmqcontext import ZmqContext # pylint: disable=unused-import
 from interface.zmqsocket import ZmqSocket # pylint: disable=unused-import

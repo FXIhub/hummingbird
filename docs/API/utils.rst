@@ -12,15 +12,7 @@ reader module
     :members:
     :undoc-members:
 
-
-writer module
--------------
-
-.. automodule:: utils.writer
-    :members:
-    :undoc-members:
-
-
+       
 array module
 ------------
 
