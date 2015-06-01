@@ -324,7 +324,7 @@ All selected variables are saved to an HDF5 file (saved in the output path defin
 .. image:: images/examples/recording/after.jpg
    :align: center
 
-The recorded information can now easily be analyized outside of ``Hummingbird``, e.g. using IPython:
+The recorded information can now easily be analyzed outside of ``Hummingbird``, e.g. using IPython:
 
 >>> In [1]: import h5py, numpy
 >>> In [2]: file = h5py.File('history_20150531_1708.h5', 'r')
