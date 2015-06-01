@@ -314,7 +314,7 @@ Using the ``H5Reader`` any data can be written from a given HDF5 file and used f
 
 Recording to file
 -----------------
-In the frontend it is possible to record any existing ``History(...)`` data source to file. Just select the variables of interest and hit ``Recording`` (the button with the red dot):
+In the frontend it is possible to record any existing ``History(...)`` data source to file. Just select the variables of interest (using the Record history column) and hit ``Recording`` (the button with the red dot):
 
 .. image:: images/examples/recording/before.jpg
    :align: center
@@ -324,7 +324,7 @@ All selected variables are saved to an HDF5 file (saved in the output path defin
 .. image:: images/examples/recording/after.jpg
    :align: center
 
-The recorded information can now easily be analyized outside of ``Hummingbird``, e.g. using ipython:
+The recorded information can now easily be analyzed outside of ``Hummingbird``, e.g. using IPython:
 
 >>> In [1]: import h5py, numpy
 >>> In [2]: file = h5py.File('history_20150531_1708.h5', 'r')
