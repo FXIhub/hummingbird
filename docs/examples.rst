@@ -326,17 +326,18 @@ All selected variables are saved to an HDF5 file (saved in the output path defin
 
 The recorded information can now easily be analyzed outside of ``Hummingbird``, e.g. using IPython:
 
->>> In [1]: import h5py, numpy
->>> In [2]: file = h5py.File('history_20150531_1708.h5', 'r')
->>> In [3]: file.keys()
->>> Out[3]: [u'hitrate', u'hitscore - CCD', u'nrPhotons - CCD']
->>> In [4]: hitscore_time = file["hitscore - CCD"][0]
->>> In [5]: hitscore = file["hitscore - CCD"][1][numpy.argsort(hitscore_time)]
->>> In [6]: nrPhotons_time = file["nrPhotons - CCD"][0]
->>> In [7]: nrPhotons = file["nrPhotons - CCD"][1][numpy.argsort(nrPhotons_time)]
->>> In [8]: import matplotlib.pyplot as plt
->>> In [9]: plt.scatter(nrPhotons, hitscore)
->>> In [10]: plt.gca().set_xlabel('Nr. of Photons'); plt.gca().set_ylabel('Hitscore')
+::
+   >>> In [1]: import h5py, numpy
+   >>> In [2]: file = h5py.File('history_20150531_1708.h5', 'r')
+   >>> In [3]: file.keys()
+   >>> Out[3]: [u'hitrate', u'hitscore - CCD', u'nrPhotons - CCD']
+   >>> In [4]: hitscore_time = file["hitscore - CCD"][0]
+   >>> In [5]: hitscore = file["hitscore - CCD"][1][numpy.argsort(hitscore_time)]
+   >>> In [6]: nrPhotons_time = file["nrPhotons - CCD"][0]
+   >>> In [7]: nrPhotons = file["nrPhotons - CCD"][1][numpy.argsort(nrPhotons_time)]
+   >>> In [8]: import matplotlib.pyplot as plt
+   >>> In [9]: plt.scatter(nrPhotons, hitscore)
+   >>> In [10]: plt.gca().set_xlabel('Nr. of Photons'); plt.gca().set_ylabel('Hitscore')
 
 .. image:: images/examples/recording/scatter.png
    :align: center
