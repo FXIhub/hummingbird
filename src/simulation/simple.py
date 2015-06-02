@@ -22,7 +22,6 @@ class Simulation:
         else: self.miss()
 
     def get_pattern(self):
-        print self.output["intensity_pattern"][0].shape
         return self.output["intensity_pattern"][0]
 
     def get_pulse_energy(self):
