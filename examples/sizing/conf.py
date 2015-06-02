@@ -138,13 +138,13 @@ def onEvent(evt):
         plotting.line.plotHistory(evt["analysis"]["offCenterY"])
         plotting.line.plotHistory(evt["analysis"]["diameter"])
         plotting.line.plotHistory(evt["analysis"]["intensity"])
+        plotting.line.plotHistory(evt["analysis"]["error"])
 
         plotting.line.plotHistory(evt["parameters"]["offCenterX"])
         plotting.line.plotHistory(evt["parameters"]["offCenterY"])
         plotting.line.plotHistory(evt["parameters"]["diameter"])
         plotting.line.plotHistory(evt["parameters"]["intensity"])
 
-        
         # Attach a message to the plots
         s0 = evt["analysis"]["diameter"].data
         s1 = evt["parameters"]["diameter"].data
