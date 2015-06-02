@@ -346,8 +346,12 @@ The recorded information can now easily be analyzed outside of ``Hummingbird``, 
    
 Sizing
 ------
+See example in ``examples/sizing/conf.py``, it works for spheres:
 
+.. image:: images/examples/sizing/fit_vs_data.jpg
+   :align: center
 
+	   
 Correlations
 ------------
 
