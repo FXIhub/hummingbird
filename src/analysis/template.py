@@ -25,5 +25,5 @@ def someAnalysis(evt, type, key, keyword=None):
     # ADD YOUR CODE HERE
     # 
     # something = ....
-    
-    evt["analysis"]["something_new - " + key] = Record("something_new - " + key, something, unit=some_unit)
+
+    add_record(evt["analysis"], "analysis", "somethingNew"+key, something, unit=some_unit)

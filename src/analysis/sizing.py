@@ -1,4 +1,4 @@
-from backend import Record
+from backend import add_record
 import ipc
 import numpy as np
 try:
@@ -40,8 +40,9 @@ def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5
         mask = np.ones_like(img)
     cx, cy = spimage.find_center(img, mask, method='blurred', x0=x0, y0=y0,
                                  dmax=maxshift, threshold=threshold, blur_radius=blur)
-    evt["analysis"]["offCenterX"] = Record("offCenterX", cx, unit='px')
-    evt["analysis"]["offCenterY"] = Record("offCenterY", cy, unit='px')
+    v = evt["analysis"]
+    add_record(v, "analysis", "offCenterX", cx, unit='px')
+    add_record(v, "analysis", "offCenterY", cy, unit='px')
 
 parameters = {}
 def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
@@ -92,7 +93,8 @@ def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
     wavelength *= 1e-9
     distance   *= 1e-3
     pixelsize  *= 1e-6
-    
+
+    # Why is downsampling hardcoded here?
     diameter, info = spimage.fit_sphere_diameter(img, mask, diameter, intensity, wavelength, pixelsize, distance,
                                                  method='pearson', full_output=True, x0=x0, y0=y0,
                                                  detector_adu_photon=adu_per_photon,
@@ -120,13 +122,13 @@ def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
                                            downsampling=downsampling,
                                            do_photon_counting=photon_counting)
     x0, y0, diameter, intensity, info = params
-    
-    evt["analysis"]["offCenterX"] = Record("offCenterX", x0, unit='px')
-    evt["analysis"]["offCenterY"] = Record("offCenterY", y0, unit='px')
-    evt["analysis"]["diameter"]   = Record("diameter",   diameter / 1e-9, unit='nm')
-    evt["analysis"]["intensity"]  = Record("intensity",  intensity / (1e-3 / 1e-12), unit='mJ_um2')
-    evt["analysis"]["goodness"]   = Record("goodness",   info["error"], unit='')
 
+    v = evt["analysis"]
+    add_record(v, "analysis", "offCenterX", x0, unit='')
+    add_record(v, "analysis", "offCenterY", y0, unit='')
+    add_record(v, "analysis", "diameter", diameter / 1E-9, unit='nm')
+    add_record(v, "analysis", "intensity", intensity / (1e-3 / 1e-12), unit='mJ/um**2')
+    add_record(v, "analysis", "error", info["error"], unit='')
 
 def sphereModel(evt, type, key_centerx, key_centery, key_diameter, key_intensity, 
                 shape, wavelength=1., pixelsize=110, distance=1000, adu_per_photon=1,
@@ -181,4 +183,4 @@ def sphereModel(evt, type, key_centerx, key_centery, key_diameter, key_intensity
                                            size)
     if poisson:
         fit = np.random.poisson(fit)
-    evt["analysis"]["fit"] = Record("fit", fit, unit='ADU')
+    add_record(evt["analysis"], "analysis", "fit", fit, unit='ADU')

@@ -2,7 +2,7 @@
 import os
 import logging
 from backend.event_translator import EventTranslator
-from backend.record import add_record, Record
+from backend.record import Record, add_record
 import psana
 import numpy
 import datetime
@@ -116,11 +116,11 @@ class LCLSTranslator(object):
             event_keys = evt.keys()
             values = {}
             found = False
-            for k in event_keys:
-                if(k.key() == key):
-                    obj = evt.get(k.type(), k.src(), k.key())
+            for event_key in event_keys:
+                if(event_key.key() == key):
+                    obj = evt.get(event_key.type(), event_key.src(), event_key.key())
                     found = True
-                    add_record(values, self._s2c[str(k.src())] + ' ['+key+']',
+                    add_record(values, 'native', '%s[%s]' % (self._s2c[str(event_key.src())], key),
                                obj, ureg.ADU)
             if(found):
                 return values
@@ -193,30 +193,30 @@ class LCLSTranslator(object):
             # Calculate the resonant photon energy of the first active segment
             photon_energy_ev = 44.42*energy_profile*energy_profile
 
-        add_record(values, 'photon energy', photon_energy_ev, ureg.eV)
+        add_record(values, 'photonEnergies', 'photonEnergy', photon_energy_ev, ureg.eV)
 
     def _tr_bld_data_fee_gas_det_energy(self, values, obj):
         """Translates gas monitor detector to hummingbird pulse energy"""
         # convert from mJ to J
-        add_record(values, 'f_11_ENRC', obj.f_11_ENRC(), ureg.mJ)
-        add_record(values, 'f_12_ENRC', obj.f_12_ENRC(), ureg.mJ)
-        add_record(values, 'f_21_ENRC', obj.f_21_ENRC(), ureg.mJ)
-        add_record(values, 'f_22_ENRC', obj.f_22_ENRC(), ureg.mJ)
+        add_record(values, 'pulseEnergies', 'f_11_ENRC', obj.f_11_ENRC(), ureg.mJ)
+        add_record(values, 'pulseEnergies', 'f_12_ENRC', obj.f_12_ENRC(), ureg.mJ)
+        add_record(values, 'pulseEnergies', 'f_21_ENRC', obj.f_21_ENRC(), ureg.mJ)
+        add_record(values, 'pulseEnergies', 'f_22_ENRC', obj.f_22_ENRC(), ureg.mJ)
 
     def _tr_lusi_ipm_fex(self, values, obj, evt_key):
         """Translates Ipm relative pulse energy monitor
         to hummingbird pulse energy"""
-        add_record(values, 'IpmFex '+str(evt_key.src()), obj.sum(), ureg.ADU)
+        add_record(values, 'pulseEnergies', 'IpmFex - '+str(evt_key.src()), obj.sum(), ureg.ADU)
 
     def _tr_cspad2x2(self, values, obj):
         """Translates CsPad2x2 to hummingbird numpy array"""
-        add_record(values, 'CsPad2x2', obj.data(), ureg.ADU)
+        add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data(), ureg.ADU)
 
     def _tr_cspad(self, values, obj, evt_key):
         """Translates CsPad to hummingbird numpy array, quad by quad"""
         n_quads = obj.quads_shape()[0]
         for i in range(0, n_quads):
-            add_record(values, '%s Quad %d' % (self._s2c[str(evt_key.src())], i),
+            add_record(values, 'photonPixelDetectors', '%sQuad%d' % (self._s2c[str(evt_key.src())], i),
                        obj.quads(i).data(), ureg.ADU)
 
     def _tr_acqiris(self, values, obj, evt_key):
@@ -260,7 +260,7 @@ class LCLSTranslator(object):
         codes = []
         for fifo_event in obj.fifoEvents():
             codes.append(fifo_event.eventCode())
-        add_record(values, 'EvrEventCodes', codes)
+        add_record(values, 'eventCodes', 'EvrEventCodes', codes)
 
     def _tr_epics(self):
         """Returns an EPICSdict that provides access to EPICS parameters.

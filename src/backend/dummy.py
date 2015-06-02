@@ -61,7 +61,7 @@ class DummyTranslator(object):
            'Data Sources' not in self.state['Dummy']):
             if(key == 'photonPixelDetectors'):
                 # Translate default CCD as default
-                add_record(values, 'CCD', evt['CCD'], ureg.ADU)
+                add_record(values, key, 'CCD', evt['CCD'], ureg.ADU)
             if(values == {}):
                 raise RuntimeError('%s not found in event' % (key))
             return values
@@ -72,7 +72,7 @@ class DummyTranslator(object):
                 u = self.state['Dummy']['Data Sources'][ds]['unit']
                 if not isinstance(self.state['Dummy']['Data Sources'][ds]['unit'],ureg.Quantity):
                     u = ureg.parse_expression(u)
-                add_record(values, ds, evt[ds], u)
+                add_record(values, key, ds, evt[ds], u)
         if(values == {} and not key == 'analysis'):
             raise RuntimeError('%s not found in event' % (key))
         return values
