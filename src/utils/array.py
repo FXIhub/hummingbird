@@ -21,7 +21,7 @@ def cheetahToSlacH5(cheetahArr):
             out_arr[slacPos] = cheetahArr[rB:rE, cB:cE]
     return out_arr
 
-def assembleImage(x, y, img=None, nx=None, ny=None, return_indices=False):
+def assembleImage(x, y, img=None, nx=None, ny=None, dtype=None, return_indices=False):
     x -= x.min()
     y -= y.min()
     shape = (y.max() - y.min() + 1, x.max() - x.min() + 1)  
@@ -34,5 +34,7 @@ def assembleImage(x, y, img=None, nx=None, ny=None, return_indices=False):
     if return_indices:
         return assembled, height, width, shape, y, x
     assembled[height-shape[0]:height, :shape[1]][y,x] = img
+    if dtype is not None:
+        assembled = assembled.astype(getattr(numpy, dtype))
     return assembled
 
