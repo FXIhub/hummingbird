@@ -12,12 +12,12 @@ def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5
     """Estimating the center of diffraction based on pair-wise correlation enforcing friedel-symmetry and adding the estimated off center shifts cx and cy to
     ``evt['analysis']['offCenterX']`` and ``evt['analysis']['offCenterX']``.
 
-    .. note:: For this function, ``libspimage`` (https://github.com/FilipeMaia/libspimage) needs to be installed.
+    .. note:: For this function, `libspimage <https://github.com/FilipeMaia/libspimage>`_ needs to be installed.
 
     Args:
         :evt:       The event variable
-        :type(str): The event type, e.g. photonPixelDetectors
-        :key(str):  The event key of the detector, e.g. CCD 
+        :type(str): The event type of detectors, e.g. photonPixelDetectors
+        :key(str):  The event key of a detector, e.g. CCD 
 
     Kwargs:
         :mask(bool or int): Only valid pixels (mask == True or 1) are used (default: all pixels are valid)
@@ -29,10 +29,11 @@ def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5
 
     :Authors: 
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se), 
-        Filipe Maia (...)
+        Filipe Maia,
+        Tomas Ekeberg
     """
     if not spimage_installed:
-        print "For the sizing module, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
+        print "For the sizing.findCenter, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
         return
     img  = evt[type][key].data
     if mask is None:
@@ -49,22 +50,37 @@ def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
                 downsampling=1, brute_evals=10, photon_counting=True):
     """Estimating the size of particles based on diffraction data using sphere model fitting.
     Adds results to ``evt['analysis'][RESULT]`` where RESULT is 'size', 'intensity', 'centerx', 'centery', 'goodness'.
-    .. note:: For this, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed.
+
+    .. note:: For this function, `libspimage <https://github.com/FilipeMaia/libspimage>`_ needs to be installed.
 
     Args:
         :evt:       The event variable
-        :type(str): The event type, e.g. photonPixelDetectors
-        :key(str):  The event key of the detector, e.g. CCD 
+        :type(str): The event type of detectors, e.g. photonPixelDetectors
+        :key(str):  The event key of a detector, e.g. CCD 
 
     Kwargs:
-        :keyword(type): 
+        :x0(int):   Initial guess for off center shift in x (default = 0)
+        :y0(int):   Initial guess for off center shift in y (default = 0)
+        :d0(int):   Initial guess for diameter [nm] (default = 100)
+        :i0(int):   Initial guess for intensity [mJ/um2] (default = 1)
+        :wavelength(float):   Photon wavelength [nm] (default = 1)
+        :pixelsize(int):      Side length of a pixel [um] (default=110)
+        :distance(int):       Distance from interaction to detector [mm] (default = 1000)
+        :adu_per_photon(int): ADUs per photon (default = 1)
+        :quantum_efficiency(float):  Quantum efficiency of the detector (default = 1)
+        :material(str):       Material of particle, e.g. virus, protein, water, ... (default = virus)
+        :mask_radius(int):    Radius in pixels used for circular mask defining valid pixels for fitting (default=100)
+        :downsampling(int):   Factor of downsampling, 1 means no downsampling (default = 1)
+        :brute_evals(int):    Nr. of brute force evaluations for estimating the size (default = 10)
+        :photon_counting(bool): If True, Do photon conversion (discretization)  before fitting (default = True)
 
     :Authors: 
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se), 
-        Max Hantke (...)
+        Max Hantke,
+        Filipe Maia
     """
     if not spimage_installed:
-        print "For the sizing module, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
+        print "For sizing.fitSphere, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
         return
 
     img = evt[type][key].data
@@ -116,22 +132,34 @@ def sphereModel(evt, type, key_centerx, key_centery, key_diameter, key_intensity
                 shape, wavelength=1., pixelsize=110, distance=1000, adu_per_photon=1,
                 quantum_efficiency=1, material='virus', poisson=False):
     """Return sphere model.
-    .. note:: For this, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed.
+
+    .. note:: For this function, `libspimage <https://github.com/FilipeMaia/libspimage>`_ needs to be installed.
 
     Args:
         :evt:       The event variable
         :type(str): The event type, e.g. analysis
-        :key(str):  The event key of the detector
+        :key_centerx(str):    The event key of the estimated off center shift in x
+        :key_centery(str):    The event key of the estimated off center shift in y
+        :key_diameter(str):   The event key of the estimated diameter
+        :key_intensity(str):  The event key of the estimated intensity
+        :shape(tuple):        The shape of the fit
 
     Kwargs:
-        :keyword(type): 
+        :wavelength(float):   Photon wavelength [nm] (default = 1)
+        :pixelsize(int):      Side length of a pixel [um] (default=110)
+        :distance(int):       Distance from interaction to detector [mm] (default = 1000)
+        :adu_per_photon(int): ADUs per photon (default = 1)
+        :quantum_efficiency(float):  Quantum efficiency of the detector (default = 1)
+        :material(str):       Material of particle, e.g. virus, protein, water, ... (default = virus)
+        :poisson(bool):       If True, apply poisson sampling (default = False)
 
     :Authors: 
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se), 
-        Max Hantke (...)
+        Max Hantke,
+        Filipe Maia
     """
     if not spimage_installed:
-        print "For the sizing module, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
+        print "For sizing.sphereModel, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
         return
 
     centerx    = evt[type][key_centerx].data

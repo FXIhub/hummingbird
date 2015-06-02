@@ -33,6 +33,14 @@ analysis.hitfinding module
     :undoc-members:
     :show-inheritance:
 
+analysis.sizing module
+--------------------------
+
+.. automodule:: analysis.sizing
+    :members:
+    :undoc-members:
+    :show-inheritance:
+       
 analysis.pixel_detector module
 ------------------------------
 
