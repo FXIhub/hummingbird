@@ -22,21 +22,18 @@ class Simulation:
         else: self.miss()
 
     def get_pattern(self):
+        print self.output["intensity_pattern"][0].shape
         return self.output["intensity_pattern"][0]
 
     def get_pulse_energy(self):
         return self.output["source"]["pulse_energy"][0]
 
+    def get_intensity_mJ_um2(self):
+        I = self.output["sample"]["intensity"][0,0]
+        E = self.output["source"]["photon_energy"][0]
+        return (I*E/1E-3*1E-12)
+    
     def get_particle_size_nm(self):
         return self.output["sample"]["diameter"][0,0] * 1e9
-
-    def get_position_x(self):
-        return self.output["sample"]["position"][0][0][0]
-
-    def get_position_y(self):
-        return self.output["sample"]["position"][0][0][1]
-
-    def get_position_z(self):
-        return self.output["sample"]["position"][0][0][2]
 
     

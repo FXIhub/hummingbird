@@ -1,3 +1,5 @@
+import os
+import utils.reader
 import simulation.simple
 import analysis.event
 import analysis.pixel_detector
@@ -5,6 +7,7 @@ import analysis.hitfinding
 import analysis.sizing
 import plotting.line
 import plotting.image
+from backend import ureg
 
 sim = simulation.simple.Simulation("examples/sizing/virus.conf")
 sim.hitrate = 0.1
@@ -26,19 +29,15 @@ state = {
                 'unit': 'J',
                 'type': 'pulseEnergies'
             },
-            'inj_x': {
-                'data': sim.get_position_x,
-                'unit': 'm',
+            'size': {
+                'data': sim.get_particle_size_nm,
+                'unit': 'nm',
                 'type': 'parameters'
             },
-            'inj_y': {
-                'data': sim.get_position_y,
-                'unit': 'm',
-                'type': 'parameters'
-            },
-            'inj_z': {
-                'data': sim.get_position_z,
-                'unit': 'm',
+            'intensity': {
+                'data': sim.get_intensity_mJ_um2,
+                #'unit': ureg.mJ/ureg.um**2,
+                'unit': "mJ/um**2",
                 'type': 'parameters'
             }
         }        
@@ -74,6 +73,10 @@ sizingParams = {
     'downsampling':1,
     'brute_evals':10,
     'photon_counting':True}
+
+this_dir = os.path.dirname(os.path.realpath(__file__))
+mask = utils.reader.MaskReader(this_dir + "/mask.h5","/data/data").boolean_mask
+
     
 def onEvent(evt):
 
@@ -98,30 +101,36 @@ def onEvent(evt):
 
     # Plot the hitrate
     plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
-     
+    
     # Perform sizing on hits
     if evt["analysis"]["isHit - CCD"]:
 
         print "It's a hit"
         
         # Find the center of diffraction
-        analysis.sizing.findCenter(evt, "photonPixelDetectors", "CCD", maxshift=20, threshold=0.5, blur=4)
+        analysis.sizing.findCenter(evt, "photonPixelDetectors", "CCD", mask=mask, maxshift=20, threshold=0.5, blur=4)
 
         # Fitting sphere model to get size and intensity
-        analysis.sizing.fitSphere(evt, "photonPixelDetectors", "CCD", **dict(modelParams, **sizingParams))
+        analysis.sizing.fitSphere(evt, "photonPixelDetectors", "CCD", mask=mask, **dict(modelParams, **sizingParams))
         plotting.line.plotHistory(evt["analysis"]["offCenterX"])
         plotting.line.plotHistory(evt["analysis"]["offCenterY"])
         plotting.line.plotHistory(evt["analysis"]["diameter"])
         plotting.line.plotHistory(evt["analysis"]["intensity"])
 
         # Fitting model
-        analysis.sizing.sphereModel(evt, "analysis", "offCenterX", "offCenterY", "diameter", "intensity", (414,414), poisson=True, **modelParams)
+        analysis.sizing.sphereModel(evt, "analysis", "offCenterX", "offCenterY", "diameter", "intensity", (sim.ny,sim.nx), poisson=True, **modelParams)
 
         # Attach a message to the plots
-        msg = "size = %.2f nm, \nintensity = %.2f mJ/um2" %(evt["analysis"]["diameter"].data, evt["analysis"]["intensity"].data)
+        s0 = evt["analysis"]["diameter"].data
+        s1 = evt["parameters"]["size"].data
+        I0 = evt["analysis"]["intensity"].data
+        I1 = evt["parameters"]["intensity"].data
+        msg_glo = "size = %.2f nm, \nintensity = %.2f mJ/um2" % (s0, I0)
+        msg_fit = "Fit result: \nsize = %.2f nm (%.2f nm), \nintensity = %.2f mJ/um2 (%.2f mJ/um2)" % (s0, s1-s0, I0, I1-I0)
+
+        # Plot the glorious shots
+        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg_glo, log=True, mask=mask)
         
         # Plot the fitted model
-        plotting.image.plotImage(evt["analysis"]["fit"], msg=msg, log=True)
+        plotting.image.plotImage(evt["analysis"]["fit"], msg=msg_fit, log=True, mask=mask)
         
-        # Plot the glorious shots
-        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg, log=True)
