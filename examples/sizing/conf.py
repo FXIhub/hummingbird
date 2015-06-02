@@ -1,4 +1,5 @@
 import os
+import time
 import utils.reader
 import simulation.simple
 import analysis.event
@@ -10,7 +11,7 @@ import plotting.image
 from backend import ureg
 
 sim = simulation.simple.Simulation("examples/sizing/virus.conf")
-sim.hitrate = 0.1
+sim.hitrate = 1.0
 
 state = {
     'Facility': 'Dummy',
@@ -106,12 +107,16 @@ def onEvent(evt):
     if evt["analysis"]["isHit - CCD"]:
 
         print "It's a hit"
-        
+
+        t0 = time.time()
         # Find the center of diffraction
         analysis.sizing.findCenter(evt, "photonPixelDetectors", "CCD", mask=mask, maxshift=20, threshold=0.5, blur=4)
-
+        print "t_center = %e sec" % (time.time()-t0)
+        
         # Fitting sphere model to get size and intensity
+        t0 = time.time()
         analysis.sizing.fitSphere(evt, "photonPixelDetectors", "CCD", mask=mask, **dict(modelParams, **sizingParams))
+        print "t_size = %e sec" % (time.time()-t0)
         plotting.line.plotHistory(evt["analysis"]["offCenterX"])
         plotting.line.plotHistory(evt["analysis"]["offCenterY"])
         plotting.line.plotHistory(evt["analysis"]["diameter"])
