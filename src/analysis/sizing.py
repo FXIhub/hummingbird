@@ -94,14 +94,13 @@ def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
     distance   *= 1e-3
     pixelsize  *= 1e-6
 
-    # Why is downsampling hardcoded here?
     diameter, info = spimage.fit_sphere_diameter(img, mask, diameter, intensity, wavelength, pixelsize, distance,
                                                  method='pearson', full_output=True, x0=x0, y0=y0,
                                                  detector_adu_photon=adu_per_photon,
                                                  detector_quantum_efficiency=quantum_efficiency,
                                                  material=material,
                                                  rmax=mask_radius,
-                                                 downsampling=1,
+                                                 downsampling=downsampling,
                                                  do_brute_evals=brute_evals,
                                                  do_photon_counting=photon_counting)
     
