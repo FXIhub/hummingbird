@@ -24,21 +24,6 @@ state = {
                 'data': sim.get_pulse_energy,
                 'unit': 'J',
                 'type': 'pulseEnergies'
-            },
-            'inj_x': {
-                'data': sim.get_position_x,
-                'unit': 'm',
-                'type': 'parameters'
-            },
-            'inj_y': {
-                'data': sim.get_position_y,
-                'unit': 'm',
-                'type': 'parameters'
-            },
-            'inj_z': {
-                'data': sim.get_position_z,
-                'unit': 'm',
-                'type': 'parameters'
             }
         }        
     }
