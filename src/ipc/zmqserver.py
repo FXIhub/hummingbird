@@ -48,6 +48,9 @@ class ZmqServer(object):
             if(isinstance(data[i], numpy.ndarray)):
                 array_list.append(data[i])
                 data[i] = '__ndarray__'
+            elif(isinstance(data[i], numpy.number)):
+                # JSON can't deal with numpy scalars
+                data[i] = data[i].item()
         # Use the md5sum of the title as the key to avoid clashing
         # keys, when one title is a substring or another title
         # (e.g. "CCD" and "CCD1")
