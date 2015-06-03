@@ -37,7 +37,9 @@ def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5
         return
     img  = evt[type][key].data
     if mask is None:
-        mask = np.ones_like(img)
+        mask = np.ones(shape=img.shape, dtype="bool")
+    else:
+        mask = np.array(mask, dtype="bool")
     cx, cy = spimage.find_center(img, mask, method='blurred', x0=x0, y0=y0,
                                  dmax=maxshift, threshold=threshold, blur_radius=blur)
     v = evt["analysis"]
@@ -86,7 +88,9 @@ def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
 
     img = evt[type][key].data
     if mask is None:
-        mask = np.ones_like(img).astype(np.bool)
+        mask = np.ones(shape=img.shape, dtypt="bool")
+    else:
+        mask = np.array(mask, dtype="bool")
 
     diameter   = d0 * 1e-9
     intensity  = i0 * 1e-3 / 1e-12
@@ -183,3 +187,43 @@ def sphereModel(evt, type, key_centerx, key_centery, key_diameter, key_intensity
     if poisson:
         fit = np.random.poisson(fit)
     add_record(evt["analysis"], "analysis", "fit", fit, unit='ADU')
+
+
+
+parameters = {}
+def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=None, d0=100, i0=1.,
+                    wavelength=1., pixelsize=110, distance=1000, adu_per_photon=1,
+                    quantum_efficiency=1, material='virus', mask_radius=100,
+                    downsampling=1, brute_evals=10, photon_counting=True):
+    """    """
+    if not spimage_installed:
+        print "For sizing.fitSphere, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
+        return
+
+    r     = evt[type][radial_distance_key].data
+    img_r = evt[type][radial_average_key].data
+
+    diameter   = d0 * 1e-9
+    intensity  = i0 * 1e-3 / 1e-12
+    wavelength *= 1e-9
+    distance   *= 1e-3
+    pixelsize  *= 1e-6
+
+    diameter, info = spimage.fit_sphere_diameter_radial(r, img_r, diameter, intensity, wavelength, pixelsize, distance,
+                                                        full_output=True,
+                                                        detector_adu_photon=adu_per_photon,
+                                                        detector_quantum_efficiency=quantum_efficiency,
+                                                        material=material,
+                                                        do_brute_evals=brute_evals)
+                                                        
+    
+    intensity, info = spimage.fit_sphere_intensity_radial(r, img_r, diameter, intensity, wavelength, pixelsize, distance,
+                                                          full_output=True,
+                                                          detector_adu_photon=adu_per_photon,
+                                                          detector_quantum_efficiency=quantum_efficiency,
+                                                          material=material)
+    
+    v = evt["analysis"]
+    add_record(v, "analysis", "diameter", diameter / 1E-9, unit='nm')
+    add_record(v, "analysis", "intensity", intensity / (1e-3 / 1e-12), unit='mJ/um**2')
+    add_record(v, "analysis", "error", info["error"], unit='')

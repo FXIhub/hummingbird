@@ -91,6 +91,18 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
         add_record(evt["analysis"], "analysis", outkey, assembled)
 
     
-def bin(evt, type, key, binning):
-    binned = utils.array.binImage(evt[type][key].data,binning)
-    add_record(evt["analysis"], "analysis", "binned - "+key, binned)
+def bin(evt, type, key, binning, mask=None):
+    import spimage
+    image = evt[type][key].data
+    binned_image, binned_mask = spimage.binImage(image, binning, mask, output_binned_mask=True)
+    add_record(evt["analysis"], "analysis", "binned image - "+key, binned_image)
+    if binned_mask is not None:
+        add_record(evt["analysis"], "analysis", "binned mask - "+key, binned_mask)
+
+def radial(evt, type, key, mask=None, cx=None, cy=None):
+    import spimage
+    image = evt[type][key].data
+    r, img_r = spimage.radialMeanImage(image, msk=mask, cx=cx, cy=cy, output_r=True)
+    add_record(evt["analysis"], "analysis", "radial distance - "+key, r)
+    add_record(evt["analysis"], "analysis", "radial average - "+key, img_r)
+    
