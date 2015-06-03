@@ -2,7 +2,7 @@ from numpy import sum, mean, min, max, std
 import ipc
 import numpy as np
 from backend import ureg
-from backend import Record
+from backend import add_record
 import utils.array
 
 def printStatistics(detectors):
@@ -29,7 +29,7 @@ def getCentral4Asics(evt, type, key):
     detector = evt[type][key]
     for i in range(4):
         central.append(detector.data[i*8+1,:,:194])
-    evt["analysis"]["central4Asics"] = Record("central4Asics", np.hstack(central), detector.unit)
+    add_record(evt["analysis"], "analysis", "central4Asics", np.hstack(central), detector.unit)
     
 def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
     """Estimates the total nr. of photons on the detector and adds it to ``evt["analysis"]["nrPhotons - " + key]``.
@@ -48,7 +48,7 @@ def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
     """
     data  = evt[type][key].data.flat
     valid = data > aduThreshold
-    evt["analysis"]["nrPhotons - " + key] = Record("nrPhotons - " + key , sum(data[valid]) / float(aduPhoton))
+    add_record(evt["analysis"], "analysis", "nrPhotons - " + key, sum(data[valid]) / float(aduPhoton))
 
 initialized = {}
 def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
@@ -86,8 +86,8 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
     x = initialized[key]['x']
     assembled[height-shape[0]:height, :shape[1]][y,x] = evt[type][key].data
     if outkey is None:
-        evt["analysis"]["assembled - " + key] = Record("assembled - " + key, assembled)
+        add_record(evt["analysis"], "analysis", "assembled - "+key, assembled)
     else:
-        evt["analysis"][outkey] = Record(outkey, assembled)
+        add_record(evt["analysis"], "analysis", outkey, assembled)
 
     

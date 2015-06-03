@@ -2,7 +2,7 @@ import collections
 import ipc
 import numpy as np
 from backend import  ureg
-from backend import Record
+from backend import add_record
 
 def averagePulseEnergy(evt, type):
     """Averages pulse energies. Expects an event and an event type and adds the
@@ -17,7 +17,7 @@ def averagePulseEnergy(evt, type):
         if (pE.unit == ureg.mJ):
             pulseEnergy.append(pE.data)
     if pulseEnergy:
-        evt["analysis"]["averagePulsEnergy"] = Record("averagePulseEnergy", np.mean(pulseEnergy), ureg.mJ)
+        add_record(evt["analysis"], "analysis", "averagePulsEnergy", np.mean(pulseEnergy), ureg.mJ)
 
 def printPulseEnergy(pulseEnergies):
     """Expects a dictionary of pulse energy ``Records`` and prints pulse energies to screen."""

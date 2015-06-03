@@ -11,7 +11,6 @@ class H5Reader:
     def load_dataset(self, key):
         return self._fileno[key][:]
         
-
 class MaskReader(H5Reader):
     def __init__(self, filename, key='data/data'):
         H5Reader.__init__(self, filename, key)
@@ -24,3 +23,4 @@ class GeometryReader(H5Reader):
         self.x = np.floor(self._fileno['x'][:]).astype(np.int)
         self.y = np.floor(self._fileno['y'][:]).astype(np.int)
         self._fileno.close()
+

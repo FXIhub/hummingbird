@@ -20,6 +20,8 @@ def parse_cmdline_args():
                         action="store_true")
     parser.add_argument("-d", "--debug", help="output debug messages",
                         action="store_true")
+    parser.add_argument("-p", "--profile", help="generate and output profiling information",
+                        action="store_true")
     if(len(sys.argv) == 1):
         parser.print_help()
     return parser.parse_args()
@@ -40,7 +42,13 @@ def main():
             worker = Worker(args.backend)
         else:
             worker = Worker(None)
-        worker.start()
+        if not args.profile:
+            worker.start()
+        else:
+            from pycallgraph import PyCallGraph
+            from pycallgraph.output import GraphvizOutput
+            with PyCallGraph(output=GraphvizOutput()):
+                worker.start()
     elif(args.interface is not False):
         import interface
         interface.start_interface()

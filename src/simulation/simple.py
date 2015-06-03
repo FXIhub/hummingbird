@@ -7,6 +7,8 @@ class Simulation:
         self.p = condor.propagator.Propagator(self.input.source, self.input.sample, self.input.detector)
         self.nx = self.input.confDict["detector"]["nx"]
         self.ny = self.input.confDict["detector"]["ny"]
+        self.cx_mean = self.input.detector.get_cx_mean_value()
+        self.cy_mean = self.input.detector.get_cy_mean_value()
         self.sigma = self.input.confDict["detector"]["noise_spread"]
         self.hitrate = 0.1
 
@@ -27,16 +29,18 @@ class Simulation:
     def get_pulse_energy(self):
         return self.output["source"]["pulse_energy"][0]
 
-    def get_particle_size_nm(self):
+    def get_intensity_mJ_um2(self):
+        I = self.output["sample"]["intensity"][0,0]
+        E = self.output["source"]["photon_energy"][0]
+        return (I*E/1E-3*1E-12)
+    
+    def get_particle_diameter_nm(self):
         return self.output["sample"]["diameter"][0,0] * 1e9
 
-    def get_position_x(self):
-        return self.output["sample"]["position"][0][0][0]
+    def get_offCenterX(self):
+        return self.output["detector"]["cx"]-self.cx_mean
 
-    def get_position_y(self):
-        return self.output["sample"]["position"][0][0][1]
-
-    def get_position_z(self):
-        return self.output["sample"]["position"][0][0][2]
+    def get_offCenterY(self):
+        return self.output["detector"]["cy"]-self.cy_mean
 
     

@@ -1,5 +1,5 @@
 import ipc
-from backend import Record
+from backend import add_record
 import numpy as np
 import collections
 
@@ -17,8 +17,9 @@ def countHits(evt, hit, history=100):
         counter = collections.deque([], history)
     if hit: counter.append(True)
     else: counter.append(False)
-    evt["analysis"]["nrHit"]  = Record("nrHit",  counter.count(True))
-    evt["analysis"]["nrMiss"] = Record("nrMiss", counter.count(False))
+    v = evt["analysis"]
+    add_record(v, "analysis", "nrHit", counter.count(True))
+    add_record(v, "analysis", "nrMiss", counter.count(False))
 
 def hitrate(evt, hit, history=100):
     """Takes a boolean (True for hit, False for miss) and adds the hit rate in % to ``evt["analysis"]["hitrate"]`` if called by main worker, otherwise it returns None. Has been tested in MPI mode
@@ -31,10 +32,11 @@ def hitrate(evt, hit, history=100):
     misses = evt["analysis"]["nrMiss"].data
     hitrate = np.array(100 * hits / float(hits + misses))
     ipc.mpi.sum(hitrate)
+    v = evt["analysis"]
     if(ipc.mpi.is_main_worker()):
-        evt["analysis"]["hitrate"] = Record("hitrate", hitrate[()]/ipc.mpi.nr_workers(), unit='%')
+        add_record(v, "analysis", "hitrate", hitrate[()]/ipc.mpi.nr_workers(), unit='%')
     else:
-        evt["analysis"]["hitrate"] = None
+        add_record(v, "analysis", "hitrate", None)
 
 def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, mask=None):
     """A simple hitfinder that counts the number of lit pixels and
@@ -54,5 +56,6 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, mask=
     """
     detector = evt[type][key]
     hitscore = (detector.data[mask] > aduThreshold).sum()
-    evt["analysis"]["isHit - " + key] = hitscore > hitscoreThreshold
-    evt["analysis"]["hitscore - " + key] = Record("hitscore - " + key, hitscore)
+    v = evt["analysis"]
+    v["isHit - "+key] = hitscore > hitscoreThreshold
+    add_record(v, "analysis", "hitscore - "+key, hitscore)

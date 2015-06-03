@@ -41,6 +41,8 @@ def new_data(title, data_y, data_x=None, mpi_reduce=False, **kwds):
     values at the interface. If mpi_reduce is True data_y will be
     summed over all the slaves. All keywords pairs given will also be
     transmitted and available at the interface."""
+    if data_y.dtype == numpy.int64:
+        data_y = data_y.astype(numpy.float)
     _check_type(title, data_y)
     if(data_x is None):
         data_x = ipc.broadcast.evt.event_id()
