@@ -91,3 +91,6 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
         add_record(evt["analysis"], "analysis", outkey, assembled)
 
     
+def bin(evt, type, key, binning):
+    binned = utils.array.binImage(evt[type][key].data,binning)
+    add_record(evt["analysis"], "analysis", "binned - "+key, binned)
