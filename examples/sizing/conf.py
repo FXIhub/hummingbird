@@ -11,7 +11,7 @@ import plotting.image
 from backend import ureg
 
 sim = simulation.simple.Simulation("examples/sizing/virus.conf")
-sim.hitrate = 1.0
+sim.hitrate = 0.1
 
 state = {
     'Facility': 'Dummy',
@@ -103,7 +103,7 @@ def onEvent(evt):
     analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD", aduThreshold=0.5, hitscoreThreshold=10)
 
     # Compute the hitrate
-    analysis.hitfinding.hitrate(evt, evt["analysis"]["isHit - CCD"], history=100)
+    analysis.hitfinding.hitrate(evt, evt["analysis"]["isHit - CCD"], history=500)
     
     # Plot the hitscore
     plotting.line.plotHistory(evt["analysis"]["hitscore - CCD"], label='Nr. of lit pixels')

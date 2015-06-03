@@ -57,5 +57,5 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, mask=
     detector = evt[type][key]
     hitscore = (detector.data[mask] > aduThreshold).sum()
     v = evt["analysis"]
-    add_record(v, "analysis", "isHit - "+key, hitscore > hitscoreThreshold)
+    v["isHit - "+key] = hitscore > hitscoreThreshold
     add_record(v, "analysis", "hitscore - "+key, hitscore)
