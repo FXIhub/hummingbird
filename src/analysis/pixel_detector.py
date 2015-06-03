@@ -100,9 +100,13 @@ def bin(evt, type, key, binning, mask=None):
         add_record(evt["analysis"], "analysis", "binned mask - "+key, binned_mask)
 
 def radial(evt, type, key, mask=None, cx=None, cy=None):
-    import spimage
+    import spimage, numpy
     image = evt[type][key].data
     r, img_r = spimage.radialMeanImage(image, msk=mask, cx=cx, cy=cy, output_r=True)
+    valid = numpy.isfinite(img_r)
+    if valid.sum() > 0:
+        r = r[valid]
+        img_r = img_r[valid]
     add_record(evt["analysis"], "analysis", "radial distance - "+key, r)
     add_record(evt["analysis"], "analysis", "radial average - "+key, img_r)
     
