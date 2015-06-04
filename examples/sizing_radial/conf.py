@@ -139,7 +139,7 @@ def onEvent(evt):
             analysis.sizing.fitSphereRadial(evt, "analysis", "radial distance - CCD", "radial average - CCD", **dict(modelParams, **sizingParams))
             t_size = time.time()-t0
 
-            #plotting.line.plotTrace(evt["analysis"]["radial average - CCD"], evt["analysis"]["radial distance - CCD"])
+            plotting.line.plotTrace(evt["analysis"]["radial average - CCD"], evt["analysis"]["radial distance - CCD"])
 
         # Fitting model
         t0 = time.time()
