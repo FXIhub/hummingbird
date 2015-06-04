@@ -134,12 +134,12 @@ def onEvent(evt):
             t0 = time.time()
             cx = evt["analysis"]["offCenterX"].data + (sim.nx - 1) / 2.
             cy = evt["analysis"]["offCenterY"].data + (sim.ny - 1) / 2.
-            analysis.pixel_detector.radial(evt, "photonPixelDetectors", "CCD", mask=mask, cx=cx, cy=cy)
-            
+            analysis.pixel_detector.radial(evt, "photonPixelDetectors", "CCD", mask=mask, cx=cx, cy=cy)          
             # Fitting sphere model to get size and intensity
-            t0 = time.time()
             analysis.sizing.fitSphereRadial(evt, "analysis", "radial distance - CCD", "radial average - CCD", **dict(modelParams, **sizingParams))
             t_size = time.time()-t0
+
+            #plotting.line.plotTrace(evt["analysis"]["radial average - CCD"], evt["analysis"]["radial distance - CCD"])
 
         # Fitting model
         t0 = time.time()
