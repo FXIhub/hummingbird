@@ -237,7 +237,7 @@ def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=N
     distance   *= 1e-3
     pixelsize  *= 1e-6
 
-    diameter, info = spimage.fit_sphere_diameter_radial(r, img_r, diameter, intensity, wavelength, pixelsize, distance,
+    diameter, info = spimage.fit_sphere_diameter_radial2(r, img_r, diameter, intensity, wavelength, pixelsize, distance,
                                                         full_output=True,
                                                         detector_adu_photon=adu_per_photon,
                                                         detector_quantum_efficiency=quantum_efficiency,
