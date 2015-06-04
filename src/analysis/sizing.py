@@ -194,8 +194,36 @@ parameters = {}
 def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=None, d0=100, i0=1.,
                     wavelength=1., pixelsize=110, distance=1000, adu_per_photon=1,
                     quantum_efficiency=1, material='virus', mask_radius=100,
-                    downsampling=1, brute_evals=10, photon_counting=True):
-    """    """
+                    brute_evals=10, photon_counting=True):
+    """    
+    Estimating the size of particles based on diffraction data using radial sphere model fitting.
+    Adds results to ``evt['analysis'][RESULT]`` where RESULT is 'size', 'intensity', 'error'.
+
+    .. note:: For this function, `libspimage <https://github.com/FilipeMaia/libspimage>`_ needs to be installed.
+
+    Args:
+        :evt:       The event variable
+        :type(str): The event type of detectors, e.g. photonPixelDetectors
+        :key(str):  The event key of a detector radial average, e.g. radial average - CCD 
+
+    Kwargs:
+        :d0(int):   Initial guess for diameter [nm] (default = 100)
+        :i0(int):   Initial guess for intensity [mJ/um2] (default = 1)
+        :wavelength(float):   Photon wavelength [nm] (default = 1)
+        :pixelsize(int):      Side length of a pixel [um] (default=110)
+        :distance(int):       Distance from interaction to detector [mm] (default = 1000)
+        :adu_per_photon(int): ADUs per photon (default = 1)
+        :quantum_efficiency(float):  Quantum efficiency of the detector (default = 1)
+        :material(str):       Material of particle, e.g. virus, protein, water, ... (default = virus)
+        :mask_radius(int):    Radius in pixels used for circular mask defining valid pixels for fitting (default=100)
+        :brute_evals(int):    Nr. of brute force evaluations for estimating the size (default = 10)
+        :photon_counting(bool): If True, Do photon conversion (discretization)  before fitting (default = True)
+
+    :Authors: 
+        Max Hantke (hantke@xray.bmc.uu.se),
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se), 
+        Filipe Maia
+    """
     if not spimage_installed:
         print "For sizing.fitSphere, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
         return
