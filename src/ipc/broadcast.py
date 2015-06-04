@@ -23,8 +23,10 @@ def _check_type(title, data_y):
         data_conf[title] = {}
     if('data_type' not in data_conf[title]):
         if(isinstance(data_y, numpy.ndarray)):
-            if(len(data_y.shape) == 1):
+            # Special handling for data plots
+            if(len(data_y.shape) == 1) or (len(data_y.shape) == 2 and data_y.shape[0] == 2):
                 data_conf[title]['data_type'] = 'vector'
+            # Images with more longer first dimension
             elif(len(data_y.shape) == 2):
                 data_conf[title]['data_type'] = 'image'
             else:
@@ -36,23 +38,22 @@ def _check_type(title, data_y):
         if(ipc.mpi.is_slave()):
             ipc.mpi.send('__data_conf__', data_conf)
 
-def new_data(title, data_y, data_x=None, mpi_reduce=False, **kwds):
+def new_data(title, data_y, mpi_reduce=False, **kwds):
     """Send a new data item, which will be appended to any existing
     values at the interface. If mpi_reduce is True data_y will be
     summed over all the slaves. All keywords pairs given will also be
     transmitted and available at the interface."""
     _check_type(title, data_y)
-    if(data_x is None):
-        data_x = ipc.broadcast.evt.event_id()
+    event_id = ipc.broadcast.evt.event_id()
     if(ipc.mpi.is_slave()):
         if(mpi_reduce):
-            ipc.mpi.send_reduce(title, 'new_data', data_y, data_x, **kwds)
+            ipc.mpi.send_reduce(title, 'new_data', data_y, event_id, **kwds)
         else:
             ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y,
-                                 data_x, kwds])
+                                 event_id, kwds])
     else:
         ipc.zmq().send(title, [ipc.uuid, 'new_data', title, data_y,
-                               data_x, kwds])
+                               event_id, kwds])
         
 def set_current_event(_evt):
     """Updates the current event, such that it can

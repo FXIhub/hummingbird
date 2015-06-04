@@ -24,7 +24,7 @@ state = {
                 'type': 'photonPixelDetectors'
             },
             'tof': {
-                'data': lambda: numpy.random.rand(256),
+                'data': lambda: numpy.random.rand(2,256),
                 'unit': 'mJ',
                 'type': 'ionTOFs'
             },
@@ -40,3 +40,4 @@ state = {
 
 def onEvent(evt):
     analysis.event.printProcessingRate()
+    ipc.new_data("TOF", evt["ionTOFs"]["tof"].data)
