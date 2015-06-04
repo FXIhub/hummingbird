@@ -163,20 +163,24 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 y = numpy.array(pd.y, copy=False)
                 self.last_vector_y = None
                 self.last_vector_x = None
-            elif(source.data_type[title] == 'vector'):
+            elif source.data_type[title] == 'vector':
                 if(self.current_index == -1):
-                    y = numpy.array(pd.y[self.current_index, :], copy=False)
+                    y = numpy.array(pd.y[self.current_index], copy=False)
                     self.last_vector_y = numpy.array(pd.y)
                     self.last_vector_x = numpy.array(pd.x)
                 else:
-                    y = self.last_vector_y[self.current_index, :]
+                    y = self.last_vector_y[self.current_index]
 
             x = None
             if(source.data_type[title] == 'scalar'):
                 x = numpy.array(pd.x, copy=False)
             elif(source.data_type[title] == 'vector'):
-                xmin, xmax = self._configure_xlimits(source, title)
-                x = numpy.linspace(xmin,xmax, pd.y.shape[-1])
+                if len(y.shape) == 2:
+                    x = y[0,:]
+                    y = y[1,:]
+                else:
+                    xmin, xmax = self._configure_xlimits(source, title)
+                    x = numpy.linspace(xmin,xmax, pd.y.shape[-1])
 
             if(self._settings_diag.histogram.isChecked()):
                 bins = int(self._settings_diag.histBins.text())
