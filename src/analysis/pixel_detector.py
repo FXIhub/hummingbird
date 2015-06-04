@@ -94,7 +94,7 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
 def bin(evt, type, key, binning, mask=None):
     import spimage
     image = evt[type][key].data
-    binned_image, binned_mask = spimage.binImage(image, binning, mask, output_binned_mask=True)
+    binned_image, binned_mask = spimage.binImage(image, binning, msk=mask, output_binned_mask=True)
     add_record(evt["analysis"], "analysis", "binned image - "+key, binned_image)
     if binned_mask is not None:
         add_record(evt["analysis"], "analysis", "binned mask - "+key, binned_mask)
