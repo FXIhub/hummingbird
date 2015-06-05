@@ -1,5 +1,7 @@
 import os
 import time
+import numpy
+import ipc
 import utils.reader
 import simulation.simple
 import analysis.event
@@ -80,7 +82,6 @@ sizingParams = {
     'd0':100,
     'i0':1,
     'mask_radius':100,
-    'downsampling':1,
     'brute_evals':10,
     'photon_counting':True}
 
@@ -88,7 +89,12 @@ radial = True
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 mask = utils.reader.MaskReader(this_dir + "/mask.h5","/data/data").boolean_mask
-    
+
+s = []
+I = []
+s_err = []
+I_err = []
+
 def onEvent(evt):
 
     # Processing rate
@@ -143,12 +149,19 @@ def onEvent(evt):
 
         # Fitting model
         t0 = time.time()
-        analysis.sizing.sphereModel(evt, "analysis", "offCenterX", "offCenterY", "diameter", "intensity", (sim.ny,sim.nx), poisson=True, **modelParams)
+        analysis.sizing.sphereModel(evt, "analysis", "offCenterX", "offCenterY", "diameter", "intensity", (sim.ny,sim.nx), poisson=False, **modelParams)
         t_full = time.time()-t0
 
+        if radial:
+            analysis.pixel_detector.radial(evt, "analysis", "fit", mask=mask, cx=cx, cy=cy)          
+            # 1D arrays have to have same length, otherwise histoty keeping gets messed up
+            rlen = 100
+            ipc.new_data("radial fit", numpy.array([evt["analysis"]["radial distance - fit"].data.ravel()[:rlen], evt["analysis"]["radial average - fit"].data.ravel()[:rlen]], copy=False))
+            ipc.new_data("radial CCD", numpy.array([evt["analysis"]["radial distance - CCD"].data.ravel()[:rlen], evt["analysis"]["radial average - CCD"].data.ravel()[:rlen]], copy=False))
+        
         t_all = t_center + t_size + t_full
-        print "Time: %e sec (center / size / full : %.2f%% / %.2f%% / %.2f%%)" % (t_all, 100.*t_center/t_all, 100.*t_size/t_all, 100.*t_full/t_all)    
-
+        print "Time: %e sec (center / size / full : %.2f%% / %.2f%% / %.2f%%)" % (t_all, 100.*t_center/t_all, 100.*t_size/t_all, 100.*t_full/t_all)           
+        
         plotting.line.plotHistory(evt["analysis"]["offCenterX"])
         plotting.line.plotHistory(evt["analysis"]["offCenterY"])
         plotting.line.plotHistory(evt["analysis"]["diameter"])
@@ -168,6 +181,23 @@ def onEvent(evt):
         msg_glo = "diameter = %.2f nm, \nintensity = %.2f mJ/um2" % (s0, I0)
         msg_fit = "Fit result: \ndiameter = %.2f nm (%.2f nm), \nintensity = %.2f mJ/um2 (%.2f mJ/um2)" % (s0, s1-s0, I0, I1-I0)
 
+        global s_err
+        global I_err
+        global s
+        global I
+        s_err.append(abs(s0-s1))
+        I_err.append(abs(I0-I1))
+        s.append(s1)
+        I.append(I1)
+        print "Average errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (numpy.array(s_err).mean(),
+                                                                                  100.*numpy.array(s_err).mean()/numpy.array(s).mean(),
+                                                                                  numpy.array(I_err).mean(),
+                                                                                  100.*numpy.array(I_err).mean()/numpy.array(I).mean())
+        print "Median errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (numpy.median(numpy.array(s_err)),
+                                                                                 100.*numpy.median(numpy.array(s_err))/numpy.median(numpy.array(s)),
+                                                                                 numpy.median(numpy.array(I_err)),
+                                                                                 100.*numpy.median(numpy.array(I_err))/numpy.median(numpy.array(I)))
+        
         # Plot the glorious shots
         plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg_glo, log=True, mask=mask)
         

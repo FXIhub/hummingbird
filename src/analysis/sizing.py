@@ -237,7 +237,21 @@ def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=N
     distance   *= 1e-3
     pixelsize  *= 1e-6
 
-    diameter, info = spimage.fit_sphere_diameter_radial2(r, img_r, diameter, intensity, wavelength, pixelsize, distance,
+    if False:
+        t = img_r.max()*0.2
+        i_max = np.arange(img_r.size)[img_r>t].max()
+        img_r_m = img_r[:i_max]
+        r_m = r[:i_max]
+    else:
+        img_r_m = img_r
+        r_m = r
+    
+    if False:    
+        from scipy.ndimage.filters import gaussian_filter
+        img_r_m = gaussian_filter(img_r_m,1.)
+    
+    
+    diameter, info = spimage.fit_sphere_diameter_radial(r_m, img_r_m, diameter, intensity, wavelength, pixelsize, distance,
                                                         full_output=True,
                                                         detector_adu_photon=adu_per_photon,
                                                         detector_quantum_efficiency=quantum_efficiency,
@@ -245,7 +259,7 @@ def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=N
                                                         do_brute_evals=brute_evals)
                                                         
     
-    intensity, info = spimage.fit_sphere_intensity_radial(r, img_r, diameter, intensity, wavelength, pixelsize, distance,
+    intensity, info = spimage.fit_sphere_intensity_radial(r_m, img_r_m, diameter, intensity, wavelength, pixelsize, distance,
                                                           full_output=True,
                                                           detector_adu_photon=adu_per_photon,
                                                           detector_quantum_efficiency=quantum_efficiency,
@@ -254,4 +268,6 @@ def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=N
     v = evt["analysis"]
     add_record(v, "analysis", "diameter", diameter / 1E-9, unit='nm')
     add_record(v, "analysis", "intensity", intensity / (1e-3 / 1e-12), unit='mJ/um**2')
-    add_record(v, "analysis", "error", info["error"], unit='')
+    add_record(v, "analysis", "fit error", info["error"], unit='')
+    add_record(v, "analysis", "fit mean error 1", info["mean_error_1"], unit='')
+    add_record(v, "analysis", "fit mean error 3", info["mean_error_3"], unit='')
