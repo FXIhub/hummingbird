@@ -132,7 +132,7 @@ def onEvent(evt):
         if not radial:
             # Fitting sphere model to get size and intensity
             t0 = time.time()
-            analysis.sizing.fitSphere(evt, "photonPixelDetectors", "CCD", mask=mask, **dict(modelParams, **sizingParams))
+            analysis.sizing.fitSphere(evt, "photonPixelDetectors", "CCD", mask=mask, downsampling=1, **dict(modelParams, **sizingParams))
             t_size = time.time()-t0
             
         else:
