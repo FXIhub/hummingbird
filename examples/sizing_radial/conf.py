@@ -181,15 +181,10 @@ def onEvent(evt):
         msg_glo = "diameter = %.2f nm, \nintensity = %.2f mJ/um2" % (s0, I0)
         msg_fit = "Fit result: \ndiameter = %.2f nm (%.2f nm), \nintensity = %.2f mJ/um2 (%.2f mJ/um2)" % (s0, s1-s0, I0, I1-I0)
 
-        global s_err
-        global I_err
-        global s
-        global I
         s_err.append(abs(s0-s1))
         I_err.append(abs(I0-I1))
         s.append(s1)
         I.append(I1)
-        print I
         print "Average errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (numpy.array(s_err).mean(),
                                                                                   100.*numpy.array(s_err).mean()/numpy.array(s).mean(),
                                                                                   numpy.array(I_err).mean(),
