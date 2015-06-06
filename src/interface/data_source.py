@@ -110,6 +110,10 @@ class DataSource(QtCore.QObject):
         """Ask to the backend for the configuration"""
         self._ctrl_socket.send_multipart(['conf'])
 
+    def query_reloading(self):
+        """Ask the backend to reload its configuration"""
+        self._ctrl_socket.send_multipart(['reload'])
+        
     def _get_request_reply(self, socket=None):
         """Handle the reply of the backend to a previous request"""
         if(socket is None):

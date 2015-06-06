@@ -75,6 +75,9 @@ class ZmqServer(object):
             stream.socket.send_json(['data_port', bytes(self._data_port)])
         if(msg[0] == 'uuid'):
             stream.socket.send_json(['uuid', bytes(ipc.uuid)])
+        if(msg[0] == 'reload'):
+            #TODO pass on the reload to the workers
+            print "Reloading..."
 
     def _ioloop(self):
         """Start the ioloop fires the callbacks when data is received
