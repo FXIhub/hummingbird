@@ -90,10 +90,14 @@ radial = True
 this_dir = os.path.dirname(os.path.realpath(__file__))
 mask = utils.reader.MaskReader(this_dir + "/mask.h5","/data/data").boolean_mask
 
-s = []
-I = []
-s_err = []
-I_err = []
+# Error logging histories
+histLen = 100
+I = numpy.zeros(histLen)*numpy.nan
+Ierr = numpy.zeros(histLen)*numpy.nan
+s = numpy.zeros(histLen)*numpy.nan
+serr = numpy.zeros(histLen)*numpy.nan
+ferr = numpy.zeros(histLen)*numpy.nan
+i = 0
 
 def onEvent(evt):
 
@@ -166,7 +170,7 @@ def onEvent(evt):
         plotting.line.plotHistory(evt["analysis"]["offCenterY"])
         plotting.line.plotHistory(evt["analysis"]["diameter"])
         plotting.line.plotHistory(evt["analysis"]["intensity"])
-        plotting.line.plotHistory(evt["analysis"]["error"])
+        plotting.line.plotHistory(evt["analysis"]["fit error"])
 
         plotting.line.plotHistory(evt["parameters"]["offCenterX"])
         plotting.line.plotHistory(evt["parameters"]["offCenterY"])
@@ -181,22 +185,31 @@ def onEvent(evt):
         msg_glo = "diameter = %.2f nm, \nintensity = %.2f mJ/um2" % (s0, I0)
         msg_fit = "Fit result: \ndiameter = %.2f nm (%.2f nm), \nintensity = %.2f mJ/um2 (%.2f mJ/um2)" % (s0, s1-s0, I0, I1-I0)
 
-        global s_err
-        global I_err
         global s
         global I
-        s_err.append(abs(s0-s1))
-        I_err.append(abs(I0-I1))
-        s.append(s1)
-        I.append(I1)
-        print "Average errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (numpy.array(s_err).mean(),
-                                                                                  100.*numpy.array(s_err).mean()/numpy.array(s).mean(),
-                                                                                  numpy.array(I_err).mean(),
-                                                                                  100.*numpy.array(I_err).mean()/numpy.array(I).mean())
-        print "Median errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (numpy.median(numpy.array(s_err)),
-                                                                                 100.*numpy.median(numpy.array(s_err))/numpy.median(numpy.array(s)),
-                                                                                 numpy.median(numpy.array(I_err)),
-                                                                                 100.*numpy.median(numpy.array(I_err))/numpy.median(numpy.array(I)))
+        global serr
+        global Ierr
+        global ferr
+        global i
+        I[i%histLen] = I1
+        s[i%histLen] = s1
+        serr[i%histLen] = abs(s0-s1)
+        Ierr[i%histLen] = abs(I0-I1)
+        ferr[i%histLen] = evt["analysis"]["fit error"].data
+        i += 1
+        fin = numpy.isfinite(serr)
+        print "Average errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (serr[fin].mean(),
+                                                                                  100.*serr[fin].mean()/s[fin].mean(),
+                                                                                  Ierr[fin].mean(),
+                                                                                  100.*Ierr[fin].mean()/I[fin].mean())
+        print "Median errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (numpy.median(serr[fin]),
+                                                                                 100.*numpy.median(serr[fin])/numpy.median(s[fin]),
+                                                                                 numpy.median(Ierr[fin]),
+                                                                                 100.*numpy.median(Ierr[fin])/numpy.median(I[fin]))
+
+        ipc.new_data("size error vs. fit error", numpy.array([numpy.array(serr), numpy.array(ferr)]))
+        ipc.new_data("size error vs. fit error", numpy.array([numpy.array(Ierr), numpy.array(ferr)]))
+
         
         # Plot the glorious shots
         plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg_glo, log=True, mask=mask)
