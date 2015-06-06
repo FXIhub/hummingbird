@@ -17,7 +17,7 @@ def averagePulseEnergy(evt, type):
         if (pE.unit == ureg.mJ):
             pulseEnergy.append(pE.data)
     if pulseEnergy:
-        add_record(evt["analysis"], "analysis", "averagePulsEnergy", np.mean(pulseEnergy), ureg.mJ)
+        add_record(evt["analysis"], "analysis", "averagePulseEnergy", np.mean(pulseEnergy), ureg.mJ)
 
 def printPulseEnergy(pulseEnergies):
     """Expects a dictionary of pulse energy ``Records`` and prints pulse energies to screen."""
