@@ -189,6 +189,7 @@ def onEvent(evt):
         I_err.append(abs(I0-I1))
         s.append(s1)
         I.append(I1)
+        print I
         print "Average errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (numpy.array(s_err).mean(),
                                                                                   100.*numpy.array(s_err).mean()/numpy.array(s).mean(),
                                                                                   numpy.array(I_err).mean(),
