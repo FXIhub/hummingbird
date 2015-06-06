@@ -58,12 +58,7 @@ def main():
         import os, signal
         with open('.pid', 'r') as file:
             pid = int(file.read())
-        with open('.mpi', 'r') as file:
-            mpi = bool(file.read())
-        if mpi:
-            os.kill(pid, signal.SIGUSR1)
-        else:
-            os.kill(pid, signal.SIGINT)
+        os.kill(pid, signal.SIGUSR1)
 
 if __name__ == "__main__":
     main()
