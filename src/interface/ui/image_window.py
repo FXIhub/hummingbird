@@ -103,6 +103,33 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         else:
             return datetime.datetime.now()
 
+    def get_msg(self, index=None):
+        """Returns the message of the given index, or the msg of the last data point"""
+        if index is None:
+            index = self.plot.currentIndex
+        # Check if we have enabled_sources
+        source = None
+        if(self._enabled_sources):
+            for ds in self._enabled_sources.keys():
+                if(len(self._enabled_sources[ds])):
+                    title = self._enabled_sources[ds][0]
+                    source = ds
+                    break
+
+        # There might be no data yet, so no plotdata
+        if(source is not None and title in source.plotdata and
+           source.plotdata[title].x is not None):
+            conf = source.conf[title]
+            # conf = conf[index]
+            # TODO: give conf a history, such that we can access previous conf dictionaries
+            if "msg" in conf:
+                msg = conf["msg"]
+            else:
+                msg = ''
+        else:
+            msg = ''
+        return msg
+        
     def _image_transform(self, source, title):
         """Returns the appropriate transform for the content"""
         pd = source.plotdata[title]
@@ -218,11 +245,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             if(pd.y is None or len(pd.y) == 0):
                 continue
 
-            conf = source.conf[title]
-            if "msg" in conf:
-                msg = conf['msg']
-                self.infoLabel.setText(msg)
+            self.infoLabel.setText(self.get_msg())
 
+            conf = source.conf[title]
             if "alert" in conf and self.alert:
                 alert = conf['alert']
                 if alert:
