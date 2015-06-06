@@ -47,3 +47,32 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
     if hmax is None: hmax = param.data.max()
     H,B = np.histogram(param.data.flat, range=(hmin, hmax), bins=bins, density=density)
     ipc.new_data(plotid, H, xmin=B.min(), xmax=B.max())
+
+traces = {}
+def plotTrace(paramY, paramX=None, label='', history=100):
+    """Plotting a trace.
+    
+    Args:
+        :paramY(Record):   The data for the ordinate is paramY.data.ravel()
+
+    Kwargs:
+        :paramX(Record):   The data for the abscissa is paramX.data.ravel() if paramX is not None
+        :label(str):    Label for param
+        :history(int):  Length of history buffer
+    """
+    if paramY is None:
+        return
+    plotid = "Histogram(%s)" %paramY.name
+    if(not paramY.name in traces):
+        ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, history_length=history)
+        histograms[paramY.name] = True
+    if paramX is None:
+        ipc.new_data(plotid, data_y=paramY.data.ravel())
+    else:
+        x = paramX.data.ravel()
+        y = paramY.data.ravel()
+        if x.size != y.size:
+            logging.warning("For %s x- and y-dimension do not match (%i, %i). Cannot plot trace." % (plotid,x.size,y.size))
+            return
+        ipc.new_data(plotid, data_y=np.array([x,y], copy=False)) 
+

@@ -16,6 +16,8 @@ def parse_cmdline_args():
     group.add_argument('-b', '--backend', metavar='conf.py',
                        type=str, help="start the backend with "
                        "given configuration file", nargs='?', const=True)
+    group.add_argument('-r', '--reload', help='reloads the backend',
+                       action='store_true')
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
                         action="store_true")
     parser.add_argument("-d", "--debug", help="output debug messages",
@@ -52,6 +54,11 @@ def main():
     elif(args.interface is not False):
         import interface
         interface.start_interface()
+    elif(args.reload is not False):
+        import os, signal
+        with open('.pid', 'r') as file:
+            pid = int(file.read())
+        os.kill(pid, signal.SIGUSR1)
 
 if __name__ == "__main__":
     main()

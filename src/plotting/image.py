@@ -3,7 +3,7 @@ import numpy as np
 import ipc
 
 images = {}
-def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None, msg=None):
+def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None, msg=None, alert=False):
     """Plotting an image.
 
     Args:
@@ -27,4 +27,4 @@ def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None, ms
         image = image.reshape(sh[0]*sh[2], sh[1])
     if mask is None:
         mask = np.ones_like(image)
-    ipc.new_data(record.name, image*mask, msg=msg)
+    ipc.new_data(record.name, image*mask, msg=msg, alert=alert)

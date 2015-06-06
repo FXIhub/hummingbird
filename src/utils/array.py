@@ -1,4 +1,5 @@
 import numpy
+import logging
 
 def slacH5ToCheetah(slacArr):
     out_arr = numpy.zeros((8*185, 4*388))

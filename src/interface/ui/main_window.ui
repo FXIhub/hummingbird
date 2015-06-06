@@ -88,6 +88,8 @@
    <addaction name="_preferences_action"/>
    <addaction name="separator"/>
    <addaction name="_recorder_action"/>
+   <addaction name="separator"/>
+   <addaction name="_config_reloader_action"/>
   </widget>
   <action name="_add_backend_action">
    <property name="icon">
@@ -164,6 +166,18 @@
    </property>
    <property name="toolTip">
     <string>Recorder On/Off</string>
+   </property>
+  </action>
+  <action name="_config_reloader_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/reload_config.svg</normaloff>:/svg_icons/reload_config.svg</iconset>
+   </property>
+   <property name="text">
+    <string>ConfigReload</string>
+   </property>
+   <property name="toolTip">
+    <string>Reloading configuration</string>
    </property>
   </action>
  </widget>
@@ -307,6 +321,22 @@
     </hint>
    </hints>
   </connection>
+  <connection>
+   <sender>_config_reloader_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_reload_configuration_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
  </connections>
  <slots>
   <slot>_add_backend_triggered()</slot>
@@ -316,5 +346,6 @@
   <slot>_on_save_settings_triggered()</slot>
   <slot>_on_load_settings_triggered()</slot>
   <slot>_recorder_toggled(bool)</slot>
+  <slot>_reload_configuration_triggered()</slot>
  </slots>
 </ui>

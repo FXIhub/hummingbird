@@ -171,6 +171,12 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             ds.query_configuration()
         self._status_message("Reloading backends...done.", 3000)
 
+    def _reload_configuration_triggered(self):
+        """Reloads the configuration in the backends"""
+        for ds in self._data_sources:
+            ds.query_reloading()
+        self._status_message("Reloading configuration...done.", 3000)
+        
     def _new_display_triggered(self):
         """Create a new Data Window to display data broadcasts"""
         if(self.sender() is self._new_plot_action):

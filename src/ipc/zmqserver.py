@@ -48,6 +48,9 @@ class ZmqServer(object):
             if(isinstance(data[i], numpy.ndarray)):
                 array_list.append(data[i])
                 data[i] = '__ndarray__'
+            elif(isinstance(data[i], numpy.number)):
+                # JSON can't deal with numpy scalars
+                data[i] = data[i].item()
         # Use the md5sum of the title as the key to avoid clashing
         # keys, when one title is a substring or another title
         # (e.g. "CCD" and "CCD1")
@@ -72,6 +75,12 @@ class ZmqServer(object):
             stream.socket.send_json(['data_port', bytes(self._data_port)])
         if(msg[0] == 'uuid'):
             stream.socket.send_json(['uuid', bytes(ipc.uuid)])
+        if(msg[0] == 'reload'):
+            #TODO: Find a way to replace this with a direct function call (in all workers)
+            import os, signals
+            with open('.pid', 'r') as file:
+                pid = int(file.read())
+            os.kill(pid, signal.SIGUSR1)
 
     def _ioloop(self):
         """Start the ioloop fires the callbacks when data is received

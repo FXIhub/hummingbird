@@ -1,5 +1,6 @@
 <RCC>
   <qresource>
+    <file>svg_icons/reload_config.svg</file>
     <file>svg_icons/recorder.svg</file>
     <file>svg_icons/recorder_red.svg</file>
     <file>logo_48_transparent.png</file>

@@ -1,6 +1,5 @@
 """Coordinates data reading, translation and analysis.
 """
-
 import os
 import logging
 import imp
@@ -25,7 +24,7 @@ class Worker(object):
         if(config_file is None):
             # Try to load an example configuration file
             config_file = os.path.abspath(os.path.dirname(__file__)+
-                                          "/../../examples/cxitut13/conf.py")
+                                          "/../../examples/psana/cxitut13/conf.py")
             logging.warning("No configuration file given! "
                             "Loading example configuration from %s",
                             (config_file))
@@ -37,7 +36,11 @@ class Worker(object):
         if(not ipc.mpi.is_master()):
             self.translator = init_translator(Worker.state)
         signal.signal(signal.SIGUSR1, self.raise_interruption)
-        with open('.pid', 'w') as file: file.write(str(os.getppid()))
+        try:
+            os.environ["OMPI_COMM_WORLD_SIZE"]
+            with open('.pid', 'w') as file: file.write(str(os.getppid()))
+        except KeyError:
+            with open('.pid', 'w') as file: file.write(str(os.getpid()))
         print 'Starting backend...'
 
     def raise_interruption(self, signum, stack):

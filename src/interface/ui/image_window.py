@@ -1,11 +1,12 @@
 """Window to display images"""
 from interface.Qt import QtGui, QtCore
 from interface.ui import Ui_imageWindow
+from interface.ui import DataWindow
 import pyqtgraph
 import numpy
-from interface.ui import DataWindow
 import datetime
 import logging
+import os
 
 class ImageWindow(DataWindow, Ui_imageWindow):
     """Window to display images"""
@@ -19,6 +20,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.infoLabel.setText('')
         self.acceptable_data_types = ['image', 'vector']
         self.exclusive_source = True
+        self.alert = False
 
         self.settingsWidget.setVisible(self.actionPlotSettings.isChecked())
         self.settingsWidget.ui.colormap_min.editingFinished.connect(self.set_colormap_range)
@@ -37,8 +39,11 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.settingsWidget.ui.y_show.toggled.connect(self.toggle_axis)
         self.actionY_axis.triggered.connect(self.toggle_axis)        
         self.settingsWidget.ui.histogram_show.toggled.connect(self.toggle_axis)
-        self.actionHistogram.triggered.connect(self.toggle_axis)        
+        self.actionHistogram.triggered.connect(self.toggle_axis)
 
+        self.set_sounds_and_volume()
+        self.actionSound_on_off.triggered.connect(self.toggle_alert)
+                
         self.plot.getHistogramWidget().region.sigRegionChangeFinished.connect(self.set_colormap_range)
         self.actionPlotSettings.triggered.connect(self.toggle_settings)
 
@@ -48,6 +53,33 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.x_axis_name = 'left'
         self.y_axis_name = 'bottom'
         self._set_logscale_lookuptable()
+
+    def set_sounds_and_volume(self):
+        self.soundsGroup = QtGui.QActionGroup(self.menuSounds)
+        self.soundsGroup.setExclusive(True)
+        self.actionBeep.setActionGroup(self.soundsGroup)
+        self.actionBeep.triggered.connect(self.toggle_sounds)
+        self.actionClick.setActionGroup(self.soundsGroup)
+        self.actionClick.triggered.connect(self.toggle_sounds)
+        self.actionPunch.setActionGroup(self.soundsGroup)
+        self.actionPunch.triggered.connect(self.toggle_sounds)
+        self.actionWhack.setActionGroup(self.soundsGroup)
+        self.actionWhack.triggered.connect(self.toggle_sounds)
+        self.actionSharp.setActionGroup(self.soundsGroup)
+        self.actionSharp.triggered.connect(self.toggle_sounds)
+        self.actionGlass.setActionGroup(self.soundsGroup)
+        self.actionGlass.triggered.connect(self.toggle_sounds)
+        self.sound = 'beep'
+        
+        self.volumeGroup = QtGui.QActionGroup(self.menuVolume)
+        self.volumeGroup.setExclusive(True)
+        self.actionHigh.setActionGroup(self.volumeGroup)
+        self.actionHigh.triggered.connect(self.toggle_volume)
+        self.actionMedium.setActionGroup(self.volumeGroup)
+        self.actionMedium.triggered.connect(self.toggle_volume)
+        self.actionLow.setActionGroup(self.volumeGroup)
+        self.actionLow.triggered.connect(self.toggle_volume)
+        self.volume = 1
 
     def get_time(self, index=None):
         """Returns the time of the given index, or the time of the last data point"""
@@ -191,6 +223,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 msg = conf['msg']
                 self.infoLabel.setText(msg)
 
+            if "alert" in conf and self.alert:
+                alert = conf['alert']
+                if alert:
+                    os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
             
             if(self.settingsWidget.ui.ignore_source.isChecked() is False):
                 if 'vmin' in conf and conf['vmin'] is not None:
@@ -351,4 +387,20 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             self.settingsWidget.ui.histogram_show.setChecked(visible)
             self.actionHistogram.setChecked(visible)
 
+    def toggle_alert(self, activated):
+        self.alert = activated
+
+    def toggle_sounds(self):
+        self.sound = str(self.soundsGroup.checkedAction().text())
+
+    def toggle_volume(self):
+        volume = str(self.volumeGroup.checkedAction().text())
+        if volume == "High":
+            self.volume = 10
+        elif volume == "Medium":
+            self.volume = 1
+        elif volume == "Low":
+            self.volume = 0.1
+    
         
+            
