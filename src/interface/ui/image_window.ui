@@ -506,9 +506,40 @@
     <addaction name="actionY_axis"/>
     <addaction name="actionHistogram"/>
    </widget>
+   <widget class="QMenu" name="menuAlert">
+    <property name="title">
+     <string>Alert</string>
+    </property>
+    <widget class="QMenu" name="menuSounds">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="title">
+      <string>Sounds</string>
+     </property>
+     <addaction name="actionBeep"/>
+     <addaction name="actionClick"/>
+     <addaction name="actionPunch"/>
+     <addaction name="actionWhack"/>
+     <addaction name="actionSharp"/>
+     <addaction name="actionGlass"/>
+    </widget>
+    <widget class="QMenu" name="menuVolume">
+     <property name="title">
+      <string>Volume</string>
+     </property>
+     <addaction name="actionHigh"/>
+     <addaction name="actionMedium"/>
+     <addaction name="actionLow"/>
+    </widget>
+    <addaction name="actionSound_on_off"/>
+    <addaction name="menuSounds"/>
+    <addaction name="menuVolume"/>
+   </widget>
    <addaction name="menuData_Sources"/>
    <addaction name="menuSave"/>
    <addaction name="menuView"/>
+   <addaction name="menuAlert"/>
   </widget>
   <action name="actionSaveToJPG">
    <property name="text">
@@ -565,6 +596,98 @@
    </property>
    <property name="text">
     <string>Alert</string>
+   </property>
+  </action>
+  <action name="actionSound_on_off">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Sound on/off</string>
+   </property>
+  </action>
+  <action name="actionBeep">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>beep</string>
+   </property>
+   <property name="toolTip">
+    <string>beep</string>
+   </property>
+  </action>
+  <action name="actionClick">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>click</string>
+   </property>
+  </action>
+  <action name="actionHigh">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>High</string>
+   </property>
+  </action>
+  <action name="actionMedium">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Medium</string>
+   </property>
+  </action>
+  <action name="actionLow">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Low</string>
+   </property>
+  </action>
+  <action name="actionPunch">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>punch</string>
+   </property>
+  </action>
+  <action name="actionWhack">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>whack</string>
+   </property>
+  </action>
+  <action name="actionSharp">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>sharp</string>
+   </property>
+  </action>
+  <action name="actionGlass">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>glass</string>
    </property>
   </action>
  </widget>

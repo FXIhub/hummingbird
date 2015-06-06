@@ -199,7 +199,7 @@ def onEvent(evt):
                                                                                  100.*numpy.median(numpy.array(I_err))/numpy.median(numpy.array(I)))
         
         # Plot the glorious shots
-        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg_glo, log=True, mask=mask)
+        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg_glo, alert=True, log=True, mask=mask)
         
         # Plot the fitted model
         plotting.image.plotImage(evt["analysis"]["fit"], msg=msg_fit, log=True, mask=mask)
