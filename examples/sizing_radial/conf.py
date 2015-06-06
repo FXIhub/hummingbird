@@ -10,8 +10,10 @@ import analysis.hitfinding
 import analysis.sizing
 import plotting.line
 import plotting.image
-from backend import ureg
+this_dir = os.path.dirname(os.path.realpath(__file__))
 
+# Configure simulation
+# --------------------
 sim = simulation.simple.Simulation("examples/sizing/virus.conf")
 sim.hitrate = 1.0
 
@@ -78,6 +80,7 @@ modelParams = {
 
 # Sizing parameters
 # -----------------
+radial = True
 sizingParams = {
     'd0':100,
     'i0':1,
@@ -85,9 +88,13 @@ sizingParams = {
     'brute_evals':10,
     'photon_counting':True}
 
-radial = True
+# Detector
+# --------
+nx = sim.nx
+ny = sim.ny
 
-this_dir = os.path.dirname(os.path.realpath(__file__))
+# Loading of mask
+# ---------------
 mask = utils.reader.MaskReader(this_dir + "/mask.h5","/data/data").boolean_mask
 
 s = []
@@ -138,18 +145,17 @@ def onEvent(evt):
         else:
             # Calculate radial average
             t0 = time.time()
-            cx = evt["analysis"]["offCenterX"].data + (sim.nx - 1) / 2.
-            cy = evt["analysis"]["offCenterY"].data + (sim.ny - 1) / 2.
+            cx = evt["analysis"]["offCenterX"].data + (nx - 1) / 2.  
+            cy = evt["analysis"]["offCenterY"].data + (ny - 1) / 2.
             analysis.pixel_detector.radial(evt, "photonPixelDetectors", "CCD", mask=mask, cx=cx, cy=cy)          
             # Fitting sphere model to get size and intensity
             analysis.sizing.fitSphereRadial(evt, "analysis", "radial distance - CCD", "radial average - CCD", **dict(modelParams, **sizingParams))
             t_size = time.time()-t0
-
             plotting.line.plotTrace(evt["analysis"]["radial average - CCD"], evt["analysis"]["radial distance - CCD"])
 
         # Fitting model
         t0 = time.time()
-        analysis.sizing.sphereModel(evt, "analysis", "offCenterX", "offCenterY", "diameter", "intensity", (sim.ny,sim.nx), poisson=False, **modelParams)
+        analysis.sizing.sphereModel(evt, "analysis", "offCenterX", "offCenterY", "diameter", "intensity", (ny,nx), poisson=False, **modelParams)
         t_full = time.time()-t0
 
         if radial:
@@ -181,6 +187,7 @@ def onEvent(evt):
         msg_glo = "diameter = %.2f nm, \nintensity = %.2f mJ/um2" % (s0, I0)
         msg_fit = "Fit result: \ndiameter = %.2f nm (%.2f nm), \nintensity = %.2f mJ/um2 (%.2f mJ/um2)" % (s0, s1-s0, I0, I1-I0)
 
+        # If it is not just for debugging this lines should be moved inside an analysis module
         s_err.append(abs(s0-s1))
         I_err.append(abs(I0-I1))
         s.append(s1)
