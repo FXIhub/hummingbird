@@ -31,16 +31,17 @@ class _MeanMap:
 
         # Initialize plots
         self.counter    = 0
-        ipc.broadcast.init_data(plotid+' -> overview', data_type='image', history_length=1, flipy=True, \
+        ipc.broadcast.init_data(plotid+' -> Overview', data_type='image', history_length=1, flipy=True, \
                                 xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, xlabel=xlabel, ylabel=ylabel)
-        ipc.broadcast.init_data(plotid+' -> local',    data_type='image', history_length=1, flipy=True, \
+        ipc.broadcast.init_data(plotid+' -> Local',    data_type='image', history_length=1, flipy=True, \
                                 xmin=self.localXmin, xmax=self.localXmax, \
                                 ymin=self.localYmin, ymax=self.localYmax, xlabel=xlabel, ylabel=ylabel)
 
     def append(self, X, Y, Z, N):
-        self.sparseSum[abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin()] += Z
-        self.sparseNorm[abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin()] += N
-        self.overview[abs(self.overviewYrange - Y.data).argmin(), abs(self.overviewXrange - X.data).argmin()] += 1
+        print abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin(), Z.data, N.data
+        self.sparseSum[abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin()] += Z.data
+        self.sparseNorm[abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin()] += N.data
+        self.overviewMap[abs(self.overviewYrange - Y.data).argmin(), abs(self.overviewXrange - X.data).argmin()] += 1
         self.counter += 1
 
     def updateCenter(self, X, Y):
@@ -109,7 +110,7 @@ def plotMeanMap(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, 
     if (not plotid in meanMaps):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
-        meanMaps[plotid] = _MeanMap(plotid, xmin, xmax, ymin, ymax, xlabel, ylabel, radius, step, gridstep)
+        meanMaps[plotid] = _MeanMap(plotid, xmin, xmax, ymin, ymax, step, localRadius, overviewStep, xlabel, ylabel)
     m = meanMaps[plotid]
     m.append(X, Y, Z, norm)
     if(not m.counter % update):
