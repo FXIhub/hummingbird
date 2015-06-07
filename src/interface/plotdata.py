@@ -17,28 +17,6 @@ class PlotData(object):
         if(title in parent.conf and 'history_length' in parent.conf[title]):
             self._maxlen = parent.conf[title]['history_length']
 
-    # THIS IS NEVER USED: DEPRICATED?
-    def set_data(self, y, x, l=''):
-        """Clear the ringbuffers and fills them with the given data"""
-        if(self._y is None):
-            self._y = RingBuffer(self._maxlen)
-        else:
-            self._y.clear()
-        for v in y:
-            self._y.append(v)
-        if(self._x is None):
-            self._x = RingBuffer(self._maxlen)
-        else:
-            self._x.clear()
-        for v in x:
-            self._x.append(v)
-        if (self._l is None):
-            self._l = RingBufferStr(self._maxlen)
-        else:
-            self._l.clear()
-        for v in l:
-            self._l.append(v)
-
     def append(self, y, x, l):
         """Append the new data to the ringbuffers"""
         if(self._y is None):
