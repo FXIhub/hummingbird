@@ -81,8 +81,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionLow.triggered.connect(self.toggle_volume)
         self.volume = 1
 
-    def get_time(self, index=None):
-        """Returns the time of the given index, or the time of the last data point"""
+    def get_time_and_msg(self, index=None):
+        """Returns the time/msg of the given index, or the time/msg of the last data point"""
         if index is None:
             index = self.plot.currentIndex
         # Check if we have enabled_sources
@@ -99,10 +99,12 @@ class ImageWindow(DataWindow, Ui_imageWindow):
            source.plotdata[title].x is not None):
             pd = source.plotdata[title]
             dt = datetime.datetime.fromtimestamp(pd.x[index])
-            return dt
+            msg = pd.l[index]
         else:
-            return datetime.datetime.now()
-
+            dt = datetime.datetime.now()
+            msg = ''
+        return dt, msg
+        
     def _image_transform(self, source, title):
         """Returns the appropriate transform for the content"""
         pd = source.plotdata[title]
@@ -219,10 +221,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 continue
 
             conf = source.conf[title]
-            if "msg" in conf:
-                msg = conf['msg']
-                self.infoLabel.setText(msg)
-
             if "alert" in conf and self.alert:
                 alert = conf['alert']
                 if alert:
@@ -268,7 +266,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self._set_logscale(source, title)
 
             self.setWindowTitle(pd.title)
-            dt = self.get_time()
+            dt, msg = self.get_time_and_msg()
+            self.infoLabel.setText(msg)
             # Round to miliseconds
             self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
             self.dateLabel.setText(str(dt.date()))

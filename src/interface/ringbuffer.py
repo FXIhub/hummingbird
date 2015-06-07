@@ -50,7 +50,6 @@ class RingBuffer(object):
         self._data[self._maxlen:self._maxlen+self._len] = tmp_data[prev_maxlen+self._index-self._len:prev_maxlen+self._index]
         self._index = self._len % self._maxlen
 
-
     def _init_data(self, x):
         """Initialize the buffer with the given data"""
         try:
@@ -137,6 +136,77 @@ class RingBuffer(object):
         length = state['len']
         maxlen = state['maxlen']
         rb = RingBuffer(maxlen, data = data, index = index, length = length)
+        return rb
+        
+class RingBufferStr(object):
+    """Provides a ring buffer for strings."""
+    def __init__(self, maxlen, data = None, index = 0, length = 0):
+        self._index = index
+        self._len = length
+        self._maxlen = maxlen
+        self._data = data
+        
+    def append(self, x):
+        """Append a value to the end of the buffer"""
+        if(self._data is None):
+            self._init_data()
+        self._data[self._index] = x
+        self._index = (self._index + 1) % self._maxlen
+        if(self._len < self._maxlen):
+            self._len += 1
+
+    def resize(self, new_maxlen):
+        """Change the capacity of the buffers"""
+        tmp_data = self._data
+        # Initialize new list
+        prev_maxlen = self._maxlen
+        self._maxlen = new_maxlen
+        self._init_data()
+        # Copy existing data
+        self._len = min(self._len,new_maxlen)
+        self._data[:self._len] = tmp_data
+        self._index = self._len % self._maxlen
+
+    def _init_data(self):
+        """Initialize the buffer with the given data"""
+        self._data = [None for i in xrange(self._maxlen)]
+        
+    def __len__(self):
+        """Return the length of the buffer"""
+        return self._len
+
+    def clear(self):
+        """Empty the buffer"""
+        self._len = 0
+        self._index = 0
+
+    def __getitem__(self, index):
+        """Returns items from the buffer"""
+        if index == (self._len - 1):
+            index = self._index - 1
+        return self._data[index]
+    
+    @property
+    def nbytes(self):
+        """Returns the number of bytes taken by the buffer"""
+        return self._data.nbytes
+
+    def save_state(self):
+        """Return a serialized representation of the buffer for saving to disk"""
+        rs = {}
+        rs['index'] = self._index
+        rs['len'] = self._len
+        rs['maxlen'] = self._maxlen
+        rs['data'] = self._data
+        return rs
+        
+    @staticmethod
+    def restore_state(state):
+        data = state['data']
+        index = state['index']
+        length = state['len']
+        maxlen = state['maxlen']
+        rb = RingBufferStr(maxlen, data = data, index = index, length = length)
         return rb
         
         
