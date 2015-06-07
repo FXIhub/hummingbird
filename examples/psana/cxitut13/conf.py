@@ -1,5 +1,7 @@
 import analysis.event
 import analysis.beamline
+import plotting.line
+import time
 
 state = {
     'Facility': 'LCLS',
@@ -12,5 +14,7 @@ def onEvent(evt):
     analysis.beamline.printPulseEnergy(evt['pulseEnergies'])
     analysis.beamline.printPhotonEnergy(evt['photonEnergies'])
     analysis.event.printProcessingRate()
+    plotting.line.plotHistory(evt["parameters"]["yag4_y"])
+    time.sleep(2)
 
 
