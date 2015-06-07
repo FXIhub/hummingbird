@@ -1,5 +1,5 @@
 """Stores the data associated with a given broadcast"""
-from interface.ringbuffer import RingBuffer
+from interface.ringbuffer import RingBuffer, RingBufferStr
 import numpy
 
 class PlotData(object):
@@ -8,6 +8,7 @@ class PlotData(object):
         self._title = title
         self._y = None # pylint: disable=invalid-name
         self._x = None # pylint: disable=invalid-name
+        self._l = None # pylint: disable=invalid-name
         self._parent = parent
         self._maxlen = maxlen
         self.restored = False
@@ -16,7 +17,8 @@ class PlotData(object):
         if(title in parent.conf and 'history_length' in parent.conf[title]):
             self._maxlen = parent.conf[title]['history_length']
 
-    def set_data(self, y, x):
+    # THIS IS NEVER USED: DEPRICATED?
+    def set_data(self, y, x, l=''):
         """Clear the ringbuffers and fills them with the given data"""
         if(self._y is None):
             self._y = RingBuffer(self._maxlen)
@@ -30,8 +32,14 @@ class PlotData(object):
             self._x.clear()
         for v in x:
             self._x.append(v)
+        if (self._l is None):
+            self._l = RingBufferStr(self._maxlen)
+        else:
+            self._l.clear()
+        for v in l:
+            self._l.append(v)
 
-    def append(self, y, x):
+    def append(self, y, x, l):
         """Append the new data to the ringbuffers"""
         if(self._y is None):
             if(isinstance(y, numpy.ndarray)):
@@ -42,8 +50,12 @@ class PlotData(object):
             self._y = RingBuffer(self._maxlen)
         if(self._x is None):
             self._x = RingBuffer(self._maxlen)
+        if(self._l is None):
+            #TODO: This needs to be a separate type of Buffer that can take strings of different lenghts
+            self._l = RingBufferStr(self._maxlen)
         self._y.append(y)
         self._x.append(x)
+        self._l.append(l)
 
     def resize(self, new_maxlen):
         """Change the capacity of the buffers"""
@@ -51,6 +63,8 @@ class PlotData(object):
             self._y.resize(new_maxlen)
         if(self._x is not None):
             self._x.resize(new_maxlen)
+        if(self._l is not None):
+            self._l.resize(new_maxlen)
         self._maxlen = new_maxlen
 
     def clear(self):
@@ -59,6 +73,8 @@ class PlotData(object):
             self._y.clear()
         if(self._x is not None):
             self._x.clear()
+        if(self._l is not None):
+            self._l.clear()
 
     @property
     def title(self):
@@ -76,6 +92,11 @@ class PlotData(object):
         return self._x
 
     @property
+    def l(self):
+        """Gives access to the l buffer"""
+        return self._l
+
+    @property
     def maxlen(self):
         """Gives access to maximum size of the buffers"""
         return self._maxlen
@@ -89,9 +110,9 @@ class PlotData(object):
 
     @property
     def nbytes(self):
-        """Returns the number of bytes taken by the two buffers"""
+        """Returns the number of bytes taken by the three buffers"""
         if(self._y is not None):
-            return self._y.nbytes + self._x.nbytes
+            return self._y.nbytes + self._x.nbytes + self._y.nbytes
         return 0
 
     def save_state(self):
@@ -100,6 +121,7 @@ class PlotData(object):
         pds['data_source'] = [self._parent.hostname, self._parent.port, self._parent.ssh_tunnel]
         pds['x'] = self.x.save_state()
         pds['y'] = self.y.save_state()
+        pds['l'] = self.l.save_state()
         pds['title'] = self.title
         pds['maxlen'] = self.maxlen
         pds['recordhistory'] = self.recordhistory
@@ -110,6 +132,7 @@ class PlotData(object):
         self.parent = parent
         self._x = RingBuffer.restore_state(state['x'])
         self._y = RingBuffer.restore_state(state['y'])
+        self._l = RingBuffer.restore_state(state['l'])
         self._title = state['title']
         self._maxlen = state['maxlen']
         self.recordhistory = state['recordhistory']

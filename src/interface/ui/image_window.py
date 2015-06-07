@@ -81,8 +81,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionLow.triggered.connect(self.toggle_volume)
         self.volume = 1
 
-    def get_time(self, index=None):
-        """Returns the time of the given index, or the time of the last data point"""
+    def get_time_and_msg(self, index=None):
+        """Returns the time/msg of the given index, or the time/msg of the last data point"""
         if index is None:
             index = self.plot.currentIndex
         # Check if we have enabled_sources
@@ -99,36 +99,11 @@ class ImageWindow(DataWindow, Ui_imageWindow):
            source.plotdata[title].x is not None):
             pd = source.plotdata[title]
             dt = datetime.datetime.fromtimestamp(pd.x[index])
-            return dt
+            msg = pd.l[index]
         else:
-            return datetime.datetime.now()
-
-    def get_msg(self, index=None):
-        """Returns the message of the given index, or the msg of the last data point"""
-        if index is None:
-            index = self.plot.currentIndex
-        # Check if we have enabled_sources
-        source = None
-        if(self._enabled_sources):
-            for ds in self._enabled_sources.keys():
-                if(len(self._enabled_sources[ds])):
-                    title = self._enabled_sources[ds][0]
-                    source = ds
-                    break
-
-        # There might be no data yet, so no plotdata
-        if(source is not None and title in source.plotdata and
-           source.plotdata[title].x is not None):
-            conf = source.conf[title]
-            # conf = conf[index]
-            # TODO: give conf a history, such that we can access previous conf dictionaries
-            if "msg" in conf:
-                msg = conf["msg"]
-            else:
-                msg = ''
-        else:
+            dt = datetime.datetime.now()
             msg = ''
-        return msg
+        return dt, msg
         
     def _image_transform(self, source, title):
         """Returns the appropriate transform for the content"""
@@ -245,8 +220,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             if(pd.y is None or len(pd.y) == 0):
                 continue
 
-            self.infoLabel.setText(self.get_msg())
-
             conf = source.conf[title]
             if "alert" in conf and self.alert:
                 alert = conf['alert']
@@ -293,7 +266,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self._set_logscale(source, title)
 
             self.setWindowTitle(pd.title)
-            dt = self.get_time()
+            dt, msg = self.get_time_and_msg()
+            self.infoLabel.setText(msg)
             # Round to miliseconds
             self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
             self.dateLabel.setText(str(dt.date()))
