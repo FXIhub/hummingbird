@@ -110,6 +110,10 @@ class DataSource(QtCore.QObject):
         """Ask to the backend for the configuration"""
         self._ctrl_socket.send_multipart(['conf'])
 
+    def query_reloading(self):
+        """Ask the backend to reload its configuration"""
+        self._ctrl_socket.send_multipart(['reload'])
+        
     def _get_request_reply(self, socket=None):
         """Handle the reply of the backend to a previous request"""
         if(socket is None):
@@ -179,7 +183,10 @@ class DataSource(QtCore.QObject):
             self.conf[title].update(conf)
             if self._plotdata[title].recordhistory:
                 self._recorder.append(title, data, data_x)
-            self._plotdata[title].append(data, data_x)
+            if 'msg' in conf:
+                self._plotdata[title].append(data, data_x, conf['msg'])
+            else:
+                self._plotdata[title].append(data, data_x, '')
 
     @property
     def hostname(self):

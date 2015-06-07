@@ -87,6 +87,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         """Restores the geometry and data sources of the data windows."""
         if(settings.contains("dataWindows")):
             data_windows = settings.value("dataWindows")
+            if data_windows is None:
+                return
             for dw in data_windows:
                 try:
                     if(dw['window_type'] == 'ImageWindow'):
@@ -171,6 +173,12 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             ds.query_configuration()
         self._status_message("Reloading backends...done.", 3000)
 
+    def _reload_configuration_triggered(self):
+        """Reloads the configuration in the backends"""
+        for ds in self._data_sources:
+            ds.query_reloading()
+        self._status_message("Reloading configuration...done.", 3000)
+        
     def _new_display_triggered(self):
         """Create a new Data Window to display data broadcasts"""
         if(self.sender() is self._new_plot_action):
