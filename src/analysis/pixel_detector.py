@@ -13,6 +13,29 @@ def printStatistics(detectors):
                                                                 min(v), max(v),
                                                                 std(v))
 
+def getSubsetAsics(evt, type, key, subset, output):
+    """Adds a one-dimensional stack of an arbitrary subset of asics
+    to ``evt["analysis"][output]``.
+
+    Args:
+        :evt:       The event variable
+        :type(str): The event type (e.g. photonPixelDetectors)
+        :key(str):  The event key (e.g. CCD)
+        :subset(list): Asic indices
+        :output: The output key in analysis
+
+    :Authors:
+        Carl Nettelblad (carl.nettelblad@it.uu.se)
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
+    """
+    stack = []
+    detector = evt[type][key]
+    for i in subset:
+        panel = i / 2
+        asic = i % 2
+        central.append(detector.data[panel,:,(asic*194):((asic+1)*194)])
+    add_record(evt["analysis"], "analysis", output, np.hstack(central), detector.unit)
+
 def getCentral4Asics(evt, type, key):
     """Adds a one-dimensional stack of its 4 centermost asics
     to ``evt["analysis"]["central4Asics"]``.
@@ -23,13 +46,10 @@ def getCentral4Asics(evt, type, key):
         :key(str):  The event key (e.g. CCD)
 
     :Authors:
+        Carl Nettelblad (carl.nettelblad@it.uu.se)
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    central = []
-    detector = evt[type][key]
-    for i in range(4):
-        central.append(detector.data[i*8+1,:,:194])
-    add_record(evt["analysis"], "analysis", "central4Asics", np.hstack(central), detector.unit)
+    getSubsetAsics(evt, type, key, map(range(4), lambda i : (i * 8 + 1) * 2), "central4Asics")
     
 def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
     """Estimates the total nr. of photons on the detector and adds it to ``evt["analysis"]["nrPhotons - " + key]``.

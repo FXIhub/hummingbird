@@ -68,7 +68,7 @@ class ZmqServer(object):
                 self._send_array(array_list[i])
 
     def _answer_command(self, stream, msg):
-        """Reply to commands receied on the _ctrl_stream"""
+        """Reply to commands received on the _ctrl_stream"""
         if(msg[0] == 'conf'):
             stream.socket.send_json(['conf', ipc.broadcast.data_conf])
         if(msg[0] == 'data_port'):
@@ -78,6 +78,7 @@ class ZmqServer(object):
         if(msg[0] == 'reload'):
             #TODO: Find a way to replace this with a direct function call (in all workers)
             import os, signal
+            stream.socket.send_json(['reload', true])
             with open('.pid', 'r') as file:
                 pid = int(file.read())
             os.kill(pid, signal.SIGUSR1)
