@@ -12,9 +12,11 @@ import plotting.line
 import plotting.image
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
+
 # Configure simulation
 # --------------------
-sim = simulation.simple.Simulation("examples/sizing/virus.conf")
+#sim = simulation.simple.Simulation(this_dir + "/virus.conf")
+sim = simulation.simple.Simulation(this_dir + "/spheroid.conf")
 sim.hitrate = 1.0
 
 state = {
@@ -53,7 +55,13 @@ state = {
                'data': sim.get_offCenterY,
                'unit': '',
                'type': 'parameters'
-           }
+            },
+            'flattening': {
+                'data': sim.get_flattening,
+                'unit': '',
+                'type': 'parameters'
+            }
+            
         }        
     }
 }
@@ -97,10 +105,16 @@ ny = sim.ny
 # ---------------
 mask = utils.reader.MaskReader(this_dir + "/mask.h5","/data/data").boolean_mask
 
-s = []
-I = []
-s_err = []
-I_err = []
+# Error logging histories
+histLen = 100
+I = numpy.zeros(histLen)*numpy.nan
+Ierr = numpy.zeros(histLen)*numpy.nan
+s = numpy.zeros(histLen)*numpy.nan
+serr = numpy.zeros(histLen)*numpy.nan
+ferr = numpy.zeros(histLen)*numpy.nan
+fl = numpy.zeros(histLen)*numpy.nan
+sph = numpy.zeros(histLen)*numpy.nan
+i = 0
 
 def onEvent(evt):
 
@@ -172,7 +186,7 @@ def onEvent(evt):
         plotting.line.plotHistory(evt["analysis"]["offCenterY"])
         plotting.line.plotHistory(evt["analysis"]["diameter"])
         plotting.line.plotHistory(evt["analysis"]["intensity"])
-        plotting.line.plotHistory(evt["analysis"]["error"])
+        plotting.line.plotHistory(evt["analysis"]["fit error"])
 
         plotting.line.plotHistory(evt["parameters"]["offCenterX"])
         plotting.line.plotHistory(evt["parameters"]["offCenterY"])
@@ -187,19 +201,36 @@ def onEvent(evt):
         msg_glo = "diameter = %.2f nm, \nintensity = %.2f mJ/um2" % (s0, I0)
         msg_fit = "Fit result: \ndiameter = %.2f nm (%.2f nm), \nintensity = %.2f mJ/um2 (%.2f mJ/um2)" % (s0, s1-s0, I0, I1-I0)
 
-        # If it is not just for debugging this lines should be moved inside an analysis module
-        s_err.append(abs(s0-s1))
-        I_err.append(abs(I0-I1))
-        s.append(s1)
-        I.append(I1)
-        print "Average errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (numpy.array(s_err).mean(),
-                                                                                  100.*numpy.array(s_err).mean()/numpy.array(s).mean(),
-                                                                                  numpy.array(I_err).mean(),
-                                                                                  100.*numpy.array(I_err).mean()/numpy.array(I).mean())
-        print "Median errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (numpy.median(numpy.array(s_err)),
-                                                                                 100.*numpy.median(numpy.array(s_err))/numpy.median(numpy.array(s)),
-                                                                                 numpy.median(numpy.array(I_err)),
-                                                                                 100.*numpy.median(numpy.array(I_err))/numpy.median(numpy.array(I)))
+        global s
+        global I
+        global fl
+        global sph
+        global serr
+        global Ierr
+        global flerr
+        global ferr
+        global i
+        I[i%histLen] = I1
+        s[i%histLen] = s1
+        fl[i%histLen] = evt["parameters"]["flattening"].data
+        serr[i%histLen] = abs(s0-s1)
+        Ierr[i%histLen] = abs(I0-I1)
+        ferr[i%histLen] = evt["analysis"]["fit error"].data
+        sph[i%histLen] = evt["analysis"]["fit sphericity"].data
+        i += 1
+        fin = numpy.isfinite(serr)
+        print "Average errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (serr[fin].mean(),
+                                                                                  100.*serr[fin].mean()/s[fin].mean(),
+                                                                                  Ierr[fin].mean(),
+                                                                                  100.*Ierr[fin].mean()/I[fin].mean())
+        print "Median errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (numpy.median(serr[fin]),
+                                                                                 100.*numpy.median(serr[fin])/numpy.median(s[fin]),
+                                                                                 numpy.median(Ierr[fin]),
+                                                                                 100.*numpy.median(Ierr[fin])/numpy.median(I[fin]))
+
+        ipc.new_data("Size error vs. fit error", numpy.array([numpy.array(serr), numpy.array(ferr)]))
+        ipc.new_data("Intensity error vs. fit error", numpy.array([numpy.array(Ierr), numpy.array(ferr)]))
+        ipc.new_data("Flattening vs. sphericity", numpy.array([numpy.array(fl), numpy.array(sph)]))
         
         # Plot the glorious shots
         plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg_glo, alert=True, log=True, mask=mask)

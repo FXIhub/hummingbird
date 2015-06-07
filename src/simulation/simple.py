@@ -43,4 +43,5 @@ class Simulation:
     def get_offCenterY(self):
         return self.output["detector"]["cy"]-self.cy_mean
 
-    
+    def get_flattening(self):
+        return self.output["sample"]["flattening"][0,0]
