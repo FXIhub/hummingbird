@@ -87,6 +87,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         """Restores the geometry and data sources of the data windows."""
         if(settings.contains("dataWindows")):
             data_windows = settings.value("dataWindows")
+            if data_windows is None:
+                return
             for dw in data_windows:
                 try:
                     if(dw['window_type'] == 'ImageWindow'):
