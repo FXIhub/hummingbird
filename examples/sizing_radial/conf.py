@@ -12,7 +12,10 @@ import plotting.line
 import plotting.image
 from backend import ureg
 
-sim = simulation.simple.Simulation("examples/sizing/virus.conf")
+this_dir = os.path.dirname(os.path.realpath(__file__))
+
+#sim = simulation.simple.Simulation(this_dir + "/virus.conf")
+sim = simulation.simple.Simulation(this_dir + "/spheroid.conf")
 sim.hitrate = 1.0
 
 state = {
@@ -51,7 +54,13 @@ state = {
                'data': sim.get_offCenterY,
                'unit': '',
                'type': 'parameters'
-           }
+            },
+            'flattening': {
+                'data': sim.get_flattening,
+                'unit': '',
+                'type': 'parameters'
+            }
+            
         }        
     }
 }
@@ -87,7 +96,6 @@ sizingParams = {
 
 radial = True
 
-this_dir = os.path.dirname(os.path.realpath(__file__))
 mask = utils.reader.MaskReader(this_dir + "/mask.h5","/data/data").boolean_mask
 
 # Error logging histories
@@ -97,6 +105,8 @@ Ierr = numpy.zeros(histLen)*numpy.nan
 s = numpy.zeros(histLen)*numpy.nan
 serr = numpy.zeros(histLen)*numpy.nan
 ferr = numpy.zeros(histLen)*numpy.nan
+fl = numpy.zeros(histLen)*numpy.nan
+sph = numpy.zeros(histLen)*numpy.nan
 i = 0
 
 def onEvent(evt):
@@ -187,15 +197,20 @@ def onEvent(evt):
 
         global s
         global I
+        global fl
+        global sph
         global serr
         global Ierr
+        global flerr
         global ferr
         global i
         I[i%histLen] = I1
         s[i%histLen] = s1
+        fl[i%histLen] = evt["parameters"]["flattening"].data
         serr[i%histLen] = abs(s0-s1)
         Ierr[i%histLen] = abs(I0-I1)
         ferr[i%histLen] = evt["analysis"]["fit error"].data
+        sph[i%histLen] = evt["analysis"]["fit sphericity"].data
         i += 1
         fin = numpy.isfinite(serr)
         print "Average errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (serr[fin].mean(),
@@ -207,8 +222,9 @@ def onEvent(evt):
                                                                                  numpy.median(Ierr[fin]),
                                                                                  100.*numpy.median(Ierr[fin])/numpy.median(I[fin]))
 
-        ipc.new_data("size error vs. fit error", numpy.array([numpy.array(serr), numpy.array(ferr)]))
-        ipc.new_data("size error vs. fit error", numpy.array([numpy.array(Ierr), numpy.array(ferr)]))
+        ipc.new_data("Size error vs. fit error", numpy.array([numpy.array(serr), numpy.array(ferr)]))
+        ipc.new_data("Intensity error vs. fit error", numpy.array([numpy.array(Ierr), numpy.array(ferr)]))
+        ipc.new_data("Flattening vs. sphericity", numpy.array([numpy.array(fl), numpy.array(sph)]))
 
         
         # Plot the glorious shots

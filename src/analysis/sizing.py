@@ -269,3 +269,4 @@ def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=N
     add_record(v, "analysis", "diameter", diameter / 1E-9, unit='nm')
     add_record(v, "analysis", "intensity", intensity / (1e-3 / 1e-12), unit='mJ/um**2')
     add_record(v, "analysis", "fit error", info["error"], unit='')
+    add_record(v, "analysis", "fit sphericity", info["sphericity"], unit='')
