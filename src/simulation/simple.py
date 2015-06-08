@@ -45,3 +45,4 @@ class Simulation:
 
     def get_flattening(self):
         return self.output["sample"]["flattening"][0,0]
+
