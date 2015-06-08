@@ -43,4 +43,14 @@ class Simulation:
     def get_offCenterY(self):
         return self.output["detector"]["cy"]-self.cy_mean
 
+    def get_injector_x(self):
+        return self.output["sample"]["position"][0,0,0]*(1e9)
+
+    def get_injector_y(self):
+        return self.output["sample"]["position"][0,0,1]*(1e9)
+
+    def get_injector_z(self):
+        return self.output["sample"]["position"][0,0,2]*(1e9)
+
+
     

@@ -9,18 +9,18 @@ class _MeanMap:
     def __init__(self, plotid, xmin, xmax, ymin, ymax, step, localRadius, overviewStep, xlabel, ylabel):
 
         # Initialize local map
-        self.localRadius = localRadius
-        self.xrange = np.linspace(xmin, xmax, (xmax-xmin)/float(step))
-        self.yrange = np.linspace(ymin, ymax, (ymax-ymin)/float(step))
+        self.localRadius = localRadius / float(step)
+        self.xrange = np.linspace(xmin, xmax, (xmax-xmin)/float(step)+1)
+        self.yrange = np.linspace(ymin, ymax, (ymax-ymin)/float(step)+1)
         Nx = self.xrange.shape[0]
         Ny = self.yrange.shape[0]
         self.localXmin = self.xrange[Nx/2-self.localRadius]
-        self.localXmax = self.xrange[Nx/2+self.localRadius+1]
+        self.localXmax = self.xrange[Nx/2+self.localRadius]
         self.localYmin = self.yrange[Ny/2-self.localRadius]
-        self.localYmax = self.yrange[Ny/2+self.localRadius+1]
+        self.localYmax = self.yrange[Ny/2+self.localRadius]
         self.sparseSum  = lil_matrix((Ny, Nx), dtype=np.float32)
         self.sparseNorm = lil_matrix((Ny, Nx), dtype=np.float32)
-        self.localMap   = np.zeros((2*self.localRadius, 2*self.localRadius))
+        self.localMap   = np.zeros((2*self.localRadius+1, 2*self.localRadius+1))
 
         # Initialize overview map
         self.overviewXrange = np.linspace(xmin, xmax, (xmax-xmin)/float(overviewStep))
@@ -38,9 +38,14 @@ class _MeanMap:
                                 ymin=self.localYmin, ymax=self.localYmax, xlabel=xlabel, ylabel=ylabel)
 
     def append(self, X, Y, Z, N):
-        print abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin(), Z.data, N.data
+        try:
+            N = N.data
+        except AttributeError:
+            pass
+        print Y.data
+        print abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin(), Z.data, N
         self.sparseSum[abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin()] += Z.data
-        self.sparseNorm[abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin()] += N.data
+        self.sparseNorm[abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin()] += N
         self.overviewMap[abs(self.overviewYrange - Y.data).argmin(), abs(self.overviewXrange - X.data).argmin()] += 1
         self.counter += 1
 
@@ -100,7 +105,7 @@ def plotMeanMap(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, 
         :xmax (int):   (default = 100)
         :ymin (int):   (default = 0)
         :ymax (int):   (default = 100)
-        :step (int):   The resolution of the map (default = 10)
+        :step (int):   The resolution of the map in units of x,y (default = 10)
         :xlabel (str): (default = X.name) 
         :ylabel (str): (default = Y.name)
         :localRadius (int):  The radius of a square neighborehood around the current position (X.data, Y.data) (default = 100)
