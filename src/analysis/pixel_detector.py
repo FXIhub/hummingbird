@@ -50,6 +50,7 @@ def getCentral4Asics(evt, type, key):
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
     getSubsetAsics(evt, type, key, map(lambda i : (i * 8 + 1) * 2, xrange(4)), "central4Asics")
+
     
 def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
     """Estimates the total nr. of photons on the detector and adds it to ``evt["analysis"]["nrPhotons - " + key]``.
@@ -72,7 +73,7 @@ def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
 
 initialized = {}
 def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
-    """Assembles a detector image given some geometry and adds assembled image to ``evt["analysis"]["assembled - " + key]``.
+    """Asesembles a detector image given some geometry and adds assembled image to ``evt["analysis"]["assembled - " + key]``.
 
     Args:
         :evt:        The event variable

@@ -39,3 +39,8 @@ def assembleImage(x, y, img=None, nx=None, ny=None, dtype=None, return_indices=F
         assembled = assembled.astype(getattr(numpy, dtype))
     return assembled
 
+def get2D(data):
+    res = numpy.zeros(shape=(data.shape[0]*data.shape[2],data.shape[1]),dtype=data.dtype)
+    for i in range(data.shape[2]):
+        res[i*data.shape[0]:(i+1)*data.shape[0],:] = data[:,:,i]
+    return res
