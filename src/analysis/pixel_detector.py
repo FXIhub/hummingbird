@@ -33,8 +33,8 @@ def getSubsetAsics(evt, type, key, subset, output):
     for i in subset:
         panel = i / 2
         asic = i % 2
-        central.append(detector.data[panel,:,(asic*194):((asic+1)*194)])
-    add_record(evt["analysis"], "analysis", output, np.hstack(central), detector.unit)
+        stack.append(detector.data[panel,:,(asic*194):((asic+1)*194)])
+    add_record(evt["analysis"], "analysis", output, np.hstack(stack), detector.unit)
 
 def getCentral4Asics(evt, type, key):
     """Adds a one-dimensional stack of its 4 centermost asics
