@@ -52,5 +52,6 @@ class Simulation:
     def get_injector_z(self):
         return self.output["sample"]["position"][0,0,2]*(1e9)
 
+    def get_flattening(self):
+        return self.output["sample"]["flattening"][0,0]
 
-    

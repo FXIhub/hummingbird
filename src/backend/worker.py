@@ -75,7 +75,10 @@ class Worker(object):
                     else:
                         evt = self.translator.next_event()
                         ipc.set_current_event(evt)
-                        Worker.conf.onEvent(evt)
+                        try:
+                            Worker.conf.onEvent(evt)
+                        except (KeyError, TypeError) as exc:
+                            logging.warning("Missing or wrong type of data, probably due to missing event data. (%s)" % exc)                            
             except KeyboardInterrupt:
                 try:
                     print "Hit Ctrl+c again in the next second to quit..."
