@@ -18,7 +18,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.actionLegend_Box.triggered.connect(self.on_view_legend_box)
         self.actionX_axis.triggered.connect(self.on_view_x_axis)
         self.actionY_axis.triggered.connect(self.on_view_y_axis)
-        self.acceptable_data_types = ['scalar', 'vector']
+        self.acceptable_data_types = ['scalar', 'vector', 'tuple']
         self.exclusive_source = False
         self.line_colors = [(252, 175, 62), (114, 159, 207), (255, 255, 255),
                             (239, 41, 41), (138, 226, 52), (173, 127, 168)]
@@ -163,6 +163,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 y = numpy.array(pd.y, copy=False)
                 self.last_vector_y = None
                 self.last_vector_x = None
+            elif(source.data_type[title] == 'tuple'):
+                y = pd.y[:,1]
             elif source.data_type[title] == 'vector':
                 if(self.current_index == -1):
                     y = numpy.array(pd.y[self.current_index % pd.y.shape[0]], copy=False)
@@ -174,6 +176,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             x = None
             if(source.data_type[title] == 'scalar'):
                 x = numpy.array(pd.x, copy=False)
+            elif(source.data_type[title] == 'tuple'):
+                x = pd.y[:,0]
             elif(source.data_type[title] == 'vector'):
                 if len(y.shape) == 2:
                     x = y[0,:]
