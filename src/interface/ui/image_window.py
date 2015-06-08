@@ -22,6 +22,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.exclusive_source = True
         self.alert = False
         self.meanmap = None
+        self.vline = None
+        self.hline = None
 
         self.settingsWidget.setVisible(self.actionPlotSettings.isChecked())
         self.settingsWidget.ui.colormap_min.editingFinished.connect(self.set_colormap_range)
@@ -218,19 +220,19 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             self.meanmap = numpy.zeros((3,conf["ybins"], conf["xbins"]), dtype=float)
             self.meanmap_dx = (conf["xmax"] - float(conf["xmin"]))/conf["xbins"]
             self.meanmap_dy = (conf["ymax"] - float(conf["ymin"]))/conf["ybins"]
-            translate_transform = QtGui.QTransform().translate(conf["ymin"], conf["xmin"])
+            translate_transform = QtGui.QTransform().translate(conf["ymin"]-self.meanmap_dy/2., conf["xmin"]-self.meanmap_dx/2.)
             scale_transform = QtGui.QTransform().scale(self.meanmap_dy, self.meanmap_dx)
             transpose_transform = QtGui.QTransform()
             transpose_transform *= QtGui.QTransform(0, 1, 0,
                                                     1, 0, 0,
                                                     0, 0, 1)
             self.meanmap_transform = scale_transform*translate_transform*transpose_transform
-        ix = numpy.ceil((triple[0] - conf["xmin"])/self.meanmap_dx)
+        ix = numpy.round((triple[0] - conf["xmin"])/self.meanmap_dx)
         if (ix < 0):
             ix = 0
         elif (ix >= conf["xbins"]):
             ix = conf["xbins"] - 1
-        iy = numpy.ceil((triple[1] - conf["ymin"])/self.meanmap_dy)
+        iy = numpy.round((triple[1] - conf["ymin"])/self.meanmap_dy)
         if (iy < 0):
             iy = 0
         elif (iy >= conf["ybins"]):
@@ -239,16 +241,35 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.meanmap[1,iy,ix] += 1
         visited = self.meanmap[1] != 0
         if (self.settingsWidget.ui.show_visitedmap.isChecked()):
-            return visited, self.meanmap_transform
+            return visited, self.meanmap_transform, triple[0], triple[1]
         elif (self.settingsWidget.ui.show_heatmap.isChecked()):
-            return self.meanmap[1], self.meanmap_transform
+            return self.meanmap[1], self.meanmap_transform, triple[0], triple[1]
         else:
             if len(self.meanmap[1][visited]):
                 self.meanmap[2][visited] = self.meanmap[0][visited]/self.meanmap[1][visited]
-            return self.meanmap[2], self.meanmap_transform
+            return self.meanmap[2], self.meanmap_transform, triple[0], triple[1]
+
+    def _show_crosshair(self, x,y):
+        if (self.actionCrosshair.isChecked()):
+            if self.vline is None:
+                self.vline = pyqtgraph.InfiniteLine(angle=90, movable=False)
+                self.plot.getView().addItem(self.vline)
+            if self.hline is None:
+                self.hline = pyqtgraph.InfiniteLine(angle=0, movable=False)
+                self.plot.getView().addItem(self.hline)
+            self.hline.setPos(y)
+            self.vline.setPos(x)
+        else:
+            if self.vline is not None:
+                self.plot.getView().removeItem(self.vline)
+                self.vline = None
+            if self.hline is not None:
+                self.plot.getView().removeItem(self.hline)
+                self.hline = None
         
     def replot(self):
         """Replot data"""
+        #self.plot.getView().clear()
         for source, title in self.source_and_titles():
             if(title not in source.plotdata):
                 continue
@@ -288,7 +309,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     auto_histogram = True
                 img = numpy.array(pd.y, copy=False)
                 if "data_type" in conf and conf["data_type"] == "triple":
-                    img, transform = self._fill_meanmap(img[0], conf)
+                    img, transform, x, y = self._fill_meanmap(img[0], conf)
+                else:
+                    x, y = (0,0)
                 if (self.settingsWidget.ui.show_trend.isChecked()):
                     _trend = getattr(numpy, str(self.settingsWidget.ui.trend_options.currentText()))
                     img = _trend(img, axis=0)
@@ -296,6 +319,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                                    transform=transform,
                                    autoRange=auto_range, autoLevels=auto_levels,
                                    autoHistogramRange=auto_histogram)
+
+                self._show_crosshair(x,y)
                 if(len(self.plot.image.shape) > 2):
                     # Make sure to go to the last image
                     last_index = self.plot.image.shape[0]-1
