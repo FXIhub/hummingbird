@@ -93,6 +93,7 @@ meanMaps = {}
 def plotMeanMapDynamic(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, ymax=100, step=10, \
                 localRadius=100, overviewStep=100, xlabel=None, ylabel=None, plotid=None):
     """Plotting the mean of parameter Z as a function of parameters X and Y.
+    (Using a buffer in the backend).
 
     Args:
        :X(Record):     An event parameter e.g. Motor position in X
@@ -141,6 +142,7 @@ xArray = []
 yArray = []
 def plotCorrelation(X, Y, history=100):
     """Plotting the correlation of two parameters X and Y over time.
+    (Using a buffer in the backend).
     
     Args:
         :X(Record): An event parameter, e.g. hit rate
@@ -161,6 +163,7 @@ def plotCorrelation(X, Y, history=100):
 heatmaps = {}
 def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
     """Plotting the heatmap of two parameters X and Y. Has been tested in MPI mode.
+    (Using a buffer in the backend).
 
     Args:
         :X(Record): An event parameter, e.g. hit rate
@@ -199,7 +202,26 @@ def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
 
 
 meanMaps = {}
-def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plotid=None, xlabel=None, ylabel=None):
+def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plotid=None, xlabel=None, ylabel=None, msg=''):
+    """Plotting the meanmap of Z as a function of two parameters X and Y.
+    (No buffer in the backend).
+
+    Args:
+        :X(Record): An event parameter, e.g. injector position in x
+        :Y(Record): An event parameter, e.g. injector position in y
+        :Z(float):  Some metric, e.g. hit rate, size, etc...
+    Kwargs:
+        :xmin(int):  default = 0
+        :xmax(int):  default = 10
+        :xbins(int): default = 10
+        :ymin(int):  default = 0
+        :ymax(int):  default = 10
+        :ybins(int): default = 10
+        :plotid(str): The key that appears in the interface (default = MeanMap(X.name, Y.name))
+        :xlabel(str): 
+        :ylabel(str):
+        :msg(msg):   Any message to be displayed in the plot
+    """
     if plotid is None:
         plotid = "MeanMap(%s,%s)" %(X.name, Y.name)
     if (not plotid in meanMaps):
@@ -209,4 +231,30 @@ def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plo
                                 xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                                 xbins=xbins, ybins=ybins,
                                 xlabel=xlabel, ylabel=ylabel, flipy=True)
-    ipc.new_data(plotid, np.array([X.data, Y.data, Z]))
+    ipc.new_data(plotid, np.array([X.data, Y.data, Z]), msg=msg)
+
+    
+scatterPlots = {}
+def plotScatter(X,Y, plotid=None, history=100, xlabel=None, ylabel=None):
+    """Plotting the scatter of two parameters X and Y.
+    (No buffer in the backend).
+
+    Args:
+        :X(Record): An event parameter, e.g. injector position in x
+        :Y(Record): An event parameter, e.g. injector position in y
+
+    Kwargs:
+        :plotid(str): The key that appears in the interface (default = MeanMap(X.name, Y.name))
+        :xlabel(str): 
+        :ylabel(str):
+    """
+    if plotid is None:
+        plotid = "Scatter(%s,%s)" %(X.name, Y.name)
+    if (not plotid in scatterPlots):
+        if xlabel is None: xlabel = X.name
+        if ylabel is None: ylabel = Y.name
+        ipc.broadcast.init_data(plotid, data_type='tuple', history_length=history,
+                                xlabel=xlabel, ylabel=ylabel)
+    ipc.new_data(plotid, np.array([X.data, Y.data]))
+
+    

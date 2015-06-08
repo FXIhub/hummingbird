@@ -97,3 +97,8 @@ def onEvent(evt):
     y = evt["parameters"]["injector_y"]
     z = evt["analysis"]["isHit - CCD"]
     plotting.correlation.plotMeanMap(x,y,z, plotid='HitrateMeanMap', **hitrateMeanMap)
+
+    # Scatter plot of Hitscore vs. Nr. scattered photons
+    x = evt["analysis"]["hitscore - CCD"]
+    y = evt["analysis"]["nrPhotons - CCD"]
+    plotting.correlation.plotScatter(x,y, history=1000) 
