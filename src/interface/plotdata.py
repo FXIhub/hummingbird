@@ -12,7 +12,7 @@ class PlotData(object):
         self._parent = parent
         self._maxlen = maxlen
         self.restored = False
-        self.ishistory = title[:7] == 'History'
+        self.ishistory = (title[:7] == 'History')
         self.recordhistory = False
         if(title in parent.conf and 'history_length' in parent.conf[title]):
             self._maxlen = parent.conf[title]['history_length']
@@ -29,7 +29,6 @@ class PlotData(object):
         if(self._x is None):
             self._x = RingBuffer(self._maxlen)
         if(self._l is None):
-            #TODO: This needs to be a separate type of Buffer that can take strings of different lenghts
             self._l = RingBufferStr(self._maxlen)
         self._y.append(y)
         self._x.append(x)

@@ -90,7 +90,7 @@ class _MeanMap:
 # Public Plotting functions - Put new plotting functions here!
 # ------------------------------------------------------------
 meanMaps = {}
-def plotMeanMap(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, ymax=100, step=10, \
+def plotMeanMapDynamic(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, ymax=100, step=10, \
                 localRadius=100, overviewStep=100, xlabel=None, ylabel=None, plotid=None):
     """Plotting the mean of parameter Z as a function of parameters X and Y.
 
@@ -196,3 +196,17 @@ def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
     ipc.mpi.sum(current_heatmap)
     if ipc.mpi.is_main_worker():
         ipc.new_data(plotid, current_heatmap[()])
+
+
+meanMaps = {}
+def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plotid=None, xlabel=None, ylabel=None):
+    if plotid is None:
+        plotid = "MeanMap(%s,%s)" %(X.name, Y.name)
+    if (not plotid in meanMaps):
+        if xlabel is None: xlabel = X.name
+        if ylabel is None: ylabel = Y.name
+        ipc.broadcast.init_data(plotid, data_type='triple', history_length=1,
+                                xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
+                                xbins=xbins, ybins=ybins,
+                                xlabel=xlabel, ylabel=ylabel, flipy=True)
+    ipc.new_data(plotid, np.array([X.data, Y.data, Z]))

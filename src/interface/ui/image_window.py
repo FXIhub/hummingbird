@@ -18,9 +18,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.plot = ImageView(self, view=pyqtgraph.PlotItem())
         self._finish_layout()
         self.infoLabel.setText('')
-        self.acceptable_data_types = ['image', 'vector']
+        self.acceptable_data_types = ['image', 'vector', 'triple']
         self.exclusive_source = True
         self.alert = False
+        self.meanmap = None
 
         self.settingsWidget.setVisible(self.actionPlotSettings.isChecked())
         self.settingsWidget.ui.colormap_min.editingFinished.connect(self.set_colormap_range)
@@ -136,6 +137,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         # array the last dimension corresponds to the x.
         scale_transform = QtGui.QTransform().scale((ymax-ymin)/pd.y.shape[-2],
                                                    (xmax-xmin)/pd.y.shape[-1])
+
         transpose_transform = QtGui.QTransform()
         if source.data_type[title] == 'image':
             transpose_transform *= QtGui.QTransform(0, 1, 0,
@@ -210,7 +212,41 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         if source.data_type[title] == 'image' and ("log" in conf):
             if conf["log"]:
                 self.plot.imageItem.setLookupTable(self.lut)
-            
+
+    def _fill_meanmap(self, triple, conf):
+        if self.meanmap is None:
+            self.meanmap = numpy.zeros((3,conf["ybins"], conf["xbins"]), dtype=float)
+            self.meanmap_dx = (conf["xmax"] - float(conf["xmin"]))/conf["xbins"]
+            self.meanmap_dy = (conf["ymax"] - float(conf["ymin"]))/conf["ybins"]
+            translate_transform = QtGui.QTransform().translate(conf["ymin"], conf["xmin"])
+            scale_transform = QtGui.QTransform().scale(self.meanmap_dy, self.meanmap_dx)
+            transpose_transform = QtGui.QTransform()
+            transpose_transform *= QtGui.QTransform(0, 1, 0,
+                                                    1, 0, 0,
+                                                    0, 0, 1)
+            self.meanmap_transform = scale_transform*translate_transform*transpose_transform
+        ix = numpy.ceil((triple[0] - conf["xmin"])/self.meanmap_dx)
+        if (ix < 0):
+            ix = 0
+        elif (ix >= conf["xbins"]):
+            ix = conf["xbins"] - 1
+        iy = numpy.ceil((triple[1] - conf["ymin"])/self.meanmap_dy)
+        if (iy < 0):
+            iy = 0
+        elif (iy >= conf["ybins"]):
+            iy = conf["ybins"] - 1
+        self.meanmap[0,iy,ix] += triple[2]
+        self.meanmap[1,iy,ix] += 1
+        visited = self.meanmap[1] != 0
+        if (self.settingsWidget.ui.show_visitedmap.isChecked()):
+            return visited, self.meanmap_transform
+        elif (self.settingsWidget.ui.show_heatmap.isChecked()):
+            return self.meanmap[1], self.meanmap_transform
+        else:
+            if len(self.meanmap[1][visited]):
+                self.meanmap[2][visited] = self.meanmap[0][visited]/self.meanmap[1][visited]
+            return self.meanmap[2], self.meanmap_transform
+        
     def replot(self):
         """Replot data"""
         for source, title in self.source_and_titles():
@@ -236,7 +272,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 if 'vmin' in conf or 'vmax' in conf:
                     self.set_colormap_range()
                         
-
             self._configure_axis(source, title)
             transform = self._image_transform(source, title)
             
@@ -252,6 +287,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     auto_rage = True
                     auto_histogram = True
                 img = numpy.array(pd.y, copy=False)
+                if "data_type" in conf and conf["data_type"] == "triple":
+                    img, transform = self._fill_meanmap(img[0], conf)
                 if (self.settingsWidget.ui.show_trend.isChecked()):
                     _trend = getattr(numpy, str(self.settingsWidget.ui.trend_options.currentText()))
                     img = _trend(img, axis=0)
