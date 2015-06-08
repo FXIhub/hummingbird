@@ -33,8 +33,8 @@ def getSubsetAsics(evt, type, key, subset, output):
     for i in subset:
         panel = i / 2
         asic = i % 2
-        central.append(detector.data[panel,:,(asic*194):((asic+1)*194)])
-    add_record(evt["analysis"], "analysis", output, np.hstack(central), detector.unit)
+        stack.append(detector.data[panel,:,(asic*194):((asic+1)*194)])
+    add_record(evt["analysis"], "analysis", output, np.hstack(stack), detector.unit)
 
 def getCentral4Asics(evt, type, key):
     """Adds a one-dimensional stack of its 4 centermost asics
@@ -49,7 +49,7 @@ def getCentral4Asics(evt, type, key):
         Carl Nettelblad (carl.nettelblad@it.uu.se)
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    getSubsetAsics(evt, type, key, map(range(4), lambda i : (i * 8 + 1) * 2), "central4Asics")
+    getSubsetAsics(evt, type, key, map(lambda i : (i * 8 + 1) * 2, xrange(4)), "central4Asics")
     
 def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
     """Estimates the total nr. of photons on the detector and adds it to ``evt["analysis"]["nrPhotons - " + key]``.
