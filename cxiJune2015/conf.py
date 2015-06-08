@@ -1,5 +1,6 @@
 import analysis.event
 import analysis.beamline
+import analysis.hitfinding
 import analysis.pixel_detector
 import ipc   
 
@@ -15,5 +16,11 @@ def onEvent(evt):
     print "EPICS photon energy = %g eV" %(evt['parameters']['SIOC:SYS0:ML00:AO541'].data)
     analysis.pixel_detector.printStatistics(evt['photonPixelDetectors'])
     analysis.pixel_detector.printStatistics(evt['ionTOFs'])
-    print "Rank = ", ipc.mpi.rank, analysis.event.printID(evt['eventID'])
+    #print "Rank = ", ipc.mpi.rank, analysis.event.printID(evt['eventID'])
+    # Count Nr. of Photons
+    #analysis.pixel_detector.totalNrPhotons(evt,"photonPixelDetectors", "CCD")
+
+    # Simple hitfinding (Count Nr. of lit pixels)
+    #analysis.hitfinding.countPhotons(evt, "photonPixelDetectors", "CCD", aduThreshold=0.5, hitscoreThreshold=10)
+
     analysis.event.printProcessingRate()

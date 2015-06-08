@@ -59,3 +59,66 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, mask=
     v = evt["analysis"]
     v["isHit - "+key] = hitscore > hitscoreThreshold
     add_record(v, "analysis", "hitscore - "+key, hitscore)
+
+def countPhotons(evt, type, key, hitscoreThreshold=200):
+    """A simple hitfinder that performs a limit test against an already defined
+    photon counted version for detector key
+    adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
+
+    Args:
+        :evt:       The event variable
+        :type(str): The event type (e.g. photonPixelDetectors)
+        :key(str):  The event key (e.g. CCD)
+    Kwargs:
+        :hitscoreThreshold(int): events with hitscore (Nr. of photons)  above this threshold are hits, default=200
+        :mask(int, bool):        only use masked pixel (mask == True or 1) for counting
+    
+    :Authors:
+        Carl Nettelblad (carl.nettelblad@it.uu.se)
+    """
+    v = evt["analysis"]
+    hitscore = v["nrPhotons - "+key]    
+    v["isHit - "+key] = hitscore > hitscoreThreshold
+    add_record(v, "analysis", "hitscore - "+key, hitscore)
+
+def countPhotonsAgainstEnergyFunction(evt, type, key, energyKey = "averagePulseEnergy", energyFunction = lambda x : 200):
+    """A hitfinder that tests photon count against a predicted photon threshold
+    that is dependent on some existing key
+    adds a boolean to ``evt["analysis"]["isHit" + key]``,  the hitscore to ``evt["analysis"]["hitscore - " + key]`` and
+    the limit to ``evt["analysis"]["photonLimit - " + key]
+
+    Args:
+        :evt:       The event variable
+        :type(str): The event type (e.g. photonPixelDetectors)
+        :key(str):  The event key (e.g. CCD)
+    Kwargs:
+	:energyKey(str): The analysis key where the pulse energy is expected to be found
+        :energyFunction(function with double argument): function that computes the photon threshold, given the energy
+    
+    :Authors:
+        Carl Nettelblad (carl.nettelblad@it.uu.se)
+    """
+    v = evt["analysis"]
+    hitscore = v["nrPhotons - "+key]
+    photonLimit = energyFunction(v[energyKey])
+    v["isHit - "+key] = hitscore > photonLimit
+    add_record(v, "analysis", "photonLimit - "+key, photonLimit)
+    add_record(v, "analysis", "hitscore - "+key, hitscore)
+
+def countPhotonsAgainstEnergyPolynomial(evt, type, key, energyKey = "averagePulseEnergy", energyPolynomial = [200]):
+    """A hitfinder that tests photon count against a predicted photon threshold
+    that is dependent on some existing key
+    adds a boolean to ``evt["analysis"]["isHit" + key]``,  the hitscore to ``evt["analysis"]["hitscore - " + key]`` and
+    the limit to ``evt["analysis"]["photonLimit - " + key]
+
+    Args:
+        :evt:       The event variable
+        :type(str): The event type (e.g. photonPixelDetectors)
+        :key(str):  The event key (e.g. CCD)
+    Kwargs:
+        :energyPolynomial: array_like with polynomial coefficients fed to polyval (polynomial order one less than list length)
+    
+    :Authors:
+        Carl Nettelblad (carl.nettelblad@it.uu.se)
+    """
+    countPhotonsAgainstEnergyFunction(evt, type, key, energyKey, lambda x : numpy.polyval(energyPolynomial, x))
