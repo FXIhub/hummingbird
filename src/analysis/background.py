@@ -3,7 +3,7 @@ import ipc
 import numpy
 from numpy import abs
 import h5py
-import time, datetime
+import time
 
 class Stack:
     def __init__(self,name="stack",maxLen=100,rank=0):
@@ -22,7 +22,6 @@ class Stack:
             self._buffer = numpy.zeros(shape=s, dtype=data.dtype)
         self._buffer[self._currentIndex % self._maxLen,:] = data[:]
         self._currentIndex += 1
-        print data.shape
     def _getData(self):
         if self.filled():
             return self._buffer
@@ -46,10 +45,17 @@ class Stack:
         with h5py.File(fn,"w") as f:
             for o in outputs:
                 exec "%s = self.%s()" % (o,o)
-                exec "f[\"%s\"] = %o" % (o,o)
+                exec "f[\"%s\"] = %s" % (o,o)
         if png:
-            import matplotlib.pyplot as pypl
+            import matplotlib as mpl
+            mpl.use('Agg')
+            import matplotlib.pyplot as plt
             for o in outputs:
+                fig = plt.figure()
+                ax = fig.add_subplot(111,title="%s %s (%i)" % (o,self._name,evt.event_id()))
+                exec "cax = ax.imshow(%s)" % o
                 fn = "%s/%s-%s-%i-%i.png" % (directory,o,self._name, evt.event_id(), self._rank) 
-                exec "pypl.imsave(fn,%s)" % o
-
+                fig.colorbar(cax)
+                fig.savefig(fn)
+                plt.clf()
+                
