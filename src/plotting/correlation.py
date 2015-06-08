@@ -10,16 +10,17 @@ class _MeanMap:
 
         # Initialize local map
         self.localRadius = localRadius / float(step)
+        self.step = step
         self.xrange = np.linspace(xmin, xmax, (xmax-xmin)/float(step)+1)
         self.yrange = np.linspace(ymin, ymax, (ymax-ymin)/float(step)+1)
-        Nx = self.xrange.shape[0]
-        Ny = self.yrange.shape[0]
-        self.localXmin = self.xrange[Nx/2-self.localRadius]
-        self.localXmax = self.xrange[Nx/2+self.localRadius]
-        self.localYmin = self.yrange[Ny/2-self.localRadius]
-        self.localYmax = self.yrange[Ny/2+self.localRadius]
-        self.sparseSum  = lil_matrix((Ny, Nx), dtype=np.float32)
-        self.sparseNorm = lil_matrix((Ny, Nx), dtype=np.float32)
+        self.Nx = self.xrange.shape[0]
+        self.Ny = self.yrange.shape[0]
+        self.localXmin = self.xrange[self.Nx/2-self.localRadius]
+        self.localXmax = self.xrange[self.Nx/2+self.localRadius]
+        self.localYmin = self.yrange[self.Ny/2-self.localRadius]
+        self.localYmax = self.yrange[self.Ny/2+self.localRadius]
+        self.sparseSum  = lil_matrix((self.Ny, self.Nx), dtype=np.float32)
+        self.sparseNorm = lil_matrix((self.Ny, self.Nx), dtype=np.float32)
         self.localMap   = np.zeros((2*self.localRadius+1, 2*self.localRadius+1))
 
         # Initialize overview map
@@ -42,8 +43,6 @@ class _MeanMap:
             N = N.data
         except AttributeError:
             pass
-        print Y.data
-        print abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin(), Z.data, N
         self.sparseSum[abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin()] += Z.data
         self.sparseNorm[abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin()] += N
         self.overviewMap[abs(self.overviewYrange - Y.data).argmin(), abs(self.overviewXrange - X.data).argmin()] += 1
@@ -53,10 +52,10 @@ class _MeanMap:
         self.center = (abs(self.yrange - Y.data).argmin(), abs(self.xrange - X.data).argmin())
 
     def updateLocalLimits(self):
-        self.localXmin = max(self.xrange[self.center[1]-self.localRadius],   self.xrange.min())
-        self.localXmax = min(self.xrange[self.center[1]+self.localRadius+1], self.xrange.max())
-        self.localYmin = max(self.yrange[self.center[0]-self.localRadius],   self.yrange.min())
-        self.localYmax = min(self.yrange[self.center[0]+self.localRadius+1], self.yrange.max())
+        self.localXmin = max(self.xrange[max(self.center[1]-self.localRadius, 0)], self.xrange.min())
+        self.localXmax = min(self.xrange[min(self.center[1]+self.localRadius, self.Nx-1)], self.xrange.max())
+        self.localYmin = max(self.yrange[max(self.center[0]-self.localRadius, 0)], self.yrange.min())
+        self.localYmax = min(self.yrange[min(self.center[0]+self.localRadius, self.Ny-1)], self.yrange.max())
 
     def gatherSumsAndNorms(self):
         if(ipc.mpi.slaves_comm):
@@ -70,8 +69,11 @@ class _MeanMap:
                 for n in sparseNorms[1:]:
                     self.sparseNorm += n
 
+    def gatherOverview(self):
+        ipc.mpi.sum(self.overviewMap)
+                    
     def updateLocalMap(self):
-        r = self.localRadius
+        r = int(self.localRadius)
         c = self.center
         self.localSum  = self.sparseSum[c[0]-r: c[0]+r+1, c[1]-r:c[1]+r+1].toarray()
         self.localNorm = self.sparseNorm[c[0]-r: c[0]+r+1, c[1]-r:c[1]+r+1].toarray()
@@ -80,7 +82,7 @@ class _MeanMap:
 
     def updateOverviewMap(self, X,Y):
         current = (abs(self.overviewYrange - Y.data).argmin(), abs(self.overviewXrange - X.data).argmin())
-        visited = self.overviewMap != 0
+        visited = self.overviewMap[()] != 0
         self.overviewMap[visited] = 1
         self.overviewMap[current] = 2
 
@@ -89,7 +91,7 @@ class _MeanMap:
 # ------------------------------------------------------------
 meanMaps = {}
 def plotMeanMap(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, ymax=100, step=10, \
-                localRadius=100, overviewStep=100, xlabel=None, ylabel=None):
+                localRadius=100, overviewStep=100, xlabel=None, ylabel=None, plotid=None):
     """Plotting the mean of parameter Z as a function of parameters X and Y.
 
     Args:
@@ -111,7 +113,8 @@ def plotMeanMap(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, 
         :localRadius (int):  The radius of a square neighborehood around the current position (X.data, Y.data) (default = 100)
         :overviewStep (int): The resolution of the overiew map (default = 100)
     """
-    plotid = "%s(%s,%s)" %(Z.name, X.name, Y.name)
+    if plotid is None:
+        plotid = "%s(%s,%s)" %(Z.name, X.name, Y.name)
     if (not plotid in meanMaps):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
@@ -120,11 +123,13 @@ def plotMeanMap(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, 
     m.append(X, Y, Z, norm)
     if(not m.counter % update):
         m.gatherSumsAndNorms()
+        m.gatherOverview()
         if(ipc.mpi.is_main_worker()):
             m.updateCenter(X, Y)
             m.updateLocalLimits()
             m.updateLocalMap()
             m.updateOverviewMap(X,Y)
+            print m.localXmin, m.localXmax, m.localYmin, m.localYmax
             ipc.new_data(plotid+' -> Local', m.localMap, msg=msg, \
                          xmin=m.localXmin, xmax=m.localXmax, ymin=m.localYmin, ymax=m.localYmax)
             ipc.new_data(plotid+' -> Overview', m.overviewMap) 

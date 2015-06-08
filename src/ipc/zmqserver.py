@@ -78,13 +78,11 @@ class ZmqServer(object):
         if(msg[0] == 'reload'):
             #TODO: Find a way to replace this with a direct function call (in all workers)
             import os, signal
-            stream.socket.send_json(['reload', true])
+            stream.socket.send_json(['reload', bytes(True)])
             with open('.pid', 'r') as file:
                 pid = int(file.read())
             os.kill(pid, signal.SIGUSR1)
-            stream.socket.send_json(['reload', bytes(True)])
             
-
     def _ioloop(self):
         """Start the ioloop fires the callbacks when data is received
         on the control stream. Runs on a separate thread."""
