@@ -6,17 +6,19 @@ import numpy as np
 from backend import Record
 from backend import EventTranslator
 
-processingTimes = collections.deque([], 100)
+processingTimes = collections.deque([], 1000)
 def printProcessingRate():
     """Prints processing rate to screen"""
     processingTimes.appendleft(datetime.datetime.now())
     if(len(processingTimes) < 2):
         return
     dt = processingTimes[0] - processingTimes[-1]
-    proc_rate = np.array((len(processingTimes)-1)/dt.total_seconds())
-    ipc.mpi.sum(proc_rate)
+    proc_inverse = np.array(1.0 / ((len(processingTimes)-1)/dt.total_seconds()))
+    ipc.mpi.sum(proc_inverse)
+    # Square of number of workers due to harmonic mean and total rate over everyone
+    proc_rate = ipc.mpi.nr_workers()**2 / proc_inverse[()]
     if(ipc.mpi.is_main_worker()):
-        print 'Processing Rate %.2f Hz' %proc_rate[()]
+        print 'Processing Rate %.2f Hz' % proc_rate
 
 def printKeys(evt, type=None):
     """prints available keys of Hummingbird event"""
