@@ -2,9 +2,18 @@
 import sys,argparse
 import numpy
 import os
+import time, datetime
 import h5py
 import scipy.misc
 import configobj
+
+def get_valid_stacks(f_names):
+    f_names_valid = []
+    for fn in f_names:
+        with h5py.File(fn,"r") as f:
+            if "mean" in f.keys():
+                f_names_valid.append(fn)
+    return f_names_valid
 
 def get_dims(f_name):
     with h5py.File(f_name,"r") as f:
@@ -38,7 +47,8 @@ def get_badpixelmask(f_name):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Hummingbird mask tool. Creates mask from stack files in current directory and given configuration file.')
     parser.add_argument('config', type=str,
-                        help="configuration file")
+                        help="Configuration file")
+    parser.add_argument('-l', '--link', type=str, help="Creates symbolic link to the H5 mask from given path")
     if(len(sys.argv) == 1):
         parser.print_help()
     args = parser.parse_args()
@@ -48,6 +58,7 @@ if __name__ == "__main__":
     files = os.listdir(".")
     files = [f for f in files if len(f) > 3]
     files = [f for f in files if f[-3:] == ".h5"]
+    files = get_valid_stacks(files)
 
     if len(files) == 0:
         sys.exit(0)
@@ -76,9 +87,16 @@ if __name__ == "__main__":
     if C["badpixelmask"].lower() != 'none':
         mask *= get_badpixelmask(C["badpixelmask"])
 
+    fn_root = files[-1].split("/")[-1][:-3]
+
     if bool(C["output_png"].lower()):
         import matplotlib.pyplot as pypl
-        pypl.imsave("mask.png", mask, cmap="binary_r", vmin=0, vmax=1)
+        pypl.imsave("mask_%s.png" % fn_root, mask, cmap="binary_r", vmin=0, vmax=1)
 
-    with h5py.File("mask.h5", "w") as f:
+    with h5py.File("mask_%s.h5" % fn_root, "w") as f:
         f["data/data"] = mask
+
+    os.system("cp %s mask_%s.conf" % (args.config,fn_root))
+
+    if args.link:
+        os.system("ln -s -f %s.h5 %s" % (fn_root, args.link))

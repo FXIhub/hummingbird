@@ -14,6 +14,10 @@ class Stack:
     def clear(self):
         self._buffer = None
         self._currentIndex = 0
+        self.last_std    = None
+        self.last_mean   = None
+        self.last_sum    = None
+        self.last_median = None
     def filled(self):
         return self._currentIndex > self._maxLen
     def add(self,data):
@@ -28,20 +32,32 @@ class Stack:
         else:
             return self._buffer[:self._currentIndex]
     def std(self):
-        return self._getData().std(axis=0)
+        self.last_std = self._getData().std(axis=0)
+        return self.last_std
     def mean(self):
-        return self._getData().mean(axis=0)
+        self.last_mean = self._getData().mean(axis=0)
+        return self.last_mean
     def sum(self):
-        return self._getData().sum(axis=0)
+        self.last_sum = self._getData().sum(axis=0)
+        return self.last_sum
     def median(self):
-        return numpy.median(self._getData(),axis=0)
+        self.last_median = numpy.median(self._getData(),axis=0)
+        return self.last_median
     def write(self,evt,directory=".",outputs=None,png=False,interval=None,verbose=True):
         if interval is not None:
             if (self._currentIndex % interval) != 0:
                 return
         if outputs is None:
             outputs = ["std","mean","sum","median"]
-        fn = "%s/%s-%i-%i.h5" % (directory,self._name, evt.event_id(), self._rank)
+        try:
+            dt = evt["eventID"]["Timestamp"].datetime64
+        except:
+            dt = ""
+        try:
+            fid = evt["eventID"]["Timestamp"].fiducials
+        except:
+            fid = 0
+        fn = "%s/%s-%s-%s-rank%i.h5" % (directory,self._name, dt, fid, self._rank)
         if verbose:
             print "Writing stack to %s" % fn
         with h5py.File(fn,"w") as f:
