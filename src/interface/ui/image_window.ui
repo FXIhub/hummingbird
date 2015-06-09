@@ -505,6 +505,7 @@
     <addaction name="actionX_axis"/>
     <addaction name="actionY_axis"/>
     <addaction name="actionHistogram"/>
+    <addaction name="actionCrosshair"/>
    </widget>
    <widget class="QMenu" name="menuAlert">
     <property name="title">
@@ -688,6 +689,14 @@
    </property>
    <property name="text">
     <string>glass</string>
+   </property>
+  </action>
+  <action name="actionCrosshair">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Crosshair</string>
    </property>
   </action>
  </widget>
