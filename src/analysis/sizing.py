@@ -201,7 +201,7 @@ def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=N
                     brute_evals=10, photon_counting=True):
     """    
     Estimating the size of particles based on diffraction data using radial sphere model fitting.
-    Adds results to ``evt['analysis'][RESULT]`` where RESULT is 'size', 'intensity', 'error'.
+    Adds results to ``evt['analysis'][RESULT]`` where RESULT is 'diameter', 'intensity', 'error'.
 
     .. note:: For this function, `libspimage <https://github.com/FilipeMaia/libspimage>`_ needs to be installed.
 
