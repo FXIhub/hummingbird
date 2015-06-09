@@ -270,3 +270,13 @@ def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=N
     add_record(v, "analysis", "intensity", intensity / (1e-3 / 1e-12), unit='mJ/um**2')
     add_record(v, "analysis", "fit error", info["error"], unit='')
     add_record(v, "analysis", "fit sphericity", info["sphericity"], unit='')
+
+
+def absolute_error(evt, type_a, key_a, type_b, key_b, out_key=None):
+    """Returning the absolute error between two records as a new record."""
+    a = evt[type_a][key_a]
+    b = evt[type_b][key_b]
+    if out_key is None:
+        out_key = "abs(%s - %s)" %(a.name, b.name)
+    add_record(evt["analysis"], "analysis", out_key, abs(a.data-b.data), unit='')
+    

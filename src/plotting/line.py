@@ -49,7 +49,7 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
     ipc.new_data(plotid, H, xmin=B.min(), xmax=B.max())
 
 traces = {}
-def plotTrace(paramY, paramX=None, label='', history=100):
+def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None):
     """Plotting a trace.
     
     Args:
@@ -62,7 +62,7 @@ def plotTrace(paramY, paramX=None, label='', history=100):
     """
     if paramY is None:
         return
-    plotid = "Histogram(%s)" %paramY.name
+    plotid = "Trace(%s)" %paramY.name
     if(not paramY.name in traces):
         ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, history_length=history)
         histograms[paramY.name] = True
@@ -71,6 +71,9 @@ def plotTrace(paramY, paramX=None, label='', history=100):
     else:
         x = paramX.data.ravel()
         y = paramY.data.ravel()
+        if tracelen is not None:
+            x = x[:tracelen]
+            y = y[:tracelen]
         if x.size != y.size:
             logging.warning("For %s x- and y-dimension do not match (%i, %i). Cannot plot trace." % (plotid,x.size,y.size))
             return

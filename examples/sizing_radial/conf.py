@@ -10,6 +10,7 @@ import analysis.hitfinding
 import analysis.sizing
 import plotting.line
 import plotting.image
+import plotting.correlation
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 
@@ -106,6 +107,7 @@ ny = sim.ny
 mask = utils.reader.MaskReader(this_dir + "/mask.h5","/data/data").boolean_mask
 
 # Error logging histories
+# -----------------------
 histLen = 100
 I = numpy.zeros(histLen)*numpy.nan
 Ierr = numpy.zeros(histLen)*numpy.nan
@@ -161,7 +163,7 @@ def onEvent(evt):
             t0 = time.time()
             cx = evt["analysis"]["offCenterX"].data + (nx - 1) / 2.  
             cy = evt["analysis"]["offCenterY"].data + (ny - 1) / 2.
-            analysis.pixel_detector.radial(evt, "photonPixelDetectors", "CCD", mask=mask, cx=cx, cy=cy)          
+            analysis.pixel_detector.radial(evt, "photonPixelDetectors", "CCD", mask=mask, cx=cx, cy=cy)
             # Fitting sphere model to get size and intensity
             analysis.sizing.fitSphereRadial(evt, "analysis", "radial distance - CCD", "radial average - CCD", **dict(modelParams, **sizingParams))
             t_size = time.time()-t0
@@ -174,11 +176,9 @@ def onEvent(evt):
 
         if radial:
             analysis.pixel_detector.radial(evt, "analysis", "fit", mask=mask, cx=cx, cy=cy)          
-            # 1D arrays have to have same length, otherwise histoty keeping gets messed up
-            rlen = 100
-            ipc.new_data("radial fit", numpy.array([evt["analysis"]["radial distance - fit"].data.ravel()[:rlen], evt["analysis"]["radial average - fit"].data.ravel()[:rlen]], copy=False))
-            ipc.new_data("radial CCD", numpy.array([evt["analysis"]["radial distance - CCD"].data.ravel()[:rlen], evt["analysis"]["radial average - CCD"].data.ravel()[:rlen]], copy=False))
-        
+            plotting.line.plotTrace(evt["analysis"]["radial average - fit"], evt["analysis"]["radial distance - fit"], tracelen=100)
+            plotting.line.plotTrace(evt["analysis"]["radial average - CCD"], evt["analysis"]["radial distance - CCD"], tracelen=100)
+
         t_all = t_center + t_size + t_full
         print "Time: %e sec (center / size / full : %.2f%% / %.2f%% / %.2f%%)" % (t_all, 100.*t_center/t_all, 100.*t_size/t_all, 100.*t_full/t_all)           
         
@@ -201,6 +201,10 @@ def onEvent(evt):
         msg_glo = "diameter = %.2f nm, \nintensity = %.2f mJ/um2" % (s0, I0)
         msg_fit = "Fit result: \ndiameter = %.2f nm (%.2f nm), \nintensity = %.2f mJ/um2 (%.2f mJ/um2)" % (s0, s1-s0, I0, I1-I0)
 
+        # Errors
+        size_error = analysis.sizing.absolute_error(evt, "analysis", "diameter", "parameters", "diameter", out_key='size error')
+        intensity_error = analysis.sizing.absolute_error(evt, "analysis", "intensity", "parameters", "intensity", out_key='intensity error')
+                            
         global s
         global I
         global fl
@@ -213,8 +217,8 @@ def onEvent(evt):
         I[i%histLen] = I1
         s[i%histLen] = s1
         fl[i%histLen] = evt["parameters"]["flattening"].data
-        serr[i%histLen] = abs(s0-s1)
-        Ierr[i%histLen] = abs(I0-I1)
+        serr[i%histLen] = evt["analysis"]["size error"].data
+        Ierr[i%histLen] = evt["analysis"]["intensity error"].data
         ferr[i%histLen] = evt["analysis"]["fit error"].data
         sph[i%histLen] = evt["analysis"]["fit sphericity"].data
         i += 1
@@ -228,9 +232,9 @@ def onEvent(evt):
                                                                                  numpy.median(Ierr[fin]),
                                                                                  100.*numpy.median(Ierr[fin])/numpy.median(I[fin]))
 
-        ipc.new_data("Size error vs. fit error", numpy.array([numpy.array(serr), numpy.array(ferr)]))
-        ipc.new_data("Intensity error vs. fit error", numpy.array([numpy.array(Ierr), numpy.array(ferr)]))
-        ipc.new_data("Flattening vs. sphericity", numpy.array([numpy.array(fl), numpy.array(sph)]))
+        plotting.correlation.plotScatter(evt["analysis"]["size error"], evt["analysis"]["fit error"], plotid='Size error vs. fit error', history=100)
+        plotting.correlation.plotScatter(evt["analysis"]["intensity error"], evt["analysis"]["fit error"], plotid='Intensity error vs. fit error', history=100)
+        plotting.correlation.plotScatter(evt["parameters"]["flattening"], evt["analysis"]["fit sphericity"], plotid='Flattening vs. sphericity', history=100)
         
         # Plot the glorious shots
         plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg_glo, alert=True, log=True, mask=mask)
