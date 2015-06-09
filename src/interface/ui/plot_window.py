@@ -5,6 +5,7 @@ import numpy
 from interface.ui import DataWindow
 from interface.Qt import QtCore
 import datetime
+import utils.array
 
 class PlotWindow(DataWindow, Ui_plotWindow):
     """Window to display 2D plots"""
@@ -176,6 +177,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             x = None
             if(source.data_type[title] == 'scalar'):
                 x = numpy.array(pd.x, copy=False)
+                if self._settings_diag.runningMean.isChecked():
+                    wl = int(self._settings_diag.window_length.text())
+                    y = utils.array.runningMean(y, wl)
+                    x = x[::wl][:len(y)]
             elif(source.data_type[title] == 'tuple'):
                 x = pd.y[:,0]
             elif(source.data_type[title] == 'vector'):

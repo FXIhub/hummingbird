@@ -4,7 +4,7 @@ import ipc
 
 
 histories = {}
-def plotHistory(param, label='', history=100):
+def plotHistory(param, label='', history=100, runningHistogram=False):
     """Plotting history of a parameter.
 
     Args:
@@ -18,7 +18,11 @@ def plotHistory(param, label='', history=100):
         return
     plotid = "History(%s)" %param.name
     if (not param.name in histories):
-        ipc.broadcast.init_data(plotid, ylabel=label, history_length=history)
+        if runningHistogram:
+            data_type = 'running_hist'
+        else:
+            data_type = 'scalar'
+        ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history)
         histories[param.name] = True
     ipc.new_data(plotid, param.data)
 
@@ -49,7 +53,7 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
     ipc.new_data(plotid, H, xmin=B.min(), xmax=B.max())
 
 traces = {}
-def plotTrace(paramY, paramX=None, label='', history=100):
+def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None):
     """Plotting a trace.
     
     Args:
@@ -62,7 +66,7 @@ def plotTrace(paramY, paramX=None, label='', history=100):
     """
     if paramY is None:
         return
-    plotid = "Histogram(%s)" %paramY.name
+    plotid = "Trace(%s)" %paramY.name
     if(not paramY.name in traces):
         ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, history_length=history)
         histograms[paramY.name] = True
@@ -71,6 +75,9 @@ def plotTrace(paramY, paramX=None, label='', history=100):
     else:
         x = paramX.data.ravel()
         y = paramY.data.ravel()
+        if tracelen is not None:
+            x = x[:tracelen]
+            y = y[:tracelen]
         if x.size != y.size:
             logging.warning("For %s x- and y-dimension do not match (%i, %i). Cannot plot trace." % (plotid,x.size,y.size))
             return

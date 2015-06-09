@@ -113,6 +113,20 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
 
     
 def bin(evt, type, key, binning, mask=None):
+    """Bin a detector image given a binning factor (and mask) to ``evt["analysis"]["binned image - " + key]`` (``evt["analysis"]["binned mask - " + key]``
+
+    Args:
+        :evt:        The event variable
+        :type(str):  The event type (e.g. photonPixelDetectors)
+        :key(str):   The event key (e.g. CCD)
+        :binning(int):   The linear binning factor
+
+    Kwargs:
+        :mask:    Binary mask, pixels that are masked out are not counted into the binned value.
+
+    :Authors:
+        Max F. Hantke (hantke@xray.bmc.uu.se)
+    """
     import spimage
     image = evt[type][key].data
     binned_image, binned_mask = spimage.binImage(image, binning, msk=mask, output_binned_mask=True)
@@ -121,6 +135,21 @@ def bin(evt, type, key, binning, mask=None):
         add_record(evt["analysis"], "analysis", "binned mask - "+key, binned_mask)
 
 def radial(evt, type, key, mask=None, cx=None, cy=None):
+    """Compute the radial average of a detector image given the center position (and a mask) and saves it to ``evt["analysis"]["radial average - " + key]`` and the radial distances are saved to``evt["analysis"]["radial distance - " + key]``
+
+    Args:
+        :evt:        The event variable
+        :type(str):  The event type (e.g. photonPixelDetectors)
+        :key(str):   The event key (e.g. CCD)
+
+    Kwargs:
+        :mask:    Binary mask, pixels that are masked out are not counted into the radial average.
+        :cx(float):  X-coordinate of the center position. If None the center will be in the middle.
+        :cy(float):  Y-coordinate of the center position. If None the center will be in the middle.
+
+    :Authors:
+        Max F. Hantke (hantke@xray.bmc.uu.se)
+    """
     import spimage, numpy
     image = evt[type][key].data
     r, img_r = spimage.radialMeanImage(image, msk=mask, cx=cx, cy=cy, output_r=True)
