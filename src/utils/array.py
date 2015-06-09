@@ -46,6 +46,14 @@ def get2D(data):
     return res
 
 def runningMean(array, window):
-    nr_windows = (array.shape[0] / window)  
+    nr_windows = (array.shape[0] / window)
     mean = numpy.mean(array[:nr_windows*window].reshape((window, nr_windows)), axis=0)
     return mean
+
+def runningHistogram(array, window, bins, hmin, hmax):
+    nr_windows = (array.shape[0] / window)
+    buffer = array[:nr_windows*window].reshape((window, nr_windows))
+    runningHist = numpy.zeros((nr_windows, bins))
+    for i in range(nr_windows):
+        runningHist[i], bins = numpy.histogram(buffer[i], range=(hmin, hmax), bins=bins)
+    return runningHist

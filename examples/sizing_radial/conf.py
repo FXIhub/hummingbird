@@ -184,7 +184,7 @@ def onEvent(evt):
         
         plotting.line.plotHistory(evt["analysis"]["offCenterX"])
         plotting.line.plotHistory(evt["analysis"]["offCenterY"])
-        plotting.line.plotHistory(evt["analysis"]["diameter"])
+        plotting.line.plotHistory(evt["analysis"]["diameter"], runningHistogram=True)
         plotting.line.plotHistory(evt["analysis"]["intensity"])
         plotting.line.plotHistory(evt["analysis"]["fit error"])
 
