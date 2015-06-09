@@ -199,9 +199,17 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
 
     def _replot(self):
         """Replot content on all data windows"""
+        if self._replot_timer is not None:
+            pass
+            #self._replot_timer.stop()
+        
         for p in self._data_windows:
             p.replot()
         self.plotdata_widget.update()
+        
+        if self._replot_timer is not None:
+            pass
+            #self._replot_timer.start()
 
     def _preferences_clicked(self):
         """Open the preferences dialog"""
@@ -210,8 +218,6 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             v = diag.outputPath.text()
             self.settings.setValue("outputPath", v)
             self._recorder.outpath = v
-            self.alert_sound = diag.alert_sound.isChecked()
-            self.alert_msg = diag.alert_msg.isChecked()
 
     def _recorder_toggled(self, turn_on):
         """Start/Stop the recorder"""
