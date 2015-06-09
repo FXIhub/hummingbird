@@ -4,7 +4,7 @@ import ipc
 
 
 histories = {}
-def plotHistory(param, label='', history=100):
+def plotHistory(param, label='', history=100, runningHistogram=False):
     """Plotting history of a parameter.
 
     Args:
@@ -18,7 +18,11 @@ def plotHistory(param, label='', history=100):
         return
     plotid = "History(%s)" %param.name
     if (not param.name in histories):
-        ipc.broadcast.init_data(plotid, ylabel=label, history_length=history)
+        if runningHistogram:
+            data_type = 'running_hist'
+        else:
+            data_type = 'scalar'
+        ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history)
         histories[param.name] = True
     ipc.new_data(plotid, param.data)
 

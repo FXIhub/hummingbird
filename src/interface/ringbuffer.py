@@ -114,7 +114,7 @@ class RingBuffer(object):
             return self._data[tuple(args)]
         else:
             return self._data[self._convert_dim(args)]
-
+        
     @property
     def nbytes(self):
         """Returns the number of bytes taken by the buffer"""

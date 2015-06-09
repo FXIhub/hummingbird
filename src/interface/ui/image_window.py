@@ -2,6 +2,7 @@
 from interface.Qt import QtGui, QtCore
 from interface.ui import Ui_imageWindow
 from interface.ui import DataWindow
+import utils.array
 import pyqtgraph
 import numpy
 import datetime
@@ -18,7 +19,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.plot = ImageView(self, view=pyqtgraph.PlotItem())
         self._finish_layout()
         self.infoLabel.setText('')
-        self.acceptable_data_types = ['image', 'vector', 'triple']
+        self.acceptable_data_types = ['image', 'vector', 'triple', 'running_hist']
         self.exclusive_source = True
         self.alert = False
         self.meanmap = None
@@ -108,13 +109,11 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             msg = ''
         return dt, msg
         
-    def _image_transform(self, source, title):
+    def _image_transform(self, img, source, title):
         """Returns the appropriate transform for the content"""
-        pd = source.plotdata[title]
         xmin = 0
         ymin = 0
         conf = source.conf[title]
-
 
         if "xmin" in conf:
             xmin = conf['xmin']
@@ -122,8 +121,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             ymin = conf['ymin']
 
         translate_transform = QtGui.QTransform().translate(ymin, xmin)
-        xmax = pd.y.shape[-1] + xmin
-        ymax = pd.y.shape[-2] + ymin
+        xmax = img.shape[-1] + xmin
+        ymax = img.shape[-2] + ymin
 
         if "xmax" in conf:
             if(conf['xmax'] <= xmin):
@@ -137,8 +136,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 ymax = conf['ymax']
         # The order of dimensions in the scale call is (y,x) as in the numpy
         # array the last dimension corresponds to the x.
-        scale_transform = QtGui.QTransform().scale((ymax-ymin)/pd.y.shape[-2],
-                                                   (xmax-xmin)/pd.y.shape[-1])
+        scale_transform = QtGui.QTransform().scale((ymax-ymin)/img.shape[-2],
+                                                   (xmax-xmin)/img.shape[-1])
 
         transpose_transform = QtGui.QTransform()
         if source.data_type[title] == 'image':
@@ -276,7 +275,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             pd = source.plotdata[title]
             if(pd.y is None or len(pd.y) == 0):
                 continue
-
+            
             conf = source.conf[title]
             if "alert" in conf and self.alert:
                 alert = conf['alert']
@@ -292,9 +291,19 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     cmax.setText(str(conf['vmax']))
                 if 'vmin' in conf or 'vmax' in conf:
                     self.set_colormap_range()
-                        
+
+            if conf["data_type"] == "running_hist":
+                wl   = int(self.settingsWidget.ui.runningHistWindow.text())
+                bins = int(self.settingsWidget.ui.runningHistBins.text())
+                hmin = int(self.settingsWidget.ui.runningHistMin.text())
+                hmax = int(self.settingsWidget.ui.runningHistMax.text())
+                img = utils.array.runningHistogram(numpy.array(pd.y, copy=False), wl, bins, hmin, hmax)
+                if not img.shape[0]:
+                    continue
+            else:
+                img = numpy.array(pd.y, copy=False)
             self._configure_axis(source, title)
-            transform = self._image_transform(source, title)
+            transform = self._image_transform(img, source, title)
             
             if(self.plot.image is None or # Plot if first image
                len(self.plot.image.shape) < 3 or # Plot if there's no history
@@ -307,7 +316,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     auto_levels = True
                     auto_rage = True
                     auto_histogram = True
-                img = numpy.array(pd.y, copy=False)
                 if "data_type" in conf and conf["data_type"] == "triple":
                     img, transform, x, y = self._fill_meanmap(img[0], conf)
                 else:
