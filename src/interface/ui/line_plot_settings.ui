@@ -182,24 +182,35 @@
    <item row="3" column="0" colspan="4">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Running mean</string>
+      <string>Trend</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
       <item row="0" column="1">
-       <spacer name="horizontalSpacer">
-        <property name="orientation">
-         <enum>Qt::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
+       <widget class="QComboBox" name="trendOptions">
+        <item>
+         <property name="text">
+          <string>mean</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>std</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>max</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>min</string>
+         </property>
+        </item>
+       </widget>
       </item>
       <item row="0" column="3">
-       <widget class="QLineEdit" name="window_length">
+       <widget class="QLineEdit" name="windowLength">
         <property name="sizePolicy">
          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
           <horstretch>0</horstretch>
@@ -212,7 +223,7 @@
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QCheckBox" name="runningMean">
+       <widget class="QCheckBox" name="showTrend">
         <property name="text">
          <string>On/Off</string>
         </property>
@@ -227,10 +238,10 @@
       </item>
      </layout>
      <zorder>groupBox</zorder>
-     <zorder>runningMean</zorder>
+     <zorder>showTrend</zorder>
      <zorder>label_5</zorder>
-     <zorder>horizontalSpacer</zorder>
-     <zorder>window_length</zorder>
+     <zorder>windowLength</zorder>
+     <zorder>trendOptions</zorder>
     </widget>
    </item>
   </layout>
