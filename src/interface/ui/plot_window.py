@@ -167,12 +167,18 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             elif(source.data_type[title] == 'tuple'):
                 y = pd.y[:,1]
             elif source.data_type[title] == 'vector':
-                if(self.current_index == -1):
-                    y = numpy.array(pd.y[self.current_index % pd.y.shape[0]], copy=False)
-                    self.last_vector_y = numpy.array(pd.y)
-                    self.last_vector_x = numpy.array(pd.x)
+                if self._settings_diag.showTrend.isChecked():
+                    _trend = getattr(numpy, str(self._settings_diag.trendOptions.currentText()))
+                    y = numpy.zeros((2, pd.y.shape[2]))
+                    y[1,:] = _trend(pd.y[:,1,:], axis=0)
+                    y[0,:] = pd.y[-1,0,:]
                 else:
-                    y = self.last_vector_y[self.current_index % self.last_vector_y.shape[0]]
+                    if(self.current_index == -1):
+                        y = numpy.array(pd.y[self.current_index % pd.y.shape[0]], copy=False)
+                        self.last_vector_y = numpy.array(pd.y)
+                        self.last_vector_x = numpy.array(pd.x)
+                    else:
+                        y = self.last_vector_y[self.current_index % self.last_vector_y.shape[0]]
 
             x = None
             if(source.data_type[title] == 'scalar'):
@@ -207,6 +213,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self._configure_axis(source, title)
             self.plot.setLogMode(x=self._settings_diag.logx.isChecked(),
                                  y=self._settings_diag.logy.isChecked())
+            #print y
             plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
 
