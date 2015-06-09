@@ -60,10 +60,32 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, mask=
     v["isHit - "+key] = hitscore > hitscoreThreshold
     add_record(v, "analysis", "hitscore - "+key, hitscore)
 
+def countTof(evt, type, key, signalThreshold = 1, channel = 0, minWindow = 0, maxWindow = -1, hitscoreThreshold=2):
+    """A simple hitfinder that performs a peak counting test on a time-of-flight detector signal, in a specific subwindow.
+    Adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
+
+    Args:
+        :evt:       The event variable
+        :type(str): The event type (e.g. ionTOFs)
+        :key(str):  The event key (e.g. tof)
+
+
+    Kwargs:
+        :signalThreshold(str): The threshold of the signal, anything above this contributes to the score
+        :hitscoreThreshold(int): events with hitscore (Nr. of photons)  above this threshold are hits, default=200
+    
+    :Authors:
+        Carl Nettelblad (carl.nettelblad@it.uu.se)
+    """
+    v = evt[type][key]
+    hitscore = v[channel,minWindow:maxWindow] > signalThreshold
+    v["isHit - "+key] = hitscore > hitscoreThreshold
+    add_record(v, "analysis", "hitscore - "+key, hitscore)
+
 def countPhotons(evt, type, key, hitscoreThreshold=200):
     """A simple hitfinder that performs a limit test against an already defined
-    photon counted version for detector key
-    adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
+    photon count for detector key. Adds a boolean to ``evt["analysis"]["isHit" + key]`` and
+    the hitscore to ``evt["analysis"]["hitscore - " + key]``.
 
     Args:
         :evt:       The event variable
@@ -71,7 +93,6 @@ def countPhotons(evt, type, key, hitscoreThreshold=200):
         :key(str):  The event key (e.g. CCD)
     Kwargs:
         :hitscoreThreshold(int): events with hitscore (Nr. of photons)  above this threshold are hits, default=200
-        :mask(int, bool):        only use masked pixel (mask == True or 1) for counting
     
     :Authors:
         Carl Nettelblad (carl.nettelblad@it.uu.se)
