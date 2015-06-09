@@ -199,7 +199,6 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
 
     def _replot(self):
         """Replot content on all data windows"""
-        print "_replot"
         if self._replot_timer is not None:
             pass
             #self._replot_timer.stop()
