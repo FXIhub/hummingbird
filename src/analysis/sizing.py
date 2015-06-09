@@ -45,6 +45,8 @@ def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5
     v = evt["analysis"]
     add_record(v, "analysis", "offCenterX", cx, unit='px')
     add_record(v, "analysis", "offCenterY", cy, unit='px')
+    add_record(v, "analysis", "cx", (img.shape[1]-1)/2. + cx, unit='px')
+    add_record(v, "analysis", "cy", (img.shape[0]-1)/2. + cy, unit='px')
 
 parameters = {}
 def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
@@ -129,6 +131,8 @@ def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
     v = evt["analysis"]
     add_record(v, "analysis", "offCenterX", x0, unit='')
     add_record(v, "analysis", "offCenterY", y0, unit='')
+    add_record(v, "analysis", "cx", (img.shape[1]-1)/2. + x0, unit='px')
+    add_record(v, "analysis", "cy", (img.shape[0]-1)/2. + y0, unit='px')
     add_record(v, "analysis", "diameter", diameter / 1E-9, unit='nm')
     add_record(v, "analysis", "intensity", intensity / (1e-3 / 1e-12), unit='mJ/um**2')
     add_record(v, "analysis", "error", info["error"], unit='')

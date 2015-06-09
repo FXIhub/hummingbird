@@ -35,13 +35,15 @@ class Stack:
         return self._getData().sum(axis=0)
     def median(self):
         return numpy.median(self._getData(),axis=0)
-    def write(self,evt,directory=".",outputs=None,png=False,interval=None):
+    def write(self,evt,directory=".",outputs=None,png=False,interval=None,verbose=True):
         if interval is not None:
             if (self._currentIndex % interval) != 0:
                 return
         if outputs is None:
             outputs = ["std","mean","sum","median"]
         fn = "%s/%s-%i-%i.h5" % (directory,self._name, evt.event_id(), self._rank)
+        if verbose:
+            print "Writing stack to %s" % fn
         with h5py.File(fn,"w") as f:
             for o in outputs:
                 exec "%s = self.%s()" % (o,o)

@@ -1,8 +1,10 @@
 #!/usr/bin/env python
 import sys,argparse
 import numpy
+import os
 import h5py
 import scipy.misc
+import configobj
 
 def get_dims(f_name):
     with h5py.File(f_name,"r") as f:
@@ -17,6 +19,13 @@ def get_threshold_mask(f_names, ds_name, threshold):
             d.append(numpy.array(f[ds_name]))
     return (numpy.mean(d,axis=0) < threshold)
 
+def get_limit_mask(f_names, ds_name, threshold):
+    d = []
+    for fn in f_names:
+        with h5py.File(fn, "r") as f:
+            d.append(numpy.array(f[ds_name]))
+    return (numpy.mean(d,axis=0) > threshold)
+
 def get_badpixelmask(f_name):
     if f_name[-3:] == ".h5":
         with h5py.File(f_name, "r"):
@@ -27,39 +36,47 @@ def get_badpixelmask(f_name):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Hummingbird mask tool')
-    parser.add_argument('-m', '--mean-threshold', metavar='mean_threshold', type=float,
-                        help="Pixels with mean value above the given threshold are masked out.")
-    parser.add_argument('-d', '--median-threshold', metavar='median_threshold', type=float,
-                        help="Pixels with median value above the given threshold are masked out.")
-    parser.add_argument('-s', '--std-threshold', metavar='std_threshold', type=float,
-                        help="Pixels with standard deviation value above the given threshold are masked out.")
-    parser.add_argument('-b', '--badpixelmask', metavar='file', type=str,
-                        help="If the given file is an H5 file it has to contain the dataset /data/data. Dataset values that equal zero will be masked out. If the file is a PNG file black pixels will be masked out.")    
-    parser.add_argument('-p', '--output-png', action='store_true',
-                        help="Output also to black and white PNG. Black represent masked out regions.")
-    parser.add_argument('files', metavar='file', type=str, 
-                        help="H5 files with stack data (i.e. mean, median, std, etc.)", nargs="+")
+    parser = argparse.ArgumentParser(description='Hummingbird mask tool. Creates mask from stack files in current directory and given configuration file.')
+    parser.add_argument('config', type=str,
+                        help="configuration file")
     if(len(sys.argv) == 1):
         parser.print_help()
     args = parser.parse_args()
 
-    s = get_dims(args.files[0])
+    C = configobj.ConfigObj(args.config)
+    
+    files = os.listdir(".")
+    files = [f for f in files if len(f) > 3]
+    files = [f for f in files if f[-3:] == ".h5"]
+
+    if len(files) == 0:
+        sys.exit(0)
+
+    s = get_dims(files[0])
     mask = numpy.ones(shape=s, dtype="bool")
 
-    if args.mean_threshold:
-        mask *= get_threshold_mask(args.files, "mean", args.mean_threshold)
-        
-    if args.median_threshold:
-        mask *= get_threshold_mask(args.files, "median", args.median_threshold)
+    if C["mean_threshold"].lower() != 'none':
+        mask *= get_threshold_mask(files, "mean", float(C["mean_threshold"]))
 
-    if args.std_threshold:
-        mask *= get_threshold_mask(args.files, "std", args.std_threshold)
+    if C["std_threshold"].lower() != 'none':
+        mask *= get_threshold_mask(files, "std", float(C["std_threshold"]))
 
-    if args.badpixelmask:
-        mask *= get_badpixelmask(args.badpixelmask)
+    if C["median_threshold"].lower() != 'none':
+        mask *= get_threshold_mask(files, "median", float(C["median_threshold"]))
 
-    if args.output_png:
+    if C["mean_limit"].lower() != 'none':
+        mask *= get_limit_mask(files, "mean", float(C["mean_limit"]))
+
+    if C["std_limit"].lower() != 'none':
+        mask *= get_limit_mask(files, "std", float(C["std_limit"]))
+
+    if C["median_limit"].lower() != 'none':
+        mask *= get_limit_mask(files, "median", float(C["median_limit"]))
+
+    if C["badpixelmask"].lower() != 'none':
+        mask *= get_badpixelmask(C["badpixelmask"])
+
+    if bool(C["output_png"].lower()):
         import matplotlib.pyplot as pypl
         pypl.imsave("mask.png", mask, cmap="binary_r", vmin=0, vmax=1)
 
