@@ -44,3 +44,8 @@ def get2D(data):
     for i in range(data.shape[2]):
         res[i*data.shape[0]:(i+1)*data.shape[0],:] = data[:,:,i]
     return res
+
+def runningMean(array, window):
+    nr_windows = (array.shape[0] / window)  
+    mean = numpy.mean(array[:nr_windows*window].reshape((window, nr_windows)), axis=0)
+    return mean
