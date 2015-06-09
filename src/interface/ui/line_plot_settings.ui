@@ -6,26 +6,33 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>335</width>
-    <height>279</height>
+    <width>377</width>
+    <height>337</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <layout class="QGridLayout" name="gridLayout_2">
-   <item row="4" column="1">
-    <widget class="QDialogButtonBox" name="buttonBox">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+  <layout class="QGridLayout" name="gridLayout_4">
+   <item row="0" column="0">
+    <widget class="QLabel" name="label_2">
+     <property name="text">
+      <string>X Axis:</string>
      </property>
     </widget>
    </item>
-   <item row="1" column="3">
-    <widget class="QCheckBox" name="logy">
+   <item row="0" column="1">
+    <widget class="QLineEdit" name="x_label"/>
+   </item>
+   <item row="0" column="2">
+    <widget class="QCheckBox" name="x_auto">
+     <property name="text">
+      <string>Auto</string>
+     </property>
+    </widget>
+   </item>
+   <item row="0" column="3">
+    <widget class="QCheckBox" name="logx">
      <property name="text">
       <string>log</string>
      </property>
@@ -38,12 +45,8 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="0">
-    <widget class="QLabel" name="label_2">
-     <property name="text">
-      <string>X Axis:</string>
-     </property>
-    </widget>
+   <item row="1" column="1">
+    <widget class="QLineEdit" name="y_label"/>
    </item>
    <item row="1" column="2">
     <widget class="QCheckBox" name="y_auto">
@@ -52,25 +55,12 @@
      </property>
     </widget>
    </item>
-   <item row="0" column="2">
-    <widget class="QCheckBox" name="x_auto">
-     <property name="text">
-      <string>Auto</string>
-     </property>
-    </widget>
-   </item>
-   <item row="0" column="1">
-    <widget class="QLineEdit" name="x_label"/>
-   </item>
-   <item row="0" column="3">
-    <widget class="QCheckBox" name="logx">
+   <item row="1" column="3">
+    <widget class="QCheckBox" name="logy">
      <property name="text">
       <string>log</string>
      </property>
     </widget>
-   </item>
-   <item row="1" column="1">
-    <widget class="QLineEdit" name="y_label"/>
    </item>
    <item row="2" column="0" colspan="4">
     <widget class="QGroupBox" name="groupBox">
@@ -182,11 +172,38 @@
    <item row="3" column="0" colspan="4">
     <widget class="QGroupBox" name="groupBox_2">
      <property name="title">
-      <string>Trend</string>
+      <string>Trend Scalar</string>
      </property>
      <layout class="QGridLayout" name="gridLayout_3">
+      <item row="0" column="3">
+       <widget class="QLineEdit" name="windowLength">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>10</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="0">
+       <widget class="QCheckBox" name="showTrendScalar">
+        <property name="text">
+         <string>On/Off</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QLabel" name="label_5">
+        <property name="text">
+         <string>Window length:</string>
+        </property>
+       </widget>
+      </item>
       <item row="0" column="1">
-       <widget class="QComboBox" name="trendOptions">
+       <widget class="QComboBox" name="trendOptionsScalar">
         <item>
          <property name="text">
           <string>mean</string>
@@ -209,39 +226,76 @@
         </item>
        </widget>
       </item>
-      <item row="0" column="3">
-       <widget class="QLineEdit" name="windowLength">
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>0</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
+     </layout>
+     <zorder>groupBox</zorder>
+     <zorder>showTrendScalar</zorder>
+     <zorder>label_5</zorder>
+     <zorder>windowLength</zorder>
+     <zorder>trendOptionsScalar</zorder>
+    </widget>
+   </item>
+   <item row="5" column="1">
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+   <item row="4" column="0" colspan="4">
+    <widget class="QGroupBox" name="groupBox_3">
+     <property name="title">
+      <string>Trend Vector</string>
+     </property>
+     <layout class="QGridLayout" name="gridLayout_2">
+      <item row="0" column="1">
+       <widget class="QCheckBox" name="trendVector_mean">
         <property name="text">
-         <string>10</string>
+         <string>mean</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="4">
+       <widget class="QCheckBox" name="trendVector_min">
+        <property name="text">
+         <string>min</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="3">
+       <widget class="QCheckBox" name="trendVector_std">
+        <property name="text">
+         <string>std</string>
         </property>
        </widget>
       </item>
       <item row="0" column="0">
-       <widget class="QCheckBox" name="showTrend">
+       <widget class="QCheckBox" name="showTrendVector">
         <property name="text">
          <string>On/Off</string>
         </property>
        </widget>
       </item>
-      <item row="0" column="2">
-       <widget class="QLabel" name="label_5">
+      <item row="0" column="5">
+       <widget class="QCheckBox" name="trendVector_max">
         <property name="text">
-         <string>Window length:</string>
+         <string>max</string>
+        </property>
+       </widget>
+      </item>
+      <item row="0" column="2">
+       <widget class="QCheckBox" name="trendVector_median">
+        <property name="text">
+         <string>median</string>
         </property>
        </widget>
       </item>
      </layout>
-     <zorder>groupBox</zorder>
-     <zorder>showTrend</zorder>
-     <zorder>label_5</zorder>
-     <zorder>windowLength</zorder>
-     <zorder>trendOptions</zorder>
     </widget>
    </item>
   </layout>
