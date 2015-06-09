@@ -222,15 +222,18 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
     def _recorder_toggled(self, turn_on):
         """Start/Stop the recorder"""
         if self._recorder is None:
+            self._recorder_action.setChecked(False)
             return
         if (turn_on):
-            self._recorder.openfile()
+            success = self._recorder.openfile()
+            if not success:
+                self._recorder_action.setChecked(False)
+                return
             record_titles = self.plotdata_widget.record_titles(True)
             for ds in self._data_sources:
                 if ds.name() in record_titles:
                     for title in record_titles[ds.name()]:
                         ds.subscribe_for_recording(title)
-            #self._recorder.start()
         else:
             self._recorder.closefile()
             record_titles = self.plotdata_widget.record_titles(False)
@@ -238,7 +241,6 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
                 if ds.name() in record_titles:
                     for title in record_titles[ds.name()]:
                         ds.unsubscribe_for_recording(title)
-            #self._recorder.stop()
                 
     def save_data_windows(self):
         """Save data windows state and data sources to the settings file"""
