@@ -29,3 +29,5 @@ export CONFDIR=/reg/neh/home/benedikt/conf/$BEAMLINE/$EXPERIMENT/
 export EDITOR="emacs -nw"
 
 alias emacs="emacs -nw"
+
+sit_setup /reg/neh/home/hantke/programs/hummingbird
