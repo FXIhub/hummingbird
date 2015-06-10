@@ -254,6 +254,7 @@ class LCLSTranslator(object):
         rec.ticks = obj.ticks()
         rec.vector = obj.vector()
         rec.timestamp = timestamp
+        rec.lcls_time = obj.time()[0] << 32 | obj.time()[1]
         values[rec.name] = rec
 
     def _tr_event_codes(self, values, obj):

@@ -72,7 +72,7 @@ def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
     add_record(evt["analysis"], "analysis", "nrPhotons - " + key, sum(data[valid]) / float(aduPhoton))
 
 initialized = {}
-def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
+def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
     """Asesembles a detector image given some geometry and adds assembled image to ``evt["analysis"]["assembled - " + key]``.
 
     Args:
@@ -90,14 +90,27 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
     if not key in initialized:
-        assembled, height, width, shape, y, x = utils.array.assembleImage(x,y,nx=nx,ny=ny, return_indices=True)
+        if subset is not None:
+            x_ss = []
+            y_ss = []
+            for i in subset:
+                panel = i / 2
+                asic = i % 2
+                x_ss.append(x[panel,:,(asic*194):((asic+1)*194)])
+                y_ss.append(y[panel,:,(asic*194):((asic+1)*194)])
+            x_ss = np.hstack(x_ss)
+            y_ss = np.hstack(y_ss)
+        else:
+            x_ss = x
+            y_ss = y
+        assembled, height, width, shape, y_ss, x_ss = utils.array.assembleImage(x_ss, y_ss ,nx=nx, ny=ny, return_indices=True)
         initialized[key] = {
             'assembled':assembled,
             'height':height,
             'width':width,
             'shape':shape,
-            'y':y,
-            'x':x
+            'y':y_ss,
+            'x':x_ss
         }
     assembled = initialized[key]['assembled']
     height = initialized[key]['height']
@@ -105,7 +118,16 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, outkey=None):
     shape = initialized[key]['shape']
     y = initialized[key]['y']
     x = initialized[key]['x']
-    assembled[height-shape[0]:height, :shape[1]][y,x] = evt[type][key].data
+    if subset is not None:
+        data = []
+        for i in subset:
+            panel = i / 2
+            asic = i % 2
+            data.append(evt[type][key].data[panel,:,(asic*194):((asic+1)*194)])
+        data = np.hstack(data)
+    else:
+        data = evt[type][key].data
+    assembled[height-shape[0]:, :shape[1]][y,x] = data
     if outkey is None:
         add_record(evt["analysis"], "analysis", "assembled - "+key, assembled)
     else:
@@ -150,10 +172,10 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
     """
-    import spimage, numpy
+    import spimage
     image = evt[type][key].data
     r, img_r = spimage.radialMeanImage(image, msk=mask, cx=cx, cy=cy, output_r=True)
-    valid = numpy.isfinite(img_r)
+    valid = np.isfinite(img_r)
     if valid.sum() > 0:
         r = r[valid]
         img_r = img_r[valid]

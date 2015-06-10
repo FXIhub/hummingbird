@@ -57,4 +57,8 @@ def printID(eventID):
             print "vector = %s" %(v.vector)
         except AttributeError:
             pass
+        try:
+            print "LCLS time = %s" %(v.lcls_time)
+        except AttributeError:
+            pass
         
