@@ -179,9 +179,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 x = numpy.array(pd.x, copy=False)
                 if self._settings_diag.showTrendScalar.isChecked():
                     wl = int(self._settings_diag.windowLength.text())
-                    _trend = getattr(numpy, str(self._settings_diag.trendOptionsScalar.currentText()))
-                    y = utils.array.runningTrend(y, wl, _trend)
-                    x = x[::wl][:len(y)]
+                    y = utils.array.runningMean(y, wl)
+                    x = x[-max(len(y),1):]
             elif(source.data_type[title] == 'tuple'):
                 x = pd.y[:,0]
             elif(source.data_type[title] == 'vector'):

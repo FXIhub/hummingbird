@@ -159,4 +159,3 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
         img_r = img_r[valid]
     add_record(evt["analysis"], "analysis", "radial distance - "+key, r)
     add_record(evt["analysis"], "analysis", "radial average - "+key, img_r)
-    

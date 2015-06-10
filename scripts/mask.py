@@ -99,4 +99,4 @@ if __name__ == "__main__":
     os.system("cp %s mask_%s.conf" % (args.config,fn_root))
 
     if args.link:
-        os.system("ln -s -f %s.h5 %s" % (fn_root, args.link))
+        os.system("ln -s -f mask_%s.h5 %s" % (fn_root, args.link))
