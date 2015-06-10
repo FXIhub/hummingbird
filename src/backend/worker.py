@@ -46,7 +46,7 @@ class Worker(object):
                 except:
                     pass
                 
-                if not psutil.pid_exists():
+                if not psutil.pid_exists(pid):
                     with open('.pid', 'w') as file: file.write(str(os.getppid()))
             except KeyError:
                 with open('.pid', 'w') as file: file.write(str(os.getpid()))
