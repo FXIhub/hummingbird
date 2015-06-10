@@ -31,11 +31,11 @@ class Worker(object):
                             (config_file))
         self._config_file = config_file
         # self.backend_conf = imp.load_source('backend_conf', config_file)
+        signal.signal(signal.SIGUSR1, self.raise_interruption)
+        
         self.load_conf()
         Worker.state['_config_file'] = config_file
         Worker.state['_config_dir'] = os.path.dirname(config_file)
-
-        signal.signal(signal.SIGUSR1, self.raise_interruption)
 
         if(not ipc.mpi.is_master()):
             self.translator = init_translator(Worker.state)
@@ -58,6 +58,7 @@ class Worker(object):
         print 'Starting backend...'
 
     def raise_interruption(self, signum, stack):
+        print "Raising interrupt"
         raise KeyboardInterrupt
         
     def load_conf(self):
