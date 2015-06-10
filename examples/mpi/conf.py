@@ -7,11 +7,13 @@ import ipc
 import random
 import numpy
 
+numpy.random.seed()
+
 state = {
     'Facility': 'dummy',
     'squareImage' : True,
     'Dummy': {
-        'Repetition Rate' : 1,
+        'Repetition Rate' : 10,
         'Data Sources': {
             'CCD': {
                 'data': lambda: numpy.random.rand(256,128),
@@ -41,3 +43,5 @@ state = {
 def onEvent(evt):
     analysis.event.printProcessingRate()
     ipc.new_data("TOF", evt["ionTOFs"]["tof"].data)
+    if numpy.random.randint(100) == 0:
+        time.sleep(1)
