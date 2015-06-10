@@ -2,6 +2,7 @@
 as the MPI communication between different backend processes."""
 from ipc.zmqserver import ZmqServer
 import socket
+import mpi
 
 _server = None
 hostname = socket.gethostname()
@@ -11,7 +12,7 @@ def zmq():
     """Returns the ZmqServer for process.
     If it does not yet exist create one first."""
     global _server # pylint: disable=global-statement
-    if(_server is None):
+    if(_server is None and mpi.is_zmqserver()):
         _server = ZmqServer()
     return _server
 

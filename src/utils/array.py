@@ -34,7 +34,7 @@ def assembleImage(x, y, img=None, nx=None, ny=None, dtype=None, return_indices=F
     assembled = numpy.zeros((height,width))
     if return_indices:
         return assembled, height, width, shape, y, x
-    assembled[height-shape[0]:height, :shape[1]][y,x] = img
+    assembled[height-shape[0]:, :shape[1]][y,x] = img
     if dtype is not None:
         assembled = assembled.astype(getattr(numpy, dtype))
     return assembled
@@ -60,9 +60,9 @@ def runningHistogram(array, window, bins, hmin, hmax):
 
 runningHist = {}
 def runningHistogram2(name, length, window, bins, hmin, hmax):
-    if name is not in runningHist:
+    if name not in runningHist:
         runningHist[name] = {}
-        runningHist[name][bnumpy.zeros(length-window, bins)
+        runningHist[name][bnumpy.zeros(length-window, bins)]
     nr_windows = (array.shape[0] / window)
     buffer = array[:nr_windows*window].reshape((window, nr_windows))
     runningHist = numpy.zeros((nr_windows, bins))

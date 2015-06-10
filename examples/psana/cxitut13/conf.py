@@ -14,6 +14,7 @@ def onEvent(evt):
     analysis.beamline.printPulseEnergy(evt['pulseEnergies'])
     analysis.beamline.printPhotonEnergy(evt['photonEnergies'])
     analysis.event.printProcessingRate()
+    analysis.event.printID(evt['eventID'])
     plotting.line.plotHistory(evt["parameters"]["yag4_y"])
     time.sleep(2)
 
