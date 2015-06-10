@@ -35,14 +35,14 @@ class Worker(object):
         Worker.state['_config_dir'] = os.path.dirname(config_file)
         if(not ipc.mpi.is_master()):
             self.translator = init_translator(Worker.state)
-        signal.signal(signal.SIGUSR1, self.raise_interruption)
-
         if (ipc.mpi.is_zmqserver()):
             try:
                 os.environ["OMPI_COMM_WORLD_SIZE"]
                 with open('.pid', 'w') as file: file.write(str(os.getppid()))
             except KeyError:
                 with open('.pid', 'w') as file: file.write(str(os.getpid()))
+
+        signal.signal(signal.SIGUSR1, self.raise_interruption)
         
         print 'Starting backend...'
 
