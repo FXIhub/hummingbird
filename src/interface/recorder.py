@@ -1,6 +1,7 @@
 import time
 import h5py
 import sys
+import re
 
 class H5Recorder:
     """Recording event variables to an HDF5 file.
@@ -43,6 +44,7 @@ class H5Recorder:
     def append(self, title, data, data_x):
         """Append a tuple of time and event variable to dataset with the name of the variable."""
         key = title.split('(')[-1].split(')')[0].split('/')[-1]
+        #print key, re.sub(r'[^\w]', ' ', key)
         if key not in self._file.keys():
             self._file.create_dataset(key, (2, 1000), maxshape=(2, None), dtype=type(data_x))
             self._indices[key] = 0
