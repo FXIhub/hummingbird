@@ -61,12 +61,16 @@ class Stack:
         self.last_max = self._getData().max(axis=0)
         return self.last_max
 
-    def write(self,evt,directory=".",outputs=None,png=False,interval=None,verbose=True):
+    def write(self,evt,directory=".",outputs=None,png=False,verbose=True):
+        outputs = ["std","mean","sum","median","min","max"]
+        # Postpone writing?
         if interval is not None:
             if (self._currentIndex % interval) != 0:
                 return
-        if outputs is None:
-            outputs = ["std","mean","sum","median","min","max"]
+        # Reduce
+        for o in outputs:
+            exec "self.%s()" % o
+        # Timestamp for filename
         try:
             dt = evt["eventID"]["Timestamp"].datetime64
         except:
@@ -76,12 +80,13 @@ class Stack:
         except:
             fid = 0
         fn = "%s/%s-%s-%s.h5" % (directory,self._name, dt, fid)
+        # Write to H5
         if verbose:
             print "Writing stack to %s" % fn
         with h5py.File(fn,"w") as f:
             for o in outputs:
-                exec "%s = self.%s()" % (o,o)
-                exec "f[\"%s\"] = %s" % (o,o)
+                exec "f[\"%s\"] = self.last_%s" % (o,o)
+        # Write to PNG
         if png:
             import matplotlib as mpl
             mpl.use('Agg')
