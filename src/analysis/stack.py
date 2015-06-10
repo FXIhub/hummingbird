@@ -6,8 +6,7 @@ import h5py
 import time
 
 class Stack:
-    def __init__(self,name="stack",maxLen=100,rank=0):
-        self._rank = rank
+    def __init__(self,name="stack",maxLen=100):
         self._maxLen = maxLen
         self._name = name
         self.clear()
@@ -66,7 +65,7 @@ class Stack:
             fid = evt["eventID"]["Timestamp"].fiducials
         except:
             fid = 0
-        fn = "%s/%s-%s-%s-rank%i.h5" % (directory,self._name, dt, fid, self._rank)
+        fn = "%s/%s-%s-%s.h5" % (directory,self._name, dt, fid)
         if verbose:
             print "Writing stack to %s" % fn
         with h5py.File(fn,"w") as f:
@@ -81,7 +80,7 @@ class Stack:
                 fig = plt.figure()
                 ax = fig.add_subplot(111,title="%s %s (%i)" % (o,self._name,evt.event_id()))
                 exec "cax = ax.imshow(%s)" % o
-                fn = "%s/%s-%s-%i-%i.png" % (directory,o,self._name, evt.event_id(), self._rank) 
+                fn = "%s/%s-%s-%i.png" % (directory,o,self._name, evt.event_id()) 
                 fig.colorbar(cax)
                 fig.savefig(fn)
                 plt.clf()
