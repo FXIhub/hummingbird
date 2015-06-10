@@ -219,7 +219,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 for trend in ['mean', 'median', 'std', 'min', 'max']:
                     if eval('self._settings_diag.trendVector_%s.isChecked()' %trend):
                         _trend = getattr(numpy, trend)
-                        ytrend = _trend(pd.y[:,1,:], axis=0)
+                        ytrend = _trend(numpy.array(pd.y, copy=False), axis=0)
                         plt_trend = self.plot.plot(x=x, y=ytrend, clear=False, pen=self.line_colors[color_index % len(self.line_colors)], symbol=symbol,
                                                    symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
                         self.legend.addItem(plt_trend, trend)
