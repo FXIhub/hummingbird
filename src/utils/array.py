@@ -34,7 +34,7 @@ def assembleImage(x, y, img=None, nx=None, ny=None, dtype=None, return_indices=F
     assembled = numpy.zeros((height,width))
     if return_indices:
         return assembled, height, width, shape, y, x
-    assembled[height-shape[0]:height, :shape[1]][y,x] = img
+    assembled[height-shape[0]:, :shape[1]][y,x] = img
     if dtype is not None:
         assembled = assembled.astype(getattr(numpy, dtype))
     return assembled

@@ -18,9 +18,11 @@ class MaskReader(H5Reader):
         self.boolean_mask = self.dataset.astype(np.bool)
 
 class GeometryReader(H5Reader):
-    def __init__(self, filename):
+    def __init__(self, filename, pixel_size=1.):
         H5Reader.__init__(self, filename)
-        self.x = np.floor(self._fileno['x'][:]).astype(np.int)
-        self.y = np.floor(self._fileno['y'][:]).astype(np.int)
+        self.x = self._fileno['x'][:] / pixel_size
+        self.y = self._fileno['y'][:] / pixel_size
+        self.x = np.round(self.x).astype(np.int)
+        self.y = np.round(self.y).astype(np.int)
         self._fileno.close()
 
