@@ -73,7 +73,11 @@ class Worker(object):
                     if(ipc.mpi.is_master()):
                         ipc.mpi.master_loop()
                     else:
-                        evt = self.translator.next_event()
+                        try:
+                            evt = self.translator.next_event()
+                        except (RuntimeError) as e:
+                            logging.warning("Some problem with psana, probably due to reloading the backend. (%s)" % e)
+                            raise KeyboardInterrupt
                         ipc.set_current_event(evt)
                         try:
                             Worker.conf.onEvent(evt)
