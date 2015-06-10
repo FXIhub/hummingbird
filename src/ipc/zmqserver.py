@@ -79,6 +79,7 @@ class ZmqServer(object):
             #TODO: Find a way to replace this with a direct function call (in all workers)
             import os, signal
             stream.socket.send_json(['reload', bytes(True)])
+            print "Answering reload command"
             with open('.pid', 'r') as file:
                 pid = int(file.read())
             os.kill(pid, signal.SIGUSR1)

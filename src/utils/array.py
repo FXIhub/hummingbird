@@ -57,6 +57,20 @@ def runningHistogram(array, window, bins, hmin, hmax):
         runningHist[i], bins = numpy.histogram(buffer[i], range=(hmin, hmax), bins=bins)
     return runningHist
 
+
+runningHist = {}
+def runningHistogram2(name, length, window, bins, hmin, hmax):
+    if name is not in runningHist:
+        runningHist[name] = {}
+        runningHist[name][bnumpy.zeros(length-window, bins)
+    nr_windows = (array.shape[0] / window)
+    buffer = array[:nr_windows*window].reshape((window, nr_windows))
+    runningHist = numpy.zeros((nr_windows, bins))
+    for i in range(nr_windows):
+        runningHist[i], bins = numpy.histogram(buffer[i], range=(hmin, hmax), bins=bins)
+    return runningHist
+
+
 def runningMean(x, N):
     """
     http://stackoverflow.com/questions/13728392/moving-average-or-running-mean
