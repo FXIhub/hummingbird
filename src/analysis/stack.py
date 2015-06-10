@@ -11,6 +11,7 @@ class Stack:
         self._maxLen = maxLen
         self._name = name
         self.clear()
+        
     def clear(self):
         self._buffer = None
         self._currentIndex = 0
@@ -18,31 +19,39 @@ class Stack:
         self.last_mean   = None
         self.last_sum    = None
         self.last_median = None
+        
     def filled(self):
         return self._currentIndex > self._maxLen
+    
     def add(self,data):
         if self._buffer is None:
             s = tuple([self._maxLen] + list(data.shape))
             self._buffer = numpy.zeros(shape=s, dtype=data.dtype)
         self._buffer[self._currentIndex % self._maxLen,:] = data[:]
         self._currentIndex += 1
+        
     def _getData(self):
         if self.filled():
             return self._buffer
         else:
             return self._buffer[:self._currentIndex]
+        
     def std(self):
         self.last_std = self._getData().std(axis=0)
         return self.last_std
+    
     def mean(self):
         self.last_mean = self._getData().mean(axis=0)
         return self.last_mean
+    
     def sum(self):
         self.last_sum = self._getData().sum(axis=0)
         return self.last_sum
+    
     def median(self):
         self.last_median = numpy.median(self._getData(),axis=0)
         return self.last_median
+    
     def write(self,evt,directory=".",outputs=None,png=False,interval=None,verbose=True):
         if interval is not None:
             if (self._currentIndex % interval) != 0:
