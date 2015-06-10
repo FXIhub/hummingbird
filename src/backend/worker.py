@@ -36,11 +36,14 @@ class Worker(object):
         if(not ipc.mpi.is_master()):
             self.translator = init_translator(Worker.state)
         signal.signal(signal.SIGUSR1, self.raise_interruption)
-        try:
-            os.environ["OMPI_COMM_WORLD_SIZE"]
-            with open('.pid', 'w') as file: file.write(str(os.getppid()))
-        except KeyError:
-            with open('.pid', 'w') as file: file.write(str(os.getpid()))
+
+        if (ipc.mpi.is_zmqserver()):
+            try:
+                os.environ["OMPI_COMM_WORLD_SIZE"]
+                with open('.pid', 'w') as file: file.write(str(os.getppid()))
+            except KeyError:
+                with open('.pid', 'w') as file: file.write(str(os.getpid()))
+        
         print 'Starting backend...'
 
     def raise_interruption(self, signum, stack):

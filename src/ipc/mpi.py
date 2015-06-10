@@ -8,6 +8,11 @@ def is_master():
     there are multiple processes."""
     return rank == 0 and size > 1
 
+def is_zmqserver():
+    """Returns True if the process has MPI rank 0, which
+    is always the worker hosting the zmq server."""
+    return rank == 0
+
 def nr_workers():
     """Returns nr. of available workers."""
     return (size - 1) if (size > 1) else size
