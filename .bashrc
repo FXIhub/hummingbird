@@ -13,3 +13,5 @@ export C_INCLUDE_PATH=/reg/neh/home/benedikt/local/include
 PS1='\[\033[31;1m\]\u\[\033[0m\]@\[\033[33;1m\]\h\[\033[0m\]:\[\033[32m\]\w\[\033[0m\]\$ '
 
 alias emacs="emacs -nw"
+
+export EDITOR=emacs
