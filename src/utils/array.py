@@ -60,9 +60,9 @@ def runningHistogram(array, window, bins, hmin, hmax):
 
 runningHist = {}
 def runningHistogram2(name, length, window, bins, hmin, hmax):
-    if name is not in runningHist:
+    if name not in runningHist:
         runningHist[name] = {}
-        runningHist[name][bnumpy.zeros(length-window, bins)
+        runningHist[name][bnumpy.zeros(length-window, bins)]
     nr_windows = (array.shape[0] / window)
     buffer = array[:nr_windows*window].reshape((window, nr_windows))
     runningHist = numpy.zeros((nr_windows, bins))
