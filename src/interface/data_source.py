@@ -119,6 +119,7 @@ class DataSource(QtCore.QObject):
         if(socket is None):
             socket = self.sender()
         reply = socket.recv_json()
+        print reply[0]
         if(reply[0] == 'data_port'):
             self._data_port = reply[1]
             logging.debug("Data source '%s' received data_port=%s", self.name(), self._data_port)
@@ -175,7 +176,6 @@ class DataSource(QtCore.QObject):
             # We're getting data we were not expecting
             # Let's discard it and order an immediate reconfigure
             logging.debug("Received unexpected data with title %s on %s. Reconfiguring...", title, self.name())
-            self.query_configuration()
             return
         if(cmd == 'new_data'):
             data_x = payload[4]
