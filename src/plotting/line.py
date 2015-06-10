@@ -26,6 +26,10 @@ def plotHistory(param, label='', history=100, runningHistogram=False):
         histories[param.name] = True
     ipc.new_data(plotid, param.data)
 
+def plotTimestamp(timestamp):
+    ipc.new_data('Fiducial', timestamp.fiducials) 
+    ipc.new_data('LCLS Time', timestamp.lcls_time) 
+
 histograms = {}
 def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, history=100):
     """Plotting a histogram.
