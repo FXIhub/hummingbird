@@ -78,7 +78,10 @@ class Worker(object):
                         try:
                             Worker.conf.onEvent(evt)
                         except (KeyError, TypeError) as exc:
-                            logging.warning("Missing or wrong type of data, probably due to missing event data. (%s)" % exc)                            
+                            logging.warning("Missing or wrong type of data, probably due to missing event data. (%s)" % exc)
+                        except (RuntimeError) as e:
+                            logging.warning("Some problem with psana, probably due to reloading the backend. (%s)", %e) 
+
             except KeyboardInterrupt:
                 try:
                     print "Hit Ctrl+c again in the next second to quit..."

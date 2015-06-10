@@ -22,9 +22,17 @@ class H5Recorder:
         
     def openfile(self):
         """Open new file using a unique filename."""
+        if self.outpath is None:
+            print "No outputpath specified"
+            return False
         filename = self.outpath + '/history_' + self._timestamp() + '.h5'
-        self._file = h5py.File(filename, 'a')
+        try:
+            self._file = h5py.File(filename, 'a')
+        except IOError:
+            print "Could not open file: ", filename
+            return False
         print "Opened new file: ", filename
+        return True
 
     def closefile(self):
         """Close existing file."""
