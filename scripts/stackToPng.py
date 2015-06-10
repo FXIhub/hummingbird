@@ -24,6 +24,8 @@ if __name__ == "__main__":
                         help="Lower boundary for color scale")
     parser.add_argument('-u', '--vmax', metavar='vmax', type=float,
                         help="Upper boundary for color scale")    
+    parser.add_argument('-p', '--plain', action='store_true',
+                        help="Create image without colorbar and labels")    
     parser.add_argument('files', metavar='file', type=str, 
                         help="H5 files with stack data (i.e. mean, median, std, etc.)", nargs="+")
     if(len(sys.argv) == 1):
@@ -42,10 +44,13 @@ if __name__ == "__main__":
     
     for o in outputs:
         d = get_mean(args.files, o)
-        fig = plt.figure()
-        ax = fig.add_subplot(111,title="%s%s" % (p,o))
-        cax = ax.imshow(d, vmin=args.vmin, vmax=args.vmax)
-        fn = "%s%s.png" % (p,o)
-        fig.colorbar(cax)
-        fig.savefig(fn)
-        plt.clf()
+        if args.plain:
+            plt.imsave("%s%s.png" % (p,o))
+        else:
+            fig = plt.figure()
+            ax = fig.add_subplot(111,title="%s%s" % (p,o))
+            cax = ax.imshow(d, vmin=args.vmin, vmax=args.vmax)
+            fn = "%s%s.png" % (p,o)
+            fig.colorbar(cax)
+            fig.savefig(fn)
+            plt.clf()
