@@ -166,6 +166,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self.last_vector_x = None
             elif(source.data_type[title] == 'tuple'):
                 y = pd.y[:,1]
+                pos   = numpy.array([0.0, 0.5, 1.0])
+                color = numpy.array([[0,0,0,255], [255,128,0,255], [255,255,0,255]], dtype=np.ubyte)
+                map   = pyqtgraoh.ColorMap(pos, color)
+                print map.get_colors()
             elif source.data_type[title] == 'vector':
                 if(self.current_index == -1):
                     y = numpy.array(pd.y[self.current_index % pd.y.shape[0]], copy=False)
@@ -219,7 +223,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 for trend in ['mean', 'median', 'std', 'min', 'max']:
                     if eval('self._settings_diag.trendVector_%s.isChecked()' %trend):
                         _trend = getattr(numpy, trend)
-                        ytrend = _trend(pd.y[:,1,:], axis=0)
+                        ytrend = _trend(numpy.array(pd.y, copy=False), axis=0)
                         plt_trend = self.plot.plot(x=x, y=ytrend, clear=False, pen=self.line_colors[color_index % len(self.line_colors)], symbol=symbol,
                                                    symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
                         self.legend.addItem(plt_trend, trend)
