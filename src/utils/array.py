@@ -56,3 +56,12 @@ def runningHistogram(array, window, bins, hmin, hmax):
     for i in range(nr_windows):
         runningHist[i], bins = numpy.histogram(buffer[i], range=(hmin, hmax), bins=bins)
     return runningHist
+
+def runningMean(x, N):
+    """
+    http://stackoverflow.com/questions/13728392/moving-average-or-running-mean
+    """
+    if x.shape[0] < N:
+        return sum(x)
+    cumsum = numpy.cumsum(numpy.insert(x, 0, 0))
+    return (cumsum[N:] - cumsum[:-N]) / N

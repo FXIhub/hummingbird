@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+print "Launching"
+
 """Hummingbird main file."""
 
 import sys
