@@ -18,6 +18,8 @@ class Stack:
         self.last_mean   = None
         self.last_sum    = None
         self.last_median = None
+        self.last_min    = None
+        self.last_max    = None
         
     def filled(self):
         return self._currentIndex > self._maxLen
@@ -51,12 +53,20 @@ class Stack:
         self.last_median = numpy.median(self._getData(),axis=0)
         return self.last_median
     
+    def min(self):
+        self.last_min = self._getData().min(axis=0)
+        return self.last_min
+
+    def max(self):
+        self.last_max = self._getData().max(axis=0)
+        return self.last_max
+
     def write(self,evt,directory=".",outputs=None,png=False,interval=None,verbose=True):
         if interval is not None:
             if (self._currentIndex % interval) != 0:
                 return
         if outputs is None:
-            outputs = ["std","mean","sum","median"]
+            outputs = ["std","mean","sum","median","min","max"]
         try:
             dt = evt["eventID"]["Timestamp"].datetime64
         except:

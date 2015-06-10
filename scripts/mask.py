@@ -88,15 +88,18 @@ if __name__ == "__main__":
         mask *= get_badpixelmask(C["badpixelmask"])
 
     fn_root = files[-1].split("/")[-1][:-3]
+    outdir = C["outdir"]
+
+    os.system("mkdir -p %s" % outdir)
 
     if bool(C["output_png"].lower()):
         import matplotlib.pyplot as pypl
-        pypl.imsave("mask_%s.png" % fn_root, mask, cmap="binary_r", vmin=0, vmax=1)
+        pypl.imsave("%s/mask_%s.png" % (outdir,fn_root), mask, cmap="binary_r", vmin=0, vmax=1)
 
-    with h5py.File("mask_%s.h5" % fn_root, "w") as f:
+    with h5py.File("%s/mask_%s.h5" % (outdir,fn_root), "w") as f:
         f["data/data"] = mask
 
-    os.system("cp %s mask_%s.conf" % (args.config,fn_root))
+    os.system("cp %s %s/mask_%s.conf" % (args.config,outdir,fn_root))
 
     if args.link:
-        os.system("ln -s -f mask_%s.h5 %s" % (fn_root, args.link))
+        os.system("ln -s -f %s/mask_%s.h5 %s" % (outdir, fn_root, args.link))

@@ -35,7 +35,7 @@ if __name__ == "__main__":
     if args.dataset:
         outputs = [args.dataset]
     else:
-        outputs = ["mean","median","std","sum"]
+        outputs = ["mean","median","std","sum"]#,"max","min"]
 
     if args.name_prefix:
         p = args.name_prefix + "-"
