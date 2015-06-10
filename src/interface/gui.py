@@ -15,17 +15,17 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
     Contains only menus and toolbars. The plots will be in their own windows.
     """
     instance = None
-    def __init__(self):
+    def __init__(self, restore):
         QtGui.QMainWindow.__init__(self)
         self._data_windows = []
         self._data_sources = []
         self._recorder = None
         self.settings = None
         self.setupUi(self)
-        self.restore_settings()
+        if restore:
+            self.restore_settings()
         self._init_timer()
         GUI.instance = self
-
 
     def clear(self):
         """Closes all DataWindows and remove all DataSources"""

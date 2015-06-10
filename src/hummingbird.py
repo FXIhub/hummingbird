@@ -26,6 +26,9 @@ def parse_cmdline_args():
                         action="store_true")
     parser.add_argument("-p", "--profile", help="generate and output profiling information",
                         action="store_true")
+    parser.add_argument("--no-restore", help="no restoring of Qsettings",
+                        action="store_false")
+    
     if(len(sys.argv) == 1):
         parser.print_help()
     return parser.parse_args()
@@ -55,7 +58,7 @@ def main():
                 worker.start()
     elif(args.interface is not False):
         import interface
-        interface.start_interface()
+        interface.start_interface(args.no_restore)
     elif(args.reload is not False):
         import os, signal
         with open('.pid', 'r') as file:
