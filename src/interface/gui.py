@@ -22,8 +22,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self._recorder = None
         self.settings = None
         self.setupUi(self)
-        if restore:
-            self.restore_settings()
+        self.restore_settings(restore)
         self._init_timer()
         GUI.instance = self
 
@@ -49,12 +48,13 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
                 # Remove them                
                 self._backends_menu.removeAction(a)
 
-    def restore_settings(self, filename = None):
+    def restore_settings(self, do_restore, filename = None):
         if(filename):
             s = QtCore.QSettings(filename, QtCore.QSettings.IniFormat)
         else:
             s = QtCore.QSettings()
         self._init_geometry(s)
+        self._init_recorder(s)
         loaded_sources = []
         try:
             loaded_sources = self._init_data_sources(s)
@@ -62,14 +62,13 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             raise
             # Be a bit more resilient against configuration problems
             logging.warning("Failed to load data source settings! Continuing...")
-        try:
-            self._restore_data_windows(s, loaded_sources)
-        except (TypeError, KeyError):
-            # Be a bit more resilient against configuration problems
-            logging.warning("Failed to load data windows settings! Continuing...")
-
-        self.plotdata_widget.restore_state(s)
-        self._init_recorder(s)
+        if do_restore:
+            try:
+                self._restore_data_windows(s, loaded_sources)
+            except (TypeError, KeyError):
+                # Be a bit more resilient against configuration problems
+                logging.warning("Failed to load data windows settings! Continuing...")
+            self.plotdata_widget.restore_state(s)
         self.settings = s
 
     def _init_geometry(self, settings):
