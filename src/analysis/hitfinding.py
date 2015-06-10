@@ -61,7 +61,7 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, mask=
     add_record(v, "analysis", "isHit - "+key, hitscore > hitscoreThreshold)
     add_record(v, "analysis", "hitscore - "+key, hitscore)
 
-def countTof(evt, type, key, signalThreshold = 1, channel = 0, minWindow = 0, maxWindow = -1, hitscoreThreshold=2):
+def countTof(evt, type="ionTOFs", key="tof", signalThreshold = 1, minWindow = 0, maxWindow = -1, hitscoreThreshold=2):
     """A simple hitfinder that performs a peak counting test on a time-of-flight detector signal, in a specific subwindow.
     Adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
 
@@ -79,7 +79,8 @@ def countTof(evt, type, key, signalThreshold = 1, channel = 0, minWindow = 0, ma
         Carl Nettelblad (carl.nettelblad@it.uu.se)
     """
     v = evt[type][key]
-    hitscore = v[channel,minWindow:maxWindow] > signalThreshold
+    hitscore = v.data[minWindow:maxWindow] > signalThreshold
+    v = evt["analysis"]
     v["isHit - "+key] = hitscore > hitscoreThreshold
     add_record(v, "analysis", "hitscore - "+key, hitscore)
 
