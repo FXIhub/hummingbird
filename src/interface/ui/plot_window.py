@@ -177,9 +177,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             x = None
             if(source.data_type[title] == 'scalar'):
                 x = numpy.array(pd.x, copy=False)
-                if self._settings_diag.runningMean.isChecked():
-                    wl = int(self._settings_diag.window_length.text())
-                    y = utils.array.runningMean(y, wl)
+                if self._settings_diag.showTrendScalar.isChecked():
+                    wl = int(self._settings_diag.windowLength.text())
+                    _trend = getattr(numpy, str(self._settings_diag.trendOptionsScalar.currentText()))
+                    y = utils.array.runningTrend(y, wl, _trend)
                     x = x[::wl][:len(y)]
             elif(source.data_type[title] == 'tuple'):
                 x = pd.y[:,0]
@@ -206,11 +207,22 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self._configure_axis(source, title)
             self.plot.setLogMode(x=self._settings_diag.logx.isChecked(),
                                  y=self._settings_diag.logy.isChecked())
+
             plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
-
             self.legend.addItem(plt, pd.title)
             color_index += 1
+            
+            if (source.data_type[title] == 'vector') and (self._settings_diag.showTrendVector.isChecked()):
+                for trend in ['mean', 'median', 'std', 'min', 'max']:
+                    if eval('self._settings_diag.trendVector_%s.isChecked()' %trend):
+                        _trend = getattr(numpy, trend)
+                        ytrend = _trend(pd.y[:,1,:], axis=0)
+                        plt_trend = self.plot.plot(x=x, y=ytrend, clear=False, pen=self.line_colors[color_index % len(self.line_colors)], symbol=symbol,
+                                                   symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
+                        self.legend.addItem(plt_trend, trend)
+                        color_index += 1
+
 
         self.setWindowTitle(", ".join(titlebar))
         dt = self.get_time()
