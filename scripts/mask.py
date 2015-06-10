@@ -21,14 +21,14 @@ def get_dims(f_name):
     list(s).pop(0)
     return tuple(s)
 
-def get_threshold_mask(f_names, ds_name, threshold):
+def get_max_mask(f_names, ds_name, threshold):
     d = []
     for fn in f_names:
         with h5py.File(fn, "r") as f:
             d.append(numpy.array(f[ds_name]))
     return (numpy.mean(d,axis=0) < threshold)
 
-def get_limit_mask(f_names, ds_name, threshold):
+def get_min_mask(f_names, ds_name, threshold):
     d = []
     for fn in f_names:
         with h5py.File(fn, "r") as f:
@@ -66,23 +66,23 @@ if __name__ == "__main__":
     s = get_dims(files[0])
     mask = numpy.ones(shape=s, dtype="bool")
 
-    if C["mean_threshold"].lower() != 'none':
-        mask *= get_threshold_mask(files, "mean", float(C["mean_threshold"]))
+    if C["mean_max"].lower() != 'none':
+        mask *= get_max_mask(files, "mean", float(C["mean_max"]))
 
-    if C["std_threshold"].lower() != 'none':
-        mask *= get_threshold_mask(files, "std", float(C["std_threshold"]))
+    if C["std_max"].lower() != 'none':
+        mask *= get_max_mask(files, "std", float(C["std_max"]))
 
-    if C["median_threshold"].lower() != 'none':
-        mask *= get_threshold_mask(files, "median", float(C["median_threshold"]))
+    if C["median_max"].lower() != 'none':
+        mask *= get_max_mask(files, "median", float(C["median_max"]))
 
-    if C["mean_limit"].lower() != 'none':
-        mask *= get_limit_mask(files, "mean", float(C["mean_limit"]))
+    if C["mean_min"].lower() != 'none':
+        mask *= get_min_mask(files, "mean", float(C["mean_min"]))
 
-    if C["std_limit"].lower() != 'none':
-        mask *= get_limit_mask(files, "std", float(C["std_limit"]))
+    if C["std_min"].lower() != 'none':
+        mask *= get_min_mask(files, "std", float(C["std_min"]))
 
-    if C["median_limit"].lower() != 'none':
-        mask *= get_limit_mask(files, "median", float(C["median_limit"]))
+    if C["median_min"].lower() != 'none':
+        mask *= get_min_mask(files, "median", float(C["median_min"]))
 
     if C["badpixelmask"].lower() != 'none':
         mask *= get_badpixelmask(C["badpixelmask"])

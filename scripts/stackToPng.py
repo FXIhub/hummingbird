@@ -23,9 +23,13 @@ if __name__ == "__main__":
     parser.add_argument('-l', '--vmin', metavar='vmin', type=float,
                         help="Lower boundary for color scale")
     parser.add_argument('-u', '--vmax', metavar='vmax', type=float,
-                        help="Upper boundary for color scale")    
+                        help="Upper boundary for color scale")
+    parser.add_argument('-t', '--threshold', metavar='threshold', type=float,
+                        help="Binary image with threshold")
     parser.add_argument('-p', '--plain', action='store_true',
-                        help="Create image without colorbar and labels")    
+                        help="Create image without colorbar and labels")   
+    parser.add_argument('-c', '--colormap', metavar='colormap', type=str, 
+                        help="matplotlib colormap identifier")
     parser.add_argument('files', metavar='file', type=str, 
                         help="H5 files with stack data (i.e. mean, median, std, etc.)", nargs="+")
     if(len(sys.argv) == 1):
@@ -35,21 +39,28 @@ if __name__ == "__main__":
     if args.dataset:
         outputs = [args.dataset]
     else:
-        outputs = ["mean","median","std","sum"]#,"max","min"]
+        outputs = ["mean","median","std","sum","max","min"]
 
     if args.name_prefix:
         p = args.name_prefix + "-"
     else:
         p = ""
     
+    if args.colormap:
+        cmap = args.colormap
+    else:
+        cmap = "jet"
+
     for o in outputs:
         d = get_mean(args.files, o)
+        if args.threshold:
+            d = d > args.threshold
         if args.plain:
-            plt.imsave("%s%s.png" % (p,o))
+            plt.imsave("%s%s.png" % (p,o), cmap=cmap)
         else:
             fig = plt.figure()
             ax = fig.add_subplot(111,title="%s%s" % (p,o))
-            cax = ax.imshow(d, vmin=args.vmin, vmax=args.vmax)
+            cax = ax.imshow(d, vmin=args.vmin, vmax=args.vmax, cmap=cmap)
             fn = "%s%s.png" % (p,o)
             fig.colorbar(cax)
             fig.savefig(fn)
