@@ -6,6 +6,7 @@ import imp
 import ipc
 import time
 import signal
+import psutil
 
 class Worker(object):
     """Coordinates data reading, translation and analysis.
@@ -38,7 +39,15 @@ class Worker(object):
         if (ipc.mpi.is_zmqserver()):
             try:
                 os.environ["OMPI_COMM_WORLD_SIZE"]
-                with open('.pid', 'w') as file: file.write(str(os.getppid()))
+                pid = -1
+                try:
+                    with open('.pid', 'r') as file:
+                        pid = int(file.read())
+                except:
+                    pass
+                
+                if not psutil.pid_exists():
+                    with open('.pid', 'w') as file: file.write(str(os.getppid()))
             except KeyError:
                 with open('.pid', 'w') as file: file.write(str(os.getpid()))
 
