@@ -177,6 +177,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             x = None
             if(source.data_type[title] == 'scalar'):
                 x = numpy.array(pd.x, copy=False)
+                sorted_x = numpy.argsort(x)
+                x = x[sorted_x]
+                y = y[sorted_x]
                 if self._settings_diag.showTrendScalar.isChecked():
                     wl = int(self._settings_diag.windowLength.text())
                     y = utils.array.runningMean(y, wl)

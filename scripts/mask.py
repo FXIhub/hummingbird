@@ -21,14 +21,14 @@ def get_dims(f_name):
     list(s).pop(0)
     return tuple(s)
 
-def get_threshold_mask(f_names, ds_name, threshold):
+def get_max_mask(f_names, ds_name, threshold):
     d = []
     for fn in f_names:
         with h5py.File(fn, "r") as f:
             d.append(numpy.array(f[ds_name]))
     return (numpy.mean(d,axis=0) < threshold)
 
-def get_limit_mask(f_names, ds_name, threshold):
+def get_min_mask(f_names, ds_name, threshold):
     d = []
     for fn in f_names:
         with h5py.File(fn, "r") as f:
@@ -66,37 +66,40 @@ if __name__ == "__main__":
     s = get_dims(files[0])
     mask = numpy.ones(shape=s, dtype="bool")
 
-    if C["mean_threshold"].lower() != 'none':
-        mask *= get_threshold_mask(files, "mean", float(C["mean_threshold"]))
+    if C["mean_max"].lower() != 'none':
+        mask *= get_max_mask(files, "mean", float(C["mean_max"]))
 
-    if C["std_threshold"].lower() != 'none':
-        mask *= get_threshold_mask(files, "std", float(C["std_threshold"]))
+    if C["std_max"].lower() != 'none':
+        mask *= get_max_mask(files, "std", float(C["std_max"]))
 
-    if C["median_threshold"].lower() != 'none':
-        mask *= get_threshold_mask(files, "median", float(C["median_threshold"]))
+    if C["median_max"].lower() != 'none':
+        mask *= get_max_mask(files, "median", float(C["median_max"]))
 
-    if C["mean_limit"].lower() != 'none':
-        mask *= get_limit_mask(files, "mean", float(C["mean_limit"]))
+    if C["mean_min"].lower() != 'none':
+        mask *= get_min_mask(files, "mean", float(C["mean_min"]))
 
-    if C["std_limit"].lower() != 'none':
-        mask *= get_limit_mask(files, "std", float(C["std_limit"]))
+    if C["std_min"].lower() != 'none':
+        mask *= get_min_mask(files, "std", float(C["std_min"]))
 
-    if C["median_limit"].lower() != 'none':
-        mask *= get_limit_mask(files, "median", float(C["median_limit"]))
+    if C["median_min"].lower() != 'none':
+        mask *= get_min_mask(files, "median", float(C["median_min"]))
 
     if C["badpixelmask"].lower() != 'none':
         mask *= get_badpixelmask(C["badpixelmask"])
 
     fn_root = files[-1].split("/")[-1][:-3]
+    outdir = C["outdir"]
+
+    os.system("mkdir -p %s" % outdir)
 
     if bool(C["output_png"].lower()):
         import matplotlib.pyplot as pypl
-        pypl.imsave("mask_%s.png" % fn_root, mask, cmap="binary_r", vmin=0, vmax=1)
+        pypl.imsave("%s/mask_%s.png" % (outdir,fn_root), mask, cmap="binary_r", vmin=0, vmax=1)
 
-    with h5py.File("mask_%s.h5" % fn_root, "w") as f:
+    with h5py.File("%s/mask_%s.h5" % (outdir,fn_root), "w") as f:
         f["data/data"] = mask
 
-    os.system("cp %s mask_%s.conf" % (args.config,fn_root))
+    os.system("cp %s %s/mask_%s.conf" % (args.config,outdir,fn_root))
 
     if args.link:
-        os.system("ln -s -f mask_%s.h5 %s" % (fn_root, args.link))
+        os.system("ln -s -f %s/mask_%s.h5 %s" % (outdir, fn_root, args.link))

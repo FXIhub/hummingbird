@@ -6,8 +6,7 @@ import h5py
 import time
 
 class Stack:
-    def __init__(self,name="stack",maxLen=100,rank=0):
-        self._rank = rank
+    def __init__(self,name="stack",maxLen=100):
         self._maxLen = maxLen
         self._name = name
         self.clear()
@@ -19,6 +18,8 @@ class Stack:
         self.last_mean   = None
         self.last_sum    = None
         self.last_median = None
+        self.last_min    = None
+        self.last_max    = None
         
     def filled(self):
         return self._currentIndex > self._maxLen
@@ -52,12 +53,20 @@ class Stack:
         self.last_median = numpy.median(self._getData(),axis=0)
         return self.last_median
     
+    def min(self):
+        self.last_min = self._getData().min(axis=0)
+        return self.last_min
+
+    def max(self):
+        self.last_max = self._getData().max(axis=0)
+        return self.last_max
+
     def write(self,evt,directory=".",outputs=None,png=False,interval=None,verbose=True):
         if interval is not None:
             if (self._currentIndex % interval) != 0:
                 return
         if outputs is None:
-            outputs = ["std","mean","sum","median"]
+            outputs = ["std","mean","sum","median","min","max"]
         try:
             dt = evt["eventID"]["Timestamp"].datetime64
         except:
@@ -66,7 +75,7 @@ class Stack:
             fid = evt["eventID"]["Timestamp"].fiducials
         except:
             fid = 0
-        fn = "%s/%s-%s-%s-rank%i.h5" % (directory,self._name, dt, fid, self._rank)
+        fn = "%s/%s-%s-%s.h5" % (directory,self._name, dt, fid)
         if verbose:
             print "Writing stack to %s" % fn
         with h5py.File(fn,"w") as f:
@@ -81,7 +90,7 @@ class Stack:
                 fig = plt.figure()
                 ax = fig.add_subplot(111,title="%s %s (%i)" % (o,self._name,evt.event_id()))
                 exec "cax = ax.imshow(%s)" % o
-                fn = "%s/%s-%s-%i-%i.png" % (directory,o,self._name, evt.event_id(), self._rank) 
+                fn = "%s/%s-%s-%i.png" % (directory,o,self._name, evt.event_id()) 
                 fig.colorbar(cax)
                 fig.savefig(fn)
                 plt.clf()
