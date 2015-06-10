@@ -5,7 +5,7 @@ import sys
 from interface.Qt import QtGui, QtCore
 import signal
 
-def start_interface():
+def start_interface(restore):
     """Initialize and show the Interface"""
     # Catch Ctrl+c and such
     signal.signal(signal.SIGINT, sigint_handler)
@@ -13,7 +13,7 @@ def start_interface():
     QtCore.QCoreApplication.setOrganizationDomain("spidocs.rtfd.org")
     QtCore.QCoreApplication.setApplicationName("Hummingbird")
     app = QtGui.QApplication(sys.argv)
-    GUI().show()
+    GUI(restore).show()
     sys.exit(app.exec_())
 
 def sigint_handler(*_):
