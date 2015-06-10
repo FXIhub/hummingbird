@@ -20,4 +20,5 @@ if __name__ == "__main__":
     with h5py.File("./mask_from_png.h5","w") as f:
         f["/data/data"] = img
     
+
     
