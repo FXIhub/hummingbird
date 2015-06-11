@@ -107,4 +107,4 @@ def onEvent(evt):
     x = evt["parameters"]["injector_x"]
     y = evt["parameters"]["injector_y"]
     z = evt["analysis"]["nrPhotons - CCD"]
-    plotting.correlation.plotScatterColor(x,y,z, history=100)
+    plotting.correlation.plotScatterColor(x,y,z, history=100, vmin=0, vmax=5000, zlabel='Nr. of Photons')

@@ -4,6 +4,7 @@ import pyqtgraph
 import numpy
 from interface.ui import DataWindow
 from interface.Qt import QtCore
+from interface.colorbar import ColorBar
 import datetime
 import utils.array
 
@@ -23,6 +24,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.exclusive_source = False
         self.line_colors = [(252, 175, 62), (114, 159, 207), (255, 255, 255),
                             (239, 41, 41), (138, 226, 52), (173, 127, 168)]
+        self.colorbar = None
+        self.colormap = None
         self.current_index = -1
         self.last_vector_y = None
         self.last_vector_x = None
@@ -169,13 +172,31 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             elif(source.data_type[title] == 'tuple'):
                 y = pd.y[:,1]
             elif(source.data_type[title] == 'triple'):
+                if self.colormap is None:
+                    vmin, vmax = (0,1)
+                    conf = source.conf[title]
+                    if 'vmin' in conf:
+                        vmin = conf['vmin']
+                    if 'vmax' in conf:
+                        vmax = conf['vmax']
+                    stops = numpy.r_[vmin, vmax]
+                    colors = numpy.array([[0, 0, 1, 0.7], [1, 0, 0, 1.0]])
+                    self.colormap = pyqtgraph.ColorMap(stops, colors)
+                if self.colorbar is None:
+                    if 'zlabel' in conf:
+                        zlabel = conf['zlabel']
+                    else:
+                        zlabel = 'z'
+                    self.colorbar = ColorBar(self.colormap, 10, 200, label=zlabel)
+                    self.plot.scene().addItem(self.colorbar)
+                    self.colorbar.translate(100.0, 20.0)
+                    self.actionPoints.setChecked(1)
+                    self.actionLines.setChecked(0)
                 y = pd.y[:,1]
                 z = pd.y[:,2]
-                c = ((z - z.min()) / max((z.max() - z.min()),1) * 100).astype(int)
-                colors = [pyqtgraph.intColor(c[i], hues=1, values=100) for i in range(z.shape[0])]
-                symbol_brush = colors
-                symbol_pen   = colors
-                symbol_size  = 10
+                symbol_brush = self.colormap.map(z, 'qcolor')
+                symbol_pen   = None
+                symbol_size  = 8
             elif source.data_type[title] == 'vector':
                 if(self.current_index == -1):
                     y = numpy.array(pd.y[self.current_index % pd.y.shape[0]], copy=False)
@@ -222,6 +243,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
             plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
+
             self.legend.addItem(plt, pd.title)
             color_index += 1
             
