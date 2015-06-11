@@ -30,7 +30,7 @@ class Stack:
         self.last_max    = None
         
     def filled(self):
-        return self._currentIndex > self._maxLen
+        return self._currentIndex >= self._maxLen
     
     def add(self,data):
         if self._buffer is None:
@@ -73,6 +73,8 @@ class Stack:
         outputs = ["std","mean","sum","median","min","max"]
         # Postpone writing?
         if (self._currentIndex % self._outPeriod) != self._outIndex:
+            return
+        if not self.filled():
             return
         # Reduce
         for o in outputs:
