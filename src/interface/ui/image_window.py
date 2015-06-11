@@ -285,11 +285,11 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self.hline = None
         
     def init_running_hist(self,source, title):
-        pd = source.plotdata[title]
-        self.settingsWidget.ui.runningHistWindow.setText(str(pd.window))
-        self.settingsWidget.ui.runningHistBins.setText(str(pd.bins))
-        self.settingsWidget.ui.runningHistMin.setText(str(pd.hmin))
-        self.settingsWidget.ui.runningHistMax.setText(str(pd.hmax))
+        conf = source.conf[title]
+        self.settingsWidget.ui.runningHistWindow.setText(str(conf["window"]))
+        self.settingsWidget.ui.runningHistBins.setText(str(conf["bins"]))
+        self.settingsWidget.ui.runningHistMin.setText(str(conf["hmin"]))
+        self.settingsWidget.ui.runningHistMax.setText(str(conf["hmax"]))
         self.running_hist_initialised = True
 
     def replot(self):

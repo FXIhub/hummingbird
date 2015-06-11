@@ -101,7 +101,8 @@ class RunningHistogram:
         # Increase counter
         self.i += 1
         # Retrun slice
-        return self.hist[i_his+1:self.length+i_his+1,:]
+        sl = self.hist[i_his+1:self.length+i_his+1,:]
+        return sl
 
 
 def runningMean(x, N):

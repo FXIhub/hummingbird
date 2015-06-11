@@ -17,14 +17,6 @@ class PlotData(object):
         if title in parent.conf:
             if('history_length' in parent.conf[title]):
                 self._maxlen = parent.conf[title]['history_length']
-            if('window' in parent.conf[title]):
-                self._window = parent.conf[title]['window']
-            if('bins' in parent.conf[title]):
-                self._bins = parent.conf[title]['bins']
-            if('hmin' in parent.conf[title]):
-                self._hmin = parent.conf[title]['hmin']
-            if('hmax' in parent.conf[title]):
-                self._hmax = parent.conf[title]['hmax']
 
     def append(self, y, x, l):
         """Append the new data to the ringbuffers"""
@@ -85,26 +77,6 @@ class PlotData(object):
     @property
     def maxlen(self):
         """Gives access to maximum size of the buffers"""
-        return self._maxlen
-
-    @property
-    def hmin(self):
-        """Gives access to the lower limit"""
-        return self._hmin
-
-    @property
-    def hmax(self):
-        """Gives access to the upper limit"""
-        return self._hmax
-
-    @property
-    def bins(self):
-        """Gives access to the number of bins"""
-        return self._bins
-
-    @property
-    def window(self):
-        """Gives access to the window size"""
         return self._maxlen
 
     def __len__(self):
