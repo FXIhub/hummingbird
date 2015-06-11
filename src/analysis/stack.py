@@ -3,7 +3,9 @@ import ipc
 import numpy
 from numpy import abs
 import h5py
-import time
+import time, datetime
+from datetime import datetime as DT
+import pytz
 
 class Stack:
     def __init__(self,name="stack",maxLen=100):
@@ -72,14 +74,19 @@ class Stack:
             exec "self.%s()" % o
         # Timestamp for filename
         try:
-            dt = evt["eventID"]["Timestamp"].datetime64
+            dt64 = evt["eventID"]["Timestamp"].datetime64
         except:
-            dt = ""
+	    dt64 = numpy.datetime64(datetime.datetime.utcnow())
+        # Convert to US/Pacific local time
+        t_loc = datetime.datetime.now()
+        t_utc = datetime.datetime.utcnow()
+        delta = t_utc-t_loc
+        dt64_loc = dt64 + delta.seconds * 1000000
         try:
             fid = evt["eventID"]["Timestamp"].fiducials
         except:
             fid = 0
-        fn = "%s/%s-%s-%s.h5" % (directory,self._name, dt, fid)
+        fn = "%s/%s-%s-fid%s.h5" % (directory,self._name, str(dt64_loc)[:-5], fid)
         # Write to H5
         if verbose:
             print "Writing stack to %s" % fn
