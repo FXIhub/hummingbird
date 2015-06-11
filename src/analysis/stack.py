@@ -61,7 +61,7 @@ class Stack:
         self.last_max = self._getData().max(axis=0)
         return self.last_max
 
-    def write(self,evt,directory=".",outputs=None,png=False,verbose=True):
+    def write(self,evt, directory=".", png=False, verbose=True, interval=None):
         outputs = ["std","mean","sum","median","min","max"]
         # Postpone writing?
         if interval is not None:

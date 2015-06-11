@@ -58,6 +58,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.y_axis_name = 'bottom'
         self._set_logscale_lookuptable()
 
+        self.running_hist_initialised = False
+
     def set_sounds_and_volume(self):
         self.soundsGroup = QtGui.QActionGroup(self.menuSounds)
         self.soundsGroup.setExclusive(True)
@@ -266,6 +268,14 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self.plot.getView().removeItem(self.hline)
                 self.hline = None
         
+    def init_running_hist(self,source, title):
+        pd = source.plotdata[title]
+        self.settingsWidget.ui.runningHistWindow.setText(str(pd.window))
+        self.settingsWidget.ui.runningHistBins.setText(str(pd.bins))
+        self.settingsWidget.ui.runningHistMin.setText(str(pd.hmin))
+        self.settingsWidget.ui.runningHistMax.setText(str(pd.hmax))
+        self.running_hist_initialised = True
+
     def replot(self):
         """Replot data"""
         #self.plot.getView().clear()
@@ -293,11 +303,15 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     self.set_colormap_range()
 
             if conf["data_type"] == "running_hist":
-                wl   = int(self.settingsWidget.ui.runningHistWindow.text())
-                bins = int(self.settingsWidget.ui.runningHistBins.text())
-                hmin = int(self.settingsWidget.ui.runningHistMin.text())
-                hmax = int(self.settingsWidget.ui.runningHistMax.text())
-                img = utils.array.runningHistogram(numpy.array(pd.y, copy=False), wl, bins, hmin, hmax)
+                if not self.running_hist_initialised:
+                    self.init_running_hist(source, title)
+                window = int(self.settingsWidget.ui.runningHistWindow.text())
+                bins   = int(self.settingsWidget.ui.runningHistBins.text())
+                hmin   = int(self.settingsWidget.ui.runningHistMin.text())
+                hmax   = int(self.settingsWidget.ui.runningHistMax.text())
+                v      = pd.y[-1]
+                length = pd.maxlen
+                img = utils.array.runningHistogram(v, title, length, window, bins, hmin, hmax)
                 if not img.shape[0]:
                     continue
             else:
@@ -305,6 +319,11 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             self._configure_axis(source, title)
             transform = self._image_transform(img, source, title)
             
+            if conf["data_type"] == "running_hist":
+                translate_transform = QtGui.QTransform().translate(0, hmin)
+                scale_transform = QtGui.QTransform().scale(1, float(hmax-hmin)/float(bins))
+                transform = scale_transform*translate_transform
+
             if(self.plot.image is None or # Plot if first image
                len(self.plot.image.shape) < 3 or # Plot if there's no history
                self.plot.image.shape[0]-1 == self.plot.currentIndex): # Plot if we're at the last image in history

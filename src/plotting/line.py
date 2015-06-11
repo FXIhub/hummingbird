@@ -1,10 +1,11 @@
 """A plotting module for line plots"""
 import numpy as np
 import ipc
+import utils.array
 
 
 histories = {}
-def plotHistory(param, label='', history=100, runningHistogram=False):
+def plotHistory(param, label='', history=100, runningHistogram=False, window=20, bins=100, hmin=0, hmax=100):
     """Plotting history of a parameter.
 
     Args:
@@ -20,14 +21,15 @@ def plotHistory(param, label='', history=100, runningHistogram=False):
     if (not param.name in histories):
         if runningHistogram:
             data_type = 'running_hist'
+            ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history, window=window, bins=bins, hmin=hmin, hmax=hmax)
         else:
             data_type = 'scalar'
-        ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history)
+            ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history)
         histories[param.name] = True
     ipc.new_data(plotid, param.data)
 
 histograms = {}
-def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, history=100):
+def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False):
     """Plotting a histogram.
     
     Args:
