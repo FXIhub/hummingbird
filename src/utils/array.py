@@ -49,26 +49,59 @@ def runningTrend(array, window, trend):
     nr_windows = (array.shape[0] / window)
     return trend(array[:nr_windows*window].reshape((window, nr_windows)), axis=0)
 
-def runningHistogram(array, window, bins, hmin, hmax):
-    nr_windows = (array.shape[0] / window)
-    buffer = array[:nr_windows*window].reshape((window, nr_windows))
-    runningHist = numpy.zeros((nr_windows, bins))
-    for i in range(nr_windows):
-        runningHist[i], bins = numpy.histogram(buffer[i], range=(hmin, hmax), bins=bins)
-    return runningHist
-
+#def runningHistogram(array, window, bins, hmin, hmax):
+#    nr_windows = (array.shape[0] / window)
+#    buffer = array[:nr_windows*window].reshape((window, nr_windows))
+#    runningHist = numpy.zeros((nr_windows, bins))
+#    for i in range(nr_windows):
+#        runningHist[i], bins = numpy.histogram(buffer[i], range=(hmin, hmax), bins=bins)
+#    return runningHist
 
 runningHist = {}
-def runningHistogram2(name, length, window, bins, hmin, hmax):
+def runningHistogram(new_data, name, length=100, window=20, bins=100, hmin=0, hmax=100):
     if name not in runningHist:
-        runningHist[name] = {}
-        runningHist[name][bnumpy.zeros(length-window, bins)]
-    nr_windows = (array.shape[0] / window)
-    buffer = array[:nr_windows*window].reshape((window, nr_windows))
-    runningHist = numpy.zeros((nr_windows, bins))
-    for i in range(nr_windows):
-        runningHist[i], bins = numpy.histogram(buffer[i], range=(hmin, hmax), bins=bins)
-    return runningHist
+        runningHist[name] = RunningHistogram(length=length, window=window, bins=bins, hmin=hmin, hmax=hmax)
+    return runningHist[name].next(new_data, length=length, window=window, bins=bins, hmin=hmin, hmax=hmax)
+
+class RunningHistogram:
+    def __init__(self, length=100, window=20, bins=100, hmin=0, hmax=100):
+        self.length = length
+        self.window = window
+        self.bins   = bins
+        self.hmin   = hmin
+        self.hmax   = hmax
+        self.clear()
+
+    def clear(self):
+        self.buffer = numpy.zeros(shape=(self.window, self.bins))
+        self.hist   = numpy.zeros(shape=(2*self.length, self.bins), dtype="int")
+        self.i = 0
+
+    def next(self, new_value, length=None, window=None, bins=None, hmin=None, hmax=None):
+        reset = False
+        for v in ["length", "window", "bins", "hmin", "hmax"]:
+            exec "if self.%s != %s and %s is not None: reset = True" % (v,v,v)
+            exec "if self.%s != %s and %s is not None: self.%s = %s" % (v,v,v,v,v)
+        if reset:
+            self.clear()
+        # Update buffer
+        i_bin = int(numpy.round((new_value - self.hmin)/float(self.hmax - self.hmin) * (self.bins-1)))
+        if i_bin >= self.bins: 
+            i_bin = self.bins-1
+        if i_bin < 0:
+            i_bin = 0
+        i_buf = self.i % self.window
+        self.buffer[i_buf, :]     = 0
+        self.buffer[i_buf, i_bin] = 1
+        # Update histogram
+        i_his = self.i % self.length
+        s = self.buffer.sum(0)
+        self.hist[i_his, :]               = s[:]
+        self.hist[i_his + self.length, :] = s[:]
+        # Increase counter
+        self.i += 1
+        # Retrun slice
+        return self.hist[i_his+1:self.length+i_his+1,:]
 
 
 def runningMean(x, N):

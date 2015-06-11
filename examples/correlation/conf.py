@@ -102,3 +102,9 @@ def onEvent(evt):
     x = evt["analysis"]["hitscore - CCD"]
     y = evt["analysis"]["nrPhotons - CCD"]
     plotting.correlation.plotScatter(x,y, history=1000) 
+
+    # Scatter plot of injector X vs. injector Y with color-coded hitrate
+    x = evt["parameters"]["injector_x"]
+    y = evt["parameters"]["injector_y"]
+    z = evt["analysis"]["nrPhotons - CCD"]
+    plotting.correlation.plotScatterColor(x,y,z, history=100, vmin=0, vmax=5000, zlabel='Nr. of Photons')

@@ -106,7 +106,7 @@ def onEvent(evt):
     analysis.hitfinding.hitrate(evt, evt["analysis"]["isHit - CCD"], history=500)
     
     # Plot the hitscore
-    plotting.line.plotHistory(evt["analysis"]["hitscore - CCD"], label='Nr. of lit pixels')
+    plotting.line.plotHistory(evt["analysis"]["hitscore - CCD"], label='Nr. of lit pixels', runningHistogram=Trues)
 
     # Plot the hitrate
     plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
