@@ -336,7 +336,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             
             if conf["data_type"] == "running_hist":
                 translate_transform = QtGui.QTransform().translate(0, hmin)
-                scale_transform = QtGui.QTransform().scale(1, float(hmax-hmin)/float(bins))
+                scale_transform = QtGui.QTransform().scale(3.*float(hmax-hmin)/float(length), float(hmax-hmin)/float(bins))
                 transform = scale_transform*translate_transform
 
             if(self.plot.image is None or # Plot if first image
