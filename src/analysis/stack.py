@@ -8,14 +8,20 @@ from datetime import datetime as DT
 import pytz
 
 class Stack:
-    def __init__(self,name="stack",maxLen=100):
+    def __init__(self,name="stack",maxLen=100,outPeriod=100):
         self._maxLen = maxLen
+        self._outPeriod = outPeriod
         self._name = name
         self.clear()
         
     def clear(self):
         self._buffer = None
         self._currentIndex = 0
+        n = ipc.mpi.nr_workers()
+        if n > 1:
+            self._outIndex = float(ipc.mpi.rank) / float(n-1) * (self._outPeriod-1)
+        else:
+            self._outIndex = 0
         self.last_std    = None
         self.last_mean   = None
         self.last_sum    = None
@@ -63,12 +69,11 @@ class Stack:
         self.last_max = self._getData().max(axis=0)
         return self.last_max
 
-    def write(self,evt, directory=".", png=False, verbose=True, interval=None):
+    def write(self,evt, directory=".", png=False, verbose=True):
         outputs = ["std","mean","sum","median","min","max"]
         # Postpone writing?
-        if interval is not None:
-            if (self._currentIndex % interval) != 0:
-                return
+        if (self._currentIndex % self._outPeriod) != self._outIndex:
+            return
         # Reduce
         for o in outputs:
             exec "self.%s()" % o
@@ -86,7 +91,7 @@ class Stack:
             fid = evt["eventID"]["Timestamp"].fiducials
         except:
             fid = 0
-        fn = "%s/%s-%s-fid%s.h5" % (directory,self._name, str(dt64_loc)[:-5], fid)
+        fn = "%s/%s-%s-fid%s-rk%i.h5" % (directory,self._name, str(dt64_loc)[:-5], fid, ipc.mpi.rank)
         # Write to H5
         if verbose:
             print "Writing stack to %s" % fn
