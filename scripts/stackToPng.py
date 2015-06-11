@@ -56,7 +56,7 @@ if __name__ == "__main__":
         if args.threshold:
             d = d > args.threshold
         if args.plain:
-            plt.imsave("%s%s.png" % (p,o), cmap=cmap)
+            plt.imsave("%s%s.png" % (p,o), d, cmap=cmap)
         else:
             fig = plt.figure()
             ax = fig.add_subplot(111,title="%s%s" % (p,o))

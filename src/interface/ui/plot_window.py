@@ -21,7 +21,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.actionLegend_Box.triggered.connect(self.on_view_legend_box)
         self.actionX_axis.triggered.connect(self.on_view_x_axis)
         self.actionY_axis.triggered.connect(self.on_view_y_axis)
-        self.acceptable_data_types = ['scalar', 'vector', 'tuple', 'triple']
+        self.acceptable_data_types = ['scalar', 'vector', 'tuple', 'triple', 'running_hist' ]
         self.exclusive_source = False
         self.line_colors = [(252, 175, 62), (114, 159, 207), (255, 255, 255),
                             (239, 41, 41), (138, 226, 52), (173, 127, 168)]
@@ -166,7 +166,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 symbol_brush = color
                 symbol_size = 3
 
-            if(source.data_type[title] == 'scalar'):
+            if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
                 y = numpy.array(pd.y, copy=False)
                 self.last_vector_y = None
                 self.last_vector_x = None
@@ -208,7 +208,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     y = self.last_vector_y[self.current_index % self.last_vector_y.shape[0]]
 
             x = None
-            if(source.data_type[title] == 'scalar'):
+            if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
                 x = numpy.array(pd.x, copy=False)
                 sorted_x = numpy.argsort(x)
                 x = x[sorted_x]

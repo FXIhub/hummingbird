@@ -10,6 +10,8 @@ class H5Recorder:
         When reading from the recorder file, it might be necesssary to sort them using the timestamp before comparing different datasets.
     """
     def __init__(self, outpath, maxFileSizeGB=1):
+        if outpath is None:
+            outpath = '/reg/neh/home/benedikt/cxi86715/'
         self.outpath   = outpath
         self.maxGBytes = maxFileSizeGB
         self._fileBytes = 0
