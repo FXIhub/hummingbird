@@ -172,9 +172,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             elif(source.data_type[title] == 'tuple'):
                 y = pd.y[:,1]
             elif(source.data_type[title] == 'triple'):
+                conf = source.conf[title]
                 if self.colormap is None:
                     vmin, vmax = (0,1)
-                    conf = source.conf[title]
                     if 'vmin' in conf:
                         vmin = conf['vmin']
                     if 'vmax' in conf:
@@ -182,16 +182,17 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     stops = numpy.r_[vmin, vmax]
                     colors = numpy.array([[0, 0, 1, 0.7], [1, 0, 0, 1.0]])
                     self.colormap = pyqtgraph.ColorMap(stops, colors)
-                if self.colorbar is None:
-                    if 'zlabel' in conf:
-                        zlabel = conf['zlabel']
-                    else:
-                        zlabel = 'z'
-                    self.colorbar = ColorBar(self.colormap, 10, 200, label=zlabel)
-                    self.plot.scene().addItem(self.colorbar)
-                    self.colorbar.translate(100.0, 20.0)
-                    self.actionPoints.setChecked(1)
-                    self.actionLines.setChecked(0)
+                if 'zlabel' in conf:
+                    zlabel = conf['zlabel']
+                else:
+                    zlabel = 'z'
+                if self.colorbar is not None:
+                    self.plot.scene().removeItem(self.colorbar)
+                self.colorbar = ColorBar(self.colormap, 10, 200, label=zlabel)
+                self.plot.scene().addItem(self.colorbar)
+                self.actionPoints.setChecked(1)
+                self.actionLines.setChecked(0)
+                self.colorbar.translate(self.geometry().width() - self.colorbar.zone[2], 20.0)
                 y = pd.y[:,1]
                 z = pd.y[:,2]
                 symbol_brush = self.colormap.map(z, 'qcolor')
