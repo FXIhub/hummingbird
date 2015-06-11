@@ -219,7 +219,6 @@ def onEvent(evt):
         serr[i%histLen] = evt["analysis"]["size error"].data
         Ierr[i%histLen] = evt["analysis"]["intensity error"].data
         ferr[i%histLen] = evt["analysis"]["fit error"].data
-        sph[i%histLen] = evt["analysis"]["fit sphericity"].data
         i += 1
         fin = numpy.isfinite(serr)
         print "Average errors: ds = %e nm (%.1f %%); dI = %e mJ/um2 (%.1f %%)" % (serr[fin].mean(),
@@ -233,7 +232,6 @@ def onEvent(evt):
 
         plotting.correlation.plotScatter(evt["analysis"]["size error"], evt["analysis"]["fit error"], plotid='Size error vs. fit error', history=100)
         plotting.correlation.plotScatter(evt["analysis"]["intensity error"], evt["analysis"]["fit error"], plotid='Intensity error vs. fit error', history=100)
-        plotting.correlation.plotScatter(evt["parameters"]["flattening"], evt["analysis"]["fit sphericity"], plotid='Flattening vs. sphericity', history=100)
         
         # Plot the glorious shots
         plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg_glo, alert=True, log=True, mask=mask)

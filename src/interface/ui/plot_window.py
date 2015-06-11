@@ -19,7 +19,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.actionLegend_Box.triggered.connect(self.on_view_legend_box)
         self.actionX_axis.triggered.connect(self.on_view_x_axis)
         self.actionY_axis.triggered.connect(self.on_view_y_axis)
-        self.acceptable_data_types = ['scalar', 'vector', 'tuple']
+        self.acceptable_data_types = ['scalar', 'vector', 'tuple', 'triple']
         self.exclusive_source = False
         self.line_colors = [(252, 175, 62), (114, 159, 207), (255, 255, 255),
                             (239, 41, 41), (138, 226, 52), (173, 127, 168)]
@@ -153,12 +153,14 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             symbol = None
             symbol_pen = None
             symbol_brush = None
+            symbol_size = None
             if(self.actionLines.isChecked()):
                 pen = color
             if(self.actionPoints.isChecked()):
                 symbol = 'o'
                 symbol_pen = color
                 symbol_brush = color
+                symbol_size = 3
 
             if(source.data_type[title] == 'scalar'):
                 y = numpy.array(pd.y, copy=False)
@@ -166,10 +168,14 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self.last_vector_x = None
             elif(source.data_type[title] == 'tuple'):
                 y = pd.y[:,1]
-                pos   = numpy.array([0.0, 0.5, 1.0])
-                color = numpy.array([[0,0,0,255], [255,128,0,255], [255,255,0,255]], dtype=np.ubyte)
-                map   = pyqtgraoh.ColorMap(pos, color)
-                print map.get_colors()
+            elif(source.data_type[title] == 'triple'):
+                y = pd.y[:,1]
+                z = pd.y[:,2]
+                c = ((z - z.min()) / max((z.max() - z.min()),1) * 100).astype(int)
+                colors = [pyqtgraph.intColor(c[i], hues=1, values=100) for i in range(z.shape[0])]
+                symbol_brush = colors
+                symbol_pen   = colors
+                symbol_size  = 10
             elif source.data_type[title] == 'vector':
                 if(self.current_index == -1):
                     y = numpy.array(pd.y[self.current_index % pd.y.shape[0]], copy=False)
@@ -188,7 +194,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     wl = int(self._settings_diag.windowLength.text())
                     y = utils.array.runningMean(y, wl)
                     x = x[-max(len(y),1):]
-            elif(source.data_type[title] == 'tuple'):
+            elif(source.data_type[title] == 'tuple') or (source.data_type[title] == 'triple'):
                 x = pd.y[:,0]
             elif(source.data_type[title] == 'vector'):
                 if len(y.shape) == 2:
@@ -215,7 +221,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                                  y=self._settings_diag.logy.isChecked())
 
             plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
-                                 symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
+                                 symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
             self.legend.addItem(plt, pd.title)
             color_index += 1
             
@@ -223,9 +229,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 for trend in ['mean', 'median', 'std', 'min', 'max']:
                     if eval('self._settings_diag.trendVector_%s.isChecked()' %trend):
                         _trend = getattr(numpy, trend)
-                        ytrend = _trend(numpy.array(pd.y, copy=False), axis=0)
+                        if len(pd.y.shape) == 3:
+                            ytrend = _trend(numpy.array(pd.y[:,1,:], copy=False), axis=0)
+                        else:
+                            ytrend = _trend(numpy.array(pd.y, copy=False), axis=0)
                         plt_trend = self.plot.plot(x=x, y=ytrend, clear=False, pen=self.line_colors[color_index % len(self.line_colors)], symbol=symbol,
-                                                   symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=3)
+                                                   symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
                         self.legend.addItem(plt_trend, trend)
                         color_index += 1
 
