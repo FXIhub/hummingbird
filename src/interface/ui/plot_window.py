@@ -91,7 +91,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             index = self.current_index
         # Check if we have last_vector
         if(self.last_vector_x is not None):
-            dt = datetime.datetime.fromtimestamp(utils.time.lcls2float(self.last_vector_x[index]))
+            dt = datetime.datetime.fromtimestamp(self.last_vector_x[index])
             return dt
 
         # Check if we have enabled_sources
@@ -107,7 +107,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         if(source is not None and title in source.plotdata and
            source.plotdata[title].x is not None):
             pd = source.plotdata[title]
-            dt = datetime.datetime.fromtimestamp(utils.time.lcls2float(pd.x[index]))
+            dt = datetime.datetime.fromtimestamp(pd.x[index])
             return dt
         else:
             return datetime.datetime.now()
@@ -217,7 +217,6 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     wl = int(self._settings_diag.windowLength.text())
                     y = utils.array.runningMean(y, wl)
                     x = x[-max(len(y),1):]
-                x = utils.time.lcls2float(x)
             elif(source.data_type[title] == 'tuple') or (source.data_type[title] == 'triple'):
                 x = pd.y[:,0]
             elif(source.data_type[title] == 'vector'):
