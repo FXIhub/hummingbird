@@ -3,6 +3,7 @@ from interface.Qt import QtGui, QtCore
 from interface.ui import Ui_imageWindow
 from interface.ui import DataWindow
 import utils.array
+import utils.time
 import pyqtgraph
 import numpy
 import datetime
@@ -104,7 +105,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         if(source is not None and title in source.plotdata and
            source.plotdata[title].x is not None):
             pd = source.plotdata[title]
-            dt = datetime.datetime.fromtimestamp(pd.x[index])
+            dt = datetime.datetime.fromtimestamp(utils.time.lcls2float(pd.x[index]))
             msg = pd.l[index]
         else:
             dt = datetime.datetime.now()

@@ -7,6 +7,7 @@ from interface.Qt import QtCore
 from interface.colorbar import ColorBar
 import datetime
 import utils.array
+import utils.time
 
 class PlotWindow(DataWindow, Ui_plotWindow):
     """Window to display 2D plots"""
@@ -90,7 +91,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             index = self.current_index
         # Check if we have last_vector
         if(self.last_vector_x is not None):
-            dt = datetime.datetime.fromtimestamp(self.last_vector_x[index])
+            dt = datetime.datetime.fromtimestamp(utils.time.lcls2float(self.last_vector_x[index]))
             return dt
 
         # Check if we have enabled_sources
@@ -106,7 +107,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         if(source is not None and title in source.plotdata and
            source.plotdata[title].x is not None):
             pd = source.plotdata[title]
-            dt = datetime.datetime.fromtimestamp(pd.x[index])
+            dt = datetime.datetime.fromtimestamp(utils.time.lcls2float(pd.x[index]))
             return dt
         else:
             return datetime.datetime.now()
