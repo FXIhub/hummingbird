@@ -166,7 +166,7 @@ class LCLSTranslator(object):
     def event_id(self, evt):
         """Returns an id which should be unique for each
         shot and increase monotonically"""
-        return float(self.translate(evt, 'eventID')['Timestamp'].timestamp)
+        return self.translate(evt, 'eventID')['Timestamp'].timestamp
 
     def _tr_bld_data_ebeam(self, values, obj):
         """Translates BldDataEBeam to hummingbird photon energy"""
