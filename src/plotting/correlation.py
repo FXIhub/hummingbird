@@ -257,4 +257,33 @@ def plotScatter(X,Y, plotid=None, history=100, xlabel=None, ylabel=None):
                                 xlabel=xlabel, ylabel=ylabel)
     ipc.new_data(plotid, np.array([X.data, Y.data]))
 
+
+scatterColorPlots = {}
+def plotScatterColor(X,Y,Z, plotid=None, history=100, xlabel=None, ylabel=None, zlabel=None, vmin=None, vmax=None):
+    """Plotting the scatter of two parameters X and Y and use Z for color.
+    (No buffer in the backend).
+
+    Args:
+        :X(Record): An event parameter, e.g. injector position in x
+        :Y(Record): An event parameter, e.g. injector position in y
+        :Z(Record): An event parameter, e.g. injector position in z
+
+    Kwargs:
+        :plotid(str): The key that appears in the interface (default = MeanMap(X.name, Y.name))
+        :xlabel(str): 
+        :ylabel(str):
+    """
+    if plotid is None:
+        plotid = "ScatterColor(%s,%s)" %(X.name, Y.name)
+    if (not plotid in scatterPlots):
+        if xlabel is None: xlabel = X.name
+        if ylabel is None: ylabel = Y.name
+        if zlabel is None: zlabel = Z.name
+        if vmin is None: vmin = 0
+        if vmax is None: vmax = 1
+        ipc.broadcast.init_data(plotid, data_type='triple', history_length=history,
+                                xlabel=xlabel, ylabel=ylabel, zlabel=zlabel,
+                                vmin=vmin, vmax=vmax)
+    ipc.new_data(plotid, np.array([X.data, Y.data, Z.data]))
+
     
