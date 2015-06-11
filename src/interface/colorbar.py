@@ -57,7 +57,7 @@ class ColorBar(pg.GraphicsObject):
     def paint(self, p, *args):
         # paint underlying mask
         p.setPen(pg.QtGui.QColor(255, 255, 255, 0))
-        p.setBrush(pg.QtGui.QColor(255, 255, 255, 200))
+        p.setBrush(pg.QtGui.QColor(255, 255, 255, 100))
         p.drawRoundedRect(*(self.zone + (9.0, 9.0)))
         
         # paint colorbar
