@@ -8,14 +8,20 @@ from datetime import datetime as DT
 import pytz
 
 class Stack:
-    def __init__(self,name="stack",maxLen=100):
+    def __init__(self,name="stack",maxLen=100,outPeriod=100,randStart=False):
         self._maxLen = maxLen
+        self._outPeriod = outPeriod
+        self._randStart = randStart
         self._name = name
         self.clear()
         
     def clear(self):
         self._buffer = None
         self._currentIndex = 0
+        if self._randStart:
+            self._outIndex = numpy.random.randint(self._outPeriod)
+        else:
+            sellf_outIndex = 0
         self.last_std    = None
         self.last_mean   = None
         self.last_sum    = None
@@ -63,12 +69,11 @@ class Stack:
         self.last_max = self._getData().max(axis=0)
         return self.last_max
 
-    def write(self,evt, directory=".", png=False, verbose=True, interval=None):
+    def write(self,evt, directory=".", png=False, verbose=True):
         outputs = ["std","mean","sum","median","min","max"]
         # Postpone writing?
-        if interval is not None:
-            if (self._currentIndex % interval) != 0:
-                return
+        if (self._currentIndex % self._outPeriod) != self._outIndex:
+            return
         # Reduce
         for o in outputs:
             exec "self.%s()" % o
