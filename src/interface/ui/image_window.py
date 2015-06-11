@@ -105,7 +105,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         if(source is not None and title in source.plotdata and
            source.plotdata[title].x is not None):
             pd = source.plotdata[title]
-            dt = datetime.datetime.fromtimestamp(utils.time.lcls2float(pd.x[index]))
+            dt = datetime.datetime.fromtimestamp(pd.x[index])
             msg = pd.l[index]
         else:
             dt = datetime.datetime.now()

@@ -253,7 +253,7 @@ class LCLSTranslator(object):
         rec.run = obj.run()
         rec.ticks = obj.ticks()
         rec.vector = obj.vector()
-        rec.timestamp = obj.time()[0] << 32 | obj.time()[1]
+        rec.timestamp = timestamp
         rec.lcls_time = obj.time()[0] << 32 | obj.time()[1]
         values[rec.name] = rec
 
