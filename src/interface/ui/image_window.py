@@ -217,27 +217,43 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self.plot.imageItem.setLookupTable(self.lut)
 
     def _fill_meanmap(self, triple, conf):
+        xbins, ybins = (100,100)
+        xmin, xmax = (0,100)
+        ymin, ymax = (0,100)
+        if 'xbins' in conf:
+            xbins = conf['xbins']
+        if 'ybins' in conf:
+            ybins = conf['ybins']
+        if 'xmin' in conf:
+            xmin = conf['xmin']
+        if 'ymin' in conf:
+            ymin = conf['ymin']
+        if 'xmax' in conf:
+            xmax = conf['xmax']
+        if 'ymax' in conf:
+            ymax = conf['ymax']
+                        
         if self.meanmap is None:
-            self.meanmap = numpy.zeros((3,conf["ybins"], conf["xbins"]), dtype=float)
-            self.meanmap_dx = (conf["xmax"] - float(conf["xmin"]))/conf["xbins"]
-            self.meanmap_dy = (conf["ymax"] - float(conf["ymin"]))/conf["ybins"]
-            translate_transform = QtGui.QTransform().translate(conf["ymin"]-self.meanmap_dy/2., conf["xmin"]-self.meanmap_dx/2.)
+            self.meanmap = numpy.zeros((3, ybins, xbins), dtype=float)
+            self.meanmap_dx = (xmax - float(xmin))/xbins
+            self.meanmap_dy = (ymax - float(ymin))/ybins
+            translate_transform = QtGui.QTransform().translate(ymin-self.meanmap_dy/2., xmin-self.meanmap_dx/2.)
             scale_transform = QtGui.QTransform().scale(self.meanmap_dy, self.meanmap_dx)
             transpose_transform = QtGui.QTransform()
             transpose_transform *= QtGui.QTransform(0, 1, 0,
                                                     1, 0, 0,
                                                     0, 0, 1)
             self.meanmap_transform = scale_transform*translate_transform*transpose_transform
-        ix = numpy.round((triple[0] - conf["xmin"])/self.meanmap_dx)
+        ix = numpy.round((triple[0] - xmin)/self.meanmap_dx)
         if (ix < 0):
             ix = 0
-        elif (ix >= conf["xbins"]):
-            ix = conf["xbins"] - 1
-        iy = numpy.round((triple[1] - conf["ymin"])/self.meanmap_dy)
+        elif (ix >= xbins):
+            ix = xbins - 1
+        iy = numpy.round((triple[1] - ymin)/self.meanmap_dy)
         if (iy < 0):
             iy = 0
-        elif (iy >= conf["ybins"]):
-            iy = conf["ybins"] - 1
+        elif (iy >= ybins):
+            iy = ybins - 1
         self.meanmap[0,iy,ix] += triple[2]
         self.meanmap[1,iy,ix] += 1
         visited = self.meanmap[1] != 0
@@ -278,7 +294,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
     def replot(self):
         """Replot data"""
-        #self.plot.getView().clear()
         for source, title in self.source_and_titles():
             if(title not in source.plotdata):
                 continue
