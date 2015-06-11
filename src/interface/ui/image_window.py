@@ -285,7 +285,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self.hline = None
         
     def init_running_hist(self,source, title):
-        print "init"
         conf = source.conf[title]
         self.settingsWidget.ui.runningHistWindow.setText(str(conf["window"]))
         self.settingsWidget.ui.runningHistBins.setText(str(conf["bins"]))
@@ -328,7 +327,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 v      = pd.y[-1]
                 length = pd.maxlen
                 img = utils.array.runningHistogram(v, title, length, window, bins, hmin, hmax)
-                print img.sum()
                 if not img.shape[0]:
                     continue
             else:
