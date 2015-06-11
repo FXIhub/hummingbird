@@ -32,7 +32,7 @@ class PlotData(object):
         if(self._l is None):
             self._l = RingBufferStr(self._maxlen)
         self._y.append(y)
-        self._x.append(x)
+        self._x.append(x.astype(numpy.uint64))
         self._l.append(l)
 
     def resize(self, new_maxlen):
