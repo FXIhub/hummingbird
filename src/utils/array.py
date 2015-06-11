@@ -73,6 +73,7 @@ class RunningHistogram:
         self.clear()
 
     def clear(self):
+        print "clear"
         self.buffer = numpy.zeros(shape=(self.window, self.bins))
         self.hist   = numpy.zeros(shape=(2*self.length, self.bins), dtype="int")
         self.i = 0
@@ -84,6 +85,7 @@ class RunningHistogram:
             exec "if self.%s != %s and %s is not None: self.%s = %s" % (v,v,v,v,v)
         if reset:
             self.clear()
+        print "update"
         # Update buffer
         i_bin = int(numpy.round((new_value - self.hmin)/float(self.hmax - self.hmin) * (self.bins-1)))
         if i_bin >= self.bins: 
@@ -101,7 +103,9 @@ class RunningHistogram:
         # Increase counter
         self.i += 1
         # Retrun slice
-        return self.hist[i_his+1:self.length+i_his+1,:]
+        sl = self.hist[i_his+1:self.length+i_his+1,:]
+        print sl.sum()
+        return sl
 
 
 def runningMean(x, N):
