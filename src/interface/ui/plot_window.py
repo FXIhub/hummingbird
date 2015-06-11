@@ -203,7 +203,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 if(self.current_index == -1):
                     y = numpy.array(pd.y[self.current_index % pd.y.shape[0]], copy=False)
                     self.last_vector_y = numpy.array(pd.y)
-                    self.last_vector_x = numpy.array(pd.x)
+                    self.last_vector_x = numpy.array(pd.x, dtype=numpy.uint64)
                 else:
                     y = self.last_vector_y[self.current_index % self.last_vector_y.shape[0]]
 
