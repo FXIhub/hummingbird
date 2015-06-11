@@ -8,20 +8,20 @@ from datetime import datetime as DT
 import pytz
 
 class Stack:
-    def __init__(self,name="stack",maxLen=100,outPeriod=100,randStart=False):
+    def __init__(self,name="stack",maxLen=100,outPeriod=100):
         self._maxLen = maxLen
         self._outPeriod = outPeriod
-        self._randStart = randStart
         self._name = name
         self.clear()
         
     def clear(self):
         self._buffer = None
         self._currentIndex = 0
-        if self._randStart:
-            self._outIndex = numpy.random.randint(self._outPeriod)
+        n = ipc.mpi.nr_workers()
+        if n > 1:
+            self._outIndex = float(ipc.mpi.rank) / float(n-1) * (self._outPeriod-1)
         else:
-            sellf_outIndex = 0
+            self._outIndex = 0
         self.last_std    = None
         self.last_mean   = None
         self.last_sum    = None
@@ -91,7 +91,7 @@ class Stack:
             fid = evt["eventID"]["Timestamp"].fiducials
         except:
             fid = 0
-        fn = "%s/%s-%s-fid%s.h5" % (directory,self._name, str(dt64_loc)[:-5], fid)
+        fn = "%s/%s-%s-fid%s-rk%i.h5" % (directory,self._name, str(dt64_loc)[:-5], fid, ipc.mpi.rank)
         # Write to H5
         if verbose:
             print "Writing stack to %s" % fn
