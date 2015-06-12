@@ -144,9 +144,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         conf = source.conf[title]
         ymin = source.plotdata[title].y.min
         ymax = source.plotdata[title].y.max
-        if 'ymin' in conf:
+        if ('ymin' in conf) and (conf['ymin'] is not None):
             ymin = conf['ymin']
-        if 'ymax' in conf:
+        if ('ymax' in conf) and (conf['ymax'] is not None):
             ymax = conf['ymax']
         return ymin, ymax
     
