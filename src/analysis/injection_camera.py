@@ -4,11 +4,11 @@ import scipy.ndimage.measurements
 from backend import ureg
 from backend import add_record
 
-def getMaskedParticles(evt, type, key, output, thresh = 20, minX = 800, maxX = 1500, minY = 0, maxY = 1700):
+def getMaskedParticles(evt, type, key, output, thresh = 20, minX = 800, maxX = 1500, minY = 0, maxY = 1700, kw = 5):
     """Black-box method to create a masked version of a camera
     image where individual illuminated particles constitute a mask."""
     outimg = np.zeros(evt[type][key].data.shape, np.dtype(np.uint8))
-    kernel = np.ones((11,11), np.uint8)
+    kernel = np.ones((kw*2+1,kw*2+1), np.uint8)
     outimg[minY:maxY, minX:maxX] = evt[type][key].data[minY:maxY,minX:maxX] > thresh
     outimg = cv2.dilate(outimg, kernel)
     # cv2.adaptiveThreshold(evt[type][key].data.astype(np.uint8), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
