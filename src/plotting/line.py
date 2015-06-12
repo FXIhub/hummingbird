@@ -30,7 +30,7 @@ def plotHistory(param, label='', history=100, runningHistogram=False, window=20,
 
 def plotTimestamp(timestamp):
     ipc.new_data('History(Fiducial)', timestamp.fiducials)
-    ipc.new_data('History(LCLS Time)', timestamp.lcls_time) 
+    #ipc.new_data('History(LCLS Time)', timestamp.lcls_time) 
 
 histograms = {}
 def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, history=100, mask=None):
