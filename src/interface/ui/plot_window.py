@@ -28,7 +28,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.colorbar = None
         self.colormap = None
         self.current_index = -1
-        self.last_vector_y = None
+        self.last_vector_y = {}
         self.last_vector_x = None
         self._settings_diag = LinePlotSettings(self)
         self.x_auto = True
@@ -85,12 +85,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             self._settings_diag.histMin.setEnabled(True)
             self._settings_diag.histMax.setEnabled(True)
 
-    def get_time(self, index=None):
+    def get_time(self, title, index=None):
         """Returns the time of the given index, or the time of the last data point"""
         if index is None:
             index = self.current_index
         # Check if we have last_vector
-        if(self.last_vector_x is not None):
+        if self.last_vector_x is not None:
             dt = datetime.datetime.fromtimestamp(self.last_vector_x[index])
             return dt
 
@@ -176,8 +176,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
             if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
                 y = numpy.array(pd.y, copy=False)
-                self.last_vector_y = None
-                self.last_vector_x = None
+                self.last_vector_y = {}
+                self.last_vector_x = {}
             elif(source.data_type[title] == 'tuple'):
                 y = pd.y[:,1]
             elif(source.data_type[title] == 'triple'):
@@ -210,10 +210,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             elif source.data_type[title] == 'vector':
                 if(self.current_index == -1):
                     y = numpy.array(pd.y[self.current_index % pd.y.shape[0]], copy=False)
-                    self.last_vector_y = numpy.array(pd.y)
+                    self.last_vector_y[title] = numpy.array(pd.y)
                     self.last_vector_x = numpy.array(pd.x)
                 else:
-                    y = self.last_vector_y[self.current_index % self.last_vector_y.shape[0]]
+                    y = self.last_vector_y[title][self.current_index % self.last_vector_y[title].shape[0]]
 
             x = None
             if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
@@ -273,14 +273,14 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
 
         self.setWindowTitle(", ".join(titlebar))
-        dt = self.get_time()
+        dt = self.get_time(title)
         # Round to miliseconds
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         self.dateLabel.setText(str(dt.date()))
 
     def _change_index_by(self, amount):
         """Changes the history index when displaying a vector"""
-        if(self.last_vector_x is None):
+        if self.last_vector_x is None:
             return
         self.current_index += amount
         if(self.current_index > -1):
