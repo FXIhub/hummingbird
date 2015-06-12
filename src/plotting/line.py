@@ -33,7 +33,7 @@ def plotTimestamp(timestamp):
     #ipc.new_data('History(LCLS Time)', timestamp.lcls_time) 
 
 histograms = {}
-def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, history=100, mask=None):
+def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, history=100, mask=None, log10=False):
     """Plotting a histogram.
     
     Args:
@@ -56,6 +56,8 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
     data = param.data
     if mask is not None:
         data = data[mask]
+    if log10:
+        data=np.log10(data)
     if hmin is None: hmin = data.min()
     if hmax is None: hmax = data.max()
     H,B = np.histogram(data.flat, range=(hmin, hmax), bins=bins, density=density)
