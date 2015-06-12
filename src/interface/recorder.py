@@ -9,11 +9,11 @@ class H5Recorder:
     .. note::
         When reading from the recorder file, it might be necesssary to sort them using the timestamp before comparing different datasets.
     """
-    def __init__(self, outpath, maxFileSizeGB=1):
+    def __init__(self, outpath, maxFileSizeMB=1):
         if outpath is None:
             outpath = '/reg/neh/home/benedikt/cxi86715/'
         self.outpath   = outpath
-        self.maxGBytes = maxFileSizeGB
+        self.maxMBytes = maxFileSizeMB
         self._fileBytes = 0
         self._indices  = {}
         
@@ -54,8 +54,8 @@ class H5Recorder:
         self._indices[key] += 1
         if self._indices[key] == self._file[key].shape[1]:
             self._file[key].resize((2, self._file[key].shape[1]+1000))
-        self._fileBytes += (sys.getsizeof(data_x) + sys.getsizeof(data))
-        if int(self._fileBytes // (1e9*self.maxGBytes)):
+        self._fileBytes += (sys.getsizeof(data) + sys.getsizeof(data_x))
+        if int(self._fileBytes > (2*1024*1024*self.maxMBytes)):
             self.closefile()
             self._fileBytes = 0
             self.openfile()

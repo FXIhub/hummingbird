@@ -80,7 +80,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
 
     def _init_recorder(self, settings):
         """Initializes the recorder"""
-        self._recorder = H5Recorder(settings.value("outputPath"))
+        self._recorder = H5Recorder(settings.value("outputPath"), 100)
 
     def _restore_data_windows(self, settings, data_sources):
         """Restores the geometry and data sources of the data windows."""
@@ -151,6 +151,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self.plotdata_widget.add_source(data_source)
         data_source._recorder = self._recorder
         self._status_message("Backend '%s' connected." % (data_source.name()), 5000)
+        
 
     def _add_backend_triggered(self):
         """Create and show the add backend dialog"""

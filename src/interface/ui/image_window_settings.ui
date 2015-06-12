@@ -861,6 +861,11 @@
            </item>
            <item>
             <property name="text">
+             <string>median</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
              <string>std</string>
             </property>
            </item>
