@@ -44,7 +44,8 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
     summed over all the slaves. All keywords pairs given will also be
     transmitted and available at the interface."""
     _check_type(title, data_y)
-    event_id = ipc.broadcast.evt.event_id()
+    event_id = evt.event_id()
+    #event_lclstime = evt.event_lclstime()
     if(ipc.mpi.is_slave()):
         if(mpi_reduce):
             ipc.mpi.send_reduce(title, 'new_data', data_y, event_id, **kwds)
