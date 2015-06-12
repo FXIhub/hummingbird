@@ -55,13 +55,41 @@ class DataWindow(QtGui.QMainWindow):
                     menu.addAction(action)
                     action.triggered.connect(self._source_title_triggered)
 
+    def get_time(self, index=None):
+        """Returns the time of the given index, or the time of the last data point"""
+        if index is None:
+            index = self.current_index
+        # Check if we have last_vector
+        if(self.last_vector_x is not None):
+            dt = datetime.datetime.fromtimestamp(self.last_vector_x[index])
+            return dt
+
+        # Check if we have enabled_sources
+        source = None
+        if(self._enabled_sources):
+            for ds in self._enabled_sources.keys():
+                if(len(self._enabled_sources[ds])):
+                    title = self._enabled_sources[ds][0]
+                    source = ds
+                    break
+
+        # There might be no data yet, so no plotdata
+        if(source is not None and title in source.plotdata and
+           source.plotdata[title].x is not None):
+            pd = source.plotdata[title]
+            dt = datetime.datetime.fromtimestamp(pd.x[index])
+            return dt
+        else:
+            return datetime.datetime.now()
+
     def on_save_to_jpg(self):
         """Save a screenshot of the window"""
         dt = self.get_time()
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         timestamp = '%04d%02d%02d_%02d%02d%02d' %(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
+        print self.settings.value("outputPath") + '/' + timestamp + '_' + self.plot_title + '.jpg'
         QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' +
-                                            timestamp + '_' + self.plot_title + '.jpg', 'jpg')
+                                            timestamp + '.jpg', 'jpg')
 
     def _source_title_triggered(self):
         """Enable/disable a data source"""
