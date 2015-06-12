@@ -71,7 +71,7 @@ class LCLSTranslator(object):
 
         # Define how to translate between LCLS sources and Hummingbird ones
         self._s2c = {}
-        self._s2c['DetInfo(CxiEndstation.0:Opal4000.1)'] = 'ScQuestar2'
+        self._s2c['DetInfo(CxiEndstation.0:Opal4000.1)'] = 'Sc2Questar'
         self._s2c['DetInfo(CxiDs1.0:Cspad.0)'] = 'CsPad Ds1'
         self._s2c['DetInfo(CxiDsd.0:Cspad.0)'] = 'CsPad Dsd'
         self._s2c['DetInfo(CxiDs2.0:Cspad.0)'] = 'CsPad Ds2'
