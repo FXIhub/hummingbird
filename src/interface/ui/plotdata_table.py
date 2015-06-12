@@ -150,15 +150,13 @@ class PlotDataTable(QtGui.QWidget):
             plotdata = item.data(QtCore.Qt.UserRole)
             if plotdata.ishistory:
                 checkbox.setDisabled(is_recording)
-                is_recording = True
                 checkbox.setChecked(1)
             if(not checkbox.isChecked()):
                 continue
             if source.name() not in titles:
                 titles[source.name()] = []
             titles[source.name()].append(plotdata._title)
-            if is_recording:
-                plotdata.recordhistory = is_recording
+            plotdata.recordhistory = is_recording
         return titles
         
     def _on_selection_changed(self):
