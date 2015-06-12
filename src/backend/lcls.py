@@ -40,6 +40,7 @@ class LCLSTranslator(object):
         self._n2c[psana.Bld.BldDataFEEGasDetEnergy] = 'pulseEnergies'
         self._n2c[psana.Bld.BldDataFEEGasDetEnergyV1] = 'pulseEnergies'
         self._n2c[psana.Lusi.IpmFexV1] = 'pulseEnergies'
+        self._n2c[psana.Camera.FrameV1] = 'camera'
         # Guard against old(er) psana versions
         try:
             self._n2c[psana.Bld.BldDataEBeamV1] = 'photonEnergies'
@@ -70,6 +71,7 @@ class LCLSTranslator(object):
 
         # Define how to translate between LCLS sources and Hummingbird ones
         self._s2c = {}
+        self._s2c['DetInfo(CxiEndstation.0:Opal4000.1)'] = 'ScQuestar2'
         self._s2c['DetInfo(CxiDs1.0:Cspad.0)'] = 'CsPad Ds1'
         self._s2c['DetInfo(CxiDsd.0:Cspad.0)'] = 'CsPad Dsd'
         self._s2c['DetInfo(CxiDs2.0:Cspad.0)'] = 'CsPad Ds2'
@@ -90,7 +92,7 @@ class LCLSTranslator(object):
         for k in native_keys:
             for c in self._native_to_common(k):
                 common_keys.add(c)
-        # parameters corresponds to the EPICS values, analysis is for values added lateron
+        # parameters corresponds to the EPICS values, analysis is for values added later on
         return list(common_keys)+['parameters']+['analysis']
 
     def _native_to_common(self, key):
@@ -152,6 +154,8 @@ class LCLSTranslator(object):
                     self._tr_cspad(values, obj, k)
                 elif(isinstance(obj, psana.Acqiris.DataDescV1)):
                     self._tr_acqiris(values, obj, k)
+                elif(isinstance(obj, psana.Camera.FrameV1)):
+                    self._tr_camera(values, obj)
                 elif(isinstance(obj, psana.EventId)):
                     self._tr_event_id(values, obj)
                 elif(isinstance(obj, psana.EvrData.DataV3) or
@@ -211,7 +215,15 @@ class LCLSTranslator(object):
 
     def _tr_cspad2x2(self, values, obj):
         """Translates CsPad2x2 to hummingbird numpy array"""
-        add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data(), ureg.ADU)
+        add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data16(), ureg.ADU)
+    def _tr_camera(self, values, obj):
+        """Translates Camera frame to hummingbird numpy array"""
+        if obj.depth == 16:
+            data = obj.data16()
+        else:
+            data = obj.data8()
+        
+        add_record(values, 'camera', 'opal', data, ureg.ADU)
 
     def _tr_cspad(self, values, obj, evt_key):
         """Translates CsPad to hummingbird numpy array, quad by quad"""
