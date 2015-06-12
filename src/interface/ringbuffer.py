@@ -79,7 +79,16 @@ class RingBuffer(object):
         else:
             return (self._len,)+self._data.shape[1:]
 
+    @property
+    def max(self):
+        """Returns the maximum value in the buffer, like a numpy array"""
+        return self._data[~numpy.isnan(self._data)].max()
 
+    @property
+    def min(self):
+        """Returns the minimum value in the buffer, like a numpy array"""
+        return self._data[~numpy.isnan(self._data)].min()
+    
     def _convert_dim(self, args):
         """Convert getitem arguments into internal indexes"""
         if(isinstance(args, slice)):
