@@ -59,7 +59,7 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitsc
     v = evt["analysis"]
     #v["isHit - "+key] = hitscore > hitscoreThreshold
     add_record(v, "analysis", "isHit - "+key, int(hitscore > hitscoreThreshold))
-    add_record(v, "analysis", "isMiss - "+key, int((hitscore < hitscoreThreshold) and (hitscore > hitscoreDark))
+    add_record(v, "analysis", "isMiss - "+key, int((hitscore < hitscoreThreshold) and (hitscore > hitscoreDark)))
     add_record(v, "analysis", "hitscore - "+key, hitscore)
 
 def countTof(evt, type="ionTOFs", key="tof", signalThreshold = 1, minWindow = 0, maxWindow = -1, hitscoreThreshold=2):
