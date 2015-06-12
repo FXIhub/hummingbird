@@ -139,7 +139,15 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             xmin = conf['xmin']
             xmax = conf['xmax']
         return xmin, xmax
-            
+
+    def _configure_ylimits(self, source, title):
+        ymin = source.plotdata[title].y.min
+        ymax = source.plotdata[title].y.max
+        if not self._settings_diag.ylimits_auto.isChecked():
+            ymin = float(str(self._settings_diag.ymin.text()))
+            ymax = float(str(self._settings_diag.ymax.text()))
+        self.plot.setRange(yRange=(ymin, ymax))
+        
     def replot(self):
         """Replot data"""
         self.plot.clear()
@@ -217,6 +225,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     wl = int(self._settings_diag.windowLength.text())
                     y = utils.array.runningMean(y, wl)
                     x = x[-max(len(y),1):]
+                self._configure_ylimits(source, title)
             elif(source.data_type[title] == 'tuple') or (source.data_type[title] == 'triple'):
                 x = pd.y[:,0]
             elif(source.data_type[title] == 'vector'):
