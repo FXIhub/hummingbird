@@ -55,6 +55,33 @@ class DataWindow(QtGui.QMainWindow):
                     menu.addAction(action)
                     action.triggered.connect(self._source_title_triggered)
 
+    def get_time(self, index=None):
+        """Returns the time of the given index, or the time of the last data point"""
+        if index is None:
+            index = self.current_index
+        # Check if we have last_vector
+        if(self.last_vector_x is not None):
+            dt = datetime.datetime.fromtimestamp(self.last_vector_x[index])
+            return dt
+
+        # Check if we have enabled_sources
+        source = None
+        if(self._enabled_sources):
+            for ds in self._enabled_sources.keys():
+                if(len(self._enabled_sources[ds])):
+                    title = self._enabled_sources[ds][0]
+                    source = ds
+                    break
+
+        # There might be no data yet, so no plotdata
+        if(source is not None and title in source.plotdata and
+           source.plotdata[title].x is not None):
+            pd = source.plotdata[title]
+            dt = datetime.datetime.fromtimestamp(pd.x[index])
+            return dt
+        else:
+            return datetime.datetime.now()
+
     def on_save_to_jpg(self):
         """Save a screenshot of the window"""
         dt = self.get_time()
