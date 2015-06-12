@@ -178,10 +178,11 @@ class DataSource(QtCore.QObject):
             return
         if(cmd == 'new_data'):
             data_x = payload[4]
-            conf = payload[5]
+            data_lcls = payload[5]
+            conf = payload[6]
             self.conf[title].update(conf)
             if self._plotdata[title].recordhistory:
-                self._recorder.append(title, data, data_x)
+                self._recorder.append(title, data, data_lcls)
             if 'msg' in conf:
                 self._plotdata[title].append(data, data_x, conf['msg'])
             else:

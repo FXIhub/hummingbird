@@ -178,7 +178,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         axis_labels = ['left', 'bottom']
         xlabel_index = 0
         ylabel_index = 1
-        if source.data_type[title] == 'image':
+        if (source.data_type[title] == 'image') or (source.data_type[title] == 'triple'):
             xlabel_index = (xlabel_index+1)%2
             ylabel_index = (ylabel_index+1)%2
 

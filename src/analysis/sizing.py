@@ -250,9 +250,10 @@ def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=N
         img_r_m = img_r
         r_m = r
     
-    if False:    
+    if True:    
         from scipy.ndimage.filters import gaussian_filter
-        img_r_m = gaussian_filter(img_r_m,1.)
+        img_r_m = gaussian_filter(img_r_m,2.)
+        add_record(evt["analysis"], "analysis", "radial average - used", img_r_m)
     
     
     diameter, info = spimage.fit_sphere_diameter_radial(r_m, img_r_m, diameter, intensity, wavelength, pixelsize, distance,

@@ -45,16 +45,16 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
     transmitted and available at the interface."""
     _check_type(title, data_y)
     event_id = evt.event_id()
-    #event_lclstime = evt.event_lclstime()
+    event_lclstime = evt.event_lclstime()
     if(ipc.mpi.is_slave()):
         if(mpi_reduce):
-            ipc.mpi.send_reduce(title, 'new_data', data_y, event_id, **kwds)
+            ipc.mpi.send_reduce(title, 'new_data', data_y, event_id, event_lclstime, **kwds)
         else:
             ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y,
-                                 event_id, kwds])
+                                 event_id, event_lclstime, kwds])
     else:
         ipc.zmq().send(title, [ipc.uuid, 'new_data', title, data_y,
-                               event_id, kwds])
+                               event_id, event_lclstime, kwds])
         
 def set_current_event(_evt):
     """Updates the current event, such that it can

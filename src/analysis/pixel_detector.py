@@ -133,6 +133,8 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
     else:
         add_record(evt["analysis"], "analysis", outkey, assembled)
 
+
+
     
 def bin(evt, type, key, binning, mask=None):
     """Bin a detector image given a binning factor (and mask) to ``evt["analysis"]["binned image - " + key]`` (``evt["analysis"]["binned mask - " + key]``
@@ -181,3 +183,39 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
         img_r = img_r[valid]
     add_record(evt["analysis"], "analysis", "radial distance - "+key, r)
     add_record(evt["analysis"], "analysis", "radial average - "+key, img_r)
+
+
+    
+def cmc(evt, type, key, mask=None):
+    """ Common mode subtraction with median value from pixels within given mask. Add record ``evt["analysis"]["cmc - " + key]``
+
+    Args:
+      :evt:        The event variable
+      :type(str):  The event type (e.g. photonPixelDetectors)
+      :key(str):   The event key (e.g. CCD)
+
+    Kwargs:
+      :mask: Binary mask
+    
+    :Authors:
+        Max F. Hantke (hantke@xray.bmc.uu.se)
+    """
+    data = evt[type][key].data
+    dataCorrected = np.copy(data)
+    
+    lData = data[:,:data.shape[1]/2]
+    rData = data[:,data.shape[1]/2:]
+
+    if mask is None:
+        lMask = np.ones(shape=lData.shape, dtype="bool")
+        rMask = np.ones(shape=rData.shape, dtype="bool")
+    else:
+        lMask = mask[:,:data.shape[1]/2]
+        rMask = mask[:,data.shape[1]/2:]
+    
+    ml = np.median(lData[lMask])
+    mr = np.median(rData[rMask])
+    dataCorrected[:,:data.shape[1]/2] -= ml
+    dataCorrected[:,data.shape[1]/2:] -= mr
+    add_record(evt["analysis"], "analysis", "cmc - " + key, dataCorrected)
+

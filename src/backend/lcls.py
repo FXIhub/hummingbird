@@ -28,12 +28,34 @@ class LCLSTranslator(object):
             psana.setConfigFile(config_file)
 
         if('LCLS/DataSource' in state):
-            self.data_source = psana.DataSource(state['LCLS/DataSource'])
+            dsrc = state['LCLS/DataSource']
         elif('LCLS' in state and 'DataSource' in state['LCLS']):
-            self.data_source = psana.DataSource(state['LCLS']['DataSource'])
+            dsrc = state['LCLS']['DataSource']
         else:
             raise ValueError("You need to set the '[LCLS][DataSource]'"
                              " in the configuration")
+
+        # Cache times of events that shall be extracted from XTC (does not work for stream)
+        if 'times' in state or 'fiducials' in state:
+            if not ('times' in state and 'fiducials' in state):
+                raise ValueError("Times or fiducials missing in state."
+                                 " Extraction of selected events expects both event identifiers")                
+            if dsrc[:len('exp=')] != 'exp=':
+                raise ValueError("Extraction of events with given times and fiducials"
+                                 " only works when reading from XTC with index files")
+            if dsrc[-len(':idx'):] != ':idx':
+                dsrc += ':idx'
+            self.times = state['times']
+            self.fiducials = state['fiducials']
+            self.i = 0
+            self.data_source = psana.DataSource(dsrc)
+            self.run = self.data_source.runs().next()
+        else:
+            self.times = None
+            self.fiducials = None
+            self.i = None
+            self.data_source = psana.DataSource(dsrc)
+            self.run = None
 
         # Define how to translate between LCLS types and Hummingbird ones
         self._n2c = {}
@@ -82,7 +104,12 @@ class LCLSTranslator(object):
 
     def next_event(self):
         """Grabs the next event and returns the translated version"""
-        evt = self.data_source.events().next()
+        if self.times is None:
+            evt = self.data_source.events().next()
+        else:
+            time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
+            self.i += 1
+            evt = self.run.event(time)
         return EventTranslator(evt, self)
 
     def event_keys(self, evt):

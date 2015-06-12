@@ -80,7 +80,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
 
     def _init_recorder(self, settings):
         """Initializes the recorder"""
-        self._recorder = H5Recorder(settings.value("outputPath"))
+        self._recorder = H5Recorder(settings.value("outputPath"), 100)
 
     def _restore_data_windows(self, settings, data_sources):
         """Restores the geometry and data sources of the data windows."""
@@ -151,7 +151,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self.plotdata_widget.add_source(data_source)
         data_source._recorder = self._recorder
         self._status_message("Backend '%s' connected." % (data_source.name()), 5000)
-
+        
     def _add_backend_triggered(self):
         """Create and show the add backend dialog"""
         diag = AddBackendDialog(self)
@@ -224,11 +224,13 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             self._recorder_action.setChecked(False)
             return
         if (turn_on):
+            record_titles = self.plotdata_widget.record_titles(True)
+            if not len(record_titles):
+                return
             success = self._recorder.openfile()
             if not success:
                 self._recorder_action.setChecked(False)
                 return
-            record_titles = self.plotdata_widget.record_titles(True)
             for ds in self._data_sources:
                 if ds.name() in record_titles:
                     for title in record_titles[ds.name()]:
