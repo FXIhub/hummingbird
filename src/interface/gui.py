@@ -151,6 +151,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self.plotdata_widget.add_source(data_source)
         data_source._recorder = self._recorder
         self._status_message("Backend '%s' connected." % (data_source.name()), 5000)
+        
 
     def _add_backend_triggered(self):
         """Create and show the add backend dialog"""
