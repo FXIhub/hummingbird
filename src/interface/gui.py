@@ -80,7 +80,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
 
     def _init_recorder(self, settings):
         """Initializes the recorder"""
-        self._recorder = H5Recorder(settings.value("outputPath"))
+        self._recorder = H5Recorder(settings.value("outputPath"), 100)
 
     def _restore_data_windows(self, settings, data_sources):
         """Restores the geometry and data sources of the data windows."""
