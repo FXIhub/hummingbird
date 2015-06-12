@@ -45,6 +45,15 @@ if __name__ == "__main__":
         p = args.name_prefix + "-"
     else:
         p = ""
+
+    if args.vmin is not None:
+        vmin = args.vmin
+    else:
+        vmin = None
+    if args.vmax is not None:
+        vmax = args.vmax
+    else:
+        vmax = None
     
     if args.colormap:
         cmap = args.colormap
@@ -56,11 +65,11 @@ if __name__ == "__main__":
         if args.threshold:
             d = d > args.threshold
         if args.plain:
-            plt.imsave("%s%s.png" % (p,o), d, cmap=cmap)
+            plt.imsave("%s%s.png" % (p,o), d, cmap=cmap, vmin=vmin, vmax=vmax)
         else:
             fig = plt.figure()
             ax = fig.add_subplot(111,title="%s%s" % (p,o))
-            cax = ax.imshow(d, vmin=args.vmin, vmax=args.vmax, cmap=cmap)
+            cax = ax.imshow(d, vmin=vmin, vmax=vmax, cmap=cmap)
             fn = "%s%s.png" % (p,o)
             fig.colorbar(cax)
             fig.savefig(fn)
