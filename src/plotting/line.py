@@ -5,7 +5,7 @@ import utils.array
 
 
 histories = {}
-def plotHistory(param, label='', history=100, runningHistogram=False, window=20, bins=100, hmin=0, hmax=100, xmin=None, xmax=None):
+def plotHistory(param, label='', history=100, runningHistogram=False, window=20, bins=100, hmin=0, hmax=100):
     """Plotting history of a parameter.
 
     Args:
@@ -26,7 +26,7 @@ def plotHistory(param, label='', history=100, runningHistogram=False, window=20,
             data_type = 'scalar'
             ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history)
         histories[param.name] = True
-    ipc.new_data(plotid, param.data, xmin=xmin, xmax=xmax)
+    ipc.new_data(plotid, param.data)
 
 def plotTimestamp(timestamp):
     ipc.new_data('History(Fiducial)', timestamp.fiducials)
