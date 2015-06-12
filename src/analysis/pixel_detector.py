@@ -187,6 +187,19 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
 
     
 def cmc(evt, type, key, mask=None):
+    """ Common mode subtraction with median value from pixels within given mask. Add record ``evt["analysis"]["cmc - " + key]``
+
+    Args:
+      :evt:        The event variable
+      :type(str):  The event type (e.g. photonPixelDetectors)
+      :key(str):   The event key (e.g. CCD)
+
+    Kwargs:
+      :mask: Binary mask
+    
+    :Authors:
+        Max F. Hantke (hantke@xray.bmc.uu.se)
+    """
     data = evt[type][key].data
     dataCorrected = np.copy(data)
     
@@ -202,7 +215,6 @@ def cmc(evt, type, key, mask=None):
     
     ml = np.median(lData[lMask])
     mr = np.median(rData[rMask])
-    print ml,mr
     dataCorrected[:,:data.shape[1]/2] -= ml
     dataCorrected[:,data.shape[1]/2:] -= mr
     add_record(evt["analysis"], "analysis", "cmc - " + key, dataCorrected)
