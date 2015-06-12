@@ -119,7 +119,6 @@ class DataSource(QtCore.QObject):
         if(socket is None):
             socket = self.sender()
         reply = socket.recv_json()
-        print reply[0]
         if(reply[0] == 'data_port'):
             self._data_port = reply[1]
             logging.debug("Data source '%s' received data_port=%s", self.name(), self._data_port)
