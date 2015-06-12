@@ -38,7 +38,7 @@ def hitrate(evt, hit, history=100):
     else:
         add_record(v, "analysis", "hitrate", None)
 
-def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, mask=None):
+def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, mask=None):
     """A simple hitfinder that counts the number of lit pixels and
     adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
 
@@ -59,6 +59,7 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, mask=
     v = evt["analysis"]
     #v["isHit - "+key] = hitscore > hitscoreThreshold
     add_record(v, "analysis", "isHit - "+key, int(hitscore > hitscoreThreshold))
+    add_record(v, "analysis", "isMiss - "+key, int((hitscore < hitscoreThreshold) and (hitscore > hitscoreDark))
     add_record(v, "analysis", "hitscore - "+key, hitscore)
 
 def countTof(evt, type="ionTOFs", key="tof", signalThreshold = 1, minWindow = 0, maxWindow = -1, hitscoreThreshold=2):
