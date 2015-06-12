@@ -112,4 +112,4 @@ def runningMean(x, N):
     if x.shape[0] < N:
         return sum(x)
     cumsum = numpy.cumsum(numpy.insert(x, 0, 0))
-    return (cumsum[N:] - cumsum[:-N]) / N
+    return (cumsum[N:] - cumsum[:-N]) / float(N)
