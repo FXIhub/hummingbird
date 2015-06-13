@@ -21,11 +21,11 @@ class Stack:
         self._currentIndex = 0
         n = ipc.mpi.nr_workers()
         if n > 1 and self._outPeriod is not None:
-            self._outIndex = float(ipc.mpi.rank) / float(n-1) * (self._outPeriod-1)
+            self._outIndex = int(float(ipc.mpi.rank) / float(n-1) * (self._outPeriod-1))
         else:
             self._outIndex = 0
         if n > 1 and self._reducePeriod is not None:
-            self._reduceIndex = float(ipc.mpi.rank) / float(n-1) * (self._reducePeriod-1)
+            self._reduceIndex = int(float(ipc.mpi.rank) / float(n-1) * (self._reducePeriod-1))
         else:
             self._reduceIndex = 0
         self.last_std    = None
@@ -93,7 +93,7 @@ class Stack:
                 return
         if not self._reduced:
             if verbose:
-                print "Postponing writing stack to file because stack is not reduced yet. Fill status %i/%i." % (self._currentIndex+1, self._maxLength)
+                print "Postponing writing stack to file because stack is not reduced yet. Fill status %i/%i." % (self._currentIndex+1, self._maxLen)
             return
         # Timestamp for filename
         try:
