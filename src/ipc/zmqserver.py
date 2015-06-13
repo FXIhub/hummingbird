@@ -28,6 +28,7 @@ class ZmqServer(object):
         t = threading.Thread(target=self._ioloop)
         # Make sure the program exists even when the thread exists
         t.daemon = True
+        self.reloadmaster = False
         t.start()
 
 
@@ -66,6 +67,14 @@ class ZmqServer(object):
                 self._send_array(array_list[i], flags=zmq.SNDMORE)
             else:
                 self._send_array(array_list[i])
+    
+    def checksignaltime(self):
+        if self.reloadmaster:
+            import os, signal
+            self.reloadmaster = False
+            with open('.pid', 'r') as file:
+                pid = int(file.read())
+            os.kill(pid, signal.SIGUSR1)
 
     def _answer_command(self, stream, msg):
         """Reply to commands received on the _ctrl_stream"""
@@ -77,12 +86,9 @@ class ZmqServer(object):
             stream.socket.send_json(['uuid', bytes(ipc.uuid)])
         if(msg[0] == 'reload'):
             #TODO: Find a way to replace this with a direct function call (in all workers)
-            import os, signal
             stream.socket.send_json(['reload', bytes(True)])
             print "Answering reload command"
-            with open('.pid', 'r') as file:
-                pid = int(file.read())
-            os.kill(pid, signal.SIGUSR1)
+            self.reloadmaster = True
             
     def _ioloop(self):
         """Start the ioloop fires the callbacks when data is received
