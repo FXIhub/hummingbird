@@ -3,11 +3,12 @@ import h5py
 import numpy as np
 
 class Recorder:
-    def __init__(self, outpath, events, rank, maxEvents=1000):
+    def __init__(self, outpath, events, rank, maxEvents=1000, xtc=False):
         self.outpath = outpath
         self.maxlen = maxEvents
         self.events = events
         self.rank = rank
+        self.xtc  = xtc
         self.create_file()
 
     def _timestamp(self):
@@ -27,6 +28,7 @@ class Recorder:
             file.create_dataset(key, (self.maxlen,), dtype=float)
         file.create_dataset('timestamp', (self.maxlen,), dtype=np.uint64)
         file.create_dataset('fiducial',  (self.maxlen,), dtype=np.int64)
+        file.create_dataset('run',  (self.maxlen,), dtype=np.int64)
         file.close()
         self.index = 0
         return True
@@ -37,6 +39,8 @@ class Recorder:
         with h5py.File(self.filename, 'a') as file:
             file['timestamp'][self.index] = evt["eventID"]["Timestamp"].lcls_time
             file['fiducial'][self.index] = evt["eventID"]["Timestamp"].fiducials
+            if self.xtc:
+                file['run'][self.index] = evt["eventID"]["Timestamp"].run
             for key, item in self.events.iteritems():
                 file[key][self.index] = evt[item[0]][item[1]].data
         self.index += 1
