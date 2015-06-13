@@ -26,6 +26,7 @@ class Recorder:
         for key in self.events:
             file.create_dataset(key, (self.maxlen,), dtype=float)
         file.create_dataset('timestamp', (self.maxlen,), dtype=np.uint64)
+        file.create_dataset('fiducial',  (self.maxlen,), dtype=np.int64)
         file.close()
         self.index = 0
         return True
@@ -35,6 +36,7 @@ class Recorder:
             self.create_file()
         with h5py.File(self.filename, 'a') as file:
             file['timestamp'][self.index] = evt["eventID"]["Timestamp"].lcls_time
+            file['fiducial'][self.index] = evt["eventID"]["Timestamp"].fiducials
             for key, item in self.events.iteritems():
                 file[key][self.index] = evt[item[0]][item[1]].data
         self.index += 1
