@@ -129,8 +129,8 @@ def cmc(data, mask=None):
         lMask = mask[:,:data.shape[1]/2] == False
         rMask = mask[:,data.shape[1]/2:] == False
     
-    ml = numpy.median(lData[lMask])
-    mr = numpy.median(rData[rMask])
-    dataCorrected[:,:data.shape[1]/2] -= ml
-    dataCorrected[:,data.shape[1]/2:] -= mr
+    if lMask.sum() > 0:
+        dataCorrected[:,:data.shape[1]/2] -= numpy.median(lData[lMask])
+    if rMask.sum() > 0:
+        dataCorrected[:,data.shape[1]/2:] -= numpy.median(rData[rMask])
     return dataCorrected
