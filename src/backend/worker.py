@@ -59,8 +59,8 @@ class Worker(object):
         print 'Starting backend...'
 
     def raise_interruption(self, signum, stack):
-        print "Raising interrupt"
-        raise KeyboardInterrupt
+        print "Sending SIG_INT to self process"
+        os.kill(os.getpid(), signal.SIGINT)
         
     def load_conf(self):
         """Load or reload the configuration file."""
