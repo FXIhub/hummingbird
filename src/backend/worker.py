@@ -59,8 +59,7 @@ class Worker(object):
         print 'Starting backend...'
 
     def raise_interruption(self, signum, stack):
-        print "Sending SIG_INT to self process"
-        os.kill(os.getpid(), signal.SIGINT)
+        self.reloadnow = True
         
     def load_conf(self):
         """Load or reload the configuration file."""
@@ -89,7 +88,7 @@ class Worker(object):
         """
         while(True):
             try:
-                while(Worker.state['running']):
+                while(Worker.state['running']) and not self.reloadnow:
                     if(ipc.mpi.is_master()):
                         ipc.mpi.master_loop()
                     else:
@@ -105,20 +104,19 @@ class Worker(object):
                             logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info = True)
                         except (RuntimeError) as e:
                             logging.warning("Some problem with psana, probably due to reloading the backend.", exc_info=True)
-                            
-                    if self.reloadnow == True:
-                        self.reloadnow = False
-                        raise KeyboardInterrupt()
             except KeyboardInterrupt:
                 try:
                     print "Hit Ctrl+c again in the next second to quit..."
                     time.sleep(1)
-                    print "Reloading configuration file."
-                    self.load_conf()
-                    self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
+                    self.reloadnow = True
+                    signal.signal(signal.SIGINT, self.ctrlcevent)
                 except KeyboardInterrupt:
                     print "Exiting..."
                     break
+            if self.reloadnow:
+                self.reloadnow = False
+                print "Reloading configuration file."
+                self.load_conf()
         signal.signal(signal.SIGINT, self.oldHandler)
 
 
