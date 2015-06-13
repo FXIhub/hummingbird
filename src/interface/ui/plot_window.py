@@ -85,12 +85,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             self._settings_diag.histMin.setEnabled(True)
             self._settings_diag.histMax.setEnabled(True)
 
-    def get_time(self, title, index=None):
+    def get_time(self, index=None):
         """Returns the time of the given index, or the time of the last data point"""
         if index is None:
             index = self.current_index
         # Check if we have last_vector
-        if self.last_vector_x is not None:
+        if (self.last_vector_x is not None):
             dt = datetime.datetime.fromtimestamp(self.last_vector_x[index])
             return dt
 
@@ -177,7 +177,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
                 y = numpy.array(pd.y, copy=False)
                 self.last_vector_y = {}
-                self.last_vector_x = {}
+                self.last_vector_x = None
             elif(source.data_type[title] == 'tuple'):
                 y = pd.y[:,1]
             elif(source.data_type[title] == 'triple'):
@@ -273,7 +273,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
 
         self.setWindowTitle(", ".join(titlebar))
-        dt = self.get_time(title)
+        dt = self.get_time()
         # Round to miliseconds
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         self.dateLabel.setText(str(dt.date()))
