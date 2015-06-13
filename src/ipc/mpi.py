@@ -31,12 +31,15 @@ try:
     rank = comm.Get_rank()
     size = comm.Get_size()
     slave_group = comm.Get_group().Incl(range(1, size))
-    slaves_comm = comm.Create(slave_group)        
+    slaves_comm = comm.Create(slave_group)
+    reload_comm = comm.Clone()
+
 except ImportError:
     rank = 0
     size = 1
     comm = None
     slaves_comm = None
+    reload_comm = None
 
 def is_slave():
     """Returns True if the process has MPI rank > 0."""
@@ -53,6 +56,20 @@ def is_main_worker():
 def send(title, data):
     """Send a list of data items to the master node."""
     comm.send([title, data], 0)
+
+def checkreload():
+    if ipc.zmq() is not None:
+        if ipc.zmq().reloadmaster == True:
+            ipc.zmq().reloadmaster = False
+            if reload_comm is not None:
+                for i in xrange(1,size):
+                    reload_comm.send(['__reload__'], i)
+            return True
+    if is_slave():
+        if reload_comm.Iprobe():
+            msg = reload_comm.recv()
+            return True
+    return False
 
 def master_loop():
     """Run the main loop on the master process.

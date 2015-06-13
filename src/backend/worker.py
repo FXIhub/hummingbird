@@ -89,8 +89,7 @@ class Worker(object):
         while(True):
             try:
                 while(Worker.state['running']) and not self.reloadnow:
-                    if ipc.zmq() is not None:
-                        ipc.zmq().checksignaltime()
+                    self.reloadnow = self.reloadnow or ipc.mpi.checkreload()
                     if(ipc.mpi.is_master()):
                         ipc.mpi.master_loop()
                     else:

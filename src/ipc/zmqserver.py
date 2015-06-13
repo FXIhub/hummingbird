@@ -68,14 +68,6 @@ class ZmqServer(object):
             else:
                 self._send_array(array_list[i])
     
-    def checksignaltime(self):
-        if self.reloadmaster:
-            import os, signal
-            self.reloadmaster = False
-            with open('.pid', 'r') as file:
-                pid = int(file.read())
-            os.kill(pid, signal.SIGUSR1)
-
     def _answer_command(self, stream, msg):
         """Reply to commands received on the _ctrl_stream"""
         if(msg[0] == 'conf'):
