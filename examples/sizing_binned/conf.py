@@ -165,7 +165,8 @@ def onEvent(evt):
         I1 = evt["parameters"]["intensity"].data
         msg_glo = "diameter = %.2f nm, \nintensity = %.2f mJ/um2" % (s0, I0)
         msg_fit = "Fit result: \ndiameter = %.2f nm (%.2f nm), \nintensity = %.2f mJ/um2 (%.2f mJ/um2)" % (s0, s1-s0, I0, I1-I0)
-
+        msg_fit = "%0.1f" %s0
+        
         # Plot the glorious shots
         plotting.image.plotImage(evt["analysis"]["binned image - CCD"], msg=msg_glo, log=True)#, mask=binnedMask)
         plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg_glo, log=True, mask=mask)

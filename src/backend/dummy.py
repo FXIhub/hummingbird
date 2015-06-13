@@ -81,3 +81,6 @@ class DummyTranslator(object):
         """Returns an id which should be unique for each
         shot and increase monotonically"""
         return float(time.time())
+
+    def event_lclstime(self, _):
+        return float(time.time())
