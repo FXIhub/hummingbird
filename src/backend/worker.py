@@ -32,6 +32,7 @@ class Worker(object):
         self._config_file = config_file
         # self.backend_conf = imp.load_source('backend_conf', config_file)
         signal.signal(signal.SIGUSR1, self.raise_interruption)
+        self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
         
         self.load_conf()
         Worker.state['_config_file'] = config_file
@@ -86,7 +87,6 @@ class Worker(object):
         While ``state['running']`` is True, it will get events
         from the translator and process them as fast as possible.
         """
-        self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
         while(True):
             try:
                 while(Worker.state['running']):
