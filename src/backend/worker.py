@@ -54,7 +54,7 @@ class Worker(object):
                     with open('.pid', 'w') as file: file.write(str(os.getppid()))
             except KeyError:
                 with open('.pid', 'w') as file: file.write(str(os.getpid()))
-        
+        self.reloadnow = False
         print 'Starting backend...'
 
     def raise_interruption(self, signum, stack):
@@ -76,12 +76,17 @@ class Worker(object):
         Worker.state['running'] = True
         self.event_loop()
 
+    def ctrlcevent(self, whatSignal, stack):
+        self.reloadnow = True
+        signal.signal(signal.SIGINT, self.oldHandler)
+
     def event_loop(self):
         """The event loop.
 
         While ``state['running']`` is True, it will get events
         from the translator and process them as fast as possible.
         """
+        self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
         while(True):
             try:
                 while(Worker.state['running']):
@@ -99,17 +104,22 @@ class Worker(object):
                         except (KeyError, TypeError) as exc:
                             logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info = True)
                         except (RuntimeError) as e:
-                            logging.warning("Some problem with psana, probably due to reloading the backend.", exc_info=True) 
-
+                            logging.warning("Some problem with psana, probably due to reloading the backend.", exc_info=True)
+                            
+                    if self.reloadnow == True:
+                        self.reloadnow = False
+                        raise KeyboardInterrupt()
             except KeyboardInterrupt:
                 try:
                     print "Hit Ctrl+c again in the next second to quit..."
                     time.sleep(1)
                     print "Reloading configuration file."
                     self.load_conf()
+                    self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
                 except KeyboardInterrupt:
                     print "Exiting..."
                     break
+        signal.signal(signal.SIGINT, self.oldHandler)
 
 
 def init_translator(state):
