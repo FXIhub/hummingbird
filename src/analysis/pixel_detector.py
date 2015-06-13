@@ -201,21 +201,14 @@ def cmc(evt, type, key, mask=None):
         Max F. Hantke (hantke@xray.bmc.uu.se)
     """
     data = evt[type][key].data
-    dataCorrected = np.copy(data)
-    
-    lData = data[:,:data.shape[1]/2]
-    rData = data[:,data.shape[1]/2:]
-
-    if mask is None:
-        lMask = np.ones(shape=lData.shape, dtype="bool")
-        rMask = np.ones(shape=rData.shape, dtype="bool")
-    else:
-        lMask = mask[:,:data.shape[1]/2] == False
-        rMask = mask[:,data.shape[1]/2:] == False
-    
-    ml = np.median(lData[lMask])
-    mr = np.median(rData[rMask])
-    dataCorrected[:,:data.shape[1]/2] -= ml
-    dataCorrected[:,data.shape[1]/2:] -= mr
+    dataCorrected = utils.array.cmc(data, mask=mask)
     add_record(evt["analysis"], "analysis", "cmc - " + key, dataCorrected)
 
+
+def bgsub(evt, type, key, bg):
+    data = evt[type][key].data
+    if bg is not None:
+        dataCorrected = data - bg
+    else:
+        dataCorrected = data
+    add_record(evt["analysis"], "analysis", "bgsub - " + key, dataCorrected)

@@ -113,3 +113,24 @@ def runningMean(x, N):
         return sum(x)
     cumsum = numpy.cumsum(numpy.insert(x, 0, 0))
     return (cumsum[N:] - cumsum[:-N]) / float(N)
+
+
+# For cspad2x2
+def cmc(data, mask=None):
+    dataCorrected = numpy.copy(data)
+    
+    lData = data[:,:data.shape[1]/2]
+    rData = data[:,data.shape[1]/2:]
+
+    if mask is None:
+        lMask = numpy.ones(shape=lData.shape, dtype="bool")
+        rMask = numpy.ones(shape=rData.shape, dtype="bool")
+    else:
+        lMask = mask[:,:data.shape[1]/2] == False
+        rMask = mask[:,data.shape[1]/2:] == False
+    
+    ml = numpy.median(lData[lMask])
+    mr = numpy.median(rData[rMask])
+    dataCorrected[:,:data.shape[1]/2] -= ml
+    dataCorrected[:,data.shape[1]/2:] -= mr
+    return dataCorrected

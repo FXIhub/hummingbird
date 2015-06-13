@@ -8,27 +8,34 @@ from datetime import datetime as DT
 import pytz
 
 class Stack:
-    def __init__(self,name="stack",maxLen=100,outPeriod=100):
+    def __init__(self,name="stack",maxLen=100,reducePeriod=None,outPeriod=None):
         self._maxLen = maxLen
         self._outPeriod = outPeriod
+        self._reducePeriod = reducePeriod
         self._name = name
         self.clear()
+        self._outputs = ["std","mean","sum","median","min","max"]
         
     def clear(self):
         self._buffer = None
         self._currentIndex = 0
         n = ipc.mpi.nr_workers()
-        if n > 1:
+        if n > 1 and self._outPeriod is not None:
             self._outIndex = float(ipc.mpi.rank) / float(n-1) * (self._outPeriod-1)
         else:
             self._outIndex = 0
+        if n > 1 and self._reducePeriod is not None:
+            self._reduceIndex = float(ipc.mpi.rank) / float(n-1) * (self._reducePeriod-1)
+        else:
+            self._reduceIndex = 0
         self.last_std    = None
         self.last_mean   = None
         self.last_sum    = None
         self.last_median = None
         self.last_min    = None
         self.last_max    = None
-        
+        self._reduced     = False
+
     def filled(self):
         return self._currentIndex >= self._maxLen
     
@@ -69,16 +76,25 @@ class Stack:
         self.last_max = self._getData().max(axis=0)
         return self.last_max
 
-    def write(self,evt, directory=".", png=False, verbose=True):
-        outputs = ["std","mean","sum","median","min","max"]
-        # Postpone writing?
-        if (self._currentIndex % self._outPeriod) != self._outIndex:
-            return
+    def reduce(self):
+        if self._reducePeriod is not None:
+            if (self._currentIndex % self._reducePeriod) != self._outIndex:
+                return
         if not self.filled():
             return
-        # Reduce
-        for o in outputs:
-            exec "self.%s()" % o
+        for o in self._outputs:
+            exec "self.%s()" % o       
+        self._reduced = True
+
+    def write(self,evt, directory=".", png=False, verbose=True):
+        # Postpone writing?
+        if self._outPeriod is not None:
+            if (self._currentIndex % self._outPeriod) != self._outIndex:
+                return
+        if not self._reduced:
+            if verbose:
+                print "Postponing writing stack to file because stack is not reduced yet. Fill status %i/%i." % (self._currentIndex+1, self._maxLength)
+            return
         # Timestamp for filename
         try:
             dt64 = evt["eventID"]["Timestamp"].datetime64
@@ -98,14 +114,14 @@ class Stack:
         if verbose:
             print "Writing stack to %s" % fn
         with h5py.File(fn,"w") as f:
-            for o in outputs:
+            for o in self._outputs:
                 exec "f[\"%s\"] = self.last_%s" % (o,o)
         # Write to PNG
         if png:
             import matplotlib as mpl
             mpl.use('Agg')
             import matplotlib.pyplot as plt
-            for o in outputs:
+            for o in self._outputs:
                 fig = plt.figure()
                 ax = fig.add_subplot(111,title="%s %s (%i)" % (o,self._name,evt.event_id()))
                 exec "cax = ax.imshow(%s)" % o
