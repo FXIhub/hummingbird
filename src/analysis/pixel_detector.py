@@ -210,8 +210,8 @@ def cmc(evt, type, key, mask=None):
         lMask = np.ones(shape=lData.shape, dtype="bool")
         rMask = np.ones(shape=rData.shape, dtype="bool")
     else:
-        lMask = mask[:,:data.shape[1]/2]
-        rMask = mask[:,data.shape[1]/2:]
+        lMask = mask[:,:data.shape[1]/2] == False
+        rMask = mask[:,data.shape[1]/2:] == False
     
     ml = np.median(lData[lMask])
     mr = np.median(rData[rMask])
