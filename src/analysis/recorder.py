@@ -1,5 +1,6 @@
 import time, datetime
 import h5py
+import logging
 import numpy as np
 
 class Recorder:
@@ -9,6 +10,7 @@ class Recorder:
         self.events = events
         self.rank = rank
         self.xtc  = xtc
+        self.index = None
         self.create_file()
 
     def _timestamp(self):
@@ -34,6 +36,9 @@ class Recorder:
         return True
 
     def append(self, evt):
+        if self.index is None:
+            logging.warning("Cannot record events.")
+            return
         if self.index == self.maxlen:
             self.create_file()
         with h5py.File(self.filename, 'a') as file:
