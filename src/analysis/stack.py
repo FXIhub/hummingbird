@@ -86,7 +86,7 @@ class Stack:
             exec "self.%s()" % o       
         self._reduced = True
 
-    def write(self,evt, directory=".", png=False, verbose=True):
+    def write(self,evt, directory=".", verbose=True):
         # Postpone writing?
         if self._outPeriod is not None:
             if (self._currentIndex % self._outPeriod) != self._outIndex:
@@ -96,37 +96,13 @@ class Stack:
                 print "Postponing writing stack to file because stack is not reduced yet. Fill status %i/%i." % (self._currentIndex+1, self._maxLen)
             return
         # Timestamp for filename
-        try:
-            dt64 = evt["eventID"]["Timestamp"].datetime64
-        except:
-	    dt64 = numpy.datetime64(datetime.datetime.utcnow())
-        # Convert to US/Pacific local time
-        t_loc = datetime.datetime.now()
-        t_utc = datetime.datetime.utcnow()
-        delta = t_utc-t_loc
-        dt64_loc = dt64 + delta.seconds * 1000000
-        try:
-            fid = evt["eventID"]["Timestamp"].fiducials
-        except:
-            fid = 0
-        fn = "%s/%s-%s-fid%s-rk%i.h5" % (directory,self._name, str(dt64_loc)[:-5], fid, ipc.mpi.rank)
+        dt = evt["eventID"]["Timestamp"].data
+        fid = evt["eventID"]["Timestamp"].fiducials
+        ts = dt.strftime("%Y%m%d-%H%M%S-%f")
+        fn = "%s/%s-%s-fid%s-rk%i.h5" % (directory,self._name, ts, fid, ipc.mpi.rank)
         # Write to H5
         if verbose:
             print "Writing stack to %s" % fn
         with h5py.File(fn,"w") as f:
             for o in self._outputs:
                 exec "f[\"%s\"] = self.last_%s" % (o,o)
-        # Write to PNG
-        if png:
-            import matplotlib as mpl
-            mpl.use('Agg')
-            import matplotlib.pyplot as plt
-            for o in self._outputs:
-                fig = plt.figure()
-                ax = fig.add_subplot(111,title="%s %s (%i)" % (o,self._name,evt.event_id()))
-                exec "cax = ax.imshow(%s)" % o
-                fn = "%s/%s-%s-%i.png" % (directory,o,self._name, evt.event_id()) 
-                fig.colorbar(cax)
-                fig.savefig(fn)
-                plt.clf()
-                
