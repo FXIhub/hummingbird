@@ -143,6 +143,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
     def _configure_ylimits(self, source, title):
         ymin = source.plotdata[title].y.min
         ymax = source.plotdata[title].y.max
+        if ymin == ymax == 0:
+            ymin = -0.1
+            ymax = 0.1
         if not self._settings_diag.ylimits_auto.isChecked():
             ymin = float(str(self._settings_diag.ymin.text()))
             ymax = float(str(self._settings_diag.ymax.text()))
