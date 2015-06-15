@@ -183,6 +183,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self.last_vector_x = None
             elif(source.data_type[title] == 'tuple'):
                 y = pd.y[:,1]
+                symbol_brush = (255,255,255,120)
+                symbol_pen = None
+                symbol_size = 8
             elif(source.data_type[title] == 'triple'):
                 conf = source.conf[title]
                 if self.colormap is None:
