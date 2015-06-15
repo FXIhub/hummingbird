@@ -16,7 +16,7 @@ class EventTranslator(object):
         self._new_keys = []
         self._native_keys = None
         self._id = None
-        self._lclstime = None
+        self._id2 = None
 
     def __setitem__(self, key, value):
         self._evt[key] = value
@@ -47,8 +47,8 @@ class EventTranslator(object):
             self._id = self._trans.event_id(self._evt)
         return self._id
 
-    def event_lclstime(self):
-        """Returns the LCLS timestamp"""
-        if self._lclstime is None:
-            self._lclstime = self._trans.event_lclstime(self._evt)
-        return self._lclstime
+    def event_id2(self):
+        """Returns an alternaive id"""
+        if self._id2 is None:
+            self._id2 = self._trans.event_id2(self._evt)
+        return self._id2

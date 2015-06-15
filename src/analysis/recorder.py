@@ -42,7 +42,7 @@ class Recorder:
             self.create_file()
         with h5py.File(self.filename, 'a') as file:
             file['timestamp'].resize(self.index+1, axis=0)
-            file['timestamp'][self.index] = evt["eventID"]["Timestamp"].lcls_time
+            file['timestamp'][self.index] = evt["eventID"]["Timestamp"].timestamp2
             file['fiducial'].resize(self.index+1, axis=0)
             file['fiducial'][self.index] = evt["eventID"]["Timestamp"].fiducials
             file['run'].resize(self.index+1, axis=0)

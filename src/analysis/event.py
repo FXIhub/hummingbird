@@ -58,7 +58,7 @@ def printID(eventID):
         except AttributeError:
             pass
         try:
-            print "LCLS time = %s" %(v.lcls_time)
+            print "LCLS time = %s" %(v.timestamp2)
         except AttributeError:
             pass
         

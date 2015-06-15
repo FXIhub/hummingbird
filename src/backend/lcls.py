@@ -199,9 +199,9 @@ class LCLSTranslator(object):
         shot and increase monotonically"""
         return self.translate(evt, 'eventID')['Timestamp'].timestamp
 
-    def event_lclstime(self, evt):
-        """Returns the LCLS time, a 64-bit integer"""
-        return self.translate(evt, 'eventID')['Timestamp'].lcls_time
+    def event_id2(self, evt):
+        """Returns the LCLS time, a 64-bit integer as an alterative ID"""
+        return self.translate(evt, 'eventID')['Timestamp'].timestamp2
 
     def _tr_bld_data_ebeam(self, values, obj):
         """Translates BldDataEBeam to hummingbird photon energy"""
@@ -297,7 +297,7 @@ class LCLSTranslator(object):
         rec.ticks = obj.ticks()
         rec.vector = obj.vector()
         rec.timestamp = timestamp
-        rec.lcls_time = obj.time()[0] << 32 | obj.time()[1]
+        rec.timestamp2 = obj.time()[0] << 32 | obj.time()[1]
         values[rec.name] = rec
 
     def _tr_event_codes(self, values, obj):
