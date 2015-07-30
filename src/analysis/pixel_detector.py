@@ -204,6 +204,10 @@ def cmc(evt, type, key, mask=None):
     dataCorrected = utils.array.cmc(data, mask=mask)
     add_record(evt["analysis"], "analysis", "cmc - " + key, dataCorrected)
 
+def cmc_pnccd(evt, type, key):
+    data = evt[type][key].data
+    dataCorrected = utils.array.cmc_pnccd(data)
+    add_record(evt["analysis"], "analysis", "cmc_pnccd - " + key, dataCorrected)
 
 def bgsub(evt, type, key, bg):
     data = evt[type][key].data
