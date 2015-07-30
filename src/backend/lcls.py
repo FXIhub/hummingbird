@@ -76,6 +76,10 @@ class LCLSTranslator(object):
             pass
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
+        # AMO
+        self._n2c[psana.PNCCD.FullFrameV1] = 'photonPixelDetectors'
+        self._n2c[psana.PNCCD.FramesV1] = 'photonPixelDetectors'
+        # --
         self._n2c[psana.Acqiris.DataDescV1] = 'ionTOFs'
         self._n2c[psana.EventId] = 'eventID'
         # Guard against old(er) psana versions
@@ -99,6 +103,10 @@ class LCLSTranslator(object):
         self._s2c['DetInfo(CxiDs2.0:Cspad.0)'] = 'CsPad Ds2'
         self._s2c['DetInfo(CxiDg3.0:Cspad2x2.0)'] = 'CsPad Dg3'
         self._s2c['DetInfo(CxiDg2.0:Cspad2x2.0)'] = 'CsPad Dg2'
+        # AMO
+        self._s2c['DetInfo(Camp.0:pnCCD.1)'] = 'pnccdBack'
+        self._s2c['DetInfo(Camp.0:pnCCD.0)'] = 'pnccdFront'
+        # --
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.0)'] = 'Acqiris 0'
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.1)'] = 'Acqiris 1'
 
@@ -179,6 +187,12 @@ class LCLSTranslator(object):
                     self._tr_cspad2x2(values, obj)
                 elif(isinstance(obj, psana.CsPad.DataV2)):
                     self._tr_cspad(values, obj, k)
+                # AMO
+                elif(isinstance(obj, psana.PNCCD.FullFrameV1)):
+                    self._tr_pnccdFullFrame(values, obj, k)
+                elif(isinstance(obj, psana.PNCCD.FramesV1)):
+                    self._tr_pnccdFrames(values, obj, k)
+                # --
                 elif(isinstance(obj, psana.Acqiris.DataDescV1)):
                     self._tr_acqiris(values, obj, k)
                 elif(isinstance(obj, psana.Camera.FrameV1)):
@@ -262,7 +276,15 @@ class LCLSTranslator(object):
         for i in range(0, n_quads):
             add_record(values, 'photonPixelDetectors', '%sQuad%d' % (self._s2c[str(evt_key.src())], i),
                        obj.quads(i).data(), ureg.ADU)
-
+    def _tr_pnccdFullFrame(self, values, obj, evt_key):
+        """Translates full pnCCD frame to hummingbird numpy array"""
+        add_record(values, 'photonPixelDetectors', '%sfullFrame' % self._s2c[str(evt_key.src())], obj.data(), ureg.ADU)
+    def _tr_pnccdFrames(self, values, obj, evt_key):
+        """Translates pnCCD frames to hummingbird numpy array, frame by frame"""
+        n_frames = obj.frame_shape()[0]
+        for i in range(0, n_frames):
+            add_record(values, 'photonPixelDetectors', '%sFrame%d' % (self._s2c[str(evt_key.src())], i),
+                       obj.frame(i).data(), ureg.ADU)
     def _tr_acqiris(self, values, obj, evt_key):
         """Translates Acqiris TOF data to hummingbird numpy array"""
         config_store = self.data_source.env().configStore()
