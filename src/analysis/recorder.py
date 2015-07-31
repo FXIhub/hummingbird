@@ -10,7 +10,7 @@ class Recorder:
         self.events = events
         self.rank = rank
         self.index = None
-		self.current_run = -1
+        self.current_run = -1
         #self.create_file()
 
     def _timestamp(self):
@@ -19,19 +19,18 @@ class Recorder:
         return timestamp
 
     def setup_file_if_needed(self, evt):
-		# Test whether it is a new run, non-run data counts as run 0
-		run = evt["eventID"]['Timestamp'].run
-		if run > 1000:
-		    run = 0
-		if run == self.current_run:
-		    return True
-		self.current_run = run
-
-		# Filename: hits_<run>_<rank>
+        # Test whether it is a new run, non-run data counts as run 0
+        run = evt["eventID"]['Timestamp'].run
+        if run > 1000:
+            run = 0
+        if run == self.current_run:
+            return True
+        self.current_run = run
+        
+        # Filename: hits_<run>_<rank>
         self.filename = self.outpath + '/hits_%.3d_%.2d.h5' % (run, self.rank)
-		if os.path.isfile(self.filename):
-		    return True
-
+        if os.path.isfile(self.filename):
+            return True
         try:
             file = h5py.File(self.filename, 'a')
         except IOError:
@@ -51,8 +50,7 @@ class Recorder:
         if self.index is None:
             logging.warning("Cannot record events.")
             return
-        if self.index == self.maxlen:
-            self.create_file()
+        self.setup_file_if_needed(evt)
         with h5py.File(self.filename, 'a') as file:
             file['timestamp'].resize(self.index+1, axis=0)
             file['timestamp'][self.index] = evt["eventID"]["Timestamp"].timestamp2
