@@ -10,15 +10,28 @@ class Recorder:
         self.events = events
         self.rank = rank
         self.index = None
-        self.create_file()
+		self.current_run = -1
+        #self.create_file()
 
     def _timestamp(self):
         dt64 = np.datetime64(datetime.datetime.utcnow())
         timestamp = str(dt64)[:-5]
         return timestamp
 
-    def create_file(self):
-        self.filename = self.outpath + '/hits_' + self._timestamp() + 'rk%02d.h5' %self.rank
+    def setup_file_if_needed(self, evt):
+		# Test whether it is a new run, non-run data counts as run 0
+		run = evt["eventID"]['Timestamp'].run
+		if run > 1000:
+		    run = 0
+		if run == self.current_run:
+		    return True
+		self.current_run = run
+
+		# Filename: hits_<run>_<rank>
+        self.filename = self.outpath + '/hits_%.3d_%.2d.h5' % (run, self.rank)
+		if os.path.isfile(self.filename):
+		    return True
+
         try:
             file = h5py.File(self.filename, 'a')
         except IOError:

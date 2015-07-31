@@ -29,6 +29,9 @@ class Worker(object):
             logging.warning("No configuration file given! "
                             "Loading example configuration from %s",
                             (config_file))
+        if not os.path.isfile(config_file):
+            raise IOError('Could not find backend configuration file %s' % (config_file))        
+
         self._config_file = config_file
         # self.backend_conf = imp.load_source('backend_conf', config_file)
         signal.signal(signal.SIGUSR1, self.raise_interruption)
