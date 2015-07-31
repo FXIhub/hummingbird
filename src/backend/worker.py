@@ -39,7 +39,7 @@ class Worker(object):
         
         self.load_conf()
         Worker.state['_config_file'] = config_file
-        Worker.state['_config_dir'] = os.path.dirname(config_file)
+        #Worker.state['_config_dir'] = os.path.dirname(config_file)
 
         if(not ipc.mpi.is_master()):
             self.translator = init_translator(Worker.state)
