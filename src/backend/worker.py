@@ -34,6 +34,7 @@ class Worker(object):
         signal.signal(signal.SIGUSR1, self.raise_interruption)
         self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
         
+        print self._config_file
         self.load_conf()
         Worker.state['_config_file'] = config_file
         Worker.state['_config_dir'] = os.path.dirname(config_file)
