@@ -15,11 +15,9 @@ class LCLSTranslator(object):
     def __init__(self, state):
         config_file = None
         if('LCLS/PsanaConf' in state):
-            config_file = "%s/%s" % (Worker.state['_config_dir'],
-                                     state['LCLS/PsanaConf'])
+            config_file = os.path.abspath(state['LCLS/PsanaConf'])
         elif('LCLS' in state and 'PsanaConf' in state['LCLS']):
-            config_file = "%s/%s" % (Worker.state['_config_dir'],
-                                     state['LCLS']['PsanaConf'])
+            config_file = os.path.abspath(state['LCLS']['PsanaConf'])
         if(config_file is not None):
             if(not os.path.isfile(config_file)):
                 raise RuntimeError("Could not find [LCLS][PsanaConf]: %s" %
