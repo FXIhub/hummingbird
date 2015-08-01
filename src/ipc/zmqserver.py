@@ -39,6 +39,8 @@ class ZmqServer(object):
             shape=array.shape,
             strides=array.strides,
         )
+        if md['dtype'] == 'object':
+            raise ValueError('Cannot broadcast arrays with dtype=object')
         self._data_socket.send_json(md, flags|zmq.SNDMORE)
         return self._data_socket.send(array, flags, copy=copy, track=track)
 
