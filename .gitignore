@@ -1,5 +1,8 @@
 *.py[cod]
 
+# Hummingbird IDs
+.pid
+
 # Sphinx documentation
 docs/.build/
 

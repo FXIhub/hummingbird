@@ -1,5 +1,5 @@
 test -f /reg/g/psdm/etc/ana_env.sh && . /reg/g/psdm/etc/ana_env.sh
-sit_setup /reg/neh/home/hantke/programs/hummingbird
+#sit_setup /reg/neh/home/hantke/programs/hummingbird
 
 export PATH=/reg/neh/home/benedikt/local/bin:$PATH
 export PATH=/reg/neh/home/benedikt/src/pyCXI/scripts:/reg/neh/home/benedikt/local/bin:/reg/neh/home/benedikt/src/install/bin:/reg/neh/home/benedikt/bin:/reg/neh/home/benedikt/src/cheetah/build/source/psana:${PATH}

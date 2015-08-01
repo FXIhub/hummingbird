@@ -29,14 +29,18 @@ class Worker(object):
             logging.warning("No configuration file given! "
                             "Loading example configuration from %s",
                             (config_file))
+        if not os.path.isfile(config_file):
+            raise IOError('Could not find backend configuration file %s' % (config_file))        
+
         self._config_file = config_file
         # self.backend_conf = imp.load_source('backend_conf', config_file)
         signal.signal(signal.SIGUSR1, self.raise_interruption)
         self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
         
+        print self._config_file
         self.load_conf()
         Worker.state['_config_file'] = config_file
-        Worker.state['_config_dir'] = os.path.dirname(config_file)
+        #Worker.state['_config_dir'] = os.path.dirname(config_file)
 
         if(not ipc.mpi.is_master()):
             self.translator = init_translator(Worker.state)
@@ -95,6 +99,9 @@ class Worker(object):
                     else:
                         try:
                             evt = self.translator.next_event()
+                            if evt is None:
+                                print "End of run."
+                                return
                         except (RuntimeError) as e:
                             logging.warning("Some problem with psana, probably due to reloading the backend. (%s)" % e)
                             raise KeyboardInterrupt
@@ -102,7 +109,7 @@ class Worker(object):
                         try:
                             Worker.conf.onEvent(evt)
                         except (KeyError, TypeError) as exc:
-                            logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info = True)
+                            logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info=True)
                         except (RuntimeError) as e:
                             logging.warning("Some problem with psana, probably due to reloading the backend.", exc_info=True)
             except KeyboardInterrupt:
