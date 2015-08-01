@@ -2,6 +2,7 @@
 import numpy as np
 import ipc
 from scipy.sparse import lil_matrix
+from backend import Record
 
 # Private classes / helper functions
 # ----------------------------------
@@ -207,9 +208,9 @@ def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plo
     (No buffer in the backend).
 
     Args:
-        :X(Record): An event parameter, e.g. injector position in x
-        :Y(Record): An event parameter, e.g. injector position in y
-        :Z(float):  Some metric, e.g. hit rate, size, etc...
+        :X(Record,float): An event parameter, e.g. injector position in x
+        :Y(Record,float): An event parameter, e.g. injector position in y
+        :Z(Record,float): Some metric, e.g. hit rate, size, etc...
     Kwargs:
         :xmin(int):  default = 0
         :xmax(int):  default = 10
@@ -231,7 +232,10 @@ def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plo
                                 xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                                 xbins=xbins, ybins=ybins,
                                 xlabel=xlabel, ylabel=ylabel, flipy=True)
-    ipc.new_data(plotid, np.array([X.data, Y.data, Z]), msg=msg)
+    x = X if not isinstance(X, Record) else X.data
+    y = Y if not isinstance(Y, Record) else Y.data
+    z = Z if not isinstance(Z, Record) else Z.data
+    ipc.new_data(plotid, np.array([x, y, z]), msg=msg)
 
     
 scatterPlots = {}

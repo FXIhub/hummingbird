@@ -259,8 +259,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             iy = ybins - 1
         self.meanmap[0,iy,ix] += z
         self.meanmap[1,iy,ix] += 1
-        visited = self.meanmap[1] > 0
-        self.meanmap[2][visited] = self.meanmap[0][visited]/self.meanmap[1][visited]
+        self.meanmap[2,iy,ix] = self.meanmap[0,iy,ix]/self.meanmap[1,iy,ix]
         if (self.settingsWidget.ui.show_heatmap.isChecked()):
             return self.meanmap[0], self.meanmap_transform, x, y
         elif (self.settingsWidget.ui.show_visitedmap.isChecked()):
