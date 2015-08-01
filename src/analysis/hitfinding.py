@@ -13,10 +13,13 @@ def countHits(evt, hit, history=100):
         Jonas Sellberg 
     """
     global counter
+    #print "A",counter.count(True), counter.count(False), counter.maxlen, history
     if counter.maxlen is None or (counter.maxlen is not history):
         counter = collections.deque([], history)
     if hit: counter.append(True)
     else: counter.append(False)
+    #print "B",counter.count(True), counter.count(False), counter.maxlen, history
+    #print counter
     v = evt["analysis"]
     add_record(v, "analysis", "nrHit", counter.count(True))
     add_record(v, "analysis", "nrMiss", counter.count(False))
@@ -38,7 +41,7 @@ def hitrate(evt, hit, history=100):
     else:
         add_record(v, "analysis", "hitrate", None)
 
-def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, mask=None):
+def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None):
     """A simple hitfinder that counts the number of lit pixels and
     adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
 
@@ -58,8 +61,11 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitsc
     hitscore = (detector.data[mask] > aduThreshold).sum()
     v = evt["analysis"]
     #v["isHit - "+key] = hitscore > hitscoreThreshold
-    add_record(v, "analysis", "isHit - "+key, int(hitscore > hitscoreThreshold))
-    add_record(v, "analysis", "isMiss - "+key, int((hitscore < hitscoreThreshold) and (hitscore > hitscoreDark)))
+    hit = int(hitscore > hitscoreThreshold)
+    if hitscoreMax is not None:
+        hit *= int(hitscore <= hitscoreMax)
+    add_record(v, "analysis", "isHit - "+key, hit)
+    add_record(v, "analysis", "isMiss - "+key, int(hit and (hitscore > hitscoreDark)))
     add_record(v, "analysis", "hitscore - "+key, hitscore)
 
 def countTof(evt, type="ionTOFs", key="tof", signalThreshold = 1, minWindow = 0, maxWindow = -1, hitscoreThreshold=2):

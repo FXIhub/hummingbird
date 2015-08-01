@@ -206,6 +206,8 @@ def cmc(evt, type, key, mask=None):
 
 def cmc_pnccd(evt, type, key):
     data = evt[type][key].data
+    if data is None:
+        return
     dataCorrected = utils.array.cmc_pnccd(data)
     add_record(evt["analysis"], "analysis", "cmc_pnccd - " + key, dataCorrected)
 
