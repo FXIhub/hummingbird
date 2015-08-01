@@ -1,3 +1,4 @@
+import os
 import collections
 import ipc
 import numpy
@@ -103,6 +104,9 @@ class Stack:
         # Write to H5
         if verbose:
             print "Writing stack to %s" % fn
+        d = os.path.dirname(os.path.realpath(fn))
+        if not os.path.isdir(d):
+            os.makedirs(d)
         with h5py.File(fn,"w") as f:
             for o in self._outputs:
                 exec "f[\"%s\"] = self.last_%s" % (o,o)
