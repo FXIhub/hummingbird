@@ -6,7 +6,7 @@ import numpy as np
 from backend import Record
 from backend import EventTranslator
 
-processingTimes = collections.deque([], 1000)
+processingTimes = collections.deque([], 100)
 def printProcessingRate():
     """Prints processing rate to screen"""
     processingTimes.appendleft(datetime.datetime.now())
