@@ -99,7 +99,6 @@ class Worker(object):
                         try:
                             evt = self.translator.next_event()
                             if evt is None:
-                                print "End of run."
                                 return
                         except (RuntimeError) as e:
                             logging.warning("Some problem with psana, probably due to reloading the backend. (%s)" % e)
