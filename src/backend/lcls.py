@@ -111,7 +111,10 @@ class LCLSTranslator(object):
     def next_event(self):
         """Grabs the next event and returns the translated version"""
         if self.times is None:
-            evt = self.data_source.events().next()
+            try:
+                evt = self.data_source.events().next()
+            except:
+                return None
         else:
             time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
             self.i += 1

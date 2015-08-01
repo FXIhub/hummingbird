@@ -13,13 +13,10 @@ def countHits(evt, hit, history=100):
         Jonas Sellberg 
     """
     global counter
-    #print "A",counter.count(True), counter.count(False), counter.maxlen, history
-    if counter.maxlen is None or (counter.maxlen is not history):
+    if counter.maxlen is None or (counter.maxlen != history):
         counter = collections.deque([], history)
     if hit: counter.append(True)
     else: counter.append(False)
-    #print "B",counter.count(True), counter.count(False), counter.maxlen, history
-    #print counter
     v = evt["analysis"]
     add_record(v, "analysis", "nrHit", counter.count(True))
     add_record(v, "analysis", "nrMiss", counter.count(False))

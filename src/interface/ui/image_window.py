@@ -218,6 +218,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self.plot.imageItem.setLookupTable(self.lut)
 
     def _fill_meanmap(self, triple, conf):
+        x,y,z = triple
+        
         xbins, ybins = (100,100)
         xmin, xmax = (0,100)
         ymin, ymax = (0,100)
@@ -245,28 +247,26 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                                                     1, 0, 0,
                                                     0, 0, 1)
             self.meanmap_transform = scale_transform*translate_transform*transpose_transform
-        ix = numpy.round((triple[0] - xmin)/self.meanmap_dx)
+        ix = numpy.round((x - xmin)/self.meanmap_dx)
         if (ix < 0):
             ix = 0
         elif (ix >= xbins):
             ix = xbins - 1
-        iy = numpy.round((triple[1] - ymin)/self.meanmap_dy)
+        iy = numpy.round((y - ymin)/self.meanmap_dy)
         if (iy < 0):
             iy = 0
         elif (iy >= ybins):
             iy = ybins - 1
-        self.meanmap[0,iy,ix] += triple[2]
+        self.meanmap[0,iy,ix] += z
         self.meanmap[1,iy,ix] += 1
-        visited = self.meanmap[1] != 0
-        if (self.settingsWidget.ui.show_visitedmap.isChecked()):
-            return self.meanmap[1], self.meanmap_transform, triple[0], triple[1]
-        elif (self.settingsWidget.ui.show_heatmap.isChecked()):
-            print self.meanmap[0],self.meanmap[0,iy,ix], triple[2]
-            return self.meanmap[0], self.meanmap_transform, triple[0], triple[1]
+        visited = self.meanmap[1] > 0
+        self.meanmap[2][visited] = self.meanmap[0][visited]/self.meanmap[1][visited]
+        if (self.settingsWidget.ui.show_heatmap.isChecked()):
+            return self.meanmap[0], self.meanmap_transform, x, y
+        elif (self.settingsWidget.ui.show_visitedmap.isChecked()):
+            return self.meanmap[1], self.meanmap_transform, x, y
         else:
-            if len(self.meanmap[1][visited]):
-                self.meanmap[2][visited] = self.meanmap[0][visited]/self.meanmap[1][visited]
-            return self.meanmap[2], self.meanmap_transform, triple[0], triple[1]
+            return self.meanmap[2], self.meanmap_transform, x, y
 
     def _show_crosshair(self, x,y):
         if (self.actionCrosshair.isChecked()):

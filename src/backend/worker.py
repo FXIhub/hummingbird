@@ -99,6 +99,9 @@ class Worker(object):
                     else:
                         try:
                             evt = self.translator.next_event()
+                            if evt is None:
+                                print "End of run."
+                                return
                         except (RuntimeError) as e:
                             logging.warning("Some problem with psana, probably due to reloading the backend. (%s)" % e)
                             raise KeyboardInterrupt
@@ -106,7 +109,7 @@ class Worker(object):
                         try:
                             Worker.conf.onEvent(evt)
                         except (KeyError, TypeError) as exc:
-                            logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info = True)
+                            logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info=True)
                         except (RuntimeError) as e:
                             logging.warning("Some problem with psana, probably due to reloading the backend.", exc_info=True)
             except KeyboardInterrupt:
