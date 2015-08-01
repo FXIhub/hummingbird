@@ -6,6 +6,7 @@ import h5py
 import time, datetime
 from datetime import datetime as DT
 import pytz
+import logging
 
 class Stack:
     def __init__(self,name="stack",maxLen=100,reducePeriod=None,outPeriod=None, outputs=None):
@@ -85,8 +86,9 @@ class Stack:
                 return
         if not self.filled():
             return
+        logging.debug('Reducing Stack %s' % (self._name))
         for o in self._outputs:
-            exec "self.%s()" % o       
+            exec "self.%s()" % o
         self._reduced = True
 
     def write(self,evt, directory=".", verbose=True):
