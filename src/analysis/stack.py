@@ -8,13 +8,16 @@ from datetime import datetime as DT
 import pytz
 
 class Stack:
-    def __init__(self,name="stack",maxLen=100,reducePeriod=None,outPeriod=None):
+    def __init__(self,name="stack",maxLen=100,reducePeriod=None,outPeriod=None, outputs=None):
         self._maxLen = maxLen
         self._outPeriod = outPeriod
         self._reducePeriod = reducePeriod
         self._name = name
         self.clear()
-        self._outputs = ["std","mean","sum","median","min","max"]
+        if outputs is None:
+            self._outputs = ["std","mean","sum","median","min","max"]
+        else:
+            self._outputs = outputs
         
     def clear(self):
         self._buffer = None
