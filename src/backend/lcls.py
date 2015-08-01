@@ -113,7 +113,7 @@ class LCLSTranslator(object):
         if self.times is None:
             try:
                 evt = self.data_source.events().next()
-            except:
+            except StopIteration:
                 return None
         else:
             time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
