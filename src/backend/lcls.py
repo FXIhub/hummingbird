@@ -119,7 +119,13 @@ class LCLSTranslator(object):
     def next_event(self):
         """Grabs the next event and returns the translated version"""
         if self.timestamps:            
-            evt = self.run.event(self.timestamps[self.i])
+            try:
+                evt = self.run.event(self.timestamps[self.i])
+            except IndexError:
+                logging.warning('End of Run.')
+                if 'end_of_run' in dir(Worker.conf):
+                    Worker.conf.end_of_run()
+                return None
             self.i += 1
         elif self.times:
             time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
@@ -129,7 +135,7 @@ class LCLSTranslator(object):
             try:
                 evt = self.data_source.events().next()
             except StopIteration:
-                print 'End of Run.'
+                logging.warning('End of Run.')
                 if 'end_of_run' in dir(Worker.conf):
                     Worker.conf.end_of_run()
                 return None
