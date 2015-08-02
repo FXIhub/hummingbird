@@ -2,6 +2,7 @@
 import ipc
 import numpy
 import numbers
+import logging
 
 def is_master():
     """Returns True if the process has MPI rank 0 and
@@ -60,6 +61,8 @@ def send(title, data):
     comm.send([title, data], 0)
 
 def checkreload():
+    global subscribed
+
     if ipc.zmq() is not None:
         if ipc.zmq().reloadmaster == True:
             ipc.zmq().reloadmaster = False

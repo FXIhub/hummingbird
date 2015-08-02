@@ -126,7 +126,7 @@ class ZmqServer(object):
             raise ValueError('Unexpected message: %r' % msg[0])
         if ipc.mpi.is_master():
             for i in xrange(1,ipc.mpi.size):
-                reload_comm.send(['__subscribed__',self._subscribed], i)
+                ipc.mpi.reload_comm.send(['__subscribed__',self._subscribed], i)
         self._xsub_stream.send_multipart(msg)
 
     @property
