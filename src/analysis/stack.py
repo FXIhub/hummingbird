@@ -16,10 +16,18 @@ class Stack:
         self._reducePeriod = reducePeriod
         self._name = name
         self.clear()
+        outputs0 = {"std": self.std,
+                   "mean": self.mean,
+                   "sum": self.sum,
+                   "median": self.median,
+                   "min": self.min,
+                   "max": self.max}
         if outputs is None:
-            self._outputs = ["std","mean","sum","median","min","max"]
+            self._outputs = outputs0
         else:
-            self._outputs = outputs
+            self._outputs = {}
+            for o in outputs:
+                self._outputs[o] = outputs0[o]
         
     def clear(self):
         self._buffer = None
@@ -58,11 +66,11 @@ class Stack:
             return self._buffer[:self._currentIndex]
         
     def std(self):
-        self.last_std = self._getData().std(axis=0)
+        self.last_std = self._getData().std(axis=0)    
         return self.last_std
-    
+
     def mean(self):
-        self.last_mean = self._getData().mean(axis=0)
+        self.last_mean = self._getData().mean(axis=0)    
         return self.last_mean
     
     def sum(self):
@@ -88,8 +96,8 @@ class Stack:
         if not self.filled():
             return
         logging.debug('Reducing Stack %s' % (self._name))
-        for o in self._outputs:
-            exec "self.%s()" % o
+        for o,rf in self._outputs.items():
+            rf()
         self._reduced = True
 
     def write(self,evt, directory=".", verbose=True):
@@ -113,5 +121,5 @@ class Stack:
         if not os.path.isdir(d):
             os.makedirs(d)
         with h5py.File(fn,"w") as f:
-            for o in self._outputs:
-                exec "f[\"%s\"] = self.last_%s" % (o,o)
+            for o,rf in self._outputs.items():
+                f[o] = rf() 
