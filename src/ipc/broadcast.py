@@ -1,6 +1,7 @@
 """Broadcasts the analysed data to be displayed in the interface."""
 import numpy
 import ipc
+import logging
 
 evt = None
 data_conf = {}
@@ -12,6 +13,7 @@ def init_data(title, **kwds):
     if(title in data_conf.keys()):
         data_conf[title].update(kwds)
     else:
+        logging.debug("Initializing source '%s.'" % title)
         data_conf[title] = kwds
     if(ipc.mpi.is_slave()):
         ipc.mpi.send('__data_conf__', data_conf)
@@ -54,6 +56,7 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
     else:
         ipc.zmq().send(title, [ipc.uuid, 'new_data', title, data_y,
                                event_id, kwds])
+        logging.debug("Sending data on source '%s'" % title)
         
 def set_current_event(_evt):
     """Updates the current event, such that it can

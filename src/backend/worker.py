@@ -6,7 +6,6 @@ import imp
 import ipc
 import time
 import signal
-import psutil
 
 class Worker(object):
     """Coordinates data reading, translation and analysis.
@@ -55,7 +54,7 @@ class Worker(object):
                 except:
                     pass
                 
-                if not psutil.pid_exists(pid):
+                if not check_pid(pid):
                     with open('.pid', 'w') as file: file.write(str(os.getppid()))
             except KeyError:
                 with open('.pid', 'w') as file: file.write(str(os.getpid()))
@@ -100,7 +99,6 @@ class Worker(object):
                         try:
                             evt = self.translator.next_event()
                             if evt is None:
-                                print "End of run."
                                 return
                         except (RuntimeError) as e:
                             logging.warning("Some problem with psana, probably due to reloading the backend. (%s)" % e)
@@ -140,3 +138,12 @@ def init_translator(state):
         return DummyTranslator(state)
     else:
         raise ValueError('Facility %s not supported' % (state['Facility']))
+
+def check_pid(pid):        
+    """ Check For the existence of a unix pid. """
+    try:
+        os.kill(pid, 0)
+    except OSError:
+        return False
+    else:
+        return True

@@ -114,6 +114,9 @@ class LCLSTranslator(object):
             try:
                 evt = self.data_source.events().next()
             except StopIteration:
+                print 'End of Run.'
+                if 'end_of_run' in dir(Worker.conf):
+                    Worker.conf.end_of_run()
                 return None
         else:
             time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
