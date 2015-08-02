@@ -32,7 +32,7 @@ try:
     size = comm.Get_size()
     slave_group = comm.Get_group().Incl(range(1, size))
     slaves_comm = comm.Create(slave_group)
-    reload_comm = comm.Clone()
+    reload_comm = comm.Clone()    
 
 except ImportError:
     rank = 0
@@ -40,6 +40,8 @@ except ImportError:
     comm = None
     slaves_comm = None
     reload_comm = None
+
+subscribed = set()
 
 def is_slave():
     """Returns True if the process has MPI rank > 0."""
@@ -68,7 +70,12 @@ def checkreload():
     if is_slave():
         if reload_comm.Iprobe():
             msg = reload_comm.recv()
-            return True
+            if(msg[0] == '__reload__'):
+                logging.debug('Got reload')
+                return True
+            elif(msg[0] == '__subscribed__'):
+                logging.debug('Got subscribed %s' % msg[1])
+                subscribed = msg[1]
     return False
 
 def master_loop():
