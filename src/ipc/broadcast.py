@@ -54,13 +54,11 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
         else:
             m = hashlib.md5()
             m.update(bytes(title))
-            print "%r" % m.digest()
-            print ipc.mpi.subscribed
             if m.digest() in ipc.mpi.subscribed:
                 ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y,
                                      event_id, kwds])
             else:
-                print 'No need to send!'
+                logging.debug('%s not subscribed, not sending' % (title))
     else:
         ipc.zmq().send(title, [ipc.uuid, 'new_data', title, data_y,
                                event_id, kwds])

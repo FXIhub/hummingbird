@@ -117,11 +117,11 @@ class ZmqServer(object):
 
     def _forward_xpub(self, stream, msg):
         if msg[0][0] == '\x00':
-            logging.debug("Got unsubscription for: %r" % msg[0])
-            self._subscribed.discard(msg[0])
+            logging.debug("Got unsubscription for: %r" % msg[0][1:])
+            self._subscribed.discard(msg[0][1:])
         elif msg[0][0] == '\x01':
-            logging.debug("Got subscription for: %r" % msg[0])
-            self._subscribed.add(msg[0])
+            logging.debug("Got subscription for: %r" % msg[0][1:])
+            self._subscribed.add(msg[0][1:])
         else:
             raise ValueError('Unexpected message: %r' % msg[0])
         if ipc.mpi.is_master():
