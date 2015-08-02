@@ -2,6 +2,7 @@
 import numpy
 import ipc
 import logging
+import hashlib
 
 evt = None
 data_conf = {}
@@ -51,8 +52,13 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
         if(mpi_reduce):
             ipc.mpi.send_reduce(title, 'new_data', data_y, event_id, **kwds)
         else:
-            ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y,
-                                 event_id, kwds])
+            m = hashlib.md5()
+            m.update(bytes(title))
+            print "m.digest() = ", m.digest()
+            if m.digest() in ipc.zmq().subscribed:
+                print "subscribed"
+                ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y,
+                                     event_id, kwds])
     else:
         ipc.zmq().send(title, [ipc.uuid, 'new_data', title, data_y,
                                event_id, kwds])
