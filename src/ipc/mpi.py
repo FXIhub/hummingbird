@@ -44,6 +44,12 @@ except ImportError:
 
 subscribed = set()
 
+def slave_rank():
+    if size > 1:
+        return rank -1
+    else:
+        return 0
+
 def is_slave():
     """Returns True if the process has MPI rank > 0."""
     return rank > 0

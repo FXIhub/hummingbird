@@ -9,6 +9,7 @@ import datetime
 from pytz import timezone
 from . import ureg
 from backend import Worker
+import ipc
 
 class LCLSTranslator(object):
     """Translate between LCLS events and Hummingbird ones"""
@@ -47,7 +48,14 @@ class LCLSTranslator(object):
             self.fiducials = state['fiducials']
             self.i = 0
             self.data_source = psana.DataSource(dsrc)
+            self.run = self.data_source.runs().next()                        
+        elif 'do_full_run' in state:
+            if dsrc[-len(':idx'):] != ':idx':
+                dsrc += ':idx'
+            self.i = 0
+            self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()
+            self.timestamps = self.run.times()[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
         else:
             self.times = None
             self.fiducials = None
@@ -110,7 +118,14 @@ class LCLSTranslator(object):
 
     def next_event(self):
         """Grabs the next event and returns the translated version"""
-        if self.times is None:
+        if self.timestamps:            
+            evt = self.run.event(self.timestamps[self.i])
+            self.i += 1
+        elif self.times:
+            time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
+            self.i += 1
+            evt = self.run.event(time)            
+        else:
             try:
                 evt = self.data_source.events().next()
             except StopIteration:
@@ -118,10 +133,6 @@ class LCLSTranslator(object):
                 if 'end_of_run' in dir(Worker.conf):
                     Worker.conf.end_of_run()
                 return None
-        else:
-            time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
-            self.i += 1
-            evt = self.run.event(time)
         return EventTranslator(evt, self)
 
     def event_keys(self, evt):
