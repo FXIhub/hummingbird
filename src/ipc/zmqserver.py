@@ -18,10 +18,22 @@ class ZmqServer(object):
         self._data_socket = self._context.socket(zmq.PUB)
         self._data_port = 13132
         self._data_socket.setsockopt(zmq.SNDHWM, 10)
-        self._data_socket.bind("tcp://*:%d" % (self._data_port))
-        zmq.eventloop.ioloop.install()
         self._ctrl_socket = self._context.socket(zmq.REP)
-        self._ctrl_socket.bind("tcp://*:13131")
+        while True:
+            try:
+                self._data_socket.bind("tcp://*:%d" % (self._data_port))
+                self._ctrl_socket.bind("tcp://*:%d" % (self._data_port - 1))
+                print "ZMQ port is set to: %d" % self._data_port
+                break
+            except zmq.error.ZMQError:
+                print "ZMQ port in use: %d" % self._data_port
+                raw_string = raw_input("Enter new port [leave blank to try next one]: ")
+                if raw_string == '':
+                    self._data_port += 2
+                else:
+                    self._data_port = int(raw_string)
+                    #self._data_port = int(raw_string.rstrip())
+        zmq.eventloop.ioloop.install()
         self._ctrl_stream = zmq.eventloop.zmqstream.ZMQStream(self._ctrl_socket)
         self._ctrl_stream.on_recv_stream(self._answer_command)
         ipc.uuid = ipc.hostname+':'+str(self._data_port)
