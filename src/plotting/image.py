@@ -18,17 +18,17 @@ def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None, ms
     """
     if record is None:
         return
-    if(not record.name in images):
-        ipc.broadcast.init_data(record.name, data_type='image', history_length=history, vmin=vmin, vmax=vmax, log=log)
-        images[record.name] = True
+    if name is None:
+        n = record.name
+    else:
+        n = name
+    if(not n in images):
+        ipc.broadcast.init_data(n, data_type='image', history_length=history, vmin=vmin, vmax=vmax, log=log)
+        images[n] = True
     image = record.data
     sh = image.shape
     if (image.ndim == 3):
         image = image.reshape(sh[0]*sh[2], sh[1])
     if mask is None:
         mask = np.ones_like(image)
-    if name is None:
-        n = record.name
-    else:
-        n = name
     ipc.new_data(n, image*mask, msg=msg, alert=alert)
