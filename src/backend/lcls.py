@@ -9,10 +9,12 @@ import datetime
 from pytz import timezone
 from . import ureg
 from backend import Worker
+import ipc
 
 class LCLSTranslator(object):
     """Translate between LCLS events and Hummingbird ones"""
     def __init__(self, state):
+        self.timestamps = None
         config_file = None
         if('LCLS/PsanaConf' in state):
             config_file = os.path.abspath(state['LCLS/PsanaConf'])
@@ -47,7 +49,14 @@ class LCLSTranslator(object):
             self.fiducials = state['fiducials']
             self.i = 0
             self.data_source = psana.DataSource(dsrc)
+            self.run = self.data_source.runs().next()                        
+        elif 'do_full_run' in state:
+            if dsrc[-len(':idx'):] != ':idx':
+                dsrc += ':idx'
+            self.i = 0
+            self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()
+            self.timestamps = self.run.times()[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
         else:
             self.times = None
             self.fiducials = None
@@ -110,18 +119,27 @@ class LCLSTranslator(object):
 
     def next_event(self):
         """Grabs the next event and returns the translated version"""
-        if self.times is None:
+        if self.timestamps:            
             try:
-                evt = self.data_source.events().next()
-            except StopIteration:
-                print 'End of Run.'
+                evt = self.run.event(self.timestamps[self.i])
+            except IndexError:
+                logging.warning('End of Run.')
                 if 'end_of_run' in dir(Worker.conf):
                     Worker.conf.end_of_run()
                 return None
-        else:
+            self.i += 1
+        elif self.times:
             time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
             self.i += 1
-            evt = self.run.event(time)
+            evt = self.run.event(time)            
+        else:
+            try:
+                evt = self.data_source.events().next()
+            except StopIteration:
+                logging.warning('End of Run.')
+                if 'end_of_run' in dir(Worker.conf):
+                    Worker.conf.end_of_run()
+                return None
         return EventTranslator(evt, self)
 
     def event_keys(self, evt):
