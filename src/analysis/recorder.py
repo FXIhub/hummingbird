@@ -48,8 +48,9 @@ class Recorder:
                 print "Could not open file: ", self.filename
                 return False
             print "Opened new file: ", self.filename
-            for key in self.events:
-                file.create_dataset(key, (0,), maxshape=(None,), dtype=float)
+            for key,item in self.events.iteritems():
+                item_shape = evt[item[0]][item[1]].data.shape
+                file.create_dataset(key, (0,) + item_shape, maxshape=(None,) + item_shape, dtype=float)
             file.create_dataset('timestamp', (0,), maxshape=(None,), dtype=np.uint64)
             file.create_dataset('fiducial',  (0,), maxshape=(None,), dtype=np.int64)
             file.create_dataset('run',  (0,), maxshape=(None,), dtype=np.int64)

@@ -14,6 +14,7 @@ import ipc
 class LCLSTranslator(object):
     """Translate between LCLS events and Hummingbird ones"""
     def __init__(self, state):
+        self.timestamps = None
         config_file = None
         if('LCLS/PsanaConf' in state):
             config_file = os.path.abspath(state['LCLS/PsanaConf'])
