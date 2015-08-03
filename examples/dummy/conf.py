@@ -3,10 +3,12 @@ import analysis.event
 import analysis.beamline
 import analysis.background
 import analysis.pixel_detector
+import analysis.stats
 import plotting.image
 import ipc
 import numpy
 import numpy.random
+from backend import add_record
 
 numpy.random.seed()
 
@@ -35,13 +37,19 @@ state = {
     }
 }
 
+data_stats = analysis.stats.DataStatistics()
+
 def onEvent(evt):
     ipc.broadcast.init_data('CCD', xmin=10,ymin=10)
     for k,v in evt['photonPixelDetectors'].iteritems():
         plotting.image.plotImage(v)
 
+    data_stats.add(evt['photonPixelDetectors'].values()[0].data)
+    mean = add_record(evt["analysis"], "analysis", "pnCCD front (mean)", data_stats.min(), unit='')
+    plotting.image.plotImage(evt["analysis"]["pnCCD front (mean)"], 
+                             msg='', name="pnCCD front (mean)")
     #if (not ipc.mpi.is_main_slave())
-    if numpy.random.randint(100) == 0:
+    if numpy.random.randint(10000) == 0:
         print "Sleeper cell"
         from mpi4py import MPI
         comm = MPI.COMM_WORLD
