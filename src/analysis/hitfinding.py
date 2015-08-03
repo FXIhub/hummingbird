@@ -38,7 +38,8 @@ def hitrate(evt, hit, history=100):
     else:
         add_record(v, "analysis", "hitrate", None)
 
-def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None):
+def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None,
+                   label=""):
     """A simple hitfinder that counts the number of lit pixels and
     adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
 
@@ -61,9 +62,9 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitsc
     hit = int(hitscore > hitscoreThreshold)
     if hitscoreMax is not None:
         hit *= int(hitscore <= hitscoreMax)
-    add_record(v, "analysis", "isHit - "+key, hit)
-    add_record(v, "analysis", "isMiss - "+key, int(hit and (hitscore > hitscoreDark)))
-    add_record(v, "analysis", "hitscore - "+key, hitscore)
+    add_record(v, "analysis", label+"isHit - "+key, hit)
+    add_record(v, "analysis", label+"isMiss - "+key, int(hit and (hitscore > hitscoreDark)))
+    add_record(v, "analysis", label+"hitscore - "+key, hitscore)
 
 def countTof(evt, type="ionTOFs", key="tof", signalThreshold = 1, minWindow = 0, maxWindow = -1, hitscoreThreshold=2):
     """A simple hitfinder that performs a peak counting test on a time-of-flight detector signal, in a specific subwindow.
