@@ -111,6 +111,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             dt = datetime.datetime.now()
             msg = ''
         return dt, msg
+
+    def get_time(self, index=None):
+        time, msg = self.get_time_and_msg(index)
+        return time
         
     def _image_transform(self, img, source, title):
         """Returns the appropriate transform for the content"""
