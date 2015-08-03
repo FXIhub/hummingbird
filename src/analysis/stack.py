@@ -37,10 +37,6 @@ class Stack:
             self._outIndex = int(float(ipc.mpi.rank) / float(n-1) * (self._outPeriod-1))
         else:
             self._outIndex = 0
-        if n > 1 and self._reducePeriod is not None:
-            self._reduceIndex = int(float(ipc.mpi.rank) / float(n-1) * (self._reducePeriod-1))
-        else:
-            self._reduceIndex = 0
         self.last_std    = None
         self.last_mean   = None
         self.last_sum    = None
