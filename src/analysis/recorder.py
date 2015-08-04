@@ -13,6 +13,8 @@ class Recorder:
         self.index = 0
         self.current_run = -1
         #self.create_file()
+        self.perm_vars = ['LCLS/'+name for name in ['timestamp', 'fiducial', 'run']]
+        self.perm_types = [np.uint64, np.int32, np.int32]
 
     def _timestamp(self):
         dt64 = np.datetime64(datetime.datetime.utcnow())
@@ -37,7 +39,7 @@ class Recorder:
         if os.path.isfile(self.filename):
             try:
                 file = h5py.File(self.filename, 'a')
-                self.index = len(file['fiducial'][:])
+                self.index = len(file['LCLS/fiducial'][:])
             except IOError:
                 print "Could not open file: ", self.filename
                 return False
@@ -48,28 +50,54 @@ class Recorder:
                 print "Could not open file: ", self.filename
                 return False
             print "Opened new file: ", self.filename
+
+            file.create_group('LCLS')
+            for key,type in zip(self.perm_vars,self.perm_types):
+                axes = 'experiment_identifier:value'
+                file.create_dataset(key, (1,), maxshape=(None,), dtype=type)
+                file[key].attrs.modify('axes', [axes])
+            
             for key,item in self.events.iteritems():
+                group = os.path.dirname(key)
+                if group == '':
+                    logging.error('Record entries need to be in a group')
+                    return False
+                else:
+                    self.make_group(file, group)
+                
                 item_shape = evt[item[0]][item[1]].data.shape
-                file.create_dataset(key, (0,) + item_shape, maxshape=(None,) + item_shape, dtype=float)
-            file.create_dataset('timestamp', (0,), maxshape=(None,), dtype=np.uint64)
-            file.create_dataset('fiducial',  (0,), maxshape=(None,), dtype=np.int64)
-            file.create_dataset('run',  (0,), maxshape=(None,), dtype=np.int64)
+                item_type = evt[item[0]][item[1]].data.dtype
+                ndims = len(item_shape)
+                
+                axes = "experiment_identifier"
+                if ndims == 0: axes = 'experiment_identifier:value'
+                elif ndims == 1: axes = axes + ":x"
+                elif ndims == 2: axes = axes + ":y:x"
+                elif ndims == 3: axes = axes + ":z:y:x"
+                
+                file.create_dataset(key, (0,) + item_shape, maxshape=(None,) + item_shape, dtype=item_type, chunks=(1,)+item_shape)
+                file[key].attrs.modify('axes', [axes])
             file.close()
         return True
 
     def append(self, evt):
         if self.setup_file_if_needed(evt):
             with h5py.File(self.filename, 'a') as file:
-                file['timestamp'].resize(self.index+1, axis=0)
-                file['timestamp'][self.index] = evt["eventID"]["Timestamp"].timestamp2
-                file['fiducial'].resize(self.index+1, axis=0)
-                file['fiducial'][self.index] = evt["eventID"]["Timestamp"].fiducials
-                file['run'].resize(self.index+1, axis=0)
-                file['run'][self.index] = evt["eventID"]["Timestamp"].run
+                file['LCLS/timestamp'].resize(self.index+1, axis=0)
+                file['LCLS/timestamp'][self.index] = evt["eventID"]["Timestamp"].timestamp2
+                file['LCLS/fiducial'].resize(self.index+1, axis=0)
+                file['LCLS/fiducial'][self.index] = evt["eventID"]["Timestamp"].fiducials
+                file['LCLS/run'].resize(self.index+1, axis=0)
+                file['LCLS/run'][self.index] = evt["eventID"]["Timestamp"].run
                 for key, item in self.events.iteritems():
                     file[key].resize(self.index+1, axis=0)
                     file[key][self.index] = evt[item[0]][item[1]].data
             self.index += 1
+
+    def make_group(self, file, group_name):
+        if group_name not in file:
+            file.create_group(group_name)
+            
 
 
     

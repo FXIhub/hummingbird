@@ -6,6 +6,9 @@
 # Sphinx documentation
 docs/.build/
 
+# bsub logging
+*.out
+
 .emacs-backups
 .#*
 .fuse_hidden*
