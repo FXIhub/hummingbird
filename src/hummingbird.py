@@ -1,11 +1,11 @@
 #!/usr/bin/env python
-print "Launching"
 
 """Hummingbird main file."""
 
 import sys
 import argparse
 import logging
+import socket
 
 def parse_cmdline_args():
     """Parses command line arguments."""

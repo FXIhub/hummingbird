@@ -283,3 +283,32 @@ def absolute_error(evt, type_a, key_a, type_b, key_b, out_key=None):
         out_key = "abs(%s - %s)" %(a.name, b.name)
     add_record(evt["analysis"], "analysis", out_key, abs(a.data-b.data), unit='')
     
+def photon_error(evt, type_data, key_data, type_fit, key_fit, adu_per_photon):
+    import scipy.misc
+    data = np.array(evt[type_data][key_data].data / (1.*adu_per_photon), dtype="float")
+    fit = np.array(evt[type_fit][key_fit].data / (1.*adu_per_photon), dtype="float")
+    data_best = fit.round()
+    data = data.copy()
+    M = fit != 0
+    M *= data > 0
+    M *= data_best > 0
+
+    K = data[M]
+    W = fit[M]
+    Ks = data_best[M]
+    
+    # Stirling
+    lKf = K*np.log(K)-K
+    tmp = K < 5
+    if tmp.sum():
+        lKf[tmp] = np.log( scipy.misc.factorial(K[tmp], exact=False) )
+
+    # Stirling
+    lKsf = Ks*np.log(Ks)-Ks
+    tmp = Ks < 5
+    if tmp.sum():
+        lKsf[tmp] = np.log( scipy.misc.factorial(Ks[tmp], exact=False) )
+    
+    error = ( Ks * np.log(W) - lKsf ) - ( K * np.log(W) - lKf )
+    error = error.sum()
+    add_record(evt["analysis"], "analysis", "photon error", error, unit='')
