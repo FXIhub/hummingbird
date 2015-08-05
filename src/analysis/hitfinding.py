@@ -4,7 +4,8 @@ import numpy as np
 import collections
 
 counter = collections.deque([])
-def countHits(evt, hit, history=100):
+counter_good = collections.deque([])
+def countHits(evt, hit, good_hit=True, history=100):
     """Takes a boolean (True for hit, False for miss) and adds accumulated nr. of hits to ``evt["analysis"]["nrHit"]`` and 
     accumulated nr. of misses to ``evt["analysis"]["nrMiss"]``
 
@@ -13,30 +14,40 @@ def countHits(evt, hit, history=100):
         Jonas Sellberg 
     """
     global counter
+    global counter_good
     if counter.maxlen is None or (counter.maxlen != history):
         counter = collections.deque([], history)
-    if hit: counter.append(True)
-    else: counter.append(False)
+        counter_good = collections.deque([], history)
+    counter.append(bool(hit))
+    counter_good.append(bool(good_hit))
     v = evt["analysis"]
     add_record(v, "analysis", "nrHit", counter.count(True))
     add_record(v, "analysis", "nrMiss", counter.count(False))
+    add_record(v, "analysis", "nrGoodHit", counter_good.count(True))
+    add_record(v, "analysis", "nrGoodMiss", counter_good.count(False))
 
-def hitrate(evt, hit, history=100):
+def hitrate(evt, hit, good_hit=True, history=100):
     """Takes a boolean (True for hit, False for miss) and adds the hit rate in % to ``evt["analysis"]["hitrate"]`` if called by main worker, otherwise it returns None. Has been tested in MPI mode
 
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    countHits(evt, hit, history/ipc.mpi.nr_workers())
+    countHits(evt, hit, good_hit=good_hit, history=history/ipc.mpi.nr_workers())
     hits = evt["analysis"]["nrHit"].data
-    misses = evt["analysis"]["nrMiss"].data
+    misses = evt["analysis"]["nrMiss"].data    
+    good_hits = evt["analysis"]["nrGoodHit"].data
+    good_misses = evt["analysis"]["nrGoodMiss"].data
     hitrate = np.array(100 * hits / float(hits + misses))
+    good_hitrate = np.array(100 * good_hits / float(good_hits + good_misses))
     ipc.mpi.sum(hitrate)
+    ipc.mpi.sum(good_hitrate)
     v = evt["analysis"]
     if(ipc.mpi.is_main_worker()):
         add_record(v, "analysis", "hitrate", hitrate[()]/ipc.mpi.nr_workers(), unit='%')
+        add_record(v, "analysis", "good hitrate", good_hitrate[()]/ipc.mpi.nr_workers(), unit='%')
     else:
         add_record(v, "analysis", "hitrate", None)
+        add_record(v, "analysis", "good hitrate", None)
 
 def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None,
                    label=""):
