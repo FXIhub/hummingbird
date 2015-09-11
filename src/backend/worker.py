@@ -122,6 +122,10 @@ class Worker(object):
                 self.reloadnow = False
                 print "Reloading configuration file."
                 self.load_conf()
+        try:
+            Worker.conf.close()
+        except:
+            pass
         signal.signal(signal.SIGINT, self.oldHandler)
 
 
