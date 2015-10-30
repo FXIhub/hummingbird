@@ -16,12 +16,8 @@ import PIL.Image as Image
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import numpy as np
-#import pyE17.utils       as U
 import h5py
-import ptypy
-#import mode_recovery
 import sys
-
 
 class Simulation:
     def __init__(self, nperpos=10, scanx=2, scany=2, scanstep=20, wavelength=1e-10, frame_width=512):
@@ -47,6 +43,7 @@ class Simulation:
         self.scanstep    = scanstep
         self.frame_width = frame_width
         self.wavelength  = wavelength
+        self.counter = 0
 
     def crop(self, img):
         """
@@ -194,6 +191,11 @@ class Simulation:
                 Itot = 10e7 * np.random.normal()**2 # Not sure if that is good, think about proper simulation using an estimated of photon flux
                 frames.append(np.random.poisson(Itot*f/f.sum()))
         self.frames = np.array(frames)
+
+    def get_next_frame(self):
+        frame = self.frames[self.counter % self.nframes]
+        self.counter += 1
+        return frame
 
 if __name__ == '__main__':
 
