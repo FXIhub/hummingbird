@@ -7,7 +7,6 @@ class DataStatistics:
         self._len = length
         self._lambda = numpy.log(2)/(self._len/2)
 
-
     def add(self, data):
         if self._n == 0.0:
             self._mean = numpy.copy(data)

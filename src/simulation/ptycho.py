@@ -88,6 +88,18 @@ class Simulation:
             self.sample = 1-sample[:,:,0]/255.
             self.sample = ndi.gaussian_filter(self.sample, 2.)
         print "Done loading binary sample from file: ", filename
+
+    def loadSiemensStar(self, size):
+        """
+        Loads modelled Siemens star patterns (from ptypy.utils)
+
+        """
+        try:
+            import ptypy
+        except ImportError:
+            print "Siemens star cannot be loaded with the ptypy package (https://github.com/ptycho/ptypy)"
+        self.image_side = size
+        self.sample = ptypy.utils.xradia_star((self.image_side, self.image_side))
         
     def defineIllumination(self, shape='gaussian', object_radius=15e-6, illumination_radius=500e-9):
         """
@@ -174,7 +186,7 @@ class Simulation:
         if  i1_max > np.shape(self.obj)[1]:
             j1_max = np.shape(self.obj)[1] - i1_max
             i1_max = np.shape(self.obj)[1]
-            
+
         sample[j0_min:j0_max,j1_min:j1_max] = self.obj[i0_min:i0_max,i1_min:i1_max]
         return sample
 
@@ -185,9 +197,10 @@ class Simulation:
         self.getPositions()
         frames = []
         for j in range(self.positions.shape[0]):
-            obj = self.scanSample(j)
+            self.scan_obj = self.scanSample(j)
             for i in range(self.nperpos):
-                f = np.fft.fftshift(abs(np.fft.fftn(self.crop(self.getRandomMode(5.))*obj))**2)
+                self.scan_illumination = self.crop(self.getRandomMode(5.))
+                f = np.fft.fftshift(abs(np.fft.fftn(self.scan_illumination*self.scan_obj))**2)
                 Itot = 10e7 * np.random.normal()**2 # Not sure if that is good, think about proper simulation using an estimated of photon flux
                 frames.append(np.random.poisson(Itot*f/f.sum()))
         self.frames = np.array(frames)
@@ -196,6 +209,21 @@ class Simulation:
         frame = self.frames[self.counter % self.nframes]
         self.counter += 1
         return frame
+
+    def get_sample_image(self):
+        return np.abs(self.scan_obj)
+
+    def get_illumination(self):
+        return np.abs(self.scan_illumination)
+
+    def get_position_x(self):
+        return self.positions[(self.counter / self.nperpos) % (self.nframes / self.nperpos),0]
+
+    def get_position_y(self):
+        return self.positions[(self.counter / self.nperpos) % (self.nframes / self.nperpos),1]
+
+    def get_position_n(self):
+        return (self.counter % self.nframes) // (self.positions.shape[0])
 
 if __name__ == '__main__':
 
