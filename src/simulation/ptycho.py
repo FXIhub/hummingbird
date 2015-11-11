@@ -7,7 +7,7 @@ dector: distance 731 mm, size (1024x1024)/4 => 512x512
         pixel size 75 um
 sample: finest feature .5 um, diameter 200 um
         Si3N4 thickness 1 um Vs structure height 1.6 um +- .016 (i.e. only gold on substrate ??)
-energy: ca. 500 eV => (6.6*300)/(500*1.6) nm .. ca. 2.5 nm
+energy: ca. .85 keV => (6.6*.3)/(.8*1.6) nm .. ca. 1.5 nm
 
 authors: Simone Sala, Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
 """
@@ -165,30 +165,25 @@ class Simulation:
         """
         Returns the object at given position index.
         """
-        sample  = np.ones((np.shape(self.probe)[0],np.shape(self.probe)[1])).astype(np.complex)
-        j0_min = 0
-        j0_max = np.shape(sample)[0]
-        j1_min = 0
-        j1_max = np.shape(sample)[0]
-        i0_min = self.positions[i,0] - np.shape(sample)[0]/2 + 1
-        if  i0_min < 0:
-            j0_min-= i0_min
-            i0_min = 0
-        i0_max = self.positions[i,0] + np.shape(sample)[0]/2 + 1
-        if  i0_max > np.shape(self.obj)[0]:
-            j0_max = np.shape(self.obj)[0] - i0_max
-            i0_max = np.shape(self.obj)[0]
-        i1_min = self.positions[i,1] - np.shape(sample)[0]/2 + 1
-        if  i1_min < 0:
-            j1_min-= i1_min
-            i1_min = 0
-        i1_max = self.positions[i,1] + np.shape(sample)[0]/2 + 1
-        if  i1_max > np.shape(self.obj)[1]:
-            j1_max = np.shape(self.obj)[1] - i1_max
-            i1_max = np.shape(self.obj)[1]
+        
+        obj_size_x = np.shape(self.obj)[1]
+        obj_size_y = np.shape(self.obj)[0]
+        A_size_x = self.frame_width + ((self.scanx-1)*self.scanstep)
+        A_size_y = self.frame_width + ((self.scany-1)*self.scanstep)
+        A = np.ones((A_size_x,A_size_y)).astype(np.complex)
+        A[
+((A_size_y > obj_size_y)*( A_size_y - obj_size_y)/2):
+((A_size_y > obj_size_y)*(-A_size_y + obj_size_y)/2)+A_size_y,((A_size_x > obj_size_x)*( A_size_x - obj_size_x)/2):
+((A_size_x > obj_size_x)*(-A_size_x + obj_size_x)/2)+A_size_x
+] = self.obj[
+((A_size_y < obj_size_y)*(-A_size_y + obj_size_y)/2):
+((A_size_y < obj_size_y)*( A_size_y - obj_size_y)/2)+obj_size_y,
+((A_size_x < obj_size_x)*(-A_size_x + obj_size_x)/2):
+((A_size_x < obj_size_x)*( A_size_x - obj_size_x)/2)+obj_size_x
+]
+        return A[self.positions[i,0]:self.positions[i,0]+self.frame_width,
+                 self.positions[i,1]:self.positions[i,1]+self.frame_width]
 
-        sample[j0_min:j0_max,j1_min:j1_max] = self.obj[i0_min:i0_max,i1_min:i1_max]
-        return sample
 
     def propagate(self):
         """
@@ -196,8 +191,10 @@ class Simulation:
         """
         self.getPositions()
         frames = []
+        self.scan_objs = np.zeros((np.shape(self.positions)[0],self.frame_width,self.frame_width)).astype(np.complex)
         for j in range(self.positions.shape[0]):
             self.scan_obj = self.scanSample(j)
+            self.scan_objs[j] = self.scan_obj
             for i in range(self.nperpos):
                 self.scan_illumination = self.crop(self.getRandomMode(5.))
                 f = np.fft.fftshift(abs(np.fft.fftn(self.scan_illumination*self.scan_obj))**2)
@@ -211,7 +208,8 @@ class Simulation:
         return frame
 
     def get_sample_image(self):
-        return np.abs(self.scan_obj)
+        #return np.abs(self.scan_obj)
+        return np.abs(self.scan_objs[(self.counter / self.nperpos) % (self.nframes / self.nperpos)])
 
     def get_illumination(self):
         return np.abs(self.scan_illumination)
@@ -238,7 +236,7 @@ if __name__ == '__main__':
     sim.propagate()
     
     # Save frames to file
-    np.save('frames_%s.npy' %N, sim.frames)
+    #np.save('frames_%s.npy' %N, sim.frames)
 
     # Some plotting
     fig = plt.figure()
