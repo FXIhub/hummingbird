@@ -20,7 +20,7 @@ import h5py
 import sys
 
 class Simulation:
-    def __init__(self, nperpos=10, scanx=2, scany=2, scanstep=20, wavelength=1e-10, frame_width=512):
+    def __init__(self, nperpos=10, scanx=4, scany=4, scanstep=50, wavelength=1e-10, frame_width=512):
         """
         Simulator for Ptychography experimetns at LCLS.
         
@@ -99,7 +99,9 @@ class Simulation:
         except ImportError:
             print "Siemens star cannot be loaded with the ptypy package (https://github.com/ptycho/ptypy)"
         self.image_side = size
-        self.sample = ptypy.utils.xradia_star((self.image_side, self.image_side))
+        self.sample = ptypy.utils.xradia_star((self.image_side, self.image_side),spokes=60,minfeature=1,ringfact=1.8,rings=5)
+        #ADD 'cut' spoke .. refine model !!
+        
         
     def defineIllumination(self, shape='gaussian', object_radius=15e-6, illumination_radius=500e-9):
         """
@@ -141,12 +143,13 @@ class Simulation:
         # Define probe (with phase ramp)
         self.probe = self.crop(self.getMode([3,2]))
         
-        # Crop the object (and move off-center)
-        self.obj = self.obj[self.image_side - self.frame_width - offCenterY:self.image_side - offCenterY,
-                            self.image_side - self.frame_width - offCenterX:self.image_side - offCenterX]
+        # Crop the object (and move off-center) .. asymmetrically
+        #self.obj = self.obj[self.image_side - self.frame_width - offCenterY:self.image_side - offCenterY,
+        #                    self.image_side - self.frame_width - offCenterX:self.image_side - offCenterX]
 
         # Exit wave
-        self.exitwave = self.probe * self.obj
+        #self.exitwave = self.probe * self.obj
+        #THIS IS NOT USED !!
 
     def getPositions(self):
         """
