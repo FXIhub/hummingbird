@@ -1,7 +1,7 @@
-Hummingbird, the SPI Online Analysis Repository
-===============================================
+Hummingbird, the SPIhub Online Analysis Repository
+==================================================
 
-This repository aims to coordinate the of the Single Particle Imaging community on software for online analysis.
+This repository aims to coordinate the of the Single Particle Imaging (SPI) community on software for online analysis.
 
 Contribute
 ----------
