@@ -1,14 +1,12 @@
 ![](https://github.com/SPIhub/hummingbird/blob/master/docs/images/latex_logo.png)
 This repository aims to coordinate the efforts of the Single Particle Imaging (SPI) community on software for online analysis.
 
-Contribute
-----------
+# Contribute
 
 If you would like to contribute just go the issues page and [create a
 new issue](https://github.com/SPIhub/hummingbird/issues/new) asking to be added to the team.
 
-Getting Started
-~~~~~~~~~~~~~~~
+## Getting Started
 
 To be able to contribute first you need a copy of the repository:
 
@@ -19,13 +17,11 @@ To be able to contribute first you need a copy of the repository:
 For help on using ```git``` please check [the official git documentation](http://git-scm.com/doc)
 and the [Github tutorials](https://help.github.com/).
 
-Documentation
--------------
+# Documentation
 
 You can find documentation about the project at [](spidocs.readthedocs.org <http://spidocs.readthedocs.org)
 
-Editing Documentation
-~~~~~~~~~~~~~~~~~~~~~
+## Editing Documentation
 
 The documentation is written in [reStructuredText](http://sphinx-doc.org/rest.html), which is a simple
 to use and read markup language. The documentation is automatically built and published on the website after every commit to the ```Hummingbird``` repository.
@@ -33,8 +29,7 @@ to use and read markup language. The documentation is automatically built and pu
 There are two ways to edit documentation, online using the Github
 built-in editor, or offline using your favourite text editor.
 
-Online Editing
-^^^^^^^^^^^^^^
+## Online Editing
 
 Simply click on the ```Edit on Github``` button at the top of the
 desired page in [spidocs.readthedocs.org](http://spidocs.readthedocs.org). This will
@@ -42,8 +37,7 @@ take you to the Github page corresponding to the source of the page.
 Click on the ```Edit``` button, due the changes you want, and finally
 commit.
 
-Offline Editing
-^^^^^^^^^^^^^^^
+## Offline Editing
 
 For editing the documentation on your computer you will need:
 
