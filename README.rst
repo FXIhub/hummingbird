@@ -1,14 +1,13 @@
 Hummingbird, the SPI Online Analysis Repository
 ===============================================
 
-This repository aims to coordinate the Single Particle Initiative effort
-on online analysis software.
+This repository aims to coordinate the of the Single Particle Imaging community on software for online analysis.
 
 Contribute
 ----------
 
 If you would like to contribute just go the issues page and `create a
-new issue <https://bitbucket.org/spinitiative/hummingbird/issues/new>`_
+new issue <https://github.com/SPIhub/hummingbird/issues/new>`_
 asking to be added to the team.
 
 Getting Started
@@ -18,10 +17,10 @@ To be able to contribute first you need a copy of the repository:
 
 ::
 
-    $ git clone git@bitbucket.org:spinitiative/hummingbird.git
+    $ git clone https://github.com/SPIhub/hummingbird.git
 
 For help on using ``git`` please check `here <http://git-scm.com/doc>`_
-and `here <https://www.atlassian.com/git/>`_.
+and `here <https://help.github.com/>`_.
 
 Documentation
 -------------
@@ -44,10 +43,10 @@ built-in editor, or offline using your favourite text editor.
 Online Editing
 ^^^^^^^^^^^^^^
 
-Simply click on the ``Edit on Bitbucket`` button at the top of the
+Simply click on the ``Edit on Github`` button at the top of the
 desired page in
 `spidocs.readthedocs.org <http://spidocs.readthedocs.org>`_. This will
-take you to the Bitbucket page corresponding to the source of the page.
+take you to the Github page corresponding to the source of the page.
 Click on the ``Edit`` button, due the changes you want, and finally
 commit.
 
@@ -82,5 +81,4 @@ open in your browser.
 
 If you're happy with the result you can now simply commit the changes
 and push. Your changes should be automatically pushed to
-`http://spidocs.readthedocs.org/ <http://spidocs.readthedocs.org/>`_ by
-BitBucket.
+`http://spidocs.readthedocs.org/ <http://spidocs.readthedocs.org/>`_ by Github.
