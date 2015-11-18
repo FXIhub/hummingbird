@@ -19,7 +19,7 @@ and the [Github tutorials](https://help.github.com/).
 
 # Documentation
 
-You can find documentation about the project at [](spidocs.readthedocs.org <http://spidocs.readthedocs.org)
+You can find documentation about the project at [spidocs.readthedocs.org](http://spidocs.readthedocs.org).
 
 ## Editing Documentation
 
@@ -66,4 +66,4 @@ This will create the html files inside ```.build/html```, which you can
 open in your browser.
 
 If you're happy with the result you can now simply commit the changes
-and push. Your changes should be automatically pushed to [](http://spidocs.readthedocs.org/ <http://spidocs.readthedocs.org/) by Github.
+and push. Your changes should be automatically pushed to [http://spidocs.readthedocs.org](http://spidocs.readthedocs.org/) by Github.
