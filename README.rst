@@ -37,7 +37,7 @@ to use and read markup language. The documentation is automatically
 built and published on the website after every commit to the
 ``Hummingbird`` repository.
 
-There are two ways to edit documentation, online using the Bitbucket
+There are two ways to edit documentation, online using the Github
 built-in editor, or offline using your favourite text editor.
 
 Online Editing

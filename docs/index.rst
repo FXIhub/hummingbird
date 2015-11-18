@@ -1,29 +1,28 @@
-Hummingbird, the SPI Online Analysis Repository
-===============================================
+Hummingbird, the SPIhub Online Analysis Repository
+==================================================
 
-This repository aims to coordinate the Single Particle Initiative effort
-on online analysis software.
+This repository aims to coordinate the of the Single Particle Imaging (SPI) community on software for online analysis.
 
 Contribute
 ----------
 
 If you would like to contribute just go the issues page and `create a
-new issue <https://bitbucket.org/spinitiative/hummingbird/issues/new>`_
+new issue <https://github.com/SPIhub/hummingbird/issues/new>`_
 asking to be added to the team.
 
 Getting Started
 ~~~~~~~~~~~~~~~
 
 To be able to contribute first you need a copy of the repository. If
-you have not done so already submit your rsa public key to bitbucket
+you have not done so already submit your rsa public key to github
 under Mange/SSH keys and then clone the repository:
 
 ::
 
-    $ git clone git@bitbucket.org:spinitiative/hummingbird.git
+    $ git clone https://github.com/SPIhub/hummingbird.git
 
 For help on using ``git`` please check `the official git documentation <http://git-scm.com/doc>`_
-and the `Atlassian git tutorials <https://www.atlassian.com/git/>`_.
+and the `Github tutorials <https://help.github.com/>`_.
 
 Documentation
 -------------
@@ -40,16 +39,16 @@ to use and read markup language. The documentation is automatically
 built and published on the website after every commit to the
 ``Hummingbird`` repository.
 
-There are two ways to edit documentation, online using the Bitbucket
+There are two ways to edit documentation, online using the Github
 built-in editor, or offline using your favourite text editor.
 
 Online Editing
 ^^^^^^^^^^^^^^
 
-Simply click on the ``Edit on Bitbucket`` button at the top of the
+Simply click on the ``Edit on Github`` button at the top of the
 desired page in
 `spidocs.readthedocs.org <http://spidocs.readthedocs.org>`_. This will
-take you to the Bitbucket page corresponding to the source of the page.
+take you to the Github page corresponding to the source of the page.
 Click on the ``Edit`` button, due the changes you want, and finally
 commit.
 
@@ -85,7 +84,7 @@ open in your browser.
 If you're happy with the result you can now simply commit the changes
 and push. Your changes should be automatically pushed to
 `http://spidocs.readthedocs.org/ <http://spidocs.readthedocs.org/>`_ by
-BitBucket.
+Github.
 
 .. toctree::
    :maxdepth: 2
