@@ -105,7 +105,6 @@ class Simulation:
         if material == 'gold':
             m = condor.utils.material.Material('custom', massdensity=19320, atomic_composition={'Au':1})
             dn = m.get_dn(self.wavelength)
-            print dn
         else:
             print "Material not defined"
 
@@ -164,10 +163,10 @@ class Simulation:
             print "Shape of illumination has to be of type 'flat' or 'gaussian'"
 
         # Define amplitude of illumination [ph/m]
-        self.illumination = np.sqrt(self.illumination / self.illumination.sum() * (self.pulse_energy / self.photon_energy) )
-                                    
+        self.illumination = self.illumination / self.illumination.sum() * (self.pulse_energy / self.photon_energy) 
+
         # Add a phase ramp
-        self.illumination = self.illumination * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx))
+        self.illumination = np.sqrt(self.illumination) * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx))
         #self.illumination = self.getMode(self.illumination, [1,1])
 
     def getMode(self, I, rampxy=[0,0]):
@@ -275,7 +274,7 @@ if __name__ == '__main__':
     
     # Simulate the ptychography experiment at AMO
     sim = Simulation()
-    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=2e-3, attenuation=2.2e10)
+    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=2e-3, attenuation=1.88e8)
     sim.setDetector(pixelsize=75e-6, nx=512, distance=730e-3)
     sim.setScan(nperpos=10, scanx=20, scany=20, step=500e-9, start=(-8e-6, 8e-6))
     sim.setObject(sample='xradia_star', size=40e-6, thickness=180e-9, material='gold')
@@ -283,39 +282,51 @@ if __name__ == '__main__':
     posx = sim.positions_x[0]
     posy = sim.positions_y[0]
     sim.shoot(posx,posy)
-                
+
+    # Plotting settings
+    fig_width  = 16*0.393701
+    fig_width *= 2
+    fontsize = 10
+    save = False
+    
     # Plotting the illumination
-    fig = plt.figure(figsize=(10,5))
+    fig = plt.figure(figsize=(fig_width,fig_width/2))
     ax1 = fig.add_subplot(121)
     extent = 2*[-1e6*sim.dx*sim.det_sidelength/2, 1e6*sim.dx*sim.det_sidelength/2]
     ax1.imshow(np.abs(sim.illumination)**2, cmap='gray', interpolation='nearest', extent=extent)
-    ax1.set_title('Illumination - Intensity')
-    ax1.set_xlabel('[microns]')
-    ax1.set_ylabel('[microns]')
+    ax1.set_title('Illumination - Intensity', fontsize=fontsize)
+    ax1.set_xlabel('[microns]', fontsize=fontsize)
+    ax1.set_ylabel('[microns]', fontsize=fontsize)
+    ax1.tick_params(labelsize=fontsize)
     ax2 = fig.add_subplot(122)
     ax2.imshow(np.angle(sim.illumination), cmap='hsv', interpolation='nearest', extent=extent)
-    ax2.set_title('Illumination - Phase')
-    ax2.set_xlabel('[microns]')
-    ax2.set_ylabel('[microns]')
-    fig.savefig('./illumination.pdf', format='pdf')
+    ax2.set_title('Illumination - Phase', fontsize=fontsize)
+    ax2.set_xlabel('[microns]', fontsize=fontsize)
+    ax2.set_ylabel('[microns]', fontsize=fontsize)
+    ax2.tick_params(labelsize=fontsize)
+    if save:
+        fig.savefig('./illumination.pdf', format='pdf', bbox_inches='tight', dpi=300)
 
     # Plotting the exitwave 
-    fig = plt.figure(figsize=(10,5))
+    fig = plt.figure(figsize=(fig_width,fig_width/2))
     ax1 = fig.add_subplot(121)
     extent = 2*[-1e6*sim.dx*sim.det_sidelength/2, 1e6*sim.dx*sim.det_sidelength/2]
     ax1.imshow(np.abs(sim.exitwave), cmap='gray', interpolation='nearest', extent=extent)
-    ax1.set_title('Exit wave - Amplitude')
-    ax1.set_xlabel('[microns]')
-    ax1.set_ylabel('[microns]')
+    ax1.set_title('Exit wave - Amplitude', fontsize=fontsize)
+    ax1.set_xlabel('[microns]', fontsize=fontsize)
+    ax1.set_ylabel('[microns]', fontsize=fontsize)
+    ax1.tick_params(labelsize=fontsize)
     ax2 = fig.add_subplot(122)
     ax2.imshow(np.angle(sim.exitwave), cmap='hsv', interpolation='nearest', extent=extent)
-    ax2.set_title('Exit wave - Phase')
-    ax2.set_xlabel('[microns]')
-    ax2.set_ylabel('[microns]')
-    fig.savefig('./exitwave.pdf', format='pdf')
+    ax2.set_title('Exit wave - Phase', fontsize=fontsize)
+    ax2.set_xlabel('[microns]', fontsize=fontsize)
+    ax2.set_ylabel('[microns]', fontsize=fontsize)
+    ax2.tick_params(labelsize=fontsize)
+    if save:
+        fig.savefig('./exitwave.pdf', format='pdf', bbox_inches='tight', dpi=300)
 
     # Plotting the sample
-    fig = plt.figure(figsize=(10,5))
+    fig = plt.figure(figsize=(fig_width,fig_width/2))
     ax1= fig.add_subplot(121)
     extent = 2*[-1e6*sim.dx*sim.sample_sidelength/2, 1e6*sim.dx*sim.sample_sidelength/2]
     ax1.imshow(np.abs(sim.obj), cmap='gray', interpolation='nearest', extent=extent)
@@ -323,28 +334,35 @@ if __name__ == '__main__':
     width  = (1e6*sim.dx*sim.det_sidelength)
     height = (1e6*sim.dx*sim.det_sidelength)
     ax1.add_patch(plt.Rectangle(origin, width, height, facecolor='None', edgecolor='r', linewidth=2, alpha=1))
-    ax1.set_title('Object - Amplitude')
-    ax1.set_xlabel('[microns]')
-    ax1.set_ylabel('[microns]')
+    ax1.set_title('Object - Amplitude', fontsize=fontsize)
+    ax1.set_xlabel('[microns]', fontsize=fontsize)
+    ax1.set_ylabel('[microns]', fontsize=fontsize)
+    ax1.tick_params(labelsize=fontsize)
     ax2 = fig.add_subplot(122)
     ax2.imshow(np.angle(sim.obj), cmap='hsv', interpolation='nearest', extent=extent)
     ax2.add_patch(plt.Rectangle(origin,width,height, facecolor='None', edgecolor='w', linewidth=2, alpha=1))
-    ax2.set_title('Object - Phase')
-    ax2.set_xlabel('[microns]')
-    ax2.set_ylabel('[microns]')
-    fig.savefig('./object.pdf', format='pdf')
+    ax2.set_title('Object - Phase', fontsize=fontsize)
+    ax2.set_xlabel('[microns]', fontsize=fontsize)
+    ax2.set_ylabel('[microns]', fontsize=fontsize)
+    ax2.tick_params(labelsize=fontsize)
+    if save:
+        fig.savefig('./object.pdf', format='pdf', bbox_inches='tight', dpi=300)
 
-    # Plotting the exitwave 
-    fig = plt.figure(figsize=(14,5))
+    # Plotting the diffraction pattern
+    fig = plt.figure(figsize=(fig_width,fig_width*(5./14)))
     ax1 = fig.add_subplot(121)
     im1 = ax1.imshow(sim.diffraction_pattern, cmap='gnuplot', interpolation='nearest', norm=LogNorm(vmin=0.1))
-    ax1.set_title('Continuous diffraction pattern')
+    ax1.set_title('Continuous diffraction pattern', fontsize=fontsize)
+    ax1.tick_params(labelsize=fontsize)
     ax2 = fig.add_subplot(122)
     im2 = ax2.imshow(np.random.poisson(sim.diffraction_pattern), cmap='gnuplot', interpolation='nearest', norm=LogNorm(vmin=0.1))
-    ax2.set_title('Sampled diffraction pattern')
+    ax2.set_title('Sampled diffraction pattern', fontsize=fontsize)
+    ax2.tick_params(labelsize=fontsize)
     cb = fig.colorbar(im1)
-    cb.ax.set_ylabel('Nr. of photons / pixel')
-    fig.savefig('./diffraction.pdf', format='pdf')
+    cb.ax.set_ylabel('Nr. of photons / pixel', fontsize=fontsize)
+    cb.ax.tick_params(labelsize=fontsize)
+    if save:
+        fig.savefig('./diffraction.pdf', format='pdf', bbox_inches='tight', dpi=300)
     plt.show()
     
     
