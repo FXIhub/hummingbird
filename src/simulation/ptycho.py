@@ -105,6 +105,7 @@ class Simulation:
         if material == 'gold':
             m = condor.utils.material.Material('custom', massdensity=19320, atomic_composition={'Au':1})
             dn = m.get_dn(self.wavelength)
+            print dn
         else:
             print "Material not defined"
 
@@ -163,10 +164,11 @@ class Simulation:
             print "Shape of illumination has to be of type 'flat' or 'gaussian'"
 
         # Define amplitude of illumination [ph/m]
-        self.illumination = np.sqrt(self.illumination / (self.illumination.sum() * (self.dx*self.det_sidelength)**2) * (self.pulse_energy / self.photon_energy) )
-
+        self.illumination = np.sqrt(self.illumination / self.illumination.sum() * (self.pulse_energy / self.photon_energy) )
+                                    
         # Add a phase ramp
-        self.illumination = self.getMode(self.illumination, [3,2])
+        self.illumination = self.illumination * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx))
+        #self.illumination = self.getMode(self.illumination, [1,1])
 
     def getMode(self, I, rampxy=[0,0]):
         """
@@ -214,7 +216,8 @@ class Simulation:
         #self.exitwave = np.lib.pad(self.exitwave, ((256,256),(256,256)), 'constant', constant_values=((0,0),(0,0)))
 
         # Propagate to far-field
-        self.fourier_pattern = (1./self.wavelength/self.det_distance)*(self.dx**2)*self.det_pixelsize*np.fft.fftshift(np.fft.fft2(self.exitwave))
+        omega = (np.arctan2(self.det_pixelsize,self.det_distance)/2.)**2
+        self.fourier_pattern = 2*np.pi / (self.wavelength**2) * np.sqrt(omega) * (self.dx**2) *  np.fft.fftshift(np.fft.fft2(self.exitwave))
         self.diffraction_pattern = np.abs(self.fourier_pattern)**2
 
     def start(self):
@@ -272,7 +275,7 @@ if __name__ == '__main__':
     
     # Simulate the ptychography experiment at AMO
     sim = Simulation()
-    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=2e-3, attenuation=1) 
+    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=2e-3, attenuation=2.2e10)
     sim.setDetector(pixelsize=75e-6, nx=512, distance=730e-3)
     sim.setScan(nperpos=10, scanx=20, scany=20, step=500e-9, start=(-8e-6, 8e-6))
     sim.setObject(sample='xradia_star', size=40e-6, thickness=180e-9, material='gold')
@@ -294,6 +297,7 @@ if __name__ == '__main__':
     ax2.set_title('Illumination - Phase')
     ax2.set_xlabel('[microns]')
     ax2.set_ylabel('[microns]')
+    fig.savefig('./illumination.pdf', format='pdf')
 
     # Plotting the exitwave 
     fig = plt.figure(figsize=(10,5))
@@ -308,6 +312,7 @@ if __name__ == '__main__':
     ax2.set_title('Exit wave - Phase')
     ax2.set_xlabel('[microns]')
     ax2.set_ylabel('[microns]')
+    fig.savefig('./exitwave.pdf', format='pdf')
 
     # Plotting the sample
     fig = plt.figure(figsize=(10,5))
@@ -327,6 +332,7 @@ if __name__ == '__main__':
     ax2.set_title('Object - Phase')
     ax2.set_xlabel('[microns]')
     ax2.set_ylabel('[microns]')
+    fig.savefig('./object.pdf', format='pdf')
 
     # Plotting the exitwave 
     fig = plt.figure(figsize=(14,5))
@@ -337,6 +343,8 @@ if __name__ == '__main__':
     im2 = ax2.imshow(np.random.poisson(sim.diffraction_pattern), cmap='gnuplot', interpolation='nearest', norm=LogNorm(vmin=0.1))
     ax2.set_title('Sampled diffraction pattern')
     cb = fig.colorbar(im1)
+    cb.ax.set_ylabel('Nr. of photons / pixel')
+    fig.savefig('./diffraction.pdf', format='pdf')
     plt.show()
     
     
