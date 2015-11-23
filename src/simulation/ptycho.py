@@ -36,7 +36,7 @@ class Simulation:
         """
         self.counter = 0
 
-    def setSource(self, wavelength=1e-10, focus_diameter=4.5e-6, pulse_energy=2e-3, attenuation=1.):
+    def setSource(self, wavelength=1e-10, focus_diameter=4.5e-6, pulse_energy=2e-3, transmission=1.):
         """
         Specify source parameters.
 
@@ -44,14 +44,14 @@ class Simulation:
             :wavelength(float): Photon wavelength given in [m], default=1e-10
             :focus_diameter(float): Diameter of the beam in focus in [m], default = 4.5e-6
             :pulse_energy(float): Pulse energy in the focus in [J], default = 2e-3
-            :attenauation(float): Attenuation factor, default = 1 (no attenuation)
+            :transmission(float): transmission, default = 1 
         """
         self.wavelength = wavelength #[m]
         self.photon_energy = hc / wavelength #[J]
         self.focus_diameter = focus_diameter #[m]
-        self.pulse_energy = pulse_energy / attenuation #[J]
+        self.pulse_energy = pulse_energy * transmission #[J]
 
-    def setDetector(self, pixelsize=75e-6, nx=512, distance=740e-3):
+    def setDetector(self, pixelsize=75e-6, nx=512, distance=740e-3, adus_per_photon=1):
         """
         Specify detector parameters.
 
@@ -59,10 +59,12 @@ class Simulation:
             :pixelsize(float): Size of a detector pixel in [m], default=75e-6
             :nx(int): Side length of the detector in [px], default=512
             :distance(float): Distance to the detector in [m], default=740e-3
+            :adus_per_photon(float): Nr. of ADUs per pixel, default = 1
         """
         self.det_pixelsize = pixelsize #[m]
         self.det_sidelength = nx #[px]
         self.det_distance = distance #[m]
+        self.det_adus_per_photon = adus_per_photon
         self.dx = self.wavelength * distance / (nx * pixelsize) #[m/px]
 
     def setScan(self, nperpos=10, scanx=4, scany=4, step=200e-9, start=(0,0)):
@@ -195,6 +197,12 @@ class Simulation:
         self.fourier_pattern = 1./self.wavelength * np.sqrt(omega) * (self.dx**2) * np.fft.fftshift(np.fft.fftn(self.exitwave))
         self.diffraction_pattern = np.abs(self.fourier_pattern)**2 # The scaling factor of 1/N**2 is already taken into account by self.dx
 
+        # Sample photons (and apply detector gain)
+        self.diffraction_photons = np.random.poisson(self.diffraction_pattern) * self.det_adus_per_photon
+        
+        # Apply detector gain to continuos diffraction pattern
+        self.diffraction_pattern *= self.det_adus_per_photon
+        
     def start(self):
         """
         Runs the entire scan at once and saves all diffraction patterns, positions and exitwaves
@@ -250,20 +258,21 @@ if __name__ == '__main__':
     
     # Simulate the ptychography experiment at AMO
     sim = Simulation()
-    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=2e-3, attenuation=2.2e10)
-    sim.setDetector(pixelsize=75e-6, nx=512, distance=730e-3)
+    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=1e-3, transmission=5.13e-7)
+    sim.setDetector(pixelsize=75e-6, nx=512, distance=730e-3, adus_per_photon=7.95)
     sim.setScan(nperpos=10, scanx=20, scany=20, step=500e-9, start=(-8e-6, 8e-6))
     sim.setObject(sample='xradia_star', size=40e-6, thickness=180e-9, material='gold')
     sim.setIllumination(shape='gaussian')
     posx = sim.positions_x[0]
     posy = sim.positions_y[0]
     sim.shoot(posx,posy)
-
+    print "Maximum signal on detector [ADUs]: ", sim.diffraction_photons.max()
+    
     # Plotting settings
     fig_width  = 16*0.393701
-    fig_width *= 2
-    fontsize = 10
-    save = False
+    fig_width *= 1
+    fontsize = 8
+    save = True
     
     # Plotting the illumination
     fig = plt.figure(figsize=(fig_width,fig_width/2))
@@ -331,11 +340,11 @@ if __name__ == '__main__':
     ax1.set_title('Continuous diffraction pattern', fontsize=fontsize)
     ax1.tick_params(labelsize=fontsize)
     ax2 = fig.add_subplot(122)
-    im2 = ax2.imshow(np.random.poisson(sim.diffraction_pattern), cmap='gnuplot', interpolation='nearest', norm=LogNorm(vmin=0.1))
+    im2 = ax2.imshow(sim.diffraction_photons, cmap='gnuplot', interpolation='nearest', norm=LogNorm(vmin=0.1))
     ax2.set_title('Sampled diffraction pattern', fontsize=fontsize)
     ax2.tick_params(labelsize=fontsize)
     cb = fig.colorbar(im1)
-    cb.ax.set_ylabel('Nr. of photons / pixel', fontsize=fontsize)
+    cb.ax.set_ylabel('ADUs / pixel', fontsize=fontsize)
     cb.ax.tick_params(labelsize=fontsize)
     if save:
         fig.savefig('./diffraction.pdf', format='pdf', bbox_inches='tight', dpi=300)
