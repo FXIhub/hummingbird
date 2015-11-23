@@ -21,9 +21,9 @@ import h5py
 import sys
 import condor
 
-h = 6.62606957e-34 #Js
-c = 299792458 #m/s
-hc = h*c  #Jm 
+h = 6.62606957e-34 #[Js]
+c = 299792458 #[m/s]
+hc = h*c  #[Jm] 
 
 class Simulation:
     def __init__(self):
@@ -46,10 +46,10 @@ class Simulation:
             :pulse_energy(float): Pulse energy in the focus in [J], default = 2e-3
             :attenauation(float): Attenuation factor, default = 1 (no attenuation)
         """
-        self.wavelength = wavelength
+        self.wavelength = wavelength #[m]
         self.photon_energy = hc / wavelength #[J]
-        self.focus_diameter = focus_diameter
-        self.pulse_energy = pulse_energy / attenuation
+        self.focus_diameter = focus_diameter #[m]
+        self.pulse_energy = pulse_energy / attenuation #[J]
 
     def setDetector(self, pixelsize=75e-6, nx=512, distance=740e-3):
         """
@@ -60,10 +60,10 @@ class Simulation:
             :nx(int): Side length of the detector in [px], default=512
             :distance(float): Distance to the detector in [m], default=740e-3
         """
-        self.det_pixelsize = pixelsize
-        self.det_sidelength = nx
-        self.det_distance = distance
-        self.dx = self.wavelength * distance / (nx * pixelsize)
+        self.det_pixelsize = pixelsize #[m]
+        self.det_sidelength = nx #[px]
+        self.det_distance = distance #[m]
+        self.dx = self.wavelength * distance / (nx * pixelsize) #[m/px]
 
     def setScan(self, nperpos=10, scanx=4, scany=4, step=200e-9, start=(0,0)):
         """
@@ -138,7 +138,6 @@ class Simulation:
         except ImportError:
             print "Siemens star cannot be loaded with the ptypy package (https://github.com/ptycho/ptypy)"
         sample = ptypy.utils.xradia_star((900, 900),spokes=60,minfeature=1,ringfact=1.8,rings=5)
-        #ADD 'cut' spoke .. refine model !!
         return sample
 
     def setIllumination(self, shape='gaussian'):
@@ -148,6 +147,7 @@ class Simulation:
         Kwargs:
             :shape(str): flat or gaussian (default)
         """
+        # Create cartesian and radial grids
         x = np.arange(-self.det_sidelength/2, self.det_sidelength/2, 1).astype(float)
         y = np.arange(-self.det_sidelength/2, self.det_sidelength/2, 1).astype(float)
         xx, yy = np.meshgrid(x, y)
@@ -155,21 +155,21 @@ class Simulation:
 
         # Define intensity profile of illumination
         if shape == 'flat':
-            self.illumination = np.array(rr<((self.focus_diameter/2.)/self.dx))
+            self.illumination_intensity = np.array(rr<((self.focus_diameter/2.)/self.dx))
         elif shape == 'gaussian':
             sigma = self.focus_diameter / 2.3548 # match focus diameter with FWHM of the Gaussian
-            self.illumination = np.exp(-.5*((rr*self.dx)**2)/(sigma**2))
+            self.illumination_intensity = np.exp(-.5*((rr*self.dx)**2)/(sigma**2))
         else:
             print "Shape of illumination has to be of type 'flat' or 'gaussian'"
 
-        # Rescale intensity of illumination to [ph/px]
-        self.illumination = self.illumination / self.illumination.sum() * (self.pulse_energy / self.photon_energy)
+        # Rescale intensity [ph/px]
+        self.illumination_intensity = self.illumination_intensity / self.illumination_intensity.sum() * (self.pulse_energy / self.photon_energy)
 
-        # Rescale intensity to [ph/m]
-        self.illumination /= (self.dx**2)
+        # Rescale intensity [ph/m2]
+        self.illumination_intensity /= (self.dx**2)
         
-        # Add linear and quadratic  phase factors
-        self.illumination = np.sqrt(self.illumination) * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx)) *  np.exp(1j*(10000*self.dx*(xx**2 + yy**2)))
+        # Define illumination function, add linear and quadratic phase factors #[sqrt(ph)/m]
+        self.illumination = np.sqrt(self.illumination_intensity) * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx)) *  np.exp(1j*(10000*self.dx*(xx**2 + yy**2)))
 
     def shoot(self, posx=0, posy=0):
         """
@@ -189,7 +189,6 @@ class Simulation:
         xleft   = int(self.sample_sidelength//2 + np.round(posx/self.dx) - self.det_sidelength//2)
         xright  = int(self.sample_sidelength//2 + np.round(posx/self.dx) + self.det_sidelength//2)
         self.exitwave = self.obj[ytop:ybottom, xleft:xright] * self.illumination
-        #self.exitwave = np.lib.pad(self.exitwave, ((256,256),(256,256)), 'constant', constant_values=((0,0),(0,0)))
 
         # Propagate to far-field
         omega = (np.arctan2(self.det_pixelsize,self.det_distance)/2.)**2
