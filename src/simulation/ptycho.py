@@ -134,7 +134,7 @@ class Simulation:
         Loads modelled Siemens star patterns (from ptypy.utils)
         """
         try:
-            import ptypy
+            import ptypy.utils
         except ImportError:
             print "Siemens star cannot be loaded with the ptypy package (https://github.com/ptycho/ptypy)"
         sample = ptypy.utils.xradia_star((900, 900),spokes=60,minfeature=1,ringfact=1.8,rings=5)
@@ -162,11 +162,14 @@ class Simulation:
         else:
             print "Shape of illumination has to be of type 'flat' or 'gaussian'"
 
-        # Define amplitude of illumination [ph/m]
-        self.illumination = self.illumination / self.illumination.sum() * (self.pulse_energy / self.photon_energy) 
+        # Rescale intensity of illumination to [ph/px]
+        self.illumination = self.illumination / self.illumination.sum() * (self.pulse_energy / self.photon_energy)
 
-        # Add a phase ramp
-        self.illumination = np.sqrt(self.illumination) * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx))
+        # Rescale intensity to [ph/m]
+        self.illumination /= (self.dx**2)
+        
+        # Add linear and quadratic  phase factors
+        self.illumination = np.sqrt(self.illumination) * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx)) *  np.exp(1j*(10000*self.dx*(xx**2 + yy**2)))
         #self.illumination = self.getMode(self.illumination, [1,1])
 
     def getMode(self, I, rampxy=[0,0]):
@@ -216,8 +219,8 @@ class Simulation:
 
         # Propagate to far-field
         omega = (np.arctan2(self.det_pixelsize,self.det_distance)/2.)**2
-        self.fourier_pattern = 2*np.pi / (self.wavelength**2) * np.sqrt(omega) * (self.dx**2) *  np.fft.fftshift(np.fft.fft2(self.exitwave))
-        self.diffraction_pattern = np.abs(self.fourier_pattern)**2
+        self.fourier_pattern = 1./(self.wavelength*self.det_distance) * (self.det_pixelsize) * (self.dx**2) * np.fft.fftshift(np.fft.fftn(self.exitwave))
+        self.diffraction_pattern = np.abs(self.fourier_pattern)**2 # The scaling factor of 1/N**2 is already taken into account by self.dx
 
     def start(self):
         """
@@ -299,7 +302,7 @@ if __name__ == '__main__':
     ax1.set_ylabel('[microns]', fontsize=fontsize)
     ax1.tick_params(labelsize=fontsize)
     ax2 = fig.add_subplot(122)
-    ax2.imshow(np.angle(sim.illumination), cmap='hsv', interpolation='nearest', extent=extent)
+    im = ax2.imshow(np.angle(sim.illumination), cmap='hsv', interpolation='nearest', extent=extent)
     ax2.set_title('Illumination - Phase', fontsize=fontsize)
     ax2.set_xlabel('[microns]', fontsize=fontsize)
     ax2.set_ylabel('[microns]', fontsize=fontsize)
@@ -311,7 +314,7 @@ if __name__ == '__main__':
     fig = plt.figure(figsize=(fig_width,fig_width/2))
     ax1 = fig.add_subplot(121)
     extent = 2*[-1e6*sim.dx*sim.det_sidelength/2, 1e6*sim.dx*sim.det_sidelength/2]
-    ax1.imshow(np.abs(sim.exitwave), cmap='gray', interpolation='nearest', extent=extent)
+    im1 = ax1.imshow(np.abs(sim.exitwave), cmap='gray', interpolation='nearest', extent=extent)
     ax1.set_title('Exit wave - Amplitude', fontsize=fontsize)
     ax1.set_xlabel('[microns]', fontsize=fontsize)
     ax1.set_ylabel('[microns]', fontsize=fontsize)
