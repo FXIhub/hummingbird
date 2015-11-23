@@ -170,32 +170,6 @@ class Simulation:
         
         # Add linear and quadratic  phase factors
         self.illumination = np.sqrt(self.illumination) * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx)) *  np.exp(1j*(10000*self.dx*(xx**2 + yy**2)))
-        #self.illumination = self.getMode(self.illumination, [1,1])
-
-    def getMode(self, I, rampxy=[0,0]):
-        """
-        Returns the probe with a phase ramp applied. The phase ramp is defined by shifting the probe in fourier space.
-
-        Args:
-            :I(array): array of illuminaton
-
-        Kwargs:
-            :rampxy: A list with shifts [x,y], default = [0,0]
-        """
-        return np.fft.ifftn(np.roll(np.roll( np.fft.fftn(I), rampxy[0], axis=0),rampxy[1], axis=1))
-                                                                            
-    def getRandomMode(self, I, sramp=5.):
-        """
-        Returns the probe with a randomized phase ramp applied. The phase ramp is defined by shifting the probe in fourier space.
-
-        Args:
-            :I(array): array of illuminaton
-
-        Kwargs:
-            :sramp: Standard deviation of normal distributation, a random shift is picked based on that distribution, default=5.
-        """
-        rxy = np.round(np.random.normal(size=(2,), scale=sramp)).astype(int)
-        return self.getMode(I, rxy)
 
     def shoot(self, posx=0, posy=0):
         """
@@ -219,7 +193,7 @@ class Simulation:
 
         # Propagate to far-field
         omega = (np.arctan2(self.det_pixelsize,self.det_distance)/2.)**2
-        self.fourier_pattern = 1./(self.wavelength*self.det_distance) * (self.det_pixelsize) * (self.dx**2) * np.fft.fftshift(np.fft.fftn(self.exitwave))
+        self.fourier_pattern = 1./self.wavelength * np.sqrt(omega) * (self.dx**2) * np.fft.fftshift(np.fft.fftn(self.exitwave))
         self.diffraction_pattern = np.abs(self.fourier_pattern)**2 # The scaling factor of 1/N**2 is already taken into account by self.dx
 
     def start(self):
@@ -277,7 +251,7 @@ if __name__ == '__main__':
     
     # Simulate the ptychography experiment at AMO
     sim = Simulation()
-    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=2e-3, attenuation=1.88e8)
+    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=2e-3, attenuation=2.2e10)
     sim.setDetector(pixelsize=75e-6, nx=512, distance=730e-3)
     sim.setScan(nperpos=10, scanx=20, scany=20, step=500e-9, start=(-8e-6, 8e-6))
     sim.setObject(sample='xradia_star', size=40e-6, thickness=180e-9, material='gold')
