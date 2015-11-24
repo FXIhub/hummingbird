@@ -258,7 +258,7 @@ if __name__ == '__main__':
     
     # Simulate the ptychography experiment at AMO
     sim = Simulation()
-    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=1e-3, transmission=5.13e-7)
+    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=1e-3, transmission=5.13e-8)
     sim.setDetector(pixelsize=75e-6, nx=512, distance=730e-3, adus_per_photon=7.95)
     sim.setScan(nperpos=10, scanx=20, scany=20, step=500e-9, start=(-8e-6, 8e-6))
     sim.setObject(sample='xradia_star', size=40e-6, thickness=180e-9, material='gold')
