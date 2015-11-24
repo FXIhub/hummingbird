@@ -1,3 +1,4 @@
+# Hummingbird
 This repository aims to coordinate the efforts of the Single Particle Imaging (SPI) community on software for online analysis.
 
 # Contribute
