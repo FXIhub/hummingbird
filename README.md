@@ -1,4 +1,3 @@
-![](https://github.com/SPIhub/hummingbird/blob/master/docs/images/latex_logo.png)
 This repository aims to coordinate the efforts of the Single Particle Imaging (SPI) community on software for online analysis.
 
 # Contribute
