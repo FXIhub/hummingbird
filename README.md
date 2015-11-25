@@ -1,3 +1,4 @@
+[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.34155.svg)](http://dx.doi.org/10.5281/zenodo.34155)
 # Hummingbird
 This repository aims to coordinate the efforts of the Single Particle Imaging (SPI) community on software for online analysis.
 
