@@ -166,11 +166,8 @@ class Simulation:
 
         # Rescale intensity [ph/px]
         self.illumination_intensity = self.illumination_intensity / self.illumination_intensity.sum() * (self.pulse_energy / self.photon_energy)
-
-        # Rescale intensity [ph/m2]
-        self.illumination_intensity /= (self.dx**2)
         
-        # Define illumination function, add linear and quadratic phase factors #[sqrt(ph)/m]
+        # Define illumination function, add linear and quadratic phase factors #[sqrt(ph)/px]
         self.illumination = np.sqrt(self.illumination_intensity) * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx)) *  np.exp(1j*(10000*self.dx*(xx**2 + yy**2)))
 
     def shoot(self, posx=0, posy=0):
@@ -191,12 +188,11 @@ class Simulation:
         xleft   = int(self.sample_sidelength//2 + np.round(posx/self.dx) - self.det_sidelength//2)
         xright  = int(self.sample_sidelength//2 + np.round(posx/self.dx) + self.det_sidelength//2)
         self.exitwave = self.obj[ytop:ybottom, xleft:xright] * self.illumination
-
+        
         # Propagate to far-field
-        omega = (np.arctan2(self.det_pixelsize,self.det_distance)/2.)**2
-        self.fourier_pattern = 1./self.wavelength * np.sqrt(omega) * (self.dx**2) * np.fft.fftshift(np.fft.fftn(self.exitwave))
-        self.diffraction_pattern = np.abs(self.fourier_pattern)**2 # The scaling factor of 1/N**2 is already taken into account by self.dx
-
+        self.fourier_pattern = np.fft.fftshift(np.fft.fftn(self.exitwave)) / (self.det_sidelength)
+        self.diffraction_pattern = np.abs(self.fourier_pattern)**2 
+        
         # Sample photons (and apply detector gain)
         self.diffraction_photons = np.random.poisson(self.diffraction_pattern) * self.det_adus_per_photon
         
@@ -266,7 +262,7 @@ if __name__ == '__main__':
     posx = sim.positions_x[0]
     posy = sim.positions_y[0]
     sim.shoot(posx,posy)
-    print "Maximum signal on detector [ADUs]: ", sim.diffraction_photons.max()
+    print "Maximum signal on detector [ADUs]: ", sim.diffraction_pattern.max()
     
     # Plotting settings
     fig_width  = 16*0.393701
