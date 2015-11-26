@@ -248,7 +248,7 @@ class Simulation:
     def get_end_of_scan(self):
         """Returns True if the end of the scan has been reached
         """
-        return (self.counter == self.nframes)
+        return self.counter == (self.nframes - 1)
 
 if __name__ == '__main__':
     
