@@ -105,7 +105,7 @@ class Simulation:
 
         # Refractive index
         if material == 'gold':
-            m = condor.utils.material.Material('custom', massdensity=19320, atomic_composition={'Au':1})
+            m = condor.utils.material.AtomDensityMaterial('custom', massdensity=19320, atomic_composition={'Au':1})
             dn = m.get_dn(self.wavelength)
         else:
             print "Material not defined"
