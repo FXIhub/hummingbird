@@ -210,7 +210,7 @@ class Simulation:
             for posx in self.positions_x:
                 for i in range(self.nperpos):
                     self.shoot(posx,posy)
-                    self.frames.append(self.diffraction_pattern)
+                    self.frames.append(self.diffraction_photons)
                     self.positions.append((posx,posy))
                     self.exitwaves.append(self.exitwave)
         self.frames = np.array(self.frames)
@@ -218,37 +218,37 @@ class Simulation:
         self.exitwaves = np.array(self.exitwaves)
 
     def get_nextframe(self):
-        """
-        Iterate through pre-determined frames, inrements the counter
+        """Iterate through pre-determined frames, inrements the counter
         """
         frame = self.frames[self.counter % self.nframes]
         self.counter += 1
         return frame
 
     def get_exitwave(self):
-        """
-        Iterate through pre-determined exitwaves, does not increment the counter
+        """Iterate through pre-determined exitwaves, does not increment the counter
         """
         exitwave = self.exitwaves[self.counter % self.nframes]
         return exitwave
         
     def get_illumination(self):
-        """
-        Iterate through pre-determined illuminations, does not increment the counter
+        """Iterate through pre-determined illuminations, does not increment the counter
         """
         return self.illumination
 
     def get_position_x(self):
-        """
-        Iterate through pre-determined x positions, does not increment the counter
+        """Iterate through pre-determined x positions, does not increment the counter
         """
         return self.positions[self.counter % self.nframes, 0]
 
     def get_position_y(self):
-        """
-        Iterate through pre-determined y positions, does not increment the counter
+        """Iterate through pre-determined y positions, does not increment the counter
         """
         return self.positions[self.counter % self.nframes, 1]
+
+    def get_end_of_scan(self):
+        """Returns True if the end of the scan has been reached
+        """
+        return (self.counter == self.nframes)
 
 if __name__ == '__main__':
     
