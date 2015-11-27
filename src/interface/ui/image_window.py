@@ -220,50 +220,56 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         if source.data_type[title] == 'image' and ("log" in conf):
             if conf["log"]:
                 self.plot.imageItem.setLookupTable(self.lut)
-
-    def _fill_meanmap(self, triple, conf):
-        x,y,z = triple
+ 
+    def _init_meanmap(self, xmin, xmax, ymin, ymax, xbins, ybins):
+        self.mm_xmin = xmin
+        self.mm_xmax = xmax
+        self.mm_ymin = ymin
+        self.mm_ymax = ymax
+        self.mm_xbins = xbins
+        self.mm_ybins = ybins
+        self.mm_dx = (self.mm_xmax - float(self.mm_xmin))/self.mm_xbins
+        self.mm_dy = (self.mm_ymax - float(self.mm_ymin))/self.mm_ybins
+        self.mm_last = None
+        self.meanmap = numpy.zeros((3, self.mm_ybins, self.mm_xbins), dtype=float)
+        translate_transform = QtGui.QTransform().translate(self.mm_ymin-self.mm_dy/2., self.mm_xmin-self.mm_dx/2.)
+        scale_transform = QtGui.QTransform().scale(self.mm_dy, self.mm_dx)
+        transpose_transform = QtGui.QTransform()
+        transpose_transform *= QtGui.QTransform(0, 1, 0,
+                                                1, 0, 0,
+                                                0, 0, 1)
+        self.meanmap_transform = scale_transform*translate_transform*transpose_transform
         
-        xbins, ybins = (100,100)
-        xmin, xmax = (0,100)
-        ymin, ymax = (0,100)
-        if 'xbins' in conf:
-            xbins = conf['xbins']
-        if 'ybins' in conf:
-            ybins = conf['ybins']
-        if 'xmin' in conf:
-            xmin = conf['xmin']
-        if 'ymin' in conf:
-            ymin = conf['ymin']
-        if 'xmax' in conf:
-            xmax = conf['xmax']
-        if 'ymax' in conf:
-            ymax = conf['ymax']
-                        
+    def _fill_meanmap(self, times, triples, xmin=0, xmax=100, ymin=0, ymax=100, xbins=100, ybins=100):
+                                        
         if self.meanmap is None:
-            self.meanmap = numpy.zeros((3, ybins, xbins), dtype=float)
-            self.meanmap_dx = (xmax - float(xmin))/xbins
-            self.meanmap_dy = (ymax - float(ymin))/ybins
-            translate_transform = QtGui.QTransform().translate(ymin-self.meanmap_dy/2., xmin-self.meanmap_dx/2.)
-            scale_transform = QtGui.QTransform().scale(self.meanmap_dy, self.meanmap_dx)
-            transpose_transform = QtGui.QTransform()
-            transpose_transform *= QtGui.QTransform(0, 1, 0,
-                                                    1, 0, 0,
-                                                    0, 0, 1)
-            self.meanmap_transform = scale_transform*translate_transform*transpose_transform
-        ix = numpy.round((x - xmin)/self.meanmap_dx)
-        if (ix < 0):
-            ix = 0
-        elif (ix >= xbins):
-            ix = xbins - 1
-        iy = numpy.round((y - ymin)/self.meanmap_dy)
-        if (iy < 0):
-            iy = 0
-        elif (iy >= ybins):
-            iy = ybins - 1
-        self.meanmap[0,iy,ix] += z
-        self.meanmap[1,iy,ix] += 1
-        self.meanmap[2,iy,ix] = self.meanmap[0,iy,ix]/self.meanmap[1,iy,ix]
+            self._init_meanmap(xmin, xmax, ymin, ymax, xbins, ybins)
+
+        triples_new = []
+        if self.mm_last is None:
+            triples_new = triples
+        else:
+            w = numpy.where(self.mm_last==times)
+            if len(w) > 0:
+                if w[0] > 0:
+                    triples_new = triples[:w[0],:]
+                    self.mm_last = times[0]
+        
+        for x,y,z in triples_new:
+            ix = numpy.round((x - self.mm_xmin)/self.mm_dx)
+            if (ix < 0):
+                ix = 0
+            elif (ix >= self.mm_xbins):
+                ix = self.mm_xbins - 1
+            iy = numpy.round((y - self.mm_ymin)/self.mm_dy)
+            if (iy < 0):
+                iy = 0
+            elif (iy >= self.mm_ybins):
+                iy = self.mm_ybins - 1
+            self.meanmap[0,iy,ix] += z
+            self.meanmap[1,iy,ix] += 1
+            self.meanmap[2,iy,ix] = self.meanmap[0,iy,ix]/self.meanmap[1,iy,ix]
+
         if (self.settingsWidget.ui.show_heatmap.isChecked()):
             return self.meanmap[0], self.meanmap_transform, x, y
         elif (self.settingsWidget.ui.show_visitedmap.isChecked()):
@@ -356,7 +362,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     auto_rage = True
                     auto_histogram = True
                 if "data_type" in conf and conf["data_type"] == "triple":
-                    img, transform, x, y = self._fill_meanmap(img[0], conf)
+                    triples = numpy.array(pd.y, copy=False)
+                    times   = numpy.array(pd.x, copy=False)
+                    img, transform, x, y = self._fill_meanmap(times, triples, xmin=conf["xmin"], xmax=conf["xmax"], ymin=conf["ymin"], ymax=conf["ymax"], ybins=conf["ybins"], xbins=conf["xbins"])
                 else:
                     x, y = (0,0)
                 if (self.settingsWidget.ui.show_trend.isChecked()):
