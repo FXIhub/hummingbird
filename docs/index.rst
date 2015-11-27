@@ -1,5 +1,8 @@
-Hummingbird, the SPIhub Online Analysis Repository
+
+Hummingbird
 ==================================================
+.. image:: https://zenodo.org/badge/doi/10.5281/zenodo.34155.svg
+   :target: http://dx.doi.org/10.5281/zenodo.34155
 
 This repository aims to coordinate the of the Single Particle Imaging (SPI) community on software for online analysis.
 

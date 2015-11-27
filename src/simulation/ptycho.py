@@ -21,9 +21,9 @@ import h5py
 import sys
 import condor
 
-h = 6.62606957e-34 #Js
-c = 299792458 #m/s
-hc = h*c  #Jm 
+h = 6.62606957e-34 #[Js]
+c = 299792458 #[m/s]
+hc = h*c  #[Jm] 
 
 class Simulation:
     def __init__(self):
@@ -36,7 +36,7 @@ class Simulation:
         """
         self.counter = 0
 
-    def setSource(self, wavelength=1e-10, focus_diameter=4.5e-6, pulse_energy=2e-3, attenuation=1.):
+    def setSource(self, wavelength=1e-10, focus_diameter=4.5e-6, pulse_energy=2e-3, transmission=1.):
         """
         Specify source parameters.
 
@@ -44,14 +44,14 @@ class Simulation:
             :wavelength(float): Photon wavelength given in [m], default=1e-10
             :focus_diameter(float): Diameter of the beam in focus in [m], default = 4.5e-6
             :pulse_energy(float): Pulse energy in the focus in [J], default = 2e-3
-            :attenauation(float): Attenuation factor, default = 1 (no attenuation)
+            :transmission(float): transmission, default = 1 
         """
-        self.wavelength = wavelength
+        self.wavelength = wavelength #[m]
         self.photon_energy = hc / wavelength #[J]
-        self.focus_diameter = focus_diameter
-        self.pulse_energy = pulse_energy / attenuation
+        self.focus_diameter = focus_diameter #[m]
+        self.pulse_energy = pulse_energy * transmission #[J]
 
-    def setDetector(self, pixelsize=75e-6, nx=512, distance=740e-3):
+    def setDetector(self, pixelsize=75e-6, nx=512, distance=740e-3, adus_per_photon=1):
         """
         Specify detector parameters.
 
@@ -59,11 +59,13 @@ class Simulation:
             :pixelsize(float): Size of a detector pixel in [m], default=75e-6
             :nx(int): Side length of the detector in [px], default=512
             :distance(float): Distance to the detector in [m], default=740e-3
+            :adus_per_photon(float): Nr. of ADUs per pixel, default = 1
         """
-        self.det_pixelsize = pixelsize
-        self.det_sidelength = nx
-        self.det_distance = distance
-        self.dx = self.wavelength * distance / (nx * pixelsize)
+        self.det_pixelsize = pixelsize #[m]
+        self.det_sidelength = nx #[px]
+        self.det_distance = distance #[m]
+        self.det_adus_per_photon = adus_per_photon
+        self.dx = self.wavelength * distance / (nx * pixelsize) #[m/px]
 
     def setScan(self, nperpos=10, scanx=4, scany=4, step=200e-9, start=(0,0)):
         """
@@ -134,11 +136,10 @@ class Simulation:
         Loads modelled Siemens star patterns (from ptypy.utils)
         """
         try:
-            import ptypy
+            import ptypy.utils
         except ImportError:
             print "Siemens star cannot be loaded with the ptypy package (https://github.com/ptycho/ptypy)"
         sample = ptypy.utils.xradia_star((900, 900),spokes=60,minfeature=1,ringfact=1.8,rings=5)
-        #ADD 'cut' spoke .. refine model !!
         return sample
 
     def setIllumination(self, shape='gaussian'):
@@ -148,6 +149,7 @@ class Simulation:
         Kwargs:
             :shape(str): flat or gaussian (default)
         """
+        # Create cartesian and radial grids
         x = np.arange(-self.det_sidelength/2, self.det_sidelength/2, 1).astype(float)
         y = np.arange(-self.det_sidelength/2, self.det_sidelength/2, 1).astype(float)
         xx, yy = np.meshgrid(x, y)
@@ -155,44 +157,18 @@ class Simulation:
 
         # Define intensity profile of illumination
         if shape == 'flat':
-            self.illumination = np.array(rr<((self.focus_diameter/2.)/self.dx))
+            self.illumination_intensity = np.array(rr<((self.focus_diameter/2.)/self.dx))
         elif shape == 'gaussian':
             sigma = self.focus_diameter / 2.3548 # match focus diameter with FWHM of the Gaussian
-            self.illumination = np.exp(-.5*((rr*self.dx)**2)/(sigma**2))
+            self.illumination_intensity = np.exp(-.5*((rr*self.dx)**2)/(sigma**2))
         else:
             print "Shape of illumination has to be of type 'flat' or 'gaussian'"
 
-        # Define amplitude of illumination [ph/m]
-        self.illumination = self.illumination / self.illumination.sum() * (self.pulse_energy / self.photon_energy) 
-
-        # Add a phase ramp
-        self.illumination = np.sqrt(self.illumination) * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx))
-        #self.illumination = self.getMode(self.illumination, [1,1])
-
-    def getMode(self, I, rampxy=[0,0]):
-        """
-        Returns the probe with a phase ramp applied. The phase ramp is defined by shifting the probe in fourier space.
-
-        Args:
-            :I(array): array of illuminaton
-
-        Kwargs:
-            :rampxy: A list with shifts [x,y], default = [0,0]
-        """
-        return np.fft.ifftn(np.roll(np.roll( np.fft.fftn(I), rampxy[0], axis=0),rampxy[1], axis=1))
-                                                                            
-    def getRandomMode(self, I, sramp=5.):
-        """
-        Returns the probe with a randomized phase ramp applied. The phase ramp is defined by shifting the probe in fourier space.
-
-        Args:
-            :I(array): array of illuminaton
-
-        Kwargs:
-            :sramp: Standard deviation of normal distributation, a random shift is picked based on that distribution, default=5.
-        """
-        rxy = np.round(np.random.normal(size=(2,), scale=sramp)).astype(int)
-        return self.getMode(I, rxy)
+        # Rescale intensity [ph/px]
+        self.illumination_intensity = self.illumination_intensity / self.illumination_intensity.sum() * (self.pulse_energy / self.photon_energy)
+        
+        # Define illumination function, add linear and quadratic phase factors #[sqrt(ph)/px]
+        self.illumination = np.sqrt(self.illumination_intensity) * np.exp(2j*np.pi*(xx*self.dx + 2*yy*self.dx)) *  np.exp(1j*(10000*self.dx*(xx**2 + yy**2)))
 
     def shoot(self, posx=0, posy=0):
         """
@@ -212,13 +188,17 @@ class Simulation:
         xleft   = int(self.sample_sidelength//2 + np.round(posx/self.dx) - self.det_sidelength//2)
         xright  = int(self.sample_sidelength//2 + np.round(posx/self.dx) + self.det_sidelength//2)
         self.exitwave = self.obj[ytop:ybottom, xleft:xright] * self.illumination
-        #self.exitwave = np.lib.pad(self.exitwave, ((256,256),(256,256)), 'constant', constant_values=((0,0),(0,0)))
-
+        
         # Propagate to far-field
-        omega = (np.arctan2(self.det_pixelsize,self.det_distance)/2.)**2
-        self.fourier_pattern = 2*np.pi / (self.wavelength**2) * np.sqrt(omega) * (self.dx**2) *  np.fft.fftshift(np.fft.fft2(self.exitwave))
-        self.diffraction_pattern = np.abs(self.fourier_pattern)**2
-
+        self.fourier_pattern = np.fft.fftshift(np.fft.fftn(self.exitwave)) / (self.det_sidelength)
+        self.diffraction_pattern = np.abs(self.fourier_pattern)**2 
+        
+        # Sample photons (and apply detector gain)
+        self.diffraction_photons = np.random.poisson(self.diffraction_pattern) * self.det_adus_per_photon
+        
+        # Apply detector gain to continuos diffraction pattern
+        self.diffraction_pattern *= self.det_adus_per_photon
+        
     def start(self):
         """
         Runs the entire scan at once and saves all diffraction patterns, positions and exitwaves
@@ -230,7 +210,7 @@ class Simulation:
             for posx in self.positions_x:
                 for i in range(self.nperpos):
                     self.shoot(posx,posy)
-                    self.frames.append(self.diffraction_pattern)
+                    self.frames.append(self.diffraction_photons)
                     self.positions.append((posx,posy))
                     self.exitwaves.append(self.exitwave)
         self.frames = np.array(self.frames)
@@ -238,56 +218,57 @@ class Simulation:
         self.exitwaves = np.array(self.exitwaves)
 
     def get_nextframe(self):
-        """
-        Iterate through pre-determined frames, inrements the counter
+        """Iterate through pre-determined frames, inrements the counter
         """
         frame = self.frames[self.counter % self.nframes]
         self.counter += 1
         return frame
 
     def get_exitwave(self):
-        """
-        Iterate through pre-determined exitwaves, does not increment the counter
+        """Iterate through pre-determined exitwaves, does not increment the counter
         """
         exitwave = self.exitwaves[self.counter % self.nframes]
         return exitwave
         
     def get_illumination(self):
-        """
-        Iterate through pre-determined illuminations, does not increment the counter
+        """Iterate through pre-determined illuminations, does not increment the counter
         """
         return self.illumination
 
     def get_position_x(self):
-        """
-        Iterate through pre-determined x positions, does not increment the counter
+        """Iterate through pre-determined x positions, does not increment the counter
         """
         return self.positions[self.counter % self.nframes, 0]
 
     def get_position_y(self):
-        """
-        Iterate through pre-determined y positions, does not increment the counter
+        """Iterate through pre-determined y positions, does not increment the counter
         """
         return self.positions[self.counter % self.nframes, 1]
+
+    def get_end_of_scan(self):
+        """Returns True if the end of the scan has been reached
+        """
+        return self.counter == (self.nframes - 1)
 
 if __name__ == '__main__':
     
     # Simulate the ptychography experiment at AMO
     sim = Simulation()
-    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=2e-3, attenuation=1.88e8)
-    sim.setDetector(pixelsize=75e-6, nx=512, distance=730e-3)
+    sim.setSource(wavelength=0.9918e-9, focus_diameter=1.5e-6, pulse_energy=1e-3, transmission=5.13e-8)
+    sim.setDetector(pixelsize=75e-6, nx=512, distance=730e-3, adus_per_photon=7.95)
     sim.setScan(nperpos=10, scanx=20, scany=20, step=500e-9, start=(-8e-6, 8e-6))
     sim.setObject(sample='xradia_star', size=40e-6, thickness=180e-9, material='gold')
     sim.setIllumination(shape='gaussian')
     posx = sim.positions_x[0]
     posy = sim.positions_y[0]
     sim.shoot(posx,posy)
-
+    print "Maximum signal on detector [ADUs]: ", sim.diffraction_pattern.max()
+    
     # Plotting settings
     fig_width  = 16*0.393701
-    fig_width *= 2
-    fontsize = 10
-    save = False
+    fig_width *= 1
+    fontsize = 8
+    save = True
     
     # Plotting the illumination
     fig = plt.figure(figsize=(fig_width,fig_width/2))
@@ -299,7 +280,7 @@ if __name__ == '__main__':
     ax1.set_ylabel('[microns]', fontsize=fontsize)
     ax1.tick_params(labelsize=fontsize)
     ax2 = fig.add_subplot(122)
-    ax2.imshow(np.angle(sim.illumination), cmap='hsv', interpolation='nearest', extent=extent)
+    im = ax2.imshow(np.angle(sim.illumination), cmap='hsv', interpolation='nearest', extent=extent)
     ax2.set_title('Illumination - Phase', fontsize=fontsize)
     ax2.set_xlabel('[microns]', fontsize=fontsize)
     ax2.set_ylabel('[microns]', fontsize=fontsize)
@@ -311,7 +292,7 @@ if __name__ == '__main__':
     fig = plt.figure(figsize=(fig_width,fig_width/2))
     ax1 = fig.add_subplot(121)
     extent = 2*[-1e6*sim.dx*sim.det_sidelength/2, 1e6*sim.dx*sim.det_sidelength/2]
-    ax1.imshow(np.abs(sim.exitwave), cmap='gray', interpolation='nearest', extent=extent)
+    im1 = ax1.imshow(np.abs(sim.exitwave), cmap='gray', interpolation='nearest', extent=extent)
     ax1.set_title('Exit wave - Amplitude', fontsize=fontsize)
     ax1.set_xlabel('[microns]', fontsize=fontsize)
     ax1.set_ylabel('[microns]', fontsize=fontsize)
@@ -355,11 +336,11 @@ if __name__ == '__main__':
     ax1.set_title('Continuous diffraction pattern', fontsize=fontsize)
     ax1.tick_params(labelsize=fontsize)
     ax2 = fig.add_subplot(122)
-    im2 = ax2.imshow(np.random.poisson(sim.diffraction_pattern), cmap='gnuplot', interpolation='nearest', norm=LogNorm(vmin=0.1))
+    im2 = ax2.imshow(sim.diffraction_photons, cmap='gnuplot', interpolation='nearest', norm=LogNorm(vmin=0.1))
     ax2.set_title('Sampled diffraction pattern', fontsize=fontsize)
     ax2.tick_params(labelsize=fontsize)
     cb = fig.colorbar(im1)
-    cb.ax.set_ylabel('Nr. of photons / pixel', fontsize=fontsize)
+    cb.ax.set_ylabel('ADUs / pixel', fontsize=fontsize)
     cb.ax.tick_params(labelsize=fontsize)
     if save:
         fig.savefig('./diffraction.pdf', format='pdf', bbox_inches='tight', dpi=300)

@@ -1,7 +1,5 @@
 #!/usr/bin/env python
-
 """Hummingbird main file."""
-
 import sys
 import argparse
 import logging
