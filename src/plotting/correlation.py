@@ -224,7 +224,7 @@ def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plo
         :msg(msg):   Any message to be displayed in the plot
     """
     if plotid is None:
-        plotid = "MeanMap(%s,%s)" %(X.name, Y.name)
+        plotid = "MeanMap(%s,%s,%s)" % (X.name, Y.name, Z.name)
     if (not plotid in meanMaps):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name

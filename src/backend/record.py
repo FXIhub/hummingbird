@@ -7,6 +7,7 @@ def add_record(values, group, name, data, unit=None):
         values[name] = Record(group + " / " + name, data, unit)
     else:
         values[name] = None
+    return values[name]
     
 class Record(object):
     """Generic storage class for a name/data pair extracted from an event"""
