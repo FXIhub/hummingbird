@@ -230,8 +230,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.mm_ybins = ybins
         self.mm_dx = (self.mm_xmax - float(self.mm_xmin))/self.mm_xbins
         self.mm_dy = (self.mm_ymax - float(self.mm_ymin))/self.mm_ybins
-        self.mm_last = None
-        self.meanmap = numpy.zeros((3, self.mm_ybins, self.mm_xbins), dtype=float)
+        self.meanmap = numpy.zeros((3, self.mm_ybins, self.mm_xbins), dtype=numpy.float64)
+        self._update_meanmap_transform()
+
+    def _update_meanmap_transform(self):
         translate_transform = QtGui.QTransform().translate(self.mm_ymin-self.mm_dy/2., self.mm_xmin-self.mm_dx/2.)
         scale_transform = QtGui.QTransform().scale(self.mm_dy, self.mm_dx)
         transpose_transform = QtGui.QTransform()
@@ -240,32 +242,62 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                                                 0, 0, 1)
         self.meanmap_transform = scale_transform*translate_transform*transpose_transform
         
-    def _fill_meanmap(self, times, triples, xmin=0, xmax=100, ymin=0, ymax=100, xbins=100, ybins=100):
-                                        
-        if self.meanmap is None:
-            self._init_meanmap(xmin, xmax, ymin, ymax, xbins, ybins)
+    def _extend_meanmap(self, x, y):
+        ix = numpy.round((x - self.mm_xmin)/self.mm_dx)
+        iy = numpy.round((y - self.mm_ymin)/self.mm_dx)
+        ix_max = max([self.meanmap.shape[2]-1, ix.max()])
+        ix_min = min([0, ix.min()])
+        iy_max = max([self.meanmap.shape[1]-1, iy.max()])
+        iy_min = min([0, iy.min()])
+        xbins = ix_max - ix_min + 1
+        ybins = iy_max - iy_min + 1
+        if xbins > self.meanmap.shape[2] or ybins > self.meanmap.shape[1]:
+            temp = numpy.zeros(shape=(3, ybins, xbins), dtype=self.meanmap.dtype)
+            temp[:,
+                 -iy_min:-iy_min+self.meanmap.shape[1],
+                 -ix_min:-ix_min+self.meanmap.shape[2]] = self.meanmap[:,:,:]
+            self.meanmap = temp
+            self.mm_xmin = self.mm_xmin + ix_min * self.mm_dx
+            self.mm_xmax = self.mm_xmin + (xbins-1) * self.mm_dx
+            self.mm_ymin = self.mm_ymin + iy_min * self.mm_dx
+            self.mm_ymax = self.mm_ymin + (ybins-1) * self.mm_dx
+            self.mm_xbins = xbins
+            self.mm_ybins = ybins
+            self._update_meanmap_transform()
+        
+    def _fill_meanmap(self, times, triples, xmin=0, xmax=100, ymin=0, ymax=100, xbins=100, ybins=100, dynamic_extent=False):
 
-        triples_new = []
-        if self.mm_last is None:
-            triples_new = triples
-        else:
+        triples_new = triples
+        if self.meanmap is not None:
             w = numpy.where(self.mm_last==times)
             if len(w) > 0:
                 if w[0] > 0:
                     triples_new = triples[:w[0],:]
-                    self.mm_last = times[0]
+        self.mm_last = times[0]
+        x = triples_new[:,0]
+        y = triples_new[:,1]
+        z = triples_new[:,2]
         
+        if self.meanmap is None:
+            self._init_meanmap(xmin, xmax, ymin, ymax, xbins, ybins)
+
+        if dynamic_extent:
+            self._extend_meanmap(triples_new[:,0], triples_new[:,1])                    
+
         for x,y,z in triples_new:
+            
             ix = numpy.round((x - self.mm_xmin)/self.mm_dx)
-            if (ix < 0):
+            iy = numpy.round((y - self.mm_ymin)/self.mm_dy)
+            
+            if (ix < 0):                    
                 ix = 0
             elif (ix >= self.mm_xbins):
                 ix = self.mm_xbins - 1
-            iy = numpy.round((y - self.mm_ymin)/self.mm_dy)
             if (iy < 0):
                 iy = 0
             elif (iy >= self.mm_ybins):
                 iy = self.mm_ybins - 1
+
             self.meanmap[0,iy,ix] += z
             self.meanmap[1,iy,ix] += 1
             self.meanmap[2,iy,ix] = self.meanmap[0,iy,ix]/self.meanmap[1,iy,ix]
@@ -364,7 +396,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 if "data_type" in conf and conf["data_type"] == "triple":
                     triples = numpy.array(pd.y, copy=False)
                     times   = numpy.array(pd.x, copy=False)
-                    img, transform, x, y = self._fill_meanmap(times, triples, xmin=conf["xmin"], xmax=conf["xmax"], ymin=conf["ymin"], ymax=conf["ymax"], ybins=conf["ybins"], xbins=conf["xbins"])
+                    img, transform, x, y = self._fill_meanmap(times, triples,
+                                                              xmin=conf["xmin"], xmax=conf["xmax"], ymin=conf["ymin"], ymax=conf["ymax"],
+                                                              ybins=conf["ybins"], xbins=conf["xbins"],
+                                                              dynamic_extent=conf.get("dynamic_extent", False))
                 else:
                     x, y = (0,0)
                 if (self.settingsWidget.ui.show_trend.isChecked()):
