@@ -259,8 +259,28 @@ def plotScatter(X,Y, plotid=None, history=100, xlabel=None, ylabel=None):
         if ylabel is None: ylabel = Y.name
         ipc.broadcast.init_data(plotid, data_type='tuple', history_length=history,
                                 xlabel=xlabel, ylabel=ylabel)
+        scatterPlots[plotid] = True
     ipc.new_data(plotid, np.array([X.data, Y.data]))
 
+scatterBgPlots = {}
+def plotScatterBg(X,Y, plotid=None, history=100, xlabel=None, ylabel=None, bg_filename=None, bg_xmin=0., bg_xmax=1., bg_ymin=0., bg_ymax=0., bg_angle=0.):
+    """Plotting the scatter of two parameters X and Y.
+    """
+    if plotid is None:
+        plotid = "ScatterBg(%s,%s)" %(X.name, Y.name)
+    if (not plotid in scatterBgPlots):
+        if xlabel is None: xlabel = X.name
+        if ylabel is None: ylabel = Y.name
+        ipc.broadcast.init_data(plotid, data_type='tuple', history_length=history,
+                                xlabel=xlabel, ylabel=ylabel,
+                                bg_filename=bg_filename,
+                                bg_xmin=bg_xmin, bg_xmax=bg_xmax,
+                                bg_ymin=bg_ymin, bg_ymax=bg_ymax,
+                                bg_angle=bg_angle,
+        )
+        scatterBgPlots[plotid] = True
+    ipc.new_data(plotid, np.array([X.data, Y.data]))
+    
 
 scatterColorPlots = {}
 def plotScatterColor(X,Y,Z, plotid=None, history=100, xlabel=None, ylabel=None, zlabel=None, vmin=None, vmax=None):

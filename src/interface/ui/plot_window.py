@@ -3,11 +3,12 @@ from interface.ui import Ui_plotWindow
 import pyqtgraph
 import numpy
 from interface.ui import DataWindow
-from interface.Qt import QtCore
+from interface.Qt import QtCore, QtGui
 from interface.colorbar import ColorBar
 import datetime
 import utils.array
 import utils.time
+
 
 class PlotWindow(DataWindow, Ui_plotWindow):
     """Window to display 2D plots"""
@@ -31,11 +32,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.last_vector_y = {}
         self.last_vector_x = None
         self._settings_diag = LinePlotSettings(self)
-        self.x_auto = True
-        self.y_auto = True
-        self.x_label = ''
-        self.y_label = ''
-
+        
     def on_view_legend_box(self):
         """Show/hide legend box"""
         action = self.sender()
@@ -62,18 +59,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
     def _on_plot_settings(self):
         """Show the plot settings dialog"""
-        self._settings_diag.x_auto.setChecked(self.x_auto)
-        self._settings_diag.y_auto.setChecked(self.y_auto)
-        self._settings_diag.x_label.setText(self.x_label)
-        self._settings_diag.y_label.setText(self.y_label)
         self._settings_diag.histAutorange.toggled.connect(self._on_histogram_autorange)
         if(self._settings_diag.exec_()):
-            self.x_auto = self._settings_diag.x_auto.isChecked()
-            if(self.x_auto is False):
-                self.x_label = self._settings_diag.x_label.text()
-            self.y_auto = self._settings_diag.y_auto.isChecked()
-            if(self.y_auto is False):
-                self.y_label = self._settings_diag.y_label.text()
+            self._settings_diag._read_bg_file()
             # Show changes immediately
             self.replot()
 
@@ -111,57 +99,89 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             return dt
         else:
             return datetime.datetime.now()
-
+            
     def _configure_axis(self, source, title, hist=False):
         """Configures the x and y axis of the plot, according to the
         source/title configuration and content type"""
         conf = source.conf[title]
         if(self.actionX_axis.isChecked()):
-            if 'xlabel' in conf and self.x_auto:
-                self.x_label = conf['xlabel']
+            if 'xlabel' in conf and self._settings_diag.x_auto.isChecked():
+                self._settings_diag.x_label.setText("abc")#conf['xlabel'])
             if hist:
-                self.plot.setLabel('bottom', self.y_label)
+                self.plot.setLabel('bottom', self._settings_diag.y_label.text())
             else:
-                self.plot.setLabel('bottom', self.x_label)
+                self.plot.setLabel('bottom', self._settings_diag.x_label.text())
         if(self.actionY_axis.isChecked()):
-            if 'ylabel' in conf and self.y_auto:
-                self.y_label = conf['ylabel']
+            if 'ylabel' in conf and self._settings_diag.y_auto.isChecked():
+                self._settings_diag.y_label.setText(conf['ylabel'])
             if hist:
                 self.plot.setLabel('left', 'Counts')
             else:
-                self.plot.setLabel('left', self.y_label)
+                self.plot.setLabel('left', self._settings_diag.y_label.text())
 
-    def _configure_xlimits(self, source, title):
-        conf = source.conf[title]
-        xmin = 0
-        xmax = source.plotdata[title].y.shape[-1] + xmin
-        if 'xmin' in conf and 'xmax' in conf:
-            xmin = conf['xmin']
-            xmax = conf['xmax']
-        return xmin, xmax
-
-    def _configure_ylimits(self, source, title):
-        ymin = source.plotdata[title].y.min
-        ymax = source.plotdata[title].y.max
-        if ymin == ymax == 0:
-            ymin = -0.1
-            ymax = 0.1
+    def _set_range(self, xmin, xmax, ymin, ymax):
+        if not self._settings_diag.xlimits_auto.isChecked():
+            try:
+                xmin = float(str(self._settings_diag.xmin.text()))
+            except ValueError:
+                pass
+            try:
+                xmax = float(str(self._settings_diag.xmax.text()))
+            except ValueError:
+                pass
         if not self._settings_diag.ylimits_auto.isChecked():
-            ymin = float(str(self._settings_diag.ymin.text()))
-            ymax = float(str(self._settings_diag.ymax.text()))
-        self.plot.setRange(yRange=(ymin, ymax))
-        
+            try:
+                ymin = float(str(self._settings_diag.ymin.text()))
+            except ValueError:
+                pass
+            try:
+                ymax = float(str(self._settings_diag.ymax.text()))
+            except ValueError:
+                pass
+        if (xmax - xmin) == 0.:
+            xmin -= 0.1
+            xmax += 0.1
+        if (ymax - ymin) == 0.:
+            ymin -= 0.1
+            ymax += 0.1
+        self.plot.setRange(xRange=(xmin, xmax), yRange=(ymin, ymax))    
+            
     def replot(self):
         """Replot data"""
         self.plot.clear()
+
+        # Init background if defined in a data source
+        if self._settings_diag.bg is None:
+            for source, title in self.source_and_titles():
+                conf = source.conf[title]
+                if "bg_filename" in conf:
+                    conf_bg = {}
+                    for k,v in conf.items():
+                        if k.startswith("bg_"):
+                            conf_bg[k] = v
+                    self._settings_diag._configure_bg(**conf_bg)
+                    # Use only first if there are many
+                    break
+        # Load background if configured
+        self._update_bg()
+            
         color_index = 0
         titlebar = []
         self.plot.plotItem.legend.items = []
+
+        xmins = []
+        xmaxs = []
+        ymins = []
+        ymaxs = []
+        
         for source, title in self.source_and_titles():
+            
             if(title not in source.plotdata or source.plotdata[title].y is None):
                 continue
             pd = source.plotdata[title]
             titlebar.append(pd.title)
+
+            conf = source.conf[title]
 
             color = self.line_colors[color_index % len(self.line_colors)]
             pen = None
@@ -187,7 +207,6 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 symbol_pen = None
                 symbol_size = 8
             elif(source.data_type[title] == 'triple'):
-                conf = source.conf[title]
                 if self.colormap is None:
                     vmin, vmax = (0,1)
                     if 'vmin' in conf:
@@ -231,7 +250,6 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     wl = int(self._settings_diag.windowLength.text())
                     y = utils.array.runningMean(y, wl)
                     x = x[-max(len(y),1):]
-                self._configure_ylimits(source, title)
             elif(source.data_type[title] == 'tuple') or (source.data_type[title] == 'triple'):
                 x = pd.y[:,0]
             elif(source.data_type[title] == 'vector'):
@@ -239,7 +257,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     x = y[0,:]
                     y = y[1,:]
                 else:
-                    xmin, xmax = self._configure_xlimits(source, title)
+                    if 'xmin' in conf and 'xmax' in conf:
+                        xmin = conf['xmin']
+                        xmax = conf['xmax']
+                    else:
+                        xmin = 0
+                        xmax = source.plotdata[title].y.shape[-1] + xmin
                     x = numpy.linspace(xmin,xmax, y.shape[-1])
             if(self._settings_diag.histogram.isChecked()):
                 bins = int(self._settings_diag.histBins.text())
@@ -260,6 +283,11 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
             plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
+
+            xmins.append(x.min())
+            xmaxs.append(x.max())
+            ymins.append(y.min())
+            ymaxs.append(y.max())
 
             self.legend.addItem(plt, pd.title)
             color_index += 1
@@ -283,6 +311,18 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         # Round to miliseconds
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         self.dateLabel.setText(str(dt.date()))
+
+        # Set ranges
+        if len(xmins) > 0:
+            self._set_range(min(xmins), max(xmaxs), min(ymins), max(ymaxs))
+        
+        # Various options
+        if self._settings_diag.aspect_locked.isChecked():
+            self.plot.getViewBox().setAspectLocked()
+        if self._settings_diag.flip_x.isChecked():
+            self.plot.getViewBox().invertX()
+        if self._settings_diag.flip_y.isChecked():
+            self.plot.getViewBox().invertY()
 
     def _change_index_by(self, amount):
         """Changes the history index when displaying a vector"""
@@ -314,10 +354,11 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         settings['lines'] = self.actionLines.isChecked()
         settings['points'] = self.actionPoints.isChecked()
         settings['legend'] = self.actionLegend_Box.isChecked()
-
+        settings = self._settings_diag.get_state(settings)
         return DataWindow.get_state(self, settings)
 
     def restore_from_state(self, settings, data_sources):
+        self._settings_diag.restore_from_state(settings)
         self.plot.getViewBox().setState(settings['viewbox'])
         self.actionX_axis.setChecked(settings['x_view'])
         self.actionX_axis.triggered.emit(settings['x_view'])
@@ -328,5 +369,18 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.actionLegend_Box.setChecked(settings['legend'])
         self.actionLegend_Box.triggered.emit(settings['legend'])
         return DataWindow.restore_from_state(self, settings, data_sources)
+    
+    def _update_bg(self):
+        if self._settings_diag.bg is not None:
+            VB = self.plot.getViewBox()
+            B = pyqtgraph.ImageItem(image=self._settings_diag.bg, autoLevels=True)
+            xmin = float(self._settings_diag.bg_xmin.text())
+            ymin = float(self._settings_diag.bg_xmin.text())
+            width  = float(self._settings_diag.bg_xmax.text()) - xmin
+            height = float(self._settings_diag.bg_ymax.text()) - ymin
+            rect = QtCore.QRectF(xmin, ymin, width, height)
+            B.setRect(rect)
+            VB.addItem(B, ignoreBounds=True)
 
+        
 from interface.ui import LinePlotSettings

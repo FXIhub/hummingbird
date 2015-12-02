@@ -145,6 +145,11 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         # array the last dimension corresponds to the x.
         scale_transform = QtGui.QTransform().scale((ymax-ymin)/img.shape[-2],
                                                    (xmax-xmin)/img.shape[-1])
+        
+        #rotate_transform = QtGui.QTransform()
+        #if source.data_type[title] == 'image':
+        #    if "angle" in conf:
+        #        rotate_transform = QtGui.QTransform(numpy.cos(conf["angle"]), numpy.sin(conf["angle"]), -numpy.sin(conf["angle"]), numpy.cos(conf["angle"]), 0, 0)
 
         transpose_transform = QtGui.QTransform()
         if source.data_type[title] == 'image':
@@ -157,9 +162,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             transpose_transform *= QtGui.QTransform(0, 1, 0,
                                                     1, 0, 0,
                                                     0, 0, 1)
+            
+        transform = scale_transform * translate_transform * transpose_transform
+        #transform = scale_transform * translate_transform * rotate_transform * transpose_transform
         
-        transform = scale_transform*translate_transform*transpose_transform
-
         # print '|%f %f %f|' % (transform.m11(), transform.m12(), transform.m13())
         # print '|%f %f %f|' % (transform.m21(), transform.m22(), transform.m23())
         # print '|%f %f %f|' % (transform.m31(), transform.m32(), transform.m33())
@@ -326,7 +332,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             if self.hline is not None:
                 self.plot.getView().removeItem(self.hline)
                 self.hline = None
-        
+                
     def init_running_hist(self,source, title):
         conf = source.conf[title]
         self.settingsWidget.ui.runningHistWindow.setText(str(conf["window"]))
