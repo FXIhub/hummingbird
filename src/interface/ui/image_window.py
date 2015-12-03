@@ -241,6 +241,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.mm_dx = (self.mm_xmax - float(self.mm_xmin))/self.mm_xbins
         self.mm_dy = (self.mm_ymax - float(self.mm_ymin))/self.mm_ybins
         self.meanmap = numpy.zeros((3, self.mm_ybins, self.mm_xbins), dtype=numpy.float64)
+        print self.mm_xmin,self.mm_xmax,self.mm_xbins,self.mm_ybins,self.mm_dx,self.mm_dy
         self._update_meanmap_transform()
 
     def _update_meanmap_transform(self):
