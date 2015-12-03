@@ -179,8 +179,13 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             self.plot.getView().invertY(False)
         if(self.settingsWidget.ui.flipy.currentText() == 'Yes' or
            (self.settingsWidget.ui.flipy.currentText() == 'Auto' and
-            "flipy" in conf and conf['flipy'] is True)):
+            "flipy" in conf and conf['flipy'] == True)):
             self.plot.getView().invertY(not self.plot.getView().getViewBox().yInverted())
+        if(self.settingsWidget.ui.flipx.currentText() == 'Yes' or
+           (self.settingsWidget.ui.flipx.currentText() == 'Auto' and
+            "flipx" in conf and conf['flipx'] == True)):
+            print "flip x"
+            self.plot.getView().invertX(not self.plot.getView().getViewBox().xInverted())
 
         # Tranpose images to make x (last dimension) horizontal
         axis_labels = ['left', 'bottom']
@@ -502,6 +507,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         settings['colormap_min'] = str(self.settingsWidget.ui.colormap_min.text())
         settings['colormap_max'] = str(self.settingsWidget.ui.colormap_max.text())
         settings['transpose'] = self.settingsWidget.ui.transpose.currentText()
+        settings['flipx'] = self.settingsWidget.ui.flipx.currentText()
         settings['flipy'] = self.settingsWidget.ui.flipy.currentText()
         settings['viewbox'] = self.plot.getView().getViewBox().getState()
         settings['x_view'] = self.actionX_axis.isChecked()
@@ -527,6 +533,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         transpose.setCurrentIndex(transpose.findText(settings['transpose']))
         flipy = self.settingsWidget.ui.flipy
         flipy.setCurrentIndex(flipy.findText(settings['flipy']))
+        flipx = self.settingsWidget.ui.flipx
+        flipx.setCurrentIndex(flipx.findText(settings['flipx']))
         self.plot.getView().getViewBox().setState(settings['viewbox'])
         self.actionX_axis.setChecked(settings['x_view'])
         self.actionX_axis.triggered.emit(settings['x_view'])
