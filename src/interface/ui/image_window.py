@@ -118,19 +118,13 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         
     def _image_transform(self, img, source, title):
         """Returns the appropriate transform for the content"""
-        xmin = 0
-        ymin = 0
         conf = source.conf[title]
+        
+        xmin = conf.get('xmin', 0)
+        ymin = conf.get('ymin', 0)
 
-        if "xmin" in conf:
-            xmin = conf['xmin']
-        if "ymin" in conf:
-            ymin = conf['ymin']
-
-        translate_transform = QtGui.QTransform().translate(ymin, xmin)
         xmax = img.shape[-1] + xmin
         ymax = img.shape[-2] + ymin
-
         if "xmax" in conf:
             if(conf['xmax'] <= xmin):
                 logging.warning("xmax <= xmin for title %s on %s. Ignoring xmax", title, source.name())
@@ -141,6 +135,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 logging.warning("ymax <= ymin for title %s on %s. Ignoring xmax", title, source.name())
             else:
                 ymax = conf['ymax']
+
+        
+        translate_transform = QtGui.QTransform().translate(ymin, xmin)
+
         # The order of dimensions in the scale call is (y,x) as in the numpy
         # array the last dimension corresponds to the x.
         scale_transform = QtGui.QTransform().scale((ymax-ymin)/img.shape[-2],
@@ -228,6 +226,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self.plot.imageItem.setLookupTable(self.lut)
  
     def _init_meanmap(self, xmin, xmax, ymin, ymax, xbins, ybins):
+        #print "init meanmap", xmin, xmax, ymin, ymax, xbins, ybins
         self.mm_xmin = xmin
         self.mm_xmax = xmax
         self.mm_ymin = ymin
@@ -258,6 +257,19 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         xbins = ix_max - ix_min + 1
         ybins = iy_max - iy_min + 1
         if xbins > self.meanmap.shape[2] or ybins > self.meanmap.shape[1]:
+            # A little nasty fix - just for now
+            if xbins > 5000 or ybins > 5000:
+                logging.warning("Too large extent of meanmap (%i, %i) - restting meanmap with new extent centered around corrent position: x=%f, y=%f" % (xbins, ybins, x[-1], y[-1]))
+                xbins = 100
+                ybins = 100
+                xmin = x[-1]-self.mm_dx*xbins/2
+                xmax = x[-1]+self.mm_dx*xbins/2
+                ymin = y[-1]-self.mm_dy*ybins/2
+                ymax = y[-1]+self.mm_dy*ybins/2
+                self._init_meanmap(xmin, xmax, ymin, ymax, xbins, ybins)
+                self._extend_meanmap(x,y)
+                return
+            #print "extend meanmap", xbins, ybins, x,y
             temp = numpy.zeros(shape=(3, ybins, xbins), dtype=self.meanmap.dtype)
             temp[:,
                  -iy_min:-iy_min+self.meanmap.shape[1],

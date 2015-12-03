@@ -222,3 +222,22 @@ def bgsub(evt, type, key, bg):
     else:
         dataCorrected = data
     add_record(evt["analysis"], "analysis", "bgsub - " + key, dataCorrected)
+
+
+def crop_and_center(evt, data_rec, cx=None, cy=None, w=None, h=None):
+    data = data_rec.data
+    Ny, Nx = data.shape
+    if cx is None:
+        cx = (Nx-1)/2.
+    if cy is None:
+        cy = (Ny-1)/2.
+    # Round to .0 / .5    
+    cx = np.round(cx * 2)/2.
+    cy = np.round(cy * 2)/2.
+    if w is None:
+        w = Nx
+    if h is None:
+        h = Ny
+    data_cropped = data[cy-h/2:cy+h/2, cx-w/2:cx+w/2]
+    add_record(evt["analysis"], "analysis", "cropped/centered", data_cropped)
+
