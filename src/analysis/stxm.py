@@ -36,8 +36,11 @@ def stxm(evt, data_rec, mode='bf', cx=None, cy=None, r=20):
         x2_min = x2_max - Nx_half
         y2_min = y2_max - Ny_half
         # Calc diff
-        diffx = data[y1_min:y2_max, x1_min:x1_max].sum() - data[y1_min:y2_max, x2_min:x2_max].sum()
-        diffy = data[y1_min:y1_max, x1_min:x2_max].sum() - data[y2_min:y2_max, x1_min:x2_max].sum()
+        # Original type might be unsigned integer
+        #
+        # Casting is done to doubles for accumulation.
+        diffx = data[y1_min:y2_max, x1_min:x1_max].sum(dtype=np.float64) - data[y1_min:y2_max, x2_min:x2_max].sum(dtype=np.float64)
+        diffy = data[y1_min:y1_max, x1_min:x2_max].sum(dtype=np.float64) - data[y2_min:y2_max, x1_min:x2_max].sum(dtype=np.float64)
         # Combine diff
         v = np.sqrt(diffx**2+diffy**2)
     rec = add_record(evt["analysis"], "analysis", "stxm %s" %mode, v)
