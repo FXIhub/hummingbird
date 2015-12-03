@@ -241,7 +241,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.mm_dx = (self.mm_xmax - float(self.mm_xmin))/self.mm_xbins
         self.mm_dy = (self.mm_ymax - float(self.mm_ymin))/self.mm_ybins
         self.meanmap = numpy.zeros((3, self.mm_ybins, self.mm_xbins), dtype=numpy.float64)
-        print self.mm_xmin,self.mm_xmax,self.mm_xbins,self.mm_ybins,self.mm_dx,self.mm_dy
         self._update_meanmap_transform()
 
     def _update_meanmap_transform(self):
@@ -361,6 +360,14 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
     def replot(self):
         """Replot data"""
+        #try:
+        #    print self.mm_xmin,self.mm_xmax,self.mm_xbins,self.mm_ybins,self.mm_dx,self.mm_dy
+        #except:
+        #    pass
+
+        #from IPython.core.debugger import Tracer
+        #Tracer()()
+
         for source, title in self.source_and_titles():
             if(title not in source.plotdata):
                 continue
@@ -514,6 +521,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         settings['x_view'] = self.actionX_axis.isChecked()
         settings['y_view'] = self.actionY_axis.isChecked()
         settings['histogram_view'] = self.actionHistogram.isChecked()
+        settings['crosshair'] = self.actionCrosshair.isChecked()
         
         return DataWindow.get_state(self, settings)
 
@@ -543,6 +551,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionY_axis.triggered.emit(settings['y_view'])
         self.actionHistogram.setChecked(settings['histogram_view'])
         self.actionHistogram.triggered.emit(settings['histogram_view'])
+        self.actionCrosshair.setChecked(settings['crosshair'])
+        self.actionCrosshair.triggered.emit(settings['crosshair'])
+
 
         return DataWindow.restore_from_state(self, settings, data_sources)
 
