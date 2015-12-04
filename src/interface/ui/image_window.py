@@ -184,7 +184,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         if(self.settingsWidget.ui.flipx.currentText() == 'Yes' or
            (self.settingsWidget.ui.flipx.currentText() == 'Auto' and
             "flipx" in conf and conf['flipx'] == True)):
-            print "flip x"
             self.plot.getView().invertX(not self.plot.getView().getViewBox().xInverted())
 
         # Tranpose images to make x (last dimension) horizontal
@@ -231,7 +230,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self.plot.imageItem.setLookupTable(self.lut)
  
     def _init_meanmap(self, xmin, xmax, ymin, ymax, xbins, ybins):
-        #print "init meanmap", xmin, xmax, ymin, ymax, xbins, ybins
         self.mm_xmin = xmin
         self.mm_xmax = xmax
         self.mm_ymin = ymin
@@ -274,7 +272,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self._init_meanmap(xmin, xmax, ymin, ymax, xbins, ybins)
                 self._extend_meanmap(x,y)
                 return
-            #print "extend meanmap", xbins, ybins, x,y
             temp = numpy.zeros(shape=(3, ybins, xbins), dtype=self.meanmap.dtype)
             temp[:,
                  -iy_min:-iy_min+self.meanmap.shape[1],
@@ -360,13 +357,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
     def replot(self):
         """Replot data"""
-        #try:
-        #    print self.mm_xmin,self.mm_xmax,self.mm_xbins,self.mm_ybins,self.mm_dx,self.mm_dy
-        #except:
-        #    pass
-
-        #from IPython.core.debugger import Tracer
-        #Tracer()()
 
         for source, title in self.source_and_titles():
             if(title not in source.plotdata):
@@ -522,6 +512,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         settings['y_view'] = self.actionY_axis.isChecked()
         settings['histogram_view'] = self.actionHistogram.isChecked()
         settings['crosshair'] = self.actionCrosshair.isChecked()
+        settings['gradient_mode'] = self.plot.getHistogramWidget().item.gradient.saveState()
         
         return DataWindow.get_state(self, settings)
 
@@ -553,8 +544,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionHistogram.triggered.emit(settings['histogram_view'])
         self.actionCrosshair.setChecked(settings['crosshair'])
         self.actionCrosshair.triggered.emit(settings['crosshair'])
-
-
+        self.plot.getHistogramWidget().item.gradient.restoreState(settings['gradient_mode'])
+        
         return DataWindow.restore_from_state(self, settings, data_sources)
 
     def toggle_axis(self, visible):
