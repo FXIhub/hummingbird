@@ -106,7 +106,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         conf = source.conf[title]
         if(self.actionX_axis.isChecked()):
             if 'xlabel' in conf and self._settings_diag.x_auto.isChecked():
-                self._settings_diag.x_label.setText("abc")#conf['xlabel'])
+                self._settings_diag.x_label.setText(conf['xlabel'])
             if hist:
                 self.plot.setLabel('bottom', self._settings_diag.y_label.text())
             else:

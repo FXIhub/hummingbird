@@ -24,6 +24,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.exclusive_source = True
         self.alert = False
         self.meanmap = None
+        self.last_x = None
+        self.last_y = None
         self.vline = None
         self.hline = None
 
@@ -61,6 +63,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
         self.running_hist_initialised = False
 
+        self.actionReset_cache.triggered.connect(self.on_reset_cache)
+        
     def set_sounds_and_volume(self):
         self.soundsGroup = QtGui.QActionGroup(self.menuSounds)
         self.soundsGroup.setExclusive(True)
@@ -228,7 +232,18 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         if source.data_type[title] == 'image' and ("log" in conf):
             if conf["log"]:
                 self.plot.imageItem.setLookupTable(self.lut)
- 
+
+    def on_reset_cache(self):
+        self._reset_meanmap_cache()
+
+    def _reset_meanmap_cache(self):
+        if self.meanmap is not None and self.last_x is not None and self.last_y is not None:
+            xmin = self.last_x-self.mm_dx*self.mm_xbins/2.
+            xmax = self.last_x+self.mm_dx*self.mm_xbins/2.
+            ymin = self.last_y-self.mm_dy*self.mm_ybins/2.
+            ymax = self.last_y-self.mm_dy*self.mm_ybins/2.
+            self._init_meanmap(xmin, xmax, ymin, ymax, self.mm_xbins, self.mm_ybins)
+                
     def _init_meanmap(self, xmin, xmax, ymin, ymax, xbins, ybins):
         self.mm_xmin = xmin
         self.mm_xmax = xmax
@@ -285,7 +300,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             self.mm_ybins = ybins
             self._update_meanmap_transform()
         
-    def _fill_meanmap(self, times, triples, xmin=0, xmax=100, ymin=0, ymax=100, xbins=100, ybins=100, dynamic_extent=False):
+    def _fill_meanmap(self, times, triples, xmin=0, xmax=100, ymin=0, ymax=100, xbins=100, ybins=100, dynamic_extent=False, initial_reset=False):
 
         triples_new = triples
         if self.meanmap is not None:
@@ -293,14 +308,21 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             if len(w) > 0:
                 if w[0] > 0:
                     triples_new = triples[:w[0],:]
-        self.mm_last = times[0]
         x = triples_new[:,0]
         y = triples_new[:,1]
         z = triples_new[:,2]
+
+        self.last_x = x[-1]
+        self.last_y = y[-1] 
         
         if self.meanmap is None:
             self._init_meanmap(xmin, xmax, ymin, ymax, xbins, ybins)
 
+        if self.mm_last is None and initial_reset:
+            self._reset_meanmap_cache()
+            
+        self.mm_last = times[0]
+            
         if dynamic_extent:
             self._extend_meanmap(triples_new[:,0], triples_new[:,1])                    
 
@@ -420,7 +442,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     img, transform, x, y = self._fill_meanmap(times, triples,
                                                               xmin=conf["xmin"], xmax=conf["xmax"], ymin=conf["ymin"], ymax=conf["ymax"],
                                                               ybins=conf["ybins"], xbins=conf["xbins"],
-                                                              dynamic_extent=conf.get("dynamic_extent", False))
+                                                              dynamic_extent=conf.get("dynamic_extent", False),
+                                                              initial_reset=conf.get("initial_reset", False),
+                    )
                 else:
                     x, y = (0,0)
                 if (self.settingsWidget.ui.show_trend.isChecked()):

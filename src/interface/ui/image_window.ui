@@ -506,6 +506,8 @@
     <addaction name="actionY_axis"/>
     <addaction name="actionHistogram"/>
     <addaction name="actionCrosshair"/>
+    <addaction name="separator"/>
+    <addaction name="actionReset_cache"/>
    </widget>
    <widget class="QMenu" name="menuAlert">
     <property name="title">
@@ -697,6 +699,11 @@
    </property>
    <property name="text">
     <string>Crosshair</string>
+   </property>
+  </action>
+  <action name="actionReset_cache">
+   <property name="text">
+    <string>Reset Cache</string>
    </property>
   </action>
  </widget>
