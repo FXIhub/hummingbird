@@ -244,7 +244,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             ymin = self.last_y-self.mm_dy*self.mm_ybins/2.
             ymax = self.last_y+self.mm_dy*self.mm_ybins/2.
             self._init_meanmap(xmin, xmax, ymin, ymax, self.mm_xbins, self.mm_ybins)
-                
+   
     def _init_meanmap(self, xmin, xmax, ymin, ymax, xbins, ybins):
         self.mm_xmin = xmin
         self.mm_xmax = xmax

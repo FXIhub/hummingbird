@@ -203,7 +203,7 @@ def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
 
 
 meanMaps = {}
-def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plotid=None, xlabel=None, ylabel=None, msg='', dynamic_extent=False):
+def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plotid=None, xlabel=None, ylabel=None, msg='', dynamic_extent=False, initial_reset=False):
     """Plotting the meanmap of Z as a function of two parameters X and Y.
     (No buffer in the backend).
 
@@ -231,7 +231,7 @@ def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plo
         ipc.broadcast.init_data(plotid, data_type='triple', history_length=1,
                                 xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                                 xbins=xbins, ybins=ybins,
-                                xlabel=xlabel, ylabel=ylabel, flipy=True, dynamic_extent=dynamic_extent)
+                                xlabel=xlabel, ylabel=ylabel, flipy=True, dynamic_extent=dynamic_extent, initial_reset=initial_reset)
     x = X if not isinstance(X, Record) else X.data
     y = Y if not isinstance(Y, Record) else Y.data
     z = Z if not isinstance(Z, Record) else Z.data
