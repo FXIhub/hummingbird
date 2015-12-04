@@ -252,13 +252,13 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.mm_ymax = ymax
         self.mm_xbins = xbins
         self.mm_ybins = ybins
-        self.mm_dx = (self.mm_xmax - float(self.mm_xmin))/self.mm_xbins
-        self.mm_dy = (self.mm_ymax - float(self.mm_ymin))/self.mm_ybins
+        self.mm_dx = numpy.float(self.mm_xmax - self.mm_xmin)/self.mm_xbins
+        self.mm_dy = numpy.float(self.mm_ymax - self.mm_ymin)/self.mm_ybins
         self.meanmap = numpy.zeros((3, self.mm_ybins, self.mm_xbins), dtype=numpy.float64)
         self._update_meanmap_transform()
 
     def _update_meanmap_transform(self):
-        translate_transform = QtGui.QTransform().translate(self.mm_ymin-self.mm_dy/2., self.mm_xmin-self.mm_dx/2.)
+        translate_transform = QtGui.QTransform().translate(self.mm_ymin, self.mm_xmin)
         scale_transform = QtGui.QTransform().scale(self.mm_dy, self.mm_dx)
         transpose_transform = QtGui.QTransform()
         transpose_transform *= QtGui.QTransform(0, 1, 0,
@@ -329,8 +329,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
         for x,y,z in triples_new:
             
-            ix = numpy.round((x - self.mm_xmin)/self.mm_dx)
-            iy = numpy.round((y - self.mm_ymin)/self.mm_dy)
+            ix = numpy.round((x - (self.mm_xmin+self.mm_dx/2.))/self.mm_dx)
+            iy = numpy.round((y - (self.mm_ymin+self.mm_dy/2.))/self.mm_dy)
             
             if (ix < 0):                    
                 ix = 0
