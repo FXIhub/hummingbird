@@ -26,6 +26,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.meanmap = None
         self.last_x = None
         self.last_y = None
+        self.mm_last = None
         self.vline = None
         self.hline = None
 
@@ -241,7 +242,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             xmin = self.last_x-self.mm_dx*self.mm_xbins/2.
             xmax = self.last_x+self.mm_dx*self.mm_xbins/2.
             ymin = self.last_y-self.mm_dy*self.mm_ybins/2.
-            ymax = self.last_y-self.mm_dy*self.mm_ybins/2.
+            ymax = self.last_y+self.mm_dy*self.mm_ybins/2.
             self._init_meanmap(xmin, xmax, ymin, ymax, self.mm_xbins, self.mm_ybins)
                 
     def _init_meanmap(self, xmin, xmax, ymin, ymax, xbins, ybins):
