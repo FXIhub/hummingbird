@@ -1,3 +1,4 @@
+import os
 import simulation.simple
 import analysis.event
 import analysis.pixel_detector
@@ -5,7 +6,9 @@ import analysis.hitfinding
 import plotting.line
 import plotting.image
 
-sim = simulation.simple.Simulation("examples/hitfinding/virus.conf")
+here = os.path.dirname(os.path.realpath(__file__))
+
+sim = simulation.simple.Simulation(here + "/virus.conf")
 sim.hitrate = 0.1
 
 state = {
