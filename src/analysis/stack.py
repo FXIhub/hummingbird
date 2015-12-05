@@ -100,16 +100,19 @@ class Stack:
         # Postpone writing?
         if self._outPeriod is not None:
             if (self._currentIndex % self._outPeriod) != self._outIndex:
+                if verbose:
+                    print "Postponing writing stack because output period is %i (%i frames till next output)" % (self._currentIndex, self._outPeriod - (self._currentIndex % self._outPeriod))
                 return
         if not self._reduced:
             if verbose:
-                print "Postponing writing stack to file because stack is not reduced yet. Fill status %i/%i." % (self._currentIndex+1, self._maxLen)
+                print "Postponing writing stack to file because stack is not reduced yet. Fill status %i/%i." % ((self._currentIndex % self._maxLen) + 1, self._maxLen)
             return
         # Timestamp for filename
         dt = evt["eventID"]["Timestamp"].data
         fid = evt["eventID"]["Timestamp"].fiducials
         ts = dt.strftime("%Y%m%d-%H%M%S-%f")
         fn = "%s/%s-%s-fid%s-rk%i.h5" % (directory,self._name, ts, fid, ipc.mpi.rank)
+        fn_link = "%s/current_%s-rk%i.h5" % (directory,self._name, ipc.mpi.rank)
         # Write to H5
         if verbose:
             print "Writing stack to %s" % fn
@@ -119,3 +122,4 @@ class Stack:
         with h5py.File(fn,"w") as f:
             for o,rf in self._outputs.items():
                 f[o] = rf() 
+        os.system("ln -sf %s %s" % (fn.split("/")[-1], fn_link ))
