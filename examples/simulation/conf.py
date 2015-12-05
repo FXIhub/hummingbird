@@ -1,8 +1,13 @@
+import os
+
 import simulation.simple
 import analysis.event
+import plotting.image
 
-sim = simulation.simple.Simulation("examples/simulation/virus.conf")
-sim.hitrate = 0.1
+here = os.path.dirname(os.path.realpath(__file__))
+
+sim = simulation.simple.Simulation(here + "/virus.conf")
+sim.hitrate = 0.9
 
 state = {
     'Facility': 'Dummy',
@@ -32,3 +37,5 @@ def onEvent(evt):
 
     # Available datasets
     analysis.event.printKeys(evt)
+
+    plotting.image.plotImage(evt['photonPixelDetectors']['CCD'])
