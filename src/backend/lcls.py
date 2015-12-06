@@ -128,10 +128,16 @@ class LCLSTranslator(object):
                     Worker.conf.end_of_run()
                 return None
             self.i += 1
-        elif self.times:
-            time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
-            self.i += 1
-            evt = self.run.event(time)            
+        elif self.times is not None:
+            evt = None
+            while self.i < len(self.times) and evt is None:
+                time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
+                print time
+                self.i += 1
+                evt = self.run.event(time)
+                print evt
+                if evt is None:
+                    print "Unable to find event listed in index file"
         else:
             try:
                 evt = self.data_source.events().next()
