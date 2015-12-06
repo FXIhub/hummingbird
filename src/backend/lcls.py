@@ -132,12 +132,14 @@ class LCLSTranslator(object):
             evt = None
             while self.i < len(self.times) and evt is None:
                 time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
-                print time
                 self.i += 1
                 evt = self.run.event(time)
-                print evt
                 if evt is None:
                     print "Unable to find event listed in index file"
+
+            # We got to the end without a valid event, time to call it a day
+            if evt is None:
+                return None
         else:
             try:
                 evt = self.data_source.events().next()
