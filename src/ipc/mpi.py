@@ -4,6 +4,8 @@ import numpy
 import numbers
 import logging
 
+reducedata = {}
+
 def is_master():
     """Returns True if the process has MPI rank 0 and
     there are multiple processes."""
@@ -91,22 +93,33 @@ def master_loop():
     """Run the main loop on the master process.
     It retransmits all received messages using its zmqserver
     and handles any possible reductions."""
-    msg = comm.recv(None, MPI.ANY_SOURCE)
+    status = MPI.Status()
+    msg = comm.recv(None, MPI.ANY_SOURCE, status = status)
     if(msg[0] == '__data_conf__'):
         ipc.broadcast.data_conf.update(msg[1])
     elif(msg[0] == '__reduce__'):
-        title = msg[1]
-        cmd = msg[2]
-        if(msg[3] != ()):
-            data_y = numpy.zeros(msg[3])
+        cmd = msg[1]
+        if(msg[2] != ()):
+            data_y = numpy.zeros(msg[1])
         else:
             data_y = 0
-        data_x = msg[4]
-        kwds = msg[5]
-        data_y = comm.reduce(data_y)
+        incomingdata = msg[3]
+        getback = msg[4]
+        
+        source = status.Get_source()
+        
+        # This indicates that we really should have an object for the state
+        if cmd not in reducedata:
+            reducedata[cmd] = {}
+        reducedata[cmd][source] = incomingdata
+
         if(isinstance(data_y, numbers.Number)):
-            print "[%s] - %g" %(title, data_y)
-        ipc.zmq().send(title, [ipc.uuid, cmd, title, data_y, data_x, kwds])
+            #print "[%s] - %g" %(cmd, data_y)
+            pass
+        if getback:
+            for data in reducedata[cmd]:
+                data_y = data_y + data
+            comm.send(data_y, source)
     else:
         # Inject a proper UUID
         msg[1][0] = ipc.uuid
@@ -118,19 +131,28 @@ def send_reduce(title, cmd, data_y, data_x, **kwds):
     # Need an MPI barrier here on the slaves side
     # Otherwise the main_slave can block the master
     # while other slaves are sending data
+    # DO NOT USE ME
+    print "DO NOT USE send_reduce"
     slaves_comm.Barrier()
     if(is_main_slave()):
         # Alert master for the reduction
         if(isinstance(data_y, numbers.Number)):
-            comm.send(['__reduce__', title, cmd, (), data_x, kwds], 0)
+            comm.send(['__reduce__', title, cmd, (), data_x, kwds, data_y], 0)
         else:
-            comm.send(['__reduce__', title, cmd, data_y.shape, data_x, kwds], 0)
-    comm.reduce(data_y)
+            comm.send(['__reduce__', title, cmd, data_y.shape, data_x, kwds, data_y], 0)
 
-def sum(array):
+def sum(cmd, array):
     """Element-wise sum of a numpy array across all the slave processes.
     The result is only available in the main_slave (rank 1)."""
-    _reduce(array, "SUM")
+    #_reduce(array, "SUM")
+    if(isinstance(array, numbers.Number)):
+        comm.send(['__reduce__', cmd, (), array, is_main_slave()], 0)
+    else:
+        comm.send(['__reduce__', cmd, array.shape, array, is_main_slave()], 0)
+    
+    if not is_main_slave():
+        return None
+    return comm.recv(None, 0)
     
 
 def max(array):

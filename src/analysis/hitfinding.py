@@ -39,8 +39,8 @@ def hitrate(evt, hit, good_hit=True, history=100):
     good_misses = evt["analysis"]["nrGoodMiss"].data
     hitrate = np.array(100 * hits / float(hits + misses))
     good_hitrate = np.array(100 * good_hits / float(good_hits + good_misses))
-    ipc.mpi.sum(hitrate)
-    ipc.mpi.sum(good_hitrate)
+    ipc.mpi.sum("hitrate", hitrate)
+    ipc.mpi.sum("goodhitrate", good_hitrate)
     v = evt["analysis"]
     if(ipc.mpi.is_main_worker()):
         add_record(v, "analysis", "hitrate", hitrate[()]/ipc.mpi.nr_workers(), unit='%')
