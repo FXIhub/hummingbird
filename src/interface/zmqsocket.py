@@ -21,7 +21,7 @@ class ZmqSocket(QtCore.QObject):
         fd = self._socket.getsockopt(FD)
         self._notifier = QtCore.QSocketNotifier(fd, QtCore.QSocketNotifier.Read, self)
         self._notifier.activated.connect(self.activity)
-        self._socket.setsockopt(RCVHWM, 10)
+        self._socket.setsockopt(RCVHWM, 100)
         self.filters = []
 
     def __del__(self):
