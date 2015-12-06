@@ -495,7 +495,7 @@
     <property name="title">
      <string>Save</string>
     </property>
-    <addaction name="actionSaveToJPG"/>
+    <addaction name="actionSaveToPNG"/>
    </widget>
    <widget class="QMenu" name="menuView">
     <property name="title">
@@ -544,9 +544,9 @@
    <addaction name="menuView"/>
    <addaction name="menuAlert"/>
   </widget>
-  <action name="actionSaveToJPG">
+  <action name="actionSaveToPNG">
    <property name="text">
-    <string>Save to JPG</string>
+    <string>Save to PNG</string>
    </property>
   </action>
   <action name="actionPlotSettings">

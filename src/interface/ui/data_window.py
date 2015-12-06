@@ -19,8 +19,8 @@ class DataWindow(QtGui.QMainWindow):
     def _setup_connections(self):
         """Initialize connections"""
         self.menuData_Sources.aboutToShow.connect(self.on_menu_show)
-        self.actionSaveToJPG.triggered.connect(self.on_save_to_jpg)
-        self.actionSaveToJPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
+        self.actionSaveToPNG.triggered.connect(self.on_save_to_png)
+        self.actionSaveToPNG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
 
     def _finish_layout(self):
         """This is called after the derived classes finish settings up so
@@ -82,14 +82,14 @@ class DataWindow(QtGui.QMainWindow):
         else:
             return datetime.datetime.now()
 
-    def on_save_to_jpg(self):
+    def on_save_to_png(self):
         """Save a screenshot of the window"""
         dt = self.get_time()
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         timestamp = '%04d%02d%02d_%02d%02d%02d' %(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
-        print self.settings.value("outputPath") + '/' + timestamp + '_' + self.plot_title + '.jpg'
+        print self.settings.value("outputPath") + '/' + timestamp + '_' + self.plot_title + '.png'
         QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' +
-                                            timestamp + '.jpg', 'jpg')
+                                            timestamp + '.png', 'png', quality=100)
 
     def _source_title_triggered(self):
         """Enable/disable a data source"""
