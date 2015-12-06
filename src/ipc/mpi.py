@@ -113,12 +113,10 @@ def master_loop():
             reducedata[cmd] = {}
         reducedata[cmd][source] = incomingdata
 
-        if(isinstance(data_y, numbers.Number)):
-            #print "[%s] - %g" %(cmd, data_y)
-            pass
         if getback:
+            cnt = 0
             for data in reducedata[cmd]:
-                data_y = data_y + data
+                data_y = data_y + reducedata[cmd][data]
             comm.send(data_y, source)
     else:
         # Inject a proper UUID
@@ -152,7 +150,12 @@ def sum(cmd, array):
     
     if not is_main_slave():
         return None
-    return comm.recv(None, 0)
+
+    databack = comm.recv(None, 0)
+    if(isinstance(databack, numbers.Number)):
+        array[()] = databack
+    else:
+        array[:] = databack[:]
     
 
 def max(array):
