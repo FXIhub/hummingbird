@@ -96,7 +96,7 @@ class Stack:
             rf()
         self._reduced = True
 
-    def write(self,evt, directory=".", verbose=True):
+    def write(self,evt, directory=".", verbose=False):
         # Postpone writing?
         if self._outPeriod is not None:
             if (self._currentIndex % self._outPeriod) != self._outIndex:

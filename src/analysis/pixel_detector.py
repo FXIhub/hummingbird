@@ -186,7 +186,7 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
 
 
     
-def cmc(evt, type, key, mask=None):
+def cmc(evt, type, key, mask=None, crop_square=True):
     """ Common mode subtraction with median value from pixels within given mask. Add record ``evt["analysis"]["cmc - " + key]``
 
     Args:
