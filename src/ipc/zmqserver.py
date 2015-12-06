@@ -28,7 +28,9 @@ class ZmqServer(object):
                                                 self._broker_pub_port+1)
 
         self._data_socket = self._context.socket(zmq.PUB)
-        self._data_socket.setsockopt(zmq.SNDHWM, 10)
+        ## Does not match intent according to http://stackoverflow.com/questions/23800442/why-wont-zmq-drop-messages
+        #self._data_socket.setsockopt(zmq.SNDHWM, 10)
+        self._data_socket.setsockopt(zmq.SNDTIMEO, 0)
         self._ctrl_socket.bind("tcp://*:%d" % (self._ctrl_port))
         self._broker_pub_socket.bind("tcp://*:%d" % (self._broker_pub_port))
         self._broker_sub_socket.bind("tcp://*:%d" % (self._broker_sub_port))
