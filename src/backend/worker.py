@@ -93,7 +93,9 @@ class Worker(object):
                 while(Worker.state['running']) and not self.reloadnow:
                     self.reloadnow = self.reloadnow or ipc.mpi.checkreload()
                     if(ipc.mpi.is_master()):
-                        ipc.mpi.master_loop()
+                        is_exiting = ipc.mpi.master_loop()
+                        if is_exiting:
+                            return
                     else:
                         try:
                             evt = self.translator.next_event()
