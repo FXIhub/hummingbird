@@ -2,6 +2,10 @@
 # Hummingbird
 This repository aims to coordinate the efforts of the Single Particle Imaging (SPI) community on software for online analysis.
 
+# Documentation
+
+You can find documentation about the project at [spidocs.readthedocs.org](http://spidocs.readthedocs.org).
+
 # Contribute
 
 If you would like to contribute just go the issues page and [create a
@@ -17,10 +21,6 @@ To be able to contribute first you need a copy of the repository:
 
 For help on using ```git``` please check [the official git documentation](http://git-scm.com/doc)
 and the [Github tutorials](https://help.github.com/).
-
-# Documentation
-
-You can find documentation about the project at [spidocs.readthedocs.org](http://spidocs.readthedocs.org).
 
 ## Editing Documentation
 
