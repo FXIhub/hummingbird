@@ -24,7 +24,7 @@ state = {
             # It's also the native key that will be used
             'CCD': {
                 # A function that will generate the data for every event
-                'data': lambda: numpy.random.rand(256,128),
+                'data': lambda: numpy.random.rand(256,256),
                 # The units to be used
                 'unit': 'ADU',     
                 # The name of the category for this data source.
@@ -44,7 +44,7 @@ def onEvent(evt):
         plotting.image.plotImage(v)
 
     data_stats.add(evt['photonPixelDetectors'].values()[0].data)
-    mean = add_record(evt["analysis"], "analysis", "pnCCD front (mean)", data_stats.min(), unit='')
+    mean = add_record(evt["analysis"], "analysis", "pnCCD front (mean)", data_stats.mean(), unit='')
     plotting.image.plotImage(evt["analysis"]["pnCCD front (mean)"], 
                              msg='', name="pnCCD front (mean)")
     #if (not ipc.mpi.is_main_slave())
