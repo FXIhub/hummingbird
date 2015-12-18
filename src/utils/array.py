@@ -113,32 +113,3 @@ def runningMean(x, N):
         return sum(x)
     cumsum = numpy.cumsum(numpy.insert(x, 0, 0))
     return (cumsum[N:] - cumsum[:-N]) / float(N)
-
-
-# For cspad2x2 and cspad
-def cmc(data, mask=None):
-    dataCorrected = numpy.copy(data)
-    
-    lData = data[:,:data.shape[1]/2]
-    rData = data[:,data.shape[1]/2:]
-
-    if mask is None:
-        lMask = numpy.ones(shape=lData.shape, dtype="bool")
-        rMask = numpy.ones(shape=rData.shape, dtype="bool")
-    else:
-        lMask = mask[:,:data.shape[1]/2] == False
-        rMask = mask[:,data.shape[1]/2:] == False
-    
-    if lMask.sum() > 0:
-        dataCorrected[:,:data.shape[1]/2] -= numpy.median(lData[lMask])
-    if rMask.sum() > 0:
-        dataCorrected[:,data.shape[1]/2:] -= numpy.median(rData[rMask])
-    return dataCorrected
-
-def cmc_pnccd(data):
-    dataCorrected = numpy.copy(data)
-    lData = data[:,:data.shape[1]/2]
-    rData = data[:,data.shape[1]/2:]
-    dataCorrected[:,:data.shape[1]/2] -= numpy.median(lData,axis=1).repeat(lData.shape[1]).reshape(lData.shape)
-    dataCorrected[:,data.shape[1]/2:] -= numpy.median(rData,axis=1).repeat(rData.shape[1]).reshape(rData.shape)
-    return dataCorrected

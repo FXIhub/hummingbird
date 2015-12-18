@@ -1,8 +1,6 @@
-import time
 import analysis.event
 import analysis.beamline
 import analysis.pixel_detector
-import analysis.stats
 import plotting.image
 import ipc
 import numpy
@@ -12,7 +10,7 @@ from backend import add_record
 numpy.random.seed()
 
 state = {
-    'Facility': 'Dummy',
+    'Facility': 'HDF5',
 
     'Dummy': {
         # The event repetition rate of the facility 
@@ -36,23 +34,18 @@ state = {
     }
 }
 
-data_stats = analysis.stats.DataStatistics()
+
 
 def onEvent(evt):
+
+    # 
+    analysis.event.printProcessingRate()
+
+
+    analysis.pixel_detector.radial(evt, 'photonPixelDetectors', 'CCD')
+    
     ipc.broadcast.init_data('CCD', xmin=10,ymin=10)
     for k,v in evt['photonPixelDetectors'].iteritems():
         plotting.image.plotImage(v)
 
-    data_stats.add(evt['photonPixelDetectors'].values()[0].data)
-    mean = add_record(evt["analysis"], "analysis", "pnCCD front (mean)", data_stats.mean(), unit='')
-    plotting.image.plotImage(evt["analysis"]["pnCCD front (mean)"], 
-                             msg='', name="pnCCD front (mean)")
-    #if (not ipc.mpi.is_main_slave())
-    if numpy.random.randint(10000) == 0:
-        print "Sleeper cell"
-        from mpi4py import MPI
-        comm = MPI.COMM_WORLD
-        rank = comm.Get_rank()
-        time.sleep(10)
-        print rank
-    analysis.event.printProcessingRate()
+    

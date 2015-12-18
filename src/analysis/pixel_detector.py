@@ -1,9 +1,9 @@
-from numpy import sum, mean, min, max, std
-import ipc
-import numpy as np
 from backend import ureg
 from backend import add_record
+import utils.io
 import utils.array
+from numpy import sum, mean, min, max, std
+import numpy as np
 
 def printStatistics(detectors):
     for k,r in detectors.iteritems():
@@ -133,11 +133,12 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
     else:
         add_record(evt["analysis"], "analysis", outkey, assembled)
 
-
-
     
 def bin(evt, type, key, binning, mask=None):
-    """Bin a detector image given a binning factor (and mask) to ``evt["analysis"]["binned image - " + key]`` (``evt["analysis"]["binned mask - " + key]``
+    """Bin a detector image given a binning factor (and mask).
+    Adds the records ``evt["analysis"]["binned image - " + key]`` and  ``evt["analysis"]["binned mask - " + key]``.
+
+    .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
 
     Args:
         :evt:        The event variable
@@ -151,7 +152,10 @@ def bin(evt, type, key, binning, mask=None):
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
     """
-    import spimage
+    success, spimage = utils.io.load_spimage()
+    if not success:
+        print "Skipping binning"
+        return
     image = evt[type][key].data
     binned_image, binned_mask = spimage.binImage(image, binning, msk=mask, output_binned_mask=True)
     add_record(evt["analysis"], "analysis", "binned image - "+key, binned_image)
@@ -159,7 +163,10 @@ def bin(evt, type, key, binning, mask=None):
         add_record(evt["analysis"], "analysis", "binned mask - "+key, binned_mask)
 
 def radial(evt, type, key, mask=None, cx=None, cy=None):
-    """Compute the radial average of a detector image given the center position (and a mask) and saves it to ``evt["analysis"]["radial average - " + key]`` and the radial distances are saved to``evt["analysis"]["radial distance - " + key]``
+    """Compute the radial average of a detector image given the center position (and a mask). 
+    Adds the records ``evt["analysis"]["radial average - " + key]`` and ``evt["analysis"]["radial distance - " + key]``.
+
+    .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
 
     Args:
         :evt:        The event variable
@@ -174,21 +181,23 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
     """
-    import spimage
+    success, spimage = utils.io.load_spimage()
+    if not success:
+        print "Skipping radial averaging"
+        return
     image = evt[type][key].data
     r, img_r = spimage.radialMeanImage(image, msk=mask, cx=cx, cy=cy, output_r=True)
     valid = np.isfinite(img_r)
     if valid.sum() > 0:
         r = r[valid]
         img_r = img_r[valid]
-    add_record(evt["analysis"], "analysis", "radial distance - "+key, r)
-    add_record(evt["analysis"], "analysis", "radial average - "+key, img_r)
+    add_record(evt["analysis"], "analysis", "radial distance - " + key, r)
+    add_record(evt["analysis"], "analysis", "radial average - "  + key, img_r)
 
-
+def commonModeMask(evt, type, key, mask=None):
+    """Subtraction of common mode using median value of masked pixels (left and right half of detector are treated separately). 
+    Adds a record ``evt["analysis"]["cm_corrected - " + key]``.
     
-def cmc(evt, type, key, mask=None, crop_square=True):
-    """ Common mode subtraction with median value from pixels within given mask. Add record ``evt["analysis"]["cmc - " + key]``
-
     Args:
       :evt:        The event variable
       :type(str):  The event type (e.g. photonPixelDetectors)
@@ -199,33 +208,67 @@ def cmc(evt, type, key, mask=None, crop_square=True):
     
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
     data = evt[type][key].data
-    dataCorrected = utils.array.cmc(data, mask=mask)
-    add_record(evt["analysis"], "analysis", "cmc - " + key, dataCorrected)
+    dataCorrected = numpy.copy(data)
+    lData = data[:,:data.shape[1]/2]
+    rData = data[:,data.shape[1]/2:]
+    if mask is None:
+        lMask = numpy.ones(shape=lData.shape, dtype="bool")
+        rMask = numpy.ones(shape=rData.shape, dtype="bool")
+    else:
+        lMask = mask[:,:data.shape[1]/2] == False
+        rMask = mask[:,data.shape[1]/2:] == False
+    if lMask.sum() > 0:
+        dataCorrected[:,:data.shape[1]/2] -= numpy.median(lData[lMask])
+    if rMask.sum() > 0:
+        dataCorrected[:,data.shape[1]/2:] -= numpy.median(rData[rMask])    
+    add_record(evt["analysis"], "analysis", "cm_corrected - " + key, dataCorrected)
 
-def cmc_pnccd(evt, type, key):
-    try:
-        data = evt[type][key].data
-    except:
-        print "NO DATA!"
-        return
-    if data is None:
-        return
-    dataCorrected = utils.array.cmc_pnccd(data)
-    add_record(evt["analysis"], "analysis", "cmc_pnccd - " + key, dataCorrected)
+def commonModeRow(evt, type, key):
+    """Subtraction of common mode using median value of each row (left and right half of detector are treated separately). 
+    Adds a record ``evt["analysis"]["cm_corrected - " + key]``.
+    
+    Args:
+      :evt:        The event variable
+      :type(str):  The event type (e.g. photonPixelDetectors)
+      :key(str):   The event key (e.g. CCD)
+    
+    :Authors:
+        Max F. Hantke (hantke@xray.bmc.uu.se)
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
+    """
+    dataCorrected = numpy.copy(data)
+    lData = data[:,:data.shape[1]/2]
+    rData = data[:,data.shape[1]/2:]
+    dataCorrected[:,:data.shape[1]/2] -= numpy.median(lData,axis=1).repeat(lData.shape[1]).reshape(lData.shape)
+    dataCorrected[:,data.shape[1]/2:] -= numpy.median(rData,axis=1).repeat(rData.shape[1]).reshape(rData.shape)
+    add_record(evt["analysis"], "analysis", "cm_corrected - " + key, dataCorrected)
 
-def bgsub(evt, type, key, bg):
+def backgroundSubtract(evt, record, background=None):
+    """Subtraction of background. Adds a record ``evt["analysis"]["bg_subtracted - " + record.name]``.
+
+    Args:
+      :evt:        The event variable
+      :type(str):  The event type (e.g. photonPixelDetectors)
+      :key(str):   The event key (e.g. CCD)
+
+    :Authors:
+        Max F. Hantke (hantke@xray.bmc.uu.se)
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
+    """
     data = evt[type][key].data
-    if bg is not None:
-        dataCorrected = data - bg
+    if background is not None:
+        dataCorrected = data - background
     else:
         dataCorrected = data
-    add_record(evt["analysis"], "analysis", "bgsub - " + key, dataCorrected)
+    add_record(evt["analysis"], "analysis", "bg_corrected - " + key, dataCorrected)
 
-
-def crop_and_center(evt, data_rec, cx=None, cy=None, w=None, h=None):
+def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
+    
     data = data_rec.data
+    name = data_rec.name
     Ny, Nx = data.shape
     if cx is None:
         cx = (Nx-1)/2.
