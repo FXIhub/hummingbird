@@ -5,6 +5,7 @@ from backend.event_translator import EventTranslator
 from backend.record import add_record
 from . import ureg
 import numpy
+import ipc
 
 class DummyTranslator(object):
     """Creates Hummingbird events for testing purposes"""
@@ -23,7 +24,7 @@ class DummyTranslator(object):
         if(self._last_event_time > 0):
             rep_rate = 1
             if('Dummy' in self.state and 'Repetition Rate' in self.state['Dummy']):
-                rep_rate = self.state['Dummy']['Repetition Rate']
+                rep_rate = self.state['Dummy']['Repetition Rate'] / float(ipc.mpi.nr_workers())
             target_t = self._last_event_time+1.0/rep_rate
             t = time.time()
             if(t < target_t):
@@ -33,7 +34,7 @@ class DummyTranslator(object):
         if('Dummy' not in self.state or 
            'Data Sources' not in self.state['Dummy']):
             # Generate a simple CCD as default
-            evt['CCD'] = numpy.random.rand((128, 128))
+            evt['CCD'] = numpy.random.rand(128, 128)
             self.keys.add('photonPixelDetectors')
             return EventTranslator(evt, self)
 
