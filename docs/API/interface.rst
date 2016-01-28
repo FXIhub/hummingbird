@@ -1,5 +1,5 @@
-interface package
-=================
+interface
+=========
 
 .. automodule:: interface
 

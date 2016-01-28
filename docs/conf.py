@@ -32,9 +32,9 @@ files += glob.glob('../src/backend/*.pyc')
 files += glob.glob('../src/interface/*.pyc')
 files += glob.glob('../src/ipc/*.pyc')
 files += glob.glob('../src/plotting/*.pyc')
+files += glob.glob('../src/utils/*.pyc')
 for f in files:
     os.remove(f)
-
 
 # Try to use mock modules to be able to build documentation even it's not
 # possible to import certain modules
@@ -86,7 +86,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'SPIhub Online Analysis'
+project = u'Hummingbird'
 copyright = u'2015, SPIhub Team'
 
 # The version info for the project you're documenting, acts as replacement for

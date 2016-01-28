@@ -1,24 +1,24 @@
-plotting package
-================
+plotting
+========
 
-plotting.line module
---------------------
+plotting.line
+-------------
 
 .. automodule:: plotting.line
     :members:
     :undoc-members:
     :show-inheritance:
 
-plotting.image module
----------------------
+plotting.image
+--------------
       
 .. automodule:: plotting.image
     :members:
     :undoc-members:
     :show-inheritance:
 
-plotting.correlation module
----------------------------
+plotting.correlation
+--------------------
 
 .. automodule:: plotting.correlation
     :members:

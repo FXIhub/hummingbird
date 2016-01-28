@@ -8,7 +8,7 @@ import socket
 def parse_cmdline_args():
     """Parses command line arguments."""
     parser = argparse.ArgumentParser(description='Hummingbird - '
-                                     'the XFEL Online Analysis Framework.')
+                                     'the Online Analysis Framework.')
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-i", "--interface",
                        help="start the control and display interface",

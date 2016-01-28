@@ -1,5 +1,5 @@
-More examples
-=============
+Basic examples
+==============
 
 Simulation
 ----------
