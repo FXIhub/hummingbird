@@ -1,11 +1,7 @@
 from backend import add_record
 import ipc
+import utils.io
 import numpy as np
-try:
-    import spimage
-    spimage_installed = True
-except ImportError:
-    spimage_installed = False
 
 parameters = {}
 def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5, blur=4):
@@ -32,8 +28,9 @@ def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5
         Filipe Maia,
         Tomas Ekeberg
     """
-    if not spimage_installed:
-        print "For the sizing.findCenter, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
+    success, spimage = utils.io.load_spimage()
+    if not success:
+        print "Skipping analysis.sizing.findCenter"
         return
     img  = evt[type][key].data
     if mask is None:
@@ -84,10 +81,11 @@ def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
         Max Hantke,
         Filipe Maia
     """
-    if not spimage_installed:
-        print "For sizing.fitSphere, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
+    success, spimage = utils.io.load_spimage()
+    if not success:
+        print "Skipping analysis.sizing.fitSphere"
         return
-
+    
     img = evt[type][key].data
     if mask is None:
         mask = np.ones(shape=img.shape, dtypt="bool")
@@ -167,10 +165,11 @@ def sphereModel(evt, type, key_centerx, key_centery, key_diameter, key_intensity
         Max Hantke,
         Filipe Maia
     """
-    if not spimage_installed:
-        print "For sizing.sphereModel, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
+    success, spimage = utils.io.load_spimage()
+    if not success:
+        print "Skipping analysis.sizing.sphereModel"
         return
-
+    
     centerx    = evt[type][key_centerx].data
     centery    = evt[type][key_centery].data    
     diameter   = evt[type][key_diameter].data * 1e-9
@@ -228,10 +227,11 @@ def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=N
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se), 
         Filipe Maia
     """
-    if not spimage_installed:
-        print "For sizing.fitSphere, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
+    success, spimage = utils.io.load_spimage()
+    if not success:
+        print "Skipping analysis.sizing.fitSphereRadial"
         return
-
+    
     r     = evt[type][radial_distance_key].data
     img_r = evt[type][radial_average_key].data
 

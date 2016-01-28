@@ -154,7 +154,7 @@ def bin(evt, type, key, binning, mask=None):
     """
     success, spimage = utils.io.load_spimage()
     if not success:
-        print "Skipping binning"
+        print "Skipping analysis.pixel_detector.bin"
         return
     image = evt[type][key].data
     binned_image, binned_mask = spimage.binImage(image, binning, msk=mask, output_binned_mask=True)
@@ -183,7 +183,7 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
     """
     success, spimage = utils.io.load_spimage()
     if not success:
-        print "Skipping radial averaging"
+        print "Skipping analysis.pixel_detector.radial"
         return
     image = evt[type][key].data
     r, img_r = spimage.radialMeanImage(image, msk=mask, cx=cx, cy=cy, output_r=True)

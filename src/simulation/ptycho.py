@@ -1,16 +1,3 @@
-"""
-Simulator for Ptychography experiment at LCLS
-
-Some details for AMO:
-=====================
-dector: distance 731 mm, size (1024x1024)/4 => 512x512
-        pixel size 75 um
-sample: finest feature .5 um, diameter 200 um
-        Si3N4 thickness 1 um Vs structure height 1.6 um +- .016 (i.e. only gold on substrate ??)
-energy: ca. .85 keV => (6.6*.3)/(.8*1.6) nm .. ca. 1.5 nm
-
-authors: Simone Sala, Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
-"""
 import scipy.ndimage as ndi
 import PIL.Image as Image
 import matplotlib.pyplot as plt
@@ -19,8 +6,9 @@ import numpy as np
 from scipy.ndimage import zoom
 import h5py
 import sys
-import condor
+import utils.io
 
+# Physical constants
 h = 6.62606957e-34 #[Js]
 c = 299792458 #[m/s]
 hc = h*c  #[Jm] 
@@ -105,8 +93,12 @@ class Simulation:
 
         # Refractive index
         if material == 'gold':
-            m = condor.utils.material.AtomDensityMaterial('custom', massdensity=19320, atomic_composition={'Au':1})
-            dn = m.get_dn(self.wavelength)
+            success, module = utils.io.load_condor()
+            if not success:
+                print "Could not specify refractive index"
+            else:
+                m = module.utils.material.AtomDensityMaterial('custom', massdensity=19320, atomic_composition={'Au':1})
+                dn = m.get_dn(self.wavelength)
         else:
             print "Material not defined"
 
