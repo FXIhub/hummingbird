@@ -27,6 +27,6 @@ To do that just clone the git repository:
 
 ::
 
-   git clone https://github.com/SPIhub/hummingbird.git
+   $ git clone https://github.com/SPIhub/hummingbird.git
 
 There is no need for any other installation steps.
