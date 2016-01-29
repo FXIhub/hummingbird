@@ -14,23 +14,23 @@ The easiest way to get Hummingbird is to clone it from the `Github project <http
 
     git clone https://github.com/SPIhub/hummingbird.git
 
-More instructions can be found in the `Installation guide <installation>`_.
+More instructions can be found in the `Installation guide <installation.html>`_.
 
 Getting started
 ---------------
-Hummingbird is very simple to use. `Configuration <configuration>`_ is done using a single python configuration file. For the beginning, checkout our collection of `basic examples <basic_examples>`_.
+Hummingbird is very simple to use. `Configuration <configuration.html>`_ is done using a single python configuration file. For the beginning, checkout our collection of `basic examples <basic_examples.html>`_.
 
 Getting help
 ------------
-`More advanced examples <advanced_examples>`_ and a full `API documentation <API/modules>`_ are available here at `http://spihub.github.io/hummingbird/docs <https://spihub.github.io/hummingbird/docs>`_.
+`More advanced examples <advanced_examples.html>`_ and a full `API documentation <API/modules.html>`_ are available here at `http://spihub.github.io/hummingbird/docs <https://spihub.github.io/hummingbird/docs>`_.
 
 Supported facilities
 --------------------
-Hummingbird is intended to be used across different user facilities. It has been extensively tested at the LCLS facility, see `LCLS examples <lcls_examples>`_. Future releases of Hummingbird will include the European XFEL facility and more XFEL facilities.
+Hummingbird is intended to be used across different user facilities. It has been extensively tested at the LCLS facility, see `LCLS examples <lcls_examples.html>`_. Future releases of Hummingbird will include the European XFEL facility and more XFEL facilities.
 
 Contribute to Hummingbird
 -------------------------
-Hummingbird is meant to be an open project, developed by users of Single Particle Imaging (SPI) using modern X-ray sources. You are welcome to `contribute <contribute>`_.
+Hummingbird is meant to be an open project, developed by users of Single Particle Imaging (SPI) using modern X-ray sources. You are welcome to `contribute <contribute.html>`_.
 
 .. toctree::
    :maxdepth: 1
