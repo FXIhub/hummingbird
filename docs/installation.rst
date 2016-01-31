@@ -16,6 +16,7 @@ Requirements
 * `Scipy <http://www.scipy.org>`_
 * `PyZMQ <http://zeromq.org/bindings:python>`_
 * `pexpect <https://pypi.python.org/pypi/pexpect/>`_
+* `mpi4py <http://pythonhosted.org/mpi4py/>`_
 
 Some of the `more advanced examples <advanced_examples.html>`_ require an installation of `libspimage <https://github.com/FilipeMaia/libspimage>`_ and/or `condor <https://github.com/mhantke/condor>`_.
 
