@@ -26,6 +26,11 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self._init_timer()
         GUI.instance = self
 
+    # This is to fix a resizing bug on Mac
+    def resizeEvent(self, event):
+        QtGui.QMainWindow.resizeEvent(self, event)
+        QtGui.QApplication.processEvents() 
+        
     def clear(self):
         """Closes all DataWindows and remove all DataSources"""
         # Need to copy self._data_windows before iterating
