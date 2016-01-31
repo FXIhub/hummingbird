@@ -1,357 +1,354 @@
 Basic examples
 ==============
 
-Simulation
-----------
-For most of the following examples, simulated data provided through `Condor <http://lmb.icm.uu.se/condor/simulation>`_ is used. In order to run these examples on real data, the only thing to change is the ``state[Facility]`` variable and maybe some more lightsource specific configurations. See the basic example in `Configuration <configuration.html>`_.
-
-The speciman used for the simulation is a icosahedron-shaped virus with a diameter of 60 nm with reasonable conditions for experiments inside the 100nm chamber of the CXI beamline. The full Condor configuration file is located in ``examples/simulation/virus.conf``.
-
-Now, lets have a look at the configuration file, located in ``examples/simulation/conf.py``. First, the modules ``simulation`` and ``analysis.event`` are imported:
+dummy.py
+--------
+This is the most basic and simple example which generates randomized 256x256 images as fake detector events showing up as ``evt['photonPixelDetectors']['CCD']`` for virtual events created at a repetition rate of 10 Hz:
 
 ::
 
-   import simulation.simple
+   # Import analysis/plotting modules
    import analysis.event
+   import plotting.image
+   import numpy as np
+   
+   # Set new random seed
+   np.random.seed()
 
-The `Condor <http://lmb.icm.uu.se/condor/simulation>`_ configuration file is loaded and a hitrate of 10% is specified:
+   # Specify the facility
+   state = {}
+   state['Facility'] = 'Dummy'
 
-::
-
-   sim = simulation.simple.Simulation("examples/simulation/virus.conf")
-   sim.hitrate = 0.1
-
-In the ``state`` variable, it is necessary to provide the simulation ``sim`` and specify the datasets to be extracted:
-
-::
-
-   state = {
-       'Facility': 'Dummy',
-
-       'Dummy': {
-           'Repetition Rate' : 1,
-           'Simulation': sim,
-           'Data Sources': {
-	       'CCD': {
-	           'data': sim.get_pattern,
-		   'unit': 'ph',
-		   'type': 'photonPixelDetectors'
-	       },
-               'pulseEnergy': {
-	           'data': sim.get_pulse_energy,
-                   'unit': 'J',
-                   'type': 'pulseEnergies'
-	       },
-               'inj_x': {
-                   'data': sim.get_position_x,
-                   'unit': 'm',
-                   'type': 'parameters'
-		               },
-	       'inj_y': {
-	           'data': sim.get_position_y,
-                   'unit': 'm',
-                   'type': 'parameters'
-	       },
-               'inj_z': {
-                   'data': sim.get_position_z,
-                    'unit': 'm',
-                    'type': 'parameters'
-	       }
+   # Create a dummy facility
+   state['Dummy'] = {
+       # The event repetition rate of the dummy facility [Hz]
+       'Repetition Rate' : 10,
+       # Dictionary of data sources
+       'Data Sources': {
+           # The name of the data source. 
+           'CCD': {
+               # A function that will generate the data for every event
+               'data': lambda: np.random.rand(256,256),
+               # The units to be used
+               'unit': 'ADU',     
+               # The name of the category for this data source.
+               # All data sources are aggregated by type, which is the key
+               # used when asking for them in the analysis code.
+               'type': 'photonPixelDetectors'
            }        
        }
    }
 
-Inside the ``onEvent`` function it is possible to apply analsyis algorithms to the simulated datasets and send plots to the frontend, for now some extracted information is printed:
-
-::
-
+   # This function is called for every single event
+   # following the given recipy of analysis
    def onEvent(evt):
+
+       # Processin rate [Hz]
        analysis.event.printProcessingRate()
-       analysis.event.printKeys(evt)
-       analysis.event.printKeys(evt, "parameters")
 
-Here is the output of this small simulation example:
+       # Visualize detector image
+       plotting.image.plotImage(evt['photonPixelDetectors']['CCD'])
+
+Notice that facility and data source is defined using the ``state`` variable. For every event, the current processing rate is printed and an image with the current virtual detector image is sent to the interface. Running this example in the backend (``hummingbird.py -b examples/basic/dummy.py``) we can start the frontend (``hummingbird.py -i``) in a separate shell (or even on a separate machine) and connect it to the backend by clicking on the left-most button:
+
+.. image:: images/examples/basic/dummy_connecting.jpg
+           :width: 99%
+           :align: center
+
+Once we are connecting, the virtual CCD shows up as a data source. After opening an image window (4th button from the left), we can subscribe to the CCD (menu **Data sources**) and the image that we were sending from the backend is displayed at a refreshing rate of 1 second:
+
+.. image:: images/examples/basic/dummy_imagewindow1.jpg
+           :width: 49.5%
+.. image:: images/examples/basic/dummy_imagewindow2.jpg
+           :width: 49.5%
+
+----------
+
+simulation.py
+-------------
+For the next example, we replace the random detector images with CCD images that simulate diffraction from an object produced at a given hit rate (here 50%):
 
 ::
 
-   $ ./hummingbird.py -b examples/simulation/conf.py
-   Starting backend...
-   1/1 (1 particle)
-   The event has the following keys:  ['pulseEnergies', 'photonPixelDetectors', 'parameters']
-   The event dict ''parameters'' has the following keys:  ['inj_y', 'inj_x', 'inj_z']
-   1/1 (1 particle)
-   Processing Rate 0.86 Hz
-   The event has the following keys:  ['pulseEnergies', 'photonPixelDetectors', 'parameters']
-   The event dict ''parameters'' has the following keys:  ['inj_y', 'inj_x', 'inj_z']
+   # Import analysis/plotting/simulation modules
+   import analysis.event
+   import plotting.image
+   import simulation.base
 
+   # Simulate diffraction data  
+   sim = simulation.base.Simulation()
+   sim.hitrate = 0.5
+   sim.sigma = 1
 
-Detector characteristics
-------------------------
-In this example it is shown how detector-specific characteristics (histograms, averages, ... ) can be visualized. This is very important for a robust tuning of more advanced analysis (hitfinding, sizing, ...). The configuration file ``examples/detector/conf.py`` is based on the simulation example, but some more modulues need to be imported:
+   # Specify the facility
+   state = {}
+   state['Facility'] = 'Dummy'
+
+   # Create a dummy facility
+   state['Dummy'] = {
+       # The event repetition rate of the dummy facility [Hz]
+       'Repetition Rate' : 10,
+       # Specify simulation
+       'Simulation': sim,
+       # Dictionary of data sources
+       'Data Sources': {
+           # Data from a virtual diffraction detector
+           'CCD': {
+               # Fetch diffraction data from the simulation
+               'data': sim.get_pattern,
+               'unit': 'ADU',
+               'type': 'photonPixelDetectors'
+           }
+       }
+   }
+
+   # This function is called for every single event
+   # following the given recipy of analysis
+   def onEvent(evt):
+
+      # Processing rate [Hz]
+      analysis.event.printProcessingRate()
+      
+      # Visualize detector image
+      plotting.image.plotImage(evt['photonPixelDetectors']['CCD'], vmin=-10, vmax=40)
+
+Following the same procedure as for ``dummy.py`` we can follow the hits (left) and misses (right) show up in the interface:
+      
+.. image:: images/examples/basic/simulation_imagewindow1.jpg
+           :width: 49.5%
+.. image:: images/examples/basic/simulation_imagewindow2.jpg
+           :width: 49.5%
+
+-------------
+
+detector.py
+-----------
+
 
 ::
 
-   import simulation.simple
+   # Import analysis/plotting/simulation modules
    import analysis.event
    import analysis.pixel_detector
    import plotting.line
    import plotting.image
-   
-In the ``onEvent`` some more lines are added. First, some detector statistics are printed
+   import simulation.base
 
-::
+   # Simulate diffraction data  
+   sim = simulation.base.Simulation()
+   sim.hitrate = 0.5
+   sim.sigma = 1
 
-   # Detector statistics
-   analysis.pixel_detector.printStatistics(evt["photonPixelDetectors"])
+   # Specify the facility
+   state = {}
+   state['Facility'] = 'Dummy'
 
+   # Create a dummy facility
+   state['Dummy'] = {
+       # The event repetition rate of the dummy facility [Hz]
+       'Repetition Rate' : 10,
+       # Specify simulation
+       'Simulation': sim,
+       # Dictionary of data sources
+       'Data Sources': {
+           # Data from a virtual diffraction detector
+           'CCD': {
+               # Fetch diffraction data from the simulation
+               'data': sim.get_pattern,
+               'unit': 'ADU',
+               'type': 'photonPixelDetectors'
+           }
+       }
+   }
 
-giving the following output:
-
-::
-
-   $ ./hummingbird -b examples/detector/conf.py
-   Processing Rate 0.65 Hz
-   CCD (count): sum=-79.434 mean=-0.000463453 min=-0.412553 max=0.506501 std=0.100154
-   1/1 (1 particle)
-   Processing Rate 0.65 Hz
-   CCD (count): sum=-46.7338 mean=-0.000272666 min=-0.456227 max=0.47392 std=0.100047
-   1/1 (1 particle)
-
-Then, the total nr. of photons is counted on the CCD pixel detector and the result is being sent to the frontend, so that it is possible to follow the history of the total photon count.
-
-::
-   
-   # Count Nr. of Photons
-   analysis.pixel_detector.totalNrPhotons(evt, "photonPixelDetectors", "CCD")
-   plotting.line.plotHistory(evt["analysis"]["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
-
-On the frontend, this history can be displayed by opening a Line plot and subscribing to the data source ``History(nrPhotons - CCD)``:
-
-.. image:: images/examples/detector/nrphotons.jpg
-
-Inside the ``View`` -> ``Plot settings`` dialog there is an option to display a histogram of the current buffer instead of the updating history:
-
-.. image:: images/examples/detector/nrphotons_hist.jpg
-   :align: center
-	   
-The next useful detector feature to look is a frame histogram of the entrie CCD:
-
-::
-   
-   # Detector histogram
-   plotting.line.plotHistogram(evt["photonPixelDetectors"]["CCD"], **histogramCCD)
-
-The parameters for the histogram plot (as for any other plot) can be given as keyword arguments or defined outside the ``onEvent`` function as a dictionary which is then passed as a whole to the plotting function:
-
-::
-
+   # Configuration for histogram plot
    histogramCCD = {
-       'hmin': -1,
-       'hmax': 19,
-       'bins': 100,
+       'hmin': -10,
+       'hmax': 100,
+       'bins': 200,
        'label': "Nr of photons",
-       'history': 50}
+       'history': 200}
 
+   # This function is called for every single event
+   # following the given recipy of analysis
    def onEvent(evt):
 
-       ...
-       plotting.line.plotHistory(..., history=50)
-       plotting.line.plotHistogram(..., **histogramCCD)
+       # Processing rate [Hz]
+       analysis.event.printProcessingRate()
 
-Subscribing to the detector histogram ``Hist(CCD)`` in a Line plot, the visual output looks like this:
+       # Detector statistics
+       analysis.pixel_detector.printStatistics(evt["photonPixelDetectors"])
 
-.. image:: images/examples/detector/histogram_hit.jpg
-   :align: center
+       # Count Nr. of Photons
+       analysis.pixel_detector.totalNrPhotons(evt, "photonPixelDetectors", "CCD")
+       plotting.line.plotHistory(evt["analysis"]["nrPhotons - CCD"],
+                                 label='Nr of photons / frame', history=50)
 
-Subscribing to the same data source in an Image Plot, the output is a history of histograms looking like this:
-
-.. image:: images/examples/detector/histogram_history.jpg
-   :align: center
-	   
-Finally, it is possible to just send every detector frame (or a subset of it based on e.g. hitfinding) as an image
-
-::
-   
-    # Detector images
-    plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
-
-and display it on the frontend. Instead displaying only the latest image, it is possible to toggle the visualization of the trend (mean, min, max, std) inside the ``View`` -> ``Plot settings`` dialog:
-
-.. image:: images/examples/detector/buffer.jpg
-   :align: center
-
-The latest image of the buffer (50 images) is displayed on the left, the per-pixel maximum of the buffer in the middle and the per-pixel mean on the right.	   
-	   
-
-Hitfinding
-----------
-In this example, a simple hitfinder is introduced. This makes it possible to monitor the hit rate and plot only detector images of hits. This configuration file ``examples/hitfinding/conf.py`` is based on the previous on, in addition the hitfinding module needs to be imported:
-
-::
-
-   import analysis.hitfinding
-
-
-The hitfinder used here simply counts the number of lit pixels on the detector, it needs a threshold to stay above the ADU noise level and another threshold that is above the hitscore of the background. In order to tune this parameters, it helps to plot the hitscore and look at the histogram (see plotting below). Based on the given hit/miss counts, a hit rate is estimated. The ``history`` parameter determines how many events are considered for the calculation of the rate.
-   
-::
-
-   # Simple hitfinding (Count Nr. of lit pixels)
-   analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD", aduThreshold=0.5, hitscoreThreshold=10)
-  
-   # Compute the hitrate
-   analysis.hitfinding.hitrate(evt, evt["analysis"]["isHit - CCD"], history=100)
-
-Like in the previous examples, results are plotted as history plots and images. Because of the hitfinding, the detector image needs to be only plotted for hits. Looking at the previous example, it is possible to look at trends (mean, std, min, max) of either hits, misses or both.
-    
-::
-
-   # Plot the hitscore
-   plotting.line.plotHistory(evt["analysis"]["hitscore - CCD"], label='Nr. of lit pixels')
-
-   # Plot the hitrate
-   plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
-     
-   # Plot hit images
-   if evt["analysis"]["isHit - CCD"]:
+       # Detector histogram
+       plotting.line.plotHistogram(evt["photonPixelDetectors"]["CCD"], **histogramCCD)
+       
+       # Detector images
        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
 
-When looking at the hit images, it is possible to jump back and forth in time using the arrow keys. This way, interesting hits can revisited if they passed by too quickly. Jumping all the way to the hight (most recent hit), enables live updating again.
+-----------
 
+hitfinding.py
+-------------
 
-MPI
----
-In order to speed up things, it is possible to run ``Hummingbird`` in MPI mode, simply use:
 
 ::
 
-   $ mpirun -n 4 ./hummingbird.py -b examples/hitfinding/conf.py
+   # Import analysis/plotting/simulation modules
+   import analysis.event
+   import analysis.hitfinding
+   import plotting.image
+   import plotting.line
+   import simulation.base
 
-In this mode, ``Hummingbird`` reserves one process (rank 0) for sending data to the frontend, the rest of the processes (slaves with rank > 1) are used to process incoming data. If necessary (e.g. for hitrate), the  main slave (rank = 1) is doing the reduction and sending the reduced data to the frontend.
+   # Simulate diffraction data  
+   sim = simulation.base.Simulation()
+   sim.hitrate = 0.5
+   sim.sigma = 1
 
-In the above example, the slaves are still reading all from the same data source (e.g. shared memory string defined in ``state['Facility/DataSource']``). If there are multiple data sources available (e.g. multiple shared memory streams defined by individual shared memory strings), it is possible to distribute slaves across these data sources. The configuration file needs to be slightly modified:
+   # Specify the facility
+   state = {}
+   state['Facility'] = 'Dummy'
 
-::
-
-   import ipc
-   
-   state = {
-       'Facility': 'LCLS',
-       'LCLS/DataSource': ipc.mpi.get_source(['shmem1', 'shmem2', 'shmem3'])
+   # Create a dummy facility
+   state['Dummy'] = {
+       # The event repetition rate of the dummy facility [Hz]
+       'Repetition Rate' : 10,
+       # Specify simulation
+       'Simulation': sim,
+       # Dictionary of data sources
+       'Data Sources': {
+            # Data from a virtual diffraction detector
+            'CCD': {
+                # Fetch diffraction data from the simulation
+                'data': sim.get_pattern,
+                'unit': 'ADU',
+                'type': 'photonPixelDetectors'
+            }
+       }
    }
 
-There is a small example in ``examples/psana/mpi/conf.py`` running from 2 XTCs at the same time.
+   # This function is called for every single event
+   # following the given recipy of analysis
+   def onEvent(evt):
 
+       # Processing rate [Hz]
+       analysis.event.printProcessingRate()
 
-Psana configuration
--------------------
-It is possible load a ``psana`` configuration file in order to run some `Psana modules <https://confluence.slac.stanford.edu/display/PSDM/psana+-+Module+Examples>`_ prior to ``Hummingbird`` analysis modules, just specify ``LCLS/PsanaConf`` inside the ``state`` variable:
+       # Simple hit finding (counting the number of lit pixels)
+       analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD",
+                                          aduThreshold=10, hitscoreThreshold=100)
+
+       # Extract boolean (hit or miss)
+       hit = evt["analysis"]["isHit - CCD"].data
+
+       # Compute the hitrate
+       analysis.hitfinding.hitrate(evt, hit, history=1000)
+
+       # Plot the hitscore
+       plotting.line.plotHistory(evt["analysis"]["hitscore - CCD"], label='Nr. of lit pixels')
+       
+       # Plot the hitrate
+       plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
+   
+       # Visualize detector image of hits
+       if hit:
+           plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], vmin=-10, vmax=40)
+
+-----------
+
+correlation.py
+--------------
+
 
 ::
 
-   state = {
-        'Facility': 'LCLS',
-	'LCLS/DataSource': 'shmem=...',
-	'LCLS/PsanaConf': 'psana.cfg',
+   # Import analysis/plotting/simulation modules
+   import analysis.event
+   import analysis.hitfinding
+   import plotting.line
+   import plotting.image
+   import plotting.correlation
+   import simulation.base
+
+   # Simulate diffraction data  
+   sim = simulation.base.Simulation()
+   sim.hitrate = 0.5
+   sim.sigma = 1
+
+   # Specify the facility
+   state = {}
+   state['Facility'] = 'Dummy'
+
+   # Create a dummy facility
+   state['Dummy'] = {
+       # The event repetition rate of the dummy facility [Hz]
+       'Repetition Rate' : 10,
+       # Specify simulation
+       'Simulation': sim,
+       # Dictionary of data sources
+       'Data Sources': {
+           # Data from a virtual diffraction detector
+           'CCD': {
+               # Fetch diffraction data from the simulation
+               'data': sim.get_pattern,
+               'unit': 'ADU',
+               'type': 'photonPixelDetectors'
+           },
+           # Data from a virutal pulse energy detector
+           'pulseEnergy': {
+               # Fetch pulse energy valus from the simulation
+               'data': sim.get_pulse_energy,
+               'unit': 'J',
+               'type': 'pulseEnergies'
+           },
+           # Data from a virutal injector motor
+           'injectorX': {
+               # Fetch injector motor valus (x) from the simulation
+               'data': sim.get_injector_x,
+               'unit': 'm',
+               'type': 'parameters'
+           },
+           # Data from a virutal injector motor
+           'injectorY': {
+               # Fetch injector motor valus (y) from the simulation
+               'data': sim.get_injector_y,
+               'unit': 'm',
+               'type': 'parameters'
+           }
+       }
    }
 
-Output keys defined inside ``psana.cfg`` will appear as ``Hummingbird`` keys.
 
-
-Loading extra files
--------------------
-This example is in ``examples/extra_files/conf.py``.
-
-In case the incoming data has no geometry applied (important e.g. for sizing), it is possible to load a geometry file and assemble incoming data. There is a ``GeometryReeader`` in the ``utils`` module and an ``assemble`` function in the ``analysis.pixel_detector`` module:
-
-::
-
-   import utils.reader
-   
-   # Reading geometry
-   # ----------------
-   greader = utils.reader.GeometryReader('examples/extra_files/geometry.h5')
-
+   # This function is called for every single event
+   # following the given recipy of analysis
    def onEvent(evt):
 
-   
-       # Assemble images (apply geometry)
-       analysis.pixel_detector.assemble(evt, "photonPixelDetectors", "CCD", \
-                                     greader.x, greader.y, nx=414, ny=414, outkey="CCD")
+       # Processing rate [Hz]
+       analysis.event.printProcessingRate()
 
+       # Simple hit finding (counting the number of lit pixels)
+       analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD",
+                                          aduThreshold=10, hitscoreThreshold=100)
 
+       # Extract boolean (hit or miss)
+       hit = evt["analysis"]["isHit - CCD"].data
+       
+       # Compute the hitrate
+       analysis.hitfinding.hitrate(evt, hit, history=1000)
 
-It is also possible to load a mask using the ``MaskReader`` from the ``utils`` module:
-
-::
-
-   import utils.reader
-   
-   # Reading mask
-   # ------------
-   mreader = utils.reader.MaskReader('examples/extra_files/mask.h5', 'data/data')
-
-   def onEvent(evt):
-
-       # Simple hitfinding (Count Nr. of lit pixels)
-       analysis.hitfinding.countLitPixels(evt, "analysis", "CCD", \
-                                       aduThreshold=0.5, hitscoreThreshold=10, mask=mreader.boolean_mask)
-
-       # Plot hit images
-       if evt["analysis"]["isHit - CCD"]:
-           plotting.image.plotImage(evt["analysis"]["CCD"], mask=mreader.integer_mask)
-
-Here, the mask is passed as booleans to the hitfinder (only use True pixels) and as integers when plotting an image (multiplyin image and mask).
-
-Using the ``H5Reader`` any data can be written from a given HDF5 file and used for analysis/plotting:
-
-::
-
-   # Reading something else
-   # ----------------------
-   reader = utils.reader.H5Reader('examples/extra_files/something.h5', 'somekey')
-
-
-Recording to file
------------------
-In the frontend it is possible to record any existing ``History(...)`` data source to file. Just select the variables of interest (using the Record history column) and hit ``Recording`` (the button with the red dot):
-
-.. image:: images/examples/recording/before.jpg
-   :align: center
-
-All selected variables are saved to an HDF5 file (saved in the output path defined in te settings) together with the corresponding timestamps:
-
-.. image:: images/examples/recording/after.jpg
-   :align: center
-
-The recorded information can now easily be analyzed outside of ``Hummingbird``, e.g. using IPython:
-
-::
-
-   >>> In [1]: import h5py, numpy
-   >>> In [2]: file = h5py.File('history_20150531_1708.h5', 'r')
-   >>> In [3]: file.keys()
-   >>> Out[3]: [u'hitrate', u'hitscore - CCD', u'nrPhotons - CCD']
-   >>> In [4]: hitscore_time = file["hitscore - CCD"][0]
-   >>> In [5]: hitscore = file["hitscore - CCD"][1][numpy.argsort(hitscore_time)]
-   >>> In [6]: nrPhotons_time = file["nrPhotons - CCD"][0]
-   >>> In [7]: nrPhotons = file["nrPhotons - CCD"][1][numpy.argsort(nrPhotons_time)]
-   >>> In [8]: import matplotlib.pyplot as plt
-   >>> In [9]: plt.scatter(nrPhotons, hitscore)
-   >>> In [10]: plt.gca().set_xlabel('Nr. of Photons'); plt.gca().set_ylabel('Hitscore')
-
-.. image:: images/examples/recording/scatter.png
-   :align: center
-	   	   
-   
-Sizing
-------
-See example in ``examples/sizing/conf.py``, it works for spheres:
-
-.. image:: images/examples/sizing/fit_vs_data.jpg
-   :align: center
-
-	   
-Correlations
-------------
+       # Plot history of pulse energy
+       plotting.line.plotHistory(evt['pulseEnergies']['pulseEnergy'])
+       
+       # Plot scatter of pulse energy vs. hitscore
+       plotting.correlation.plotScatter(evt['pulseEnergies']['pulseEnergy'],
+                                        evt["analysis"]["hitscore - CCD"])
+       
+       # Plot heat map of hitrate as function of injector position
+       plotting.correlation.plotMeanMap(evt["parameters"]['injectorX'], evt["parameters"]['injectorY'],
+                                        evt["analysis"]["hitrate"].data, plotid='hitrateMeanMap')
 

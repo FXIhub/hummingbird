@@ -28,13 +28,6 @@ state['Dummy'] = {
             'data': sim.get_pattern,
             'unit': 'ADU',
             'type': 'photonPixelDetectors'
-        },
-        # Data from a virutal pulse energy detector
-        'pulseEnergy': {
-            # Fetch pulse energy valus from the simulation
-            'data': sim.get_pulse_energy,
-            'unit': 'J',
-            'type': 'pulseEnergies'
         }
     }
 }

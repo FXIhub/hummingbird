@@ -28,26 +28,9 @@ state['Dummy'] = {
             'data': sim.get_pattern,
             'unit': 'ADU',
             'type': 'photonPixelDetectors'
-        },
-        # Data from a virutal pulse energy detector
-        'pulseEnergy': {
-            # Fetch pulse energy valus from the simulation
-            'data': sim.get_pulse_energy,
-            'unit': 'J',
-            'type': 'pulseEnergies'
         }
     }
 }
-
-# This function is called for every single event
-# following the given recipy of analysis
-def onEvent(evt):
-
-    # Processing rate [Hz]
-    analysis.event.printProcessingRate()
-
-    # Visualize detector image
-    plotting.image.plotImage(evt['photonPixelDetectors']['CCD'], vmin=-10, vmax=40)
 
 # Configuration for histogram plot
 histogramCCD = {
