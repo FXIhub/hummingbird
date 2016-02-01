@@ -210,6 +210,7 @@ While the line plot shows the current histogram of the CCD, the image plot shows
 hitfinding.py
 -------------
 
+In the next example, we add htifinding to our analysis pipeline. We use a simply lit pixel counter given thresholds for the definition of a photon (``aduThreshold=10``) and for the definition of a hit (``hitscoreThreshold=100``):
 
 ::
 
@@ -274,11 +275,18 @@ hitfinding.py
        if hit:
            plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], vmin=-10, vmax=40)
 
+
+As compared to previos examples, we are plotting the CCD image only for hits. We are also sending history plots of hitscore and hitrate. The former can be very useful for finding the correct thresholds. When changing the threshold in the configuration file, there is no need to restart the backend. We can simply reload the configuration using the reload button (right-most button). Having all plots connected, the frontend looks like this:
+
+.. image:: images/examples/basic/hitfinding.jpg
+           :width: 99%
+           :align: center
+           
 -----------
 
 correlation.py
 --------------
-
+In the last example, we show how it is possible to correlate and compare different parameters. Therefore, we first add more virtual data to our simulation: randomzied pulse energies and (x,y) injector positions. Along with plotting the history of pulse energies and plotting the correlation of pulse energy vs. hitscore as a scatter plot, we populate a map of averaged hitrates as a function the (x,y) injector position tuple:
 
 ::
 
@@ -338,7 +346,16 @@ correlation.py
        }
    }
 
-
+   # Configuration for hitrate meanmap plot
+   hitmapParams = {
+       'xmin':0,
+       'xmax':1e-6,
+       'ymin':0,
+       'ymax':1e-6,
+       'xbins':10,
+       'ybins':10
+   }
+   
    # This function is called for every single event
    # following the given recipy of analysis
    def onEvent(evt):
@@ -367,3 +384,8 @@ correlation.py
        plotting.correlation.plotMeanMap(evt["parameters"]['injectorX'], evt["parameters"]['injectorY'],
                                         evt["analysis"]["hitrate"].data, plotid='hitrateMeanMap')
 
+In the interface, these plots look like this:
+                                        
+.. image:: images/examples/basic/correlation.jpg
+           :width: 99%
+           :align: center

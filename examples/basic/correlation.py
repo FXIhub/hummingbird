@@ -54,6 +54,15 @@ state['Dummy'] = {
     }
 }
 
+# Configuration for hitrate meanmap plot
+hitmapParams = {
+    'xmin':0,
+    'xmax':1e-6,
+    'ymin':0,
+    'ymax':1e-6,
+    'xbins':10,
+    'ybins':10
+}
 
 # This function is called for every single event
 # following the given recipy of analysis
@@ -63,7 +72,8 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
 
     # Simple hit finding (counting the number of lit pixels)
-    analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD", aduThreshold=10, hitscoreThreshold=100)
+    analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD",
+                                       aduThreshold=10, hitscoreThreshold=100)
 
     # Extract boolean (hit or miss)
     hit = evt["analysis"]["isHit - CCD"].data
@@ -75,7 +85,10 @@ def onEvent(evt):
     plotting.line.plotHistory(evt['pulseEnergies']['pulseEnergy'])
         
     # Plot scatter of pulse energy vs. hitscore
-    plotting.correlation.plotScatter(evt['pulseEnergies']['pulseEnergy'], evt["analysis"]["hitscore - CCD"])
-    
+    plotting.correlation.plotScatter(evt['pulseEnergies']['pulseEnergy'],
+                                     evt["analysis"]["hitscore - CCD"],
+                                     xlabel='Pulse energy [J]', ylabel='Hitscore')
+
     # Plot heat map of hitrate as function of injector position
-    plotting.correlation.plotMeanMap(evt["parameters"]['injectorX'], evt["parameters"]['injectorY'], evt["analysis"]["hitrate"].data, plotid='hitrateMeanMap')
+    plotting.correlation.plotMeanMap(evt["parameters"]['injectorX'], evt["parameters"]['injectorY'],
+                                     evt["analysis"]["hitrate"].data, plotid='hitrateMeanMap', **hitmapParams)
