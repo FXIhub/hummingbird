@@ -124,6 +124,7 @@ Following the same procedure as for ``dummy.py`` we can follow the hits (left) a
 detector.py
 -----------
 
+In order to add more analysis of the detector we print some statistics, count the number of photons and send a history of the photon counts and per-event detector histograms along with the CCD image:
 
 ::
 
@@ -190,6 +191,20 @@ detector.py
        # Detector images
        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"])
 
+In the interface, we can now open a new line plot (3rd button from the left) and display the history of the photon counts by subscribing to the ``History(analysis/nrPhotons - CCD)`` data source:
+
+.. image:: images/examples/basic/detector_nrphotons.jpg
+           :width: 99%
+           :align: center
+
+The depth of the history is defined by the length of the buffer, which can be resized in the main window. To the per-event histogram of the CCD we can subscribe both from an image plot (left panel) and from a line plot (right panel):
+                   
+.. image:: images/examples/basic/detector_histogram.jpg
+           :width: 99%
+           :align: center
+
+While the line plot shows the current histogram of the CCD, the image plot shows the history of the most recent detector histograms. 
+                   
 -----------
 
 hitfinding.py
