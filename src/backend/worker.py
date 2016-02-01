@@ -24,7 +24,7 @@ class Worker(object):
         if(config_file is None):
             # Try to load an example configuration file
             config_file = os.path.abspath(os.path.dirname(__file__)+
-                                          "/../../examples/psana/cxitut13/conf.py")
+                                          "/../../examples/basic/dummy.py")
             logging.warning("No configuration file given! "
                             "Loading example configuration from %s",
                             (config_file))

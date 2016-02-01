@@ -1,5 +1,5 @@
-backend package
-===============
+backend
+=======
 
 .. automodule:: backend
     :members:
@@ -23,8 +23,8 @@ backend package
 
 .. autofunction:: backend.add_record
 
-backend.lcls module
--------------------
+backend.lcls
+------------
 
 .. automodule:: backend.lcls
     :members:

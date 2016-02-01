@@ -21,7 +21,7 @@ def printProcessingRate():
         print 'Processing Rate %.2f Hz' % proc_rate
 
 def printKeys(evt, type=None):
-    """prints available keys of Hummingbird event"""
+    """prints available keys of Hummingbird events"""
     if isinstance(evt, EventTranslator) and type is None:
         print "The event has the following keys: ", evt.keys()
     elif isinstance(evt, EventTranslator) and type:
@@ -32,33 +32,3 @@ def printKeys(evt, type=None):
 def printNativeKeys(evt):
     """prints available keys of Native event"""
     print evt.native_keys()
-
-#BD: deprecated??
-def printID(eventID):
-    for k,v in eventID.iteritems():
-        print "%s = %s" %(k, v.data)
-        try:
-            print "datetime64 = %s" %(v.datetime64)
-        except AttributeError:
-            pass
-        try:
-            print "fiducials = %s" %(v.fiducials)
-        except AttributeError:
-            pass
-        try:
-            print "run = %s" %(v.run)
-        except AttributeError:
-            pass
-        try:
-            print "ticks = %s" %(v.ticks)
-        except AttributeError:
-            pass
-        try:
-            print "vector = %s" %(v.vector)
-        except AttributeError:
-            pass
-        try:
-            print "LCLS time = %s" %(v.timestamp2)
-        except AttributeError:
-            pass
-        

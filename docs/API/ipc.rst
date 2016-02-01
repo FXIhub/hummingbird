@@ -1,26 +1,26 @@
-ipc package
-===========
+ipc
+===
 
 .. automodule:: ipc
     :members:
     :undoc-members:
 
-broadcast module
-----------------
+broadcast
+---------
 
 .. automodule:: ipc.broadcast
     :members:
     :undoc-members:
 
-mpi module
-----------
+mpi
+---
 
 .. automodule:: ipc.mpi
     :members:
     :undoc-members:
 
-zmqserver module
-----------------
+zmqserver
+---------
 .. automodule:: ipc.zmqserver
     :members:
     :undoc-members:

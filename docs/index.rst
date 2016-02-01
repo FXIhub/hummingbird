@@ -1,105 +1,48 @@
-
 Hummingbird
-==================================================
+===========
+
 .. image:: https://zenodo.org/badge/doi/10.5281/zenodo.34155.svg
    :target: http://dx.doi.org/10.5281/zenodo.34155
 
-This repository aims to coordinate the of the Single Particle Imaging (SPI) community on software for online analysis.
+Hummingbird is a python-based software tool for real-time analysis of diffraction data. It is mainly targeted for Single Particle Imaging (SPI) experiments using modern X-ray sources.
 
-Contribute
-----------
-
-If you would like to contribute just go the issues page and `create a
-new issue <https://github.com/SPIhub/hummingbird/issues/new>`_
-asking to be added to the team.
-
-Getting Started
-~~~~~~~~~~~~~~~
-
-To be able to contribute first you need a copy of the repository. If
-you have not done so already submit your rsa public key to github
-under Mange/SSH keys and then clone the repository:
+Getting Hummingbird
+-------------------
+The easiest way to get Hummingbird is to clone it from the `Github project <https://github.com/SPIhub/hummingbird>`_:
 
 ::
 
     $ git clone https://github.com/SPIhub/hummingbird.git
 
-For help on using ``git`` please check `the official git documentation <http://git-scm.com/doc>`_
-and the `Github tutorials <https://help.github.com/>`_.
+More instructions can be found in the `Installation guide <installation.html>`_.
 
-Documentation
--------------
+Getting started
+---------------
+Hummingbird is very simple to use. `Configuration <configuration.html>`_ is done using a single python configuration file. For the beginning, checkout our collection of `basic examples <basic_examples.html>`_.
 
-You can find documentation about the project at
-`spidocs.readthedocs.org <http://spidocs.readthedocs.org>`_.
+Getting help
+------------
+`More advanced examples <advanced_examples.html>`_ and a full `API documentation <API/modules.html>`_ are available here at `http://spihub.github.io/hummingbird/docs <https://spihub.github.io/hummingbird/docs>`_.
 
-Editing Documentation
-~~~~~~~~~~~~~~~~~~~~~
+Supported facilities
+--------------------
+Hummingbird is intended to be used across different user facilities. It has been extensively tested at the LCLS facility, see `LCLS examples <lcls_examples.html>`_. Future releases of Hummingbird will include the European XFEL facility and more XFEL facilities.
 
-The documentation is written in
-`reStructuredText <http://sphinx-doc.org/rest.html>`_, which is a simple
-to use and read markup language. The documentation is automatically
-built and published on the website after every commit to the
-``Hummingbird`` repository.
-
-There are two ways to edit documentation, online using the Github
-built-in editor, or offline using your favourite text editor.
-
-Online Editing
-^^^^^^^^^^^^^^
-
-Simply click on the ``Edit on Github`` button at the top of the
-desired page in
-`spidocs.readthedocs.org <http://spidocs.readthedocs.org>`_. This will
-take you to the Github page corresponding to the source of the page.
-Click on the ``Edit`` button, due the changes you want, and finally
-commit.
-
-Offline Editing
-^^^^^^^^^^^^^^^
-
-For editing the documentation on your computer you will need:
-
--  A copy of the Hummingbird git repository
--  Your favourite text editor
--  ``sphinx`` installed: ``pip install sphinx`` or
-   ``sudo pip install sphinx``
--  ``sphinx_rtd_theme`` installed: ``pip install sphinx_rtd_theme`` or
-   ``sudo pip install sphinx_rtd_theme``
-
-Now you can simply edit existing ``.rst`` files, or add new ones, in the
-``docs`` directory inside the root of the hummingbird git repository:
-
-::
-
-    $ cd docs
-    $ emacs index.rst
-
-After you finish editing you can look at the result by doing:
-
-::
-
-    $ make html
-
-This will create the html files inside ``.build/html``, which you can
-open in your browser.
-
-If you're happy with the result you can now simply commit the changes
-and push. Your changes should be automatically pushed to
-`http://spidocs.readthedocs.org/ <http://spidocs.readthedocs.org/>`_ by
-Github.
+Contribute to Hummingbird
+-------------------------
+Hummingbird is meant to be an open project, developed by users of Single Particle Imaging (SPI) using modern X-ray sources. You are welcome to `contribute <contribute.html>`_.
 
 .. toctree::
-   :maxdepth: 2
+   :maxdepth: 1
 
 .. toctree::
    :hidden:
 
-   Welcome <self>
-   requirements
+   installation
    getting_started
    configuration
-   examples
-   analysis
-   Architecture <architecture>
+   basic_examples
+   advanced_examples
+   lcls_examples
    API/modules
+   contribute

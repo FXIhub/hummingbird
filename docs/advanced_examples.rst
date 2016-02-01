@@ -1,9 +1,12 @@
-More examples
-=============
+Advanced examples
+=================
+
+
+
 
 Simulation
 ----------
-For most of the following examples, simulated data provided through `Condor <http://lmb.icm.uu.se/condor/simulation>`_ is used. In order to run these examples on real data, the only thing to change is the ``state[Facility]`` variable and maybe some more lightsource specific configurations. See the basic example in :doc:`Configuration <configuration>`.
+For most of the following examples, simulated data provided through `Condor <http://lmb.icm.uu.se/condor/simulation>`_ is used. In order to run these examples on real data, the only thing to change is the ``state[Facility]`` variable and maybe some more lightsource specific configurations. See the basic example in `Configuration <configuration.html>`_.
 
 The speciman used for the simulation is a icosahedron-shaped virus with a diameter of 60 nm with reasonable conditions for experiments inside the 100nm chamber of the CXI beamline. The full Condor configuration file is located in ``examples/simulation/virus.conf``.
 

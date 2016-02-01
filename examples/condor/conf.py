@@ -1,12 +1,13 @@
-import os
-
-import simulation.simple
+import simulation.condor
 import analysis.event
 import plotting.image
+import os
 
-here = os.path.dirname(os.path.realpath(__file__))
+# Absolute path to the location of the example
+__thisdir__ = os.path.dirname(os.path.realpath(__file__))
 
-sim = simulation.simple.Simulation(here + "/virus.conf")
+
+sim = simulation.condor.Simulation(__thisdir__ + "/virus.conf")
 sim.hitrate = 0.9
 
 state = {
