@@ -1,11 +1,11 @@
 [![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.45460.svg)](http://dx.doi.org/10.5281/zenodo.45460)
 # Hummingbird
 
-A framework for real-time monitoring of Flash X-ray Imaging experiments using X-ray free-electron lasers.
+Monitoring and analysing flash X-ray imaging experiments in real time. 
 
 # Documentation
 
-You can find documentation about the project at [spihub.github.io/hummingbird/docs](http://spihib.github.io/hummingbird/docs).
+You can find documentation about the project at [spihub.github.io/hummingbird/docs](http://spihub.github.io/hummingbird/docs).
 
 # Contribute
 
