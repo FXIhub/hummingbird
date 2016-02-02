@@ -12,7 +12,7 @@ The easiest way to get Hummingbird is to clone it from the `Github project <http
 
 ::
 
-    $ git clone https://github.com/SPIhub/hummingbird.git
+    $ git clone https://github.com/FXIhub/hummingbird.git
 
 More instructions can be found in the `Installation guide <installation.html>`_.
 
