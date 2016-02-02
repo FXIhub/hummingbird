@@ -16,6 +16,11 @@ class DataWindow(QtGui.QMainWindow):
         # If True this DataWindow was restored from saved settings
         self.restored = False
 
+    # This is to fix a resizing bug on Mac
+    def resizeEvent(self, event):
+        QtGui.QMainWindow.resizeEvent(self, event)
+        QtGui.QApplication.processEvents()
+        
     def _setup_connections(self):
         """Initialize connections"""
         self.menuData_Sources.aboutToShow.connect(self.on_menu_show)
