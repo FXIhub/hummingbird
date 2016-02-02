@@ -8,7 +8,7 @@ Hummingbird is a python-based software tool for real-time analysis of diffractio
 
 Getting Hummingbird
 -------------------
-The easiest way to get Hummingbird is to clone it from the `Github project <https://github.com/SPIhub/hummingbird>`_:
+The easiest way to get Hummingbird is to clone it from the `Github project <https://github.com/FXIhub/hummingbird>`_:
 
 ::
 
@@ -22,7 +22,7 @@ Hummingbird is very simple to use. `Configuration <configuration.html>`_ is done
 
 Getting help
 ------------
-`More advanced examples <advanced_examples.html>`_ and a full `API documentation <API/modules.html>`_ are available here at `http://spihub.github.io/hummingbird/docs <https://spihub.github.io/hummingbird/docs>`_.
+`More advanced examples <advanced_examples.html>`_ and a full `API documentation <API/modules.html>`_ are available here at `http://fxihub.github.io/hummingbird/docs <https://fxihub.github.io/hummingbird/docs>`_.
 
 Supported facilities
 --------------------
@@ -30,7 +30,7 @@ Hummingbird is intended to be used across different user facilities. It has been
 
 Contribute to Hummingbird
 -------------------------
-Hummingbird is meant to be an open project, developed by users of Single Particle Imaging (SPI) using modern X-ray sources. You are welcome to `contribute <contribute.html>`_.
+Hummingbird is meant to be an open project, developed by users of Flash X-ray Imaging (FXI) using modern X-ray sources. You are welcome to `contribute <contribute.html>`_.
 
 .. toctree::
    :maxdepth: 1
