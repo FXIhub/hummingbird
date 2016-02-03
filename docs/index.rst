@@ -3,8 +3,8 @@ Hummingbird
 
 .. image:: https://zenodo.org/badge/doi/10.5281/zenodo.45460.svg
               :target: http://dx.doi.org/10.5281/zenodo.45460
-            
-Hummingbird is a python-based software tool for real-time analysis of diffraction data. It is mainly targeted for Single Particle Imaging (SPI) experiments using modern X-ray sources.
+
+Hummingbird is a python-based software tool for monitoring and analysing Flash X-ray Imaging (FXI) experiments in real time.
 
 Getting Hummingbird
 -------------------

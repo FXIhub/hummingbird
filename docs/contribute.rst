@@ -2,7 +2,7 @@ How to contribute?
 ==================
 
 If you would like to contribute just go the issues page and `create a
-new issue <https://github.com/SPIhub/hummingbird/issues/new>`_
+new issue <https://github.com/FXIhub/hummingbird/issues/new>`_
 asking to be added to the team.
 
 Getting Started
@@ -14,7 +14,7 @@ under Mange/SSH keys and then clone the repository:
 
 ::
 
-    $ git clone https://github.com/SPIhub/hummingbird.git
+    $ git clone https://github.com/FXIhub/hummingbird.git
 
 For help on using ``git`` please check `the official git documentation <http://git-scm.com/doc>`_
 and the `Github tutorials <https://help.github.com/>`_.
