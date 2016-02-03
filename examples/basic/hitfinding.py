@@ -17,7 +17,7 @@ state['Facility'] = 'Dummy'
 # Create a dummy facility
 state['Dummy'] = {
     # The event repetition rate of the dummy facility [Hz]
-    'Repetition Rate' : 10,
+    'Repetition Rate' : 100,
     # Specify simulation
     'Simulation': sim,
     # Dictionary of data sources

@@ -16,10 +16,10 @@ def parse_cmdline_args():
     group.add_argument('-b', '--backend', metavar='conf.py',
                        type=str, help="start the backend with "
                        "given configuration file", nargs='?', const=True)
-    group.add_argument("-p", "--port",
-                       type=int, default=13131, help="overwrites the port")
     group.add_argument('-r', '--reload', help='reloads the backend',
                        action='store_true')
+    parser.add_argument("-p", "--port",
+                       type=int, default=13131, help="overwrites the port")
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
                         action="store_true")
     parser.add_argument("-d", "--debug", help="output debug messages",
