@@ -20,7 +20,9 @@ class Worker(object):
     """
     state = None
     conf = None
-    def __init__(self, config_file):
+    def __init__(self, config_file, port):
+        # Save the port as global variable in ipc
+        ipc.port = port
         if(config_file is None):
             # Try to load an example configuration file
             config_file = os.path.abspath(os.path.dirname(__file__)+
@@ -30,7 +32,6 @@ class Worker(object):
                             (config_file))
         if not os.path.isfile(config_file):
             raise IOError('Could not find backend configuration file %s' % (config_file))        
-
         self._config_file = config_file
         # self.backend_conf = imp.load_source('backend_conf', config_file)
         signal.signal(signal.SIGUSR1, self.raise_interruption)

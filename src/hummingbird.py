@@ -8,7 +8,7 @@ import socket
 def parse_cmdline_args():
     """Parses command line arguments."""
     parser = argparse.ArgumentParser(description='Hummingbird - '
-                                     'the Online Analysis Framework.')
+                                     'Monitoring and Analysing FXI experiments.')
     group = parser.add_mutually_exclusive_group()
     group.add_argument("-i", "--interface",
                        help="start the control and display interface",
@@ -16,13 +16,15 @@ def parse_cmdline_args():
     group.add_argument('-b', '--backend', metavar='conf.py',
                        type=str, help="start the backend with "
                        "given configuration file", nargs='?', const=True)
+    group.add_argument("-p", "--port",
+                       type=int, default=13131, help="overwrites the port")
     group.add_argument('-r', '--reload', help='reloads the backend',
                        action='store_true')
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
                         action="store_true")
     parser.add_argument("-d", "--debug", help="output debug messages",
                         action="store_true")
-    parser.add_argument("-p", "--profile", help="generate and output profiling information",
+    parser.add_argument("--profile", help="generate and output profiling information",
                         action="store_true")
     parser.add_argument("--no-restore", help="no restoring of Qsettings",
                         action="store_false")
@@ -44,9 +46,9 @@ def main():
     if(args.backend is not None):
         from backend import Worker
         if(args.backend != True):
-            worker = Worker(args.backend)
+            worker = Worker(args.backend, args.port)
         else:
-            worker = Worker(None)
+            worker = Worker(None, args.port)
         if not args.profile:
             worker.start()
         else:

@@ -14,12 +14,12 @@ import logging
 class ZmqServer(object):
     """Implements the server that broadcasts the results from the backend.
     Analysis users do not need to deal with it."""
-    def __init__(self):
+    def __init__(self, port):
         self._state = backend.worker.Worker.state
         self._zmq_key = bytes('hummingbird')
         self._context = zmq.Context()
         self._ctrl_socket = self._context.socket(zmq.REP)
-        self._ctrl_port = self._state.get('zmq_ctrl_port',13131)
+        self._ctrl_port = self._state.get('zmq_ctrl_port', port)
         self._broker_pub_socket = self._context.socket(zmq.XPUB)
         self._broker_pub_port = self._state.get('zmq_data_port',
                                                 self._ctrl_port+1)
