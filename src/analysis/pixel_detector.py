@@ -194,7 +194,7 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
     add_record(evt["analysis"], "analysis", "radial distance - " + key, r)
     add_record(evt["analysis"], "analysis", "radial average - "  + key, img_r)
 
-def commonModeMask(evt, type, key, mask=None):
+def commonModeCSPAD2x2(evt, type, key, mask=None):
     """Subtraction of common mode using median value of masked pixels (left and right half of detector are treated separately). 
     Adds a record ``evt["analysis"]["cm_corrected - " + key]``.
     
@@ -226,25 +226,31 @@ def commonModeMask(evt, type, key, mask=None):
         dataCorrected[:,data.shape[1]/2:] -= numpy.median(rData[rMask])    
     add_record(evt["analysis"], "analysis", "cm_corrected - " + key, dataCorrected)
 
-def commonModeRow(evt, type, key):
-    """Subtraction of common mode using median value of each row (left and right half of detector are treated separately). 
-    Adds a record ``evt["analysis"]["cm_corrected - " + key]``.
+def commonModePNCCD(evt, type, key, outkey=None):
+    """Common mode correction for PNCCDs.
+
+    For each row its median value is subtracted (left and right half of detector are treated separately).
+    Adds a record ``evt["analysis"][outkey]``.
     
     Args:
-      :evt:        The event variable
-      :type(str):  The event type (e.g. photonPixelDetectors)
-      :key(str):   The event key (e.g. CCD)
+      :evt:         The event variable
+      :type(str):   The event type (e.g. photonPixelDetectors)
+      :key(str):    The event key (e.g. CCD)
+      :outkey(str): The event key for the corrected image, default is "corrected - " + key
     
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
+    if outkey is None:
+        outkey = "corrected - " + key
+    data = evt[type][key].data
     dataCorrected = numpy.copy(data)
     lData = data[:,:data.shape[1]/2]
     rData = data[:,data.shape[1]/2:]
     dataCorrected[:,:data.shape[1]/2] -= numpy.median(lData,axis=1).repeat(lData.shape[1]).reshape(lData.shape)
     dataCorrected[:,data.shape[1]/2:] -= numpy.median(rData,axis=1).repeat(rData.shape[1]).reshape(rData.shape)
-    add_record(evt["analysis"], "analysis", "cm_corrected - " + key, dataCorrected)
+    add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 
 def backgroundSubtract(evt, record, background=None):
     """Subtraction of background. Adds a record ``evt["analysis"]["bg_subtracted - " + record.name]``.
