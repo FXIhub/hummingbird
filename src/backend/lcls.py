@@ -34,8 +34,9 @@ class LCLSTranslator(object):
         else:
             raise ValueError("You need to set the '[LCLS][DataSource]'"
                              " in the configuration")
-
+        
         # Cache times of events that shall be extracted from XTC (does not work for stream)
+        self.event_slice = (0,None,1)
         if 'times' in state or 'fiducials' in state:
             if not ('times' in state and 'fiducials' in state):
                 raise ValueError("Times or fiducials missing in state."
@@ -60,7 +61,9 @@ class LCLSTranslator(object):
         else:
             self.times = None
             self.fiducials = None
-            self.i = None
+            self.i = 0
+            if not dsrc.startswith('shmem='):
+                self.event_slice = slice(ipc.mpi.slave_rank(), None, ipc.mpi.nr_workers())
             self.data_source = psana.DataSource(dsrc)
             self.run = None
 
@@ -141,8 +144,19 @@ class LCLSTranslator(object):
             if evt is None:
                 return None
         else:
+            while (self.i%self.event_slice.step) != self.event_slice.start:
+                evt = self.data_source.events().next()
+                self.i += 1
+            
+            #if (self.i%self.event_slice.step) != self.event_slice.start:
+                #
+            #    evt = self.data_source.events().next()
+            #    return self.next_event()
+            #else:
+            #print ipc.mpi.slave_rank(), self.i
             try:
                 evt = self.data_source.events().next()
+                self.i += 1
             except StopIteration:
                 logging.warning('End of Run.')
                 if 'end_of_run' in dir(Worker.conf):
