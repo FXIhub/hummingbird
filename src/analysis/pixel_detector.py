@@ -211,22 +211,22 @@ def commonModeCSPAD2x2(evt, type, key, mask=None):
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
     data = evt[type][key].data
-    dataCorrected = numpy.copy(data)
+    dataCorrected = np.copy(data)
     lData = data[:,:data.shape[1]/2]
     rData = data[:,data.shape[1]/2:]
     if mask is None:
-        lMask = numpy.ones(shape=lData.shape, dtype="bool")
-        rMask = numpy.ones(shape=rData.shape, dtype="bool")
+        lMask = np.ones(shape=lData.shape, dtype="bool")
+        rMask = np.ones(shape=rData.shape, dtype="bool")
     else:
         lMask = mask[:,:data.shape[1]/2] == False
         rMask = mask[:,data.shape[1]/2:] == False
     if lMask.sum() > 0:
-        dataCorrected[:,:data.shape[1]/2] -= numpy.median(lData[lMask])
+        dataCorrected[:,:data.shape[1]/2] -= np.median(lData[lMask])
     if rMask.sum() > 0:
-        dataCorrected[:,data.shape[1]/2:] -= numpy.median(rData[rMask])    
+        dataCorrected[:,data.shape[1]/2:] -= np.median(rData[rMask])    
     add_record(evt["analysis"], "analysis", "cm_corrected - " + key, dataCorrected)
 
-def commonModePNCCD(evt, type, key, outkey=None):
+def commonModePNCCD(evt, type, key, outkey=None, transpose=False):
     """Common mode correction for PNCCDs.
 
     For each row its median value is subtracted (left and right half of detector are treated separately).
@@ -236,6 +236,8 @@ def commonModePNCCD(evt, type, key, outkey=None):
       :evt:         The event variable
       :type(str):   The event type (e.g. photonPixelDetectors)
       :key(str):    The event key (e.g. CCD)
+
+    Kwargs:
       :outkey(str): The event key for the corrected image, default is "corrected - " + key
     
     :Authors:
@@ -245,31 +247,39 @@ def commonModePNCCD(evt, type, key, outkey=None):
     if outkey is None:
         outkey = "corrected - " + key
     data = evt[type][key].data
-    dataCorrected = numpy.copy(data)
+    if transpose:
+        data = data.transpose()
+    dataCorrected = np.copy(data)
     lData = data[:,:data.shape[1]/2]
     rData = data[:,data.shape[1]/2:]
-    dataCorrected[:,:data.shape[1]/2] -= numpy.median(lData,axis=1).repeat(lData.shape[1]).reshape(lData.shape)
-    dataCorrected[:,data.shape[1]/2:] -= numpy.median(rData,axis=1).repeat(rData.shape[1]).reshape(rData.shape)
+    dataCorrected[:,:data.shape[1]/2] -= np.median(lData,axis=1).repeat(lData.shape[1]).reshape(lData.shape)
+    dataCorrected[:,data.shape[1]/2:] -= np.median(rData,axis=1).repeat(rData.shape[1]).reshape(rData.shape)
+    if transpose:
+        dataCorrected = dataCorrect.transpose()
     add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 
-def backgroundSubtract(evt, record, background=None):
-    """Subtraction of background. Adds a record ``evt["analysis"]["bg_subtracted - " + record.name]``.
+def subtractImage(evt, type, key, image, outkey=None):
+    """Subtract an image.
+
+    Adds a record ``evt["analysis"][outkey]``.
 
     Args:
       :evt:        The event variable
       :type(str):  The event type (e.g. photonPixelDetectors)
       :key(str):   The event key (e.g. CCD)
+    
+     Kwargs:
+      :outkey(str): The event key for the subtracted image, default is "subtraced - " + key
 
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
+    if outkey is None:
+        outkey = "subtracted - " + key
     data = evt[type][key].data
-    if background is not None:
-        dataCorrected = data - background
-    else:
-        dataCorrected = data
-    add_record(evt["analysis"], "analysis", "bg_corrected - " + key, dataCorrected)
+    dataCorrected = data - image
+    add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 
 def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
     
