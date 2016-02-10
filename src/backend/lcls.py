@@ -51,10 +51,13 @@ class LCLSTranslator(object):
             self.i = 0
             self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()                        
-        elif 'do_full_run' in state:
+        elif 'indexing' in state:
             if dsrc[-len(':idx'):] != ':idx':
                 dsrc += ':idx'
-            self.i = 0
+            if 'index_offset' in state:
+                self.i = state['index_offset']
+            else:
+                self.i = 0
             self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()
             self.timestamps = self.run.times()[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
