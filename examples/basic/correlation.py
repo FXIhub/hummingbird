@@ -76,7 +76,7 @@ def onEvent(evt):
                                        aduThreshold=10, hitscoreThreshold=100)
 
     # Extract boolean (hit or miss)
-    hit = evt["analysis"]["isHit - CCD"].data
+    hit = evt["analysis"]["isHit"].data
     
     # Compute the hitrate
     analysis.hitfinding.hitrate(evt, hit, history=1000)
@@ -86,7 +86,7 @@ def onEvent(evt):
         
     # Plot scatter of pulse energy vs. hitscore
     plotting.correlation.plotScatter(evt['pulseEnergies']['pulseEnergy'],
-                                     evt["analysis"]["hitscore - CCD"],
+                                     evt["analysis"]["hitscore"],
                                      xlabel='Pulse energy [J]', ylabel='Hitscore')
 
     # Plot heat map of hitrate as function of injector position

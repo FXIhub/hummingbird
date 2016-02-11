@@ -1,3 +1,4 @@
+
 # Import analysis/plotting/simulation modules
 import analysis.event
 import analysis.hitfinding
@@ -17,7 +18,7 @@ state['Facility'] = 'Dummy'
 # Create a dummy facility
 state['Dummy'] = {
     # The event repetition rate of the dummy facility [Hz]
-    'Repetition Rate' : 10,
+    'Repetition Rate' : 100,
     # Specify simulation
     'Simulation': sim,
     # Dictionary of data sources
@@ -43,13 +44,13 @@ def onEvent(evt):
     analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD", aduThreshold=10, hitscoreThreshold=100)
 
     # Extract boolean (hit or miss)
-    hit = evt["analysis"]["isHit - CCD"].data
+    hit = evt["analysis"]["isHit"].data
     
     # Compute the hitrate
     analysis.hitfinding.hitrate(evt, hit, history=5000)
     
     # Plot the hitscore
-    plotting.line.plotHistory(evt["analysis"]["hitscore - CCD"], label='Nr. of lit pixels')
+    plotting.line.plotHistory(evt["analysis"]["hitscore"], label='Nr. of lit pixels', hline=100)
 
     # Plot the hitrate
     plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
