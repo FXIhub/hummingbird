@@ -296,7 +296,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
             if 'vline' in conf and conf['vline'] is not None:
                 self.plot.getPlotItem().removeItem(self.vline)
-                self.vline = pyqtgraph.InfiniteLine(angle=0, movable=False, pen=self.vline_color)
+                self.vline = pyqtgraph.InfiniteLine(angle=90, movable=False, pen=self.vline_color)
                 self.plot.getPlotItem().addItem(self.vline)
                 self.vline.setPos(conf['vline'])
 
