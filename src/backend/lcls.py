@@ -61,6 +61,8 @@ class LCLSTranslator(object):
             self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()
             self.timestamps = self.run.times()[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
+            # Benchmarking
+            self.time0 = time.time()
         else:
             self.times = None
             self.fiducials = None
@@ -130,6 +132,7 @@ class LCLSTranslator(object):
                 evt = self.run.event(self.timestamps[self.i])
             except IndexError:
                 logging.warning('End of Run.')
+                print "Processsing rate ", ipc.mpi.slave_ranke(), len(self.timestamps) / (time.time() - time0)
                 if 'end_of_run' in dir(Worker.conf):
                     Worker.conf.end_of_run()
                 return None
