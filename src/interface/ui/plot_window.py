@@ -31,6 +31,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.current_index = -1
         self.last_vector_y = {}
         self.last_vector_x = None
+        self.hline = None
+        self.hline_color = (0,204,0)
         self._settings_diag = LinePlotSettings(self)
         
     def on_view_legend_box(self):
@@ -283,6 +285,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
             plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
+
+            if 'hline' in conf and conf['hline'] is not None:
+                self.plot.getPlotItem().removeItem(self.hline)
+                self.hline = pyqtgraph.InfiniteLine(angle=0, movable=False, pen=self.hline_color)
+                self.plot.getPlotItem().addItem(self.hline)
+                self.hline.setPos(conf['hline'])
 
             xmins.append(x.min())
             xmaxs.append(x.max())
