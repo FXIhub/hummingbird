@@ -55,7 +55,7 @@ class LCLSTranslator(object):
             if dsrc[-len(':idx'):] != ':idx':
                 dsrc += ':idx'
             if 'index_offset' in state:
-                self.i = state['index_offset']
+                self.i = state['index_offset'] / ipc.mpi.nr_workers()
             else:
                 self.i = 0
             self.data_source = psana.DataSource(dsrc)
