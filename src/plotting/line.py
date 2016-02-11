@@ -50,7 +50,7 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
         return
     plotid = "Histogram(%s)%s" % (param.name, name_extension)
     if(not param.name in histograms):
-        ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, history_length=history)
+        ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, vline=vline, history_length=history)
         histograms[param.name] = True
     data = param.data
     if mask is not None:
@@ -78,7 +78,7 @@ def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None):
         return
     plotid = "Trace(%s)" %paramY.name
     if(not paramY.name in traces):
-        ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, vline=vline, history_length=history)
+        ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, history_length=history)
         histograms[paramY.name] = True
     if paramX is None:
         ipc.new_data(plotid, data_y=paramY.data.ravel())
