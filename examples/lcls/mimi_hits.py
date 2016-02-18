@@ -4,8 +4,6 @@ import analysis.pixel_detector
 import plotting.line
 import plotting.image
 import utils.reader
-import time
-import ipc
 
 state = {}
 state['Facility'] = 'LCLS'
@@ -23,12 +21,10 @@ hist_min  = 5
 hist_max  = 35
 hist_bins = 40
 
-time0 = time.time()
-
 def onEvent(evt):
 
     # Processing rate
-    #analysis.event.printProcessingRate()
+    analysis.event.printProcessingRate()
 
     try:
         evt['photonPixelDetectors']['pnccdBackfullFrame']
@@ -42,9 +38,6 @@ def onEvent(evt):
     # Common mode correction
     analysis.pixel_detector.commonModePNCCD(evt, 'analysis', 'pnccdBackSubtracted', 
                                             outkey='pnccdBackCorrected')
-
-    # Plot back detector image for all events
-    #plotting.image.plotImage(evt['analysis']['pnccdBackCorrected'], name='pnccdBack - all events')
 
     # Plot back detector histogram (to figure out ADU/photon -> aduThreshold)
     plotting.line.plotHistogram(evt['analysis']['pnccdBackCorrected'], 
@@ -61,8 +54,3 @@ def onEvent(evt):
     if bool(evt['analysis']['isHit'].data):
         plotting.image.plotImage(evt['analysis']['pnccdBackCorrected'], 
                                  log=True, name='pnccdBack - only hits')
-
-def end_of_run():
-    with open('benchmark.txt', 'a') as f:
-        f.write("%d\t%.2f\n" %(ipc.mpi.slave_rank(), time.time() - time0))
-    ipc.mpi.slave_done()
