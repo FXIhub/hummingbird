@@ -74,7 +74,7 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitsc
     if hitscoreMax is not None:
         hit *= int(hitscore <= hitscoreMax)
     add_record(v, "analysis", label+"isHit - "+key, hit)
-    add_record(v, "analysis", label+"isMiss - "+key, int(hit and (hitscore > hitscoreDark)))
+    add_record(v, "analysis", label+"isMiss - "+key, int(not hit and (hitscore > hitscoreDark)))
     add_record(v, "analysis", label+"hitscore - "+key, hitscore)
 
 def countTof(evt, type="ionTOFs", key="tof", signalThreshold = 1, minWindow = 0, maxWindow = -1, hitscoreThreshold=2):
