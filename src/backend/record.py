@@ -12,6 +12,8 @@ def add_record(values, group, name, data, unit=None):
 class Record(object):
     """Generic storage class for a name/data pair extracted from an event"""
     def __init__(self, name, data, unit=None):
-        self.name = name
-        self.data = data
-        self.unit = unit
+        self.name  = name
+        self.data  = data
+        self.unit  = unit
+        self.group = data.split('/')[0]
+        self.key   = data.split('/')[1]
