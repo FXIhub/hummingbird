@@ -4,7 +4,7 @@ import h5py
 
 state = {}
 state['Facility'] = 'LCLS'
-state['LCLS/DataSource'] = 'exp=amo15010:dir=/reg/d/psdm/AMO/amo15010/xtc/:run=73'
+state['LCLS/DataSource'] = 'exp=amo15010:dir=/path/to/xtc/:run=73'
 
 dark = 0.
 event_number = 0

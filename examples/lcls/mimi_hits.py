@@ -7,7 +7,7 @@ import utils.reader
 
 state = {}
 state['Facility'] = 'LCLS'
-state['LCLS/DataSource'] = 'exp=amo15010:dir=/scratch/fhgfs/LCLS/amo/amo15010/xtc/:run=92'
+state['LCLS/DataSource'] = 'exp=amo15010:dir=/path/to/xtc:run=92'
 state['indexing'] = True
 state['index_offset'] = 2250
 
