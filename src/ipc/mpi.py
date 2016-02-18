@@ -3,8 +3,10 @@ import ipc
 import numpy
 import numbers
 import logging
+import time
 
 reducedata = {}
+slavesdone = []
 
 def is_master():
     """Returns True if the process has MPI rank 0 and
@@ -118,6 +120,12 @@ def master_loop():
             for data in reducedata[cmd]:
                 data_y = data_y + reducedata[cmd][data]
             comm.send(data_y, source)
+    elif(msg[0] == '__exit__'):
+        slavesdone.append(True)
+        print "Slave with rank = %d reports to be done" %msg[1]
+        if len(slavesdone) == nr_workers():
+            MPI.Finalize()
+            return True
     else:
         # Inject a proper UUID
         msg[1][0] = ipc.uuid
@@ -192,3 +200,6 @@ def _reduce(array, op):
             slaves_comm.Reduce(MPI.IN_PLACE, array, op=getattr(MPI,op))
         else:
             slaves_comm.Reduce(array,  None, op=getattr(MPI,op))
+
+def slave_done():
+    send('__exit__', rank)

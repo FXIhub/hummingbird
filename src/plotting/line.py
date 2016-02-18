@@ -5,7 +5,7 @@ import utils.array
 
 
 histories = {}
-def plotHistory(param, label='', history=100, runningHistogram=False, window=20, bins=100, hmin=0, hmax=100, name_extension=""):
+def plotHistory(param, label='', history=100, hline=None, runningHistogram=False, window=20, bins=100, hmin=0, hmax=100, name_extension=""):
     """Plotting history of a parameter.
 
     Args:
@@ -24,7 +24,7 @@ def plotHistory(param, label='', history=100, runningHistogram=False, window=20,
             ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history, window=window, bins=bins, hmin=hmin, hmax=hmax)
         else:
             data_type = 'scalar'
-            ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history)
+            ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history, hline=hline)
         histories[param.name] = True
     ipc.new_data(plotid, param.data)
 
@@ -32,7 +32,7 @@ def plotTimestamp(timestamp):
     ipc.new_data('History(Fiducial)', timestamp.fiducials)
 
 histograms = {}
-def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, history=100, mask=None, log10=False, name_extension=""):
+def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, vline=None, history=100, mask=None, log10=False, name_extension=""):
     """Plotting a histogram.
     
     Args:
@@ -50,7 +50,7 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
         return
     plotid = "Histogram(%s)%s" % (param.name, name_extension)
     if(not param.name in histograms):
-        ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, history_length=history)
+        ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, vline=vline, history_length=history)
         histograms[param.name] = True
     data = param.data
     if mask is not None:

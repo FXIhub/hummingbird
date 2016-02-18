@@ -34,8 +34,9 @@ class LCLSTranslator(object):
         else:
             raise ValueError("You need to set the '[LCLS][DataSource]'"
                              " in the configuration")
-
+        
         # Cache times of events that shall be extracted from XTC (does not work for stream)
+        self.event_slice = (0,None,1)
         if 'times' in state or 'fiducials' in state:
             if not ('times' in state and 'fiducials' in state):
                 raise ValueError("Times or fiducials missing in state."
@@ -50,17 +51,22 @@ class LCLSTranslator(object):
             self.i = 0
             self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()                        
-        elif 'do_full_run' in state:
+        elif 'indexing' in state:
             if dsrc[-len(':idx'):] != ':idx':
                 dsrc += ':idx'
-            self.i = 0
+            if 'index_offset' in state:
+                self.i = state['index_offset'] / ipc.mpi.nr_workers()
+            else:
+                self.i = 0
             self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()
             self.timestamps = self.run.times()[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
         else:
             self.times = None
             self.fiducials = None
-            self.i = None
+            self.i = 0
+            if not dsrc.startswith('shmem='):
+                self.event_slice = slice(ipc.mpi.slave_rank(), None, ipc.mpi.nr_workers())
             self.data_source = psana.DataSource(dsrc)
             self.run = None
 
@@ -141,8 +147,12 @@ class LCLSTranslator(object):
             if evt is None:
                 return None
         else:
+            while (self.i%self.event_slice.step) != self.event_slice.start:
+                evt = self.data_source.events().next()
+                self.i += 1            
             try:
                 evt = self.data_source.events().next()
+                self.i += 1
             except StopIteration:
                 logging.warning('End of Run.')
                 if 'end_of_run' in dir(Worker.conf):
