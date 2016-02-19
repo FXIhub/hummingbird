@@ -239,10 +239,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
     def _reset_meanmap_cache(self):
         if self.meanmap is not None and self.last_x is not None and self.last_y is not None:
-            xmin = self.last_x-self.mm_dx*self.mm_xbins/2.
-            xmax = self.last_x+self.mm_dx*self.mm_xbins/2.
-            ymin = self.last_y-self.mm_dy*self.mm_ybins/2.
-            ymax = self.last_y+self.mm_dy*self.mm_ybins/2.
+            xmin = self.last_x-self.mm_dx*self.mm_xbins/2.-self.mm_dx/2.
+            xmax = self.last_x+self.mm_dx*self.mm_xbins/2.-self.mm_dx/2.
+            ymin = self.last_y-self.mm_dy*self.mm_ybins/2.-self.mm_dy/2.
+            ymax = self.last_y+self.mm_dy*self.mm_ybins/2.-self.mm_dy/2.
             self._init_meanmap(xmin, xmax, ymin, ymax, self.mm_xbins, self.mm_ybins)
    
     def _init_meanmap(self, xmin, xmax, ymin, ymax, xbins, ybins):
