@@ -25,7 +25,7 @@ def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20, mask
         if mask is None:
             mask = rr > r
         else:
-            mask = np.bool8(mask)
+            mask = ~np.bool8(mask)
         v = data[mask].sum() / pulse_energy
     elif mode == 'sum':
         v = data.sum() / pulse_energy
