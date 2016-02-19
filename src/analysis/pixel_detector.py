@@ -93,9 +93,23 @@ def maxPhotonValue(evt, record, aduPhoton=1, outkey=None):
     data = record.data.flat
     add_record(evt["analysis"], "analysis", outkey, max(data) / float(aduPhoton))
 
-def supressNoise(evt, record, threshold=0.5, outkey=None):
+def threshold(evt, record, threshold, outkey=None):
+    """Set all values in an array that are lower than the threshold to zero.
+    
+    Args:
+        :evt:       The event variable
+        :record:    The data record
+        :threshold: Set everything lower than this number to zero
+
+    Kwargs:
+        :aduPhoton(int):  ADU count per photon, default = 1
+        :outkey(str):     Data key of resulting data record, default is 'maxPhotons' 
+    
+    :Authors:
+        Tomas Ekeberg (ekeberg@xray.bmc.uu.se)
+    """
     if outkey is None:
-        outkey = "cleaned"
+        outkey = "thresholded"
     data_clean = record.data.copy()
     data_clean[data_clean < threshold] = 0.
     rec = add_record(evt["analysis"], "analysis", outkey, data_clean)
