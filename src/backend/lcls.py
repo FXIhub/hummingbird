@@ -36,7 +36,7 @@ class LCLSTranslator(object):
                              " in the configuration")
         
         # Cache times of events that shall be extracted from XTC (does not work for stream)
-        self.event_slice = (0,None,1)
+        self.event_slice = slice(0,None,1)
         if 'times' in state or 'fiducials' in state:
             if not ('times' in state and 'fiducials' in state):
                 raise ValueError("Times or fiducials missing in state."
