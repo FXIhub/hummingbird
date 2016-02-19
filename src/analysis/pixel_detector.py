@@ -93,6 +93,14 @@ def maxPhotonValue(evt, record, aduPhoton=1, outkey=None):
     data = record.data.flat
     add_record(evt["analysis"], "analysis", outkey, max(data) / float(aduPhoton))
 
+def supressNoise(evt, record, threshold=0.5, outkey=None):
+    if outkey is None:
+        outkey = "cleaned"
+    data_clean = record.data.copy()
+    data_clean[data_clean < threshold] = 0.
+    rec = add_record(evt["analysis"], "analysis", outkey, data_clean)
+    return rec
+
 initialized = {}
 def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
     """Asesembles a detector image given some geometry and adds assembled image to ``evt["analysis"]["assembled - " + key]``.
