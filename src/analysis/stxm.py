@@ -3,7 +3,7 @@ from backend import add_record
 import beamline
 import scipy.ndimage.measurements
 
-def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20):
+def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20, mask=None):
     data = data_rec.data
     Ny, Nx = data.shape
     if cx is None:
@@ -16,10 +16,16 @@ def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20):
     xx, yy = np.meshgrid(np.arange(Nx)-cx, np.arange(Ny)-cy)
     rr = np.sqrt(xx**2 + yy**2)
     if mode == 'bf':
-        mask = rr < r
+        if mask is None:
+            mask = rr < r
+        else:
+            mask = np.bool8(mask)
         v = data[mask].sum() / pulse_energy
     elif mode == 'df':
-        mask = rr > r
+        if mask is None:
+            mask = rr > r
+        else:
+            mask = np.bool8(mask)
         v = data[mask].sum() / pulse_energy
     elif mode == 'sum':
         v = data.sum() / pulse_energy
