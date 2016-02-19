@@ -71,6 +71,23 @@ def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
     valid = data > aduThreshold
     add_record(evt["analysis"], "analysis", "nrPhotons - " + key, sum(data[valid]) / float(aduPhoton))
 
+def maxPhotonValue(evt, type, key, aduPhoton=1):
+    """Estimates the maximum number of photons on one pixel on the detector and adds it to ``evt["analysis"]["maxPhotons - " + key]``.
+
+    Args:
+        :evt:       The event variable
+        :type(str): The event type (e.g. photonPixelDetectors)
+        :key(str):  The event key (e.g. CCD)
+
+    Kwargs:
+        :aduPhoton(int):    ADU count per photon, default = 1
+    
+    :Authors:
+        Tomas Ekeberg (ekeberg@xray.bmc.uu.se)
+    """
+    data = evt[type][key].data.flat
+    add_record(evt["analysis"], "analysis", "maxPhotons - " + key, max(data) / float(aduPhoton))
+
 initialized = {}
 def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
     """Asesembles a detector image given some geometry and adds assembled image to ``evt["analysis"]["assembled - " + key]``.
