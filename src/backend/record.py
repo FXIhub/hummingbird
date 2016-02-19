@@ -15,5 +15,9 @@ class Record(object):
         self.name  = name
         self.data  = data
         self.unit  = unit
-        self.group = data.split('/')[0]
-        self.key   = data.split('/')[1]
+        # try:
+        #     self.group = name.split('/')[0]
+        #     self.key   = name.split('/')[1]
+        # except IndexError:
+        #     self.group = None
+        #     self.key = None
