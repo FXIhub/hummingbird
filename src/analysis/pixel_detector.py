@@ -52,41 +52,46 @@ def getCentral4Asics(evt, type, key):
     getSubsetAsics(evt, type, key, map(lambda i : (i * 8 + 1) * 2, xrange(4)), "central4Asics")
 
     
-def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
-    """Estimates the total nr. of photons on the detector and adds it to ``evt["analysis"]["nrPhotons - " + key]``.
+def totalNrPhotons(evt, record, aduPhoton=1, aduThreshold=0.5, outkey=None):
+    """Estimates the total nr. of photons on the detector and adds it to ``evt["analysis"][outkey]``.
 
     Args:
         :evt:       The event variable
-        :type(str): The event type (e.g. photonPixelDetectors)
-        :key(str):  The event key (e.g. CCD)
+        :record:    The data record (e.g. evt['photonPixelDetectors']['CCD'])
 
     Kwargs:
         :aduPhoton(int):    ADU count per photon, default = 1
         :aduThreshold(int): only pixels above this threshold given in units of ADUs are valid, default = 0.5
+        :outkey(str):       Data key of resulting data record, default is 'nrPhotons' 
     
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    data  = evt[type][key].data.flat
+    if outkey is None:
+        outkey = 'nrPhotons'
+    data  = record.data.flat
     valid = data > aduThreshold
-    add_record(evt["analysis"], "analysis", "nrPhotons - " + key, sum(data[valid]) / float(aduPhoton))
+    add_record(evt["analysis"], "analysis", outkey, sum(data[valid]) / float(aduPhoton))
 
-def maxPhotonValue(evt, type, key, aduPhoton=1):
-    """Estimates the maximum number of photons on one pixel on the detector and adds it to ``evt["analysis"]["maxPhotons - " + key]``.
+def maxPhotonValue(evt, record, aduPhoton=1, outkey=None):
+    """Estimates the maximum number of photons on one pixel on the detector and adds it to ``evt["analysis"][outkey]``.
 
     Args:
         :evt:       The event variable
-        :type(str): The event type (e.g. photonPixelDetectors)
-        :key(str):  The event key (e.g. CCD)
+        :record:    The data record (e.g. evt['photonPixelDetectors']['CCD'])
 
     Kwargs:
-        :aduPhoton(int):    ADU count per photon, default = 1
+        :aduPhoton(int):  ADU count per photon, default = 1
+        :outkey(str):     Data key of resulting data record, default is 'maxPhotons' 
     
     :Authors:
         Tomas Ekeberg (ekeberg@xray.bmc.uu.se)
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    data = evt[type][key].data.flat
-    add_record(evt["analysis"], "analysis", "maxPhotons - " + key, max(data) / float(aduPhoton))
+    if outkey is None:
+        outkey = 'maxPhotons'
+    data = record.data.flat
+    add_record(evt["analysis"], "analysis", outkey, max(data) / float(aduPhoton))
 
 initialized = {}
 def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
