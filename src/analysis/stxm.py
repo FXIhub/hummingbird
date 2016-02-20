@@ -51,9 +51,9 @@ def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20, mask
         # Original type might be unsigned integer
         #
         # Casting is done to doubles for accumulation.
-        data *= badmask
-        diffx = (data[y1_min:y2_max, x1_min:x1_max].sum(dtype=np.float64) - data[y1_min:y2_max, x2_min:x2_max].sum(dtype=np.float64)) / pulse_energy
-        diffy = (data[y1_min:y1_max, x1_min:x2_max].sum(dtype=np.float64) - data[y2_min:y2_max, x1_min:x2_max].sum(dtype=np.float64)) / pulse_energy
+        tmp = data*badmask
+        diffx = (tmp[y1_min:y2_max, x1_min:x1_max].sum(dtype=np.float64) - tmp[y1_min:y2_max, x2_min:x2_max].sum(dtype=np.float64)) / pulse_energy
+        diffy = (tmp[y1_min:y1_max, x1_min:x2_max].sum(dtype=np.float64) - tmp[y2_min:y2_max, x1_min:x2_max].sum(dtype=np.float64)) / pulse_energy
         # Combine diff
         v = np.sqrt(diffx**2+diffy**2)
     rec = add_record(evt["analysis"], "analysis", "stxm %s" %mode, v)
