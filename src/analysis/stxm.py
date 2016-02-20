@@ -5,7 +5,7 @@ import scipy.ndimage.measurements
 
 def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20, mask=None, badmask=None):
     data = data_rec.data
-    if bad_mask is None:
+    if badmask is None:
         badmask = np.ones_like(data).astype(np.bool8)
     else:
         badmask = np.bool8(badmask)
