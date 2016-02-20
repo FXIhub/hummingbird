@@ -3,8 +3,12 @@ from backend import add_record
 import beamline
 import scipy.ndimage.measurements
 
-def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20, mask=None):
+def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20, mask=None, badmask=None):
     data = data_rec.data
+    if bad_mask is None:
+        badmask = np.ones_like(data).astype(np.bool8)
+    else:
+        badmask = np.bool8(badmask)
     Ny, Nx = data.shape
     if cx is None:
         cx = (Nx-1)/2.
@@ -20,15 +24,15 @@ def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20, mask
             mask = rr < r
         else:
             mask = np.bool8(mask)
-        v = data[mask].sum() / pulse_energy
+        v = data[mask & badmask].sum() / pulse_energy
     elif mode == 'df':
         if mask is None:
             mask = rr > r
         else:
             mask = ~np.bool8(mask)
-        v = data[mask].sum() / pulse_energy
+        v = data[mask & badmask].sum() / pulse_energy
     elif mode == 'sum':
-        v = data.sum() / pulse_energy
+        v = data[badmask].sum() / pulse_energy
     elif mode == 'diff':
         # Calc crop coordinates
         Nx_half = min([cx, Nx-1-cx])
@@ -47,6 +51,7 @@ def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20, mask
         # Original type might be unsigned integer
         #
         # Casting is done to doubles for accumulation.
+        data *= badmask
         diffx = (data[y1_min:y2_max, x1_min:x1_max].sum(dtype=np.float64) - data[y1_min:y2_max, x2_min:x2_max].sum(dtype=np.float64)) / pulse_energy
         diffy = (data[y1_min:y1_max, x1_min:x2_max].sum(dtype=np.float64) - data[y2_min:y2_max, x1_min:x2_max].sum(dtype=np.float64)) / pulse_energy
         # Combine diff
