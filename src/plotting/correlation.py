@@ -203,7 +203,7 @@ def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
 
 
 meanMaps = {}
-def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plotid=None, xlabel=None, ylabel=None, msg='', dynamic_extent=False, initial_reset=False):
+def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, xlabel=None, ylabel=None, msg='', dynamic_extent=False, initial_reset=False, name=None):
     """Plotting the meanmap of Z as a function of two parameters X and Y.
     (No buffer in the backend).
 
@@ -218,28 +218,28 @@ def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, plo
         :ymin(int):  default = 0
         :ymax(int):  default = 10
         :ybins(int): default = 10
-        :plotid(str): The key that appears in the interface (default = MeanMap(X.name, Y.name))
+        :name(str): The key that appears in the interface (default = MeanMap(X.name, Y.name))
         :xlabel(str): 
         :ylabel(str):
         :msg(msg):   Any message to be displayed in the plot
     """
-    if plotid is None:
-        plotid = "MeanMap(%s,%s,%s)" % (X.name, Y.name, Z.name)
-    if (not plotid in meanMaps):
+    if name is None:
+        name = "MeanMap(%s,%s,%s)" % (X.name, Y.name, Z.name)
+    if (not name in meanMaps):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
-        ipc.broadcast.init_data(plotid, data_type='triple', history_length=1,
+        ipc.broadcast.init_data(name, data_type='triple', history_length=1,
                                 xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                                 xbins=xbins, ybins=ybins,
                                 xlabel=xlabel, ylabel=ylabel, flipy=True, dynamic_extent=dynamic_extent, initial_reset=initial_reset)
     x = X if not isinstance(X, Record) else X.data
     y = Y if not isinstance(Y, Record) else Y.data
     z = Z if not isinstance(Z, Record) else Z.data
-    ipc.new_data(plotid, np.array([x, y, z]), msg=msg)
+    ipc.new_data(name, np.array([x, y, z]), msg=msg)
 
     
 scatterPlots = {}
-def plotScatter(X,Y, plotid=None, history=100, xlabel=None, ylabel=None):
+def plotScatter(X,Y, name=None, history=100, xlabel=None, ylabel=None):
     """Plotting the scatter of two parameters X and Y.
     (No buffer in the backend).
 
@@ -248,42 +248,42 @@ def plotScatter(X,Y, plotid=None, history=100, xlabel=None, ylabel=None):
         :Y(Record): An event parameter, e.g. injector position in y
 
     Kwargs:
-        :plotid(str): The key that appears in the interface (default = MeanMap(X.name, Y.name))
+        :name(str): The key that appears in the interface (default = MeanMap(X.name, Y.name))
         :xlabel(str): 
         :ylabel(str):
     """
-    if plotid is None:
-        plotid = "Scatter(%s,%s)" %(X.name, Y.name)
-    if (not plotid in scatterPlots):
+    if name is None:
+        name = "Scatter(%s,%s)" %(X.name, Y.name)
+    if (not name in scatterPlots):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
-        ipc.broadcast.init_data(plotid, data_type='tuple', history_length=history,
+        ipc.broadcast.init_data(name, data_type='tuple', history_length=history,
                                 xlabel=xlabel, ylabel=ylabel)
-        scatterPlots[plotid] = True
-    ipc.new_data(plotid, np.array([X.data, Y.data]))
+        scatterPlots[name] = True
+    ipc.new_data(name, np.array([X.data, Y.data]))
 
 scatterBgPlots = {}
-def plotScatterBg(X,Y, plotid=None, history=100, xlabel=None, ylabel=None, bg_filename=None, bg_xmin=0., bg_xmax=1., bg_ymin=0., bg_ymax=0., bg_angle=0.):
+def plotScatterBg(X,Y, name=None, history=100, xlabel=None, ylabel=None, bg_filename=None, bg_xmin=0., bg_xmax=1., bg_ymin=0., bg_ymax=0., bg_angle=0.):
     """Plotting the scatter of two parameters X and Y.
     """
-    if plotid is None:
-        plotid = "ScatterBg(%s,%s)" %(X.name, Y.name)
-    if (not plotid in scatterBgPlots):
+    if name is None:
+        name = "ScatterBg(%s,%s)" %(X.name, Y.name)
+    if (not name in scatterBgPlots):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
-        ipc.broadcast.init_data(plotid, data_type='tuple', history_length=history,
+        ipc.broadcast.init_data(name, data_type='tuple', history_length=history,
                                 xlabel=xlabel, ylabel=ylabel,
                                 bg_filename=bg_filename,
                                 bg_xmin=bg_xmin, bg_xmax=bg_xmax,
                                 bg_ymin=bg_ymin, bg_ymax=bg_ymax,
                                 bg_angle=bg_angle,
         )
-        scatterBgPlots[plotid] = True
-    ipc.new_data(plotid, np.array([X.data, Y.data]))
+        scatterBgPlots[name] = True
+    ipc.new_data(name, np.array([X.data, Y.data]))
     
 
 scatterColorPlots = {}
-def plotScatterColor(X,Y,Z, plotid=None, history=100, xlabel=None, ylabel=None, zlabel=None, vmin=None, vmax=None):
+def plotScatterColor(X,Y,Z, name=None, history=100, xlabel=None, ylabel=None, zlabel=None, vmin=None, vmax=None):
     """Plotting the scatter of two parameters X and Y and use Z for color.
     (No buffer in the backend).
 
@@ -293,21 +293,21 @@ def plotScatterColor(X,Y,Z, plotid=None, history=100, xlabel=None, ylabel=None, 
         :Z(Record): An event parameter, e.g. injector position in z
 
     Kwargs:
-        :plotid(str): The key that appears in the interface (default = MeanMap(X.name, Y.name))
+        :name(str): The key that appears in the interface (default = MeanMap(X.name, Y.name))
         :xlabel(str): 
         :ylabel(str):
     """
-    if plotid is None:
-        plotid = "ScatterColor(%s,%s)" %(X.name, Y.name)
-    if (not plotid in scatterPlots):
+    if name is None:
+        name = "ScatterColor(%s,%s)" %(X.name, Y.name)
+    if (not name in scatterPlots):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
         if zlabel is None: zlabel = Z.name
         if vmin is None: vmin = 0
         if vmax is None: vmax = 1
-        ipc.broadcast.init_data(plotid, data_type='triple', history_length=history,
+        ipc.broadcast.init_data(name, data_type='triple', history_length=history,
                                 xlabel=xlabel, ylabel=ylabel, zlabel=zlabel,
                                 vmin=vmin, vmax=vmax)
-    ipc.new_data(plotid, np.array([X.data, Y.data, Z.data]))
+    ipc.new_data(name, np.array([X.data, Y.data, Z.data]))
 
     

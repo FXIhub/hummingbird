@@ -5,7 +5,7 @@ import utils.array
 
 
 histories = {}
-def plotHistory(param, label='', history=100, hline=None, runningHistogram=False, window=20, bins=100, hmin=0, hmax=100, name_extension=""):
+def plotHistory(param, label='', history=100, hline=None, runningHistogram=False, window=20, bins=100, hmin=0, hmax=100, name_extension="", name=None):
     """Plotting history of a parameter.
 
     Args:
@@ -17,22 +17,24 @@ def plotHistory(param, label='', history=100, hline=None, runningHistogram=False
     """
     if param is None:
         return
-    plotid = "History(%s)%s" % (param.name, name_extension)
+    if name is None:
+        name = "History(%s)%s" % (param.name, name_extension)
+        
     if (not param.name in histories):
         if runningHistogram:
             data_type = 'running_hist'
-            ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history, window=window, bins=bins, hmin=hmin, hmax=hmax)
+            ipc.broadcast.init_data(name, data_type=data_type, ylabel=label, history_length=history, window=window, bins=bins, hmin=hmin, hmax=hmax)
         else:
             data_type = 'scalar'
-            ipc.broadcast.init_data(plotid, data_type=data_type, ylabel=label, history_length=history, hline=hline)
+            ipc.broadcast.init_data(name, data_type=data_type, ylabel=label, history_length=history, hline=hline)
         histories[param.name] = True
-    ipc.new_data(plotid, param.data)
+    ipc.new_data(name, param.data)
 
 def plotTimestamp(timestamp):
     ipc.new_data('History(Fiducial)', timestamp.fiducials)
 
 histograms = {}
-def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, vline=None, history=100, mask=None, log10=False, name_extension=""):
+def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, vline=None, history=100, mask=None, log10=False, name_extension="", name=None):
     """Plotting a histogram.
     
     Args:
@@ -48,9 +50,10 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
     """
     if param is None:
         return
-    plotid = "Histogram(%s)%s" % (param.name, name_extension)
+    if name is None:
+        name = "Histogram(%s)%s" % (param.name, name_extension)
     if(not param.name in histograms):
-        ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, vline=vline, history_length=history)
+        ipc.broadcast.init_data(name, data_type='vector', xlabel=label, vline=vline, history_length=history)
         histograms[param.name] = True
     data = param.data
     if mask is not None:
@@ -60,10 +63,10 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
     if hmin is None: hmin = data.min()
     if hmax is None: hmax = data.max()
     H,B = np.histogram(data.flat, range=(hmin, hmax), bins=bins, density=density)
-    ipc.new_data(plotid, H, xmin=B.min(), xmax=B.max())
+    ipc.new_data(name, H, xmin=B.min(), xmax=B.max())
 
 traces = {}
-def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None):
+def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None, name=None):
     """Plotting a trace.
     
     Args:
@@ -76,12 +79,13 @@ def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None):
     """
     if paramY is None:
         return
-    plotid = "Trace(%s)" %paramY.name
+    if name is None:
+        name = "Trace(%s)" %paramY.name
     if(not paramY.name in traces):
-        ipc.broadcast.init_data(plotid, data_type='vector', xlabel=label, history_length=history)
+        ipc.broadcast.init_data(name, data_type='vector', xlabel=label, history_length=history)
         histograms[paramY.name] = True
     if paramX is None:
-        ipc.new_data(plotid, data_y=paramY.data.ravel())
+        ipc.new_data(name, data_y=paramY.data.ravel())
     else:
         x = paramX.data.ravel()
         y = paramY.data.ravel()
@@ -89,7 +93,7 @@ def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None):
             x = x[:tracelen]
             y = y[:tracelen]
         if x.size != y.size:
-            logging.warning("For %s x- and y-dimension do not match (%i, %i). Cannot plot trace." % (plotid,x.size,y.size))
+            logging.warning("For %s x- and y-dimension do not match (%i, %i). Cannot plot trace." % (name,x.size,y.size))
             return
-        ipc.new_data(plotid, data_y=np.array([x,y], copy=False)) 
+        ipc.new_data(name, data_y=np.array([x,y], copy=False)) 
 
