@@ -162,6 +162,8 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
     shape = initialized[key]['shape']
     y = initialized[key]['y']
     x = initialized[key]['x']
+    #from IPython.core.debugger import Tracer
+    #Tracer()()
     if subset is not None:
         data = []
         for i in subset:
