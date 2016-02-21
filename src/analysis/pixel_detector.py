@@ -346,3 +346,9 @@ def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
     data_cropped = data[cy-h/2:cy+h/2, cx-w/2:cx+w/2]
     add_record(evt["analysis"], "analysis", "cropped/centered", data_cropped)
 
+def rotate90(evt, data_rec, k=1, outkey=None):
+    if outkey is None:
+        outkey = 'rotated'
+    data_rotated = np.rot90(data_rec.data,k)
+    return add_record(evt["analysis"], "analysis", outkey, data_rotated)
+    
