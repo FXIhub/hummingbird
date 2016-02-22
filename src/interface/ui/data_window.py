@@ -16,11 +16,16 @@ class DataWindow(QtGui.QMainWindow):
         # If True this DataWindow was restored from saved settings
         self.restored = False
 
+    # This is to fix a resizing bug on Mac
+    def resizeEvent(self, event):
+        QtGui.QMainWindow.resizeEvent(self, event)
+        QtGui.QApplication.processEvents()
+        
     def _setup_connections(self):
         """Initialize connections"""
         self.menuData_Sources.aboutToShow.connect(self.on_menu_show)
-        self.actionSaveToJPG.triggered.connect(self.on_save_to_jpg)
-        self.actionSaveToJPG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
+        self.actionSaveToPNG.triggered.connect(self.on_save_to_png)
+        self.actionSaveToPNG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
 
     def _finish_layout(self):
         """This is called after the derived classes finish settings up so
@@ -37,23 +42,33 @@ class DataWindow(QtGui.QMainWindow):
     def on_menu_show(self):
         """Show what data sources are available"""
         # Go through all the available data sources and add them
+
+        def add_menu(title, menu):
+            action = QtGui.QAction(title, self)
+            action.setData([ds, title])
+            action.setCheckable(True)
+            if (ds in self._enabled_sources and
+                title in self._enabled_sources[ds]):
+                action.setChecked(True)
+            else:
+                action.setChecked(False)
+            menu.addAction(action)
+            action.triggered.connect(self._source_title_triggered)
+            
         self.menuData_Sources.clear()
         for ds in self._parent.data_sources:
             menu = self.menuData_Sources.addMenu(ds.name())
             if ds.titles is not None:
-                for title in ds.titles:
-                    if(ds.data_type[title] not in self.acceptable_data_types):
+                for name, item_list  in ds.group_structure.iteritems():
+                    items_of_right_type = [item for item in item_list if ds.data_type[item] in self.acceptable_data_types]
+                    if len(items_of_right_type) == 0:
                         continue
-                    action = QtGui.QAction(title, self)
-                    action.setData([ds, title])
-                    action.setCheckable(True)
-                    if(ds in self._enabled_sources and
-                       title in self._enabled_sources[ds]):
-                        action.setChecked(True)
+                    if name is None:
+                        submenu = menu
                     else:
-                        action.setChecked(False)
-                    menu.addAction(action)
-                    action.triggered.connect(self._source_title_triggered)
+                        submenu = menu.addMenu(name)
+                    for item in items_of_right_type:
+                        add_menu(item, submenu)
 
     def get_time(self, index=None):
         """Returns the time of the given index, or the time of the last data point"""
@@ -82,14 +97,14 @@ class DataWindow(QtGui.QMainWindow):
         else:
             return datetime.datetime.now()
 
-    def on_save_to_jpg(self):
+    def on_save_to_png(self):
         """Save a screenshot of the window"""
         dt = self.get_time()
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         timestamp = '%04d%02d%02d_%02d%02d%02d' %(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
-        print self.settings.value("outputPath") + '/' + timestamp + '_' + self.plot_title + '.jpg'
+        print self.settings.value("outputPath") + '/' + timestamp + '_' + self.plot_title + '.png'
         QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' +
-                                            timestamp + '.jpg', 'jpg')
+                                            timestamp + '.png', 'png', quality=100)
 
     def _source_title_triggered(self):
         """Enable/disable a data source"""

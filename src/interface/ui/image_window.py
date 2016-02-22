@@ -24,6 +24,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.exclusive_source = True
         self.alert = False
         self.meanmap = None
+        self.last_x = None
+        self.last_y = None
+        self.mm_last = None
         self.vline = None
         self.hline = None
 
@@ -61,6 +64,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
         self.running_hist_initialised = False
 
+        self.actionReset_cache.triggered.connect(self.on_reset_cache)
+        
     def set_sounds_and_volume(self):
         self.soundsGroup = QtGui.QActionGroup(self.menuSounds)
         self.soundsGroup.setExclusive(True)
@@ -118,19 +123,13 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         
     def _image_transform(self, img, source, title):
         """Returns the appropriate transform for the content"""
-        xmin = 0
-        ymin = 0
         conf = source.conf[title]
+        
+        xmin = conf.get('xmin', 0)
+        ymin = conf.get('ymin', 0)
 
-        if "xmin" in conf:
-            xmin = conf['xmin']
-        if "ymin" in conf:
-            ymin = conf['ymin']
-
-        translate_transform = QtGui.QTransform().translate(ymin, xmin)
         xmax = img.shape[-1] + xmin
         ymax = img.shape[-2] + ymin
-
         if "xmax" in conf:
             if(conf['xmax'] <= xmin):
                 logging.warning("xmax <= xmin for title %s on %s. Ignoring xmax", title, source.name())
@@ -141,10 +140,19 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 logging.warning("ymax <= ymin for title %s on %s. Ignoring xmax", title, source.name())
             else:
                 ymax = conf['ymax']
+
+        
+        translate_transform = QtGui.QTransform().translate(ymin, xmin)
+
         # The order of dimensions in the scale call is (y,x) as in the numpy
         # array the last dimension corresponds to the x.
         scale_transform = QtGui.QTransform().scale((ymax-ymin)/img.shape[-2],
                                                    (xmax-xmin)/img.shape[-1])
+        
+        #rotate_transform = QtGui.QTransform()
+        #if source.data_type[title] == 'image':
+        #    if "angle" in conf:
+        #        rotate_transform = QtGui.QTransform(numpy.cos(conf["angle"]), numpy.sin(conf["angle"]), -numpy.sin(conf["angle"]), numpy.cos(conf["angle"]), 0, 0)
 
         transpose_transform = QtGui.QTransform()
         if source.data_type[title] == 'image':
@@ -157,9 +165,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             transpose_transform *= QtGui.QTransform(0, 1, 0,
                                                     1, 0, 0,
                                                     0, 0, 1)
+            
+        transform = scale_transform * translate_transform * transpose_transform
+        #transform = scale_transform * translate_transform * rotate_transform * transpose_transform
         
-        transform = scale_transform*translate_transform*transpose_transform
-
         # print '|%f %f %f|' % (transform.m11(), transform.m12(), transform.m13())
         # print '|%f %f %f|' % (transform.m21(), transform.m22(), transform.m23())
         # print '|%f %f %f|' % (transform.m31(), transform.m32(), transform.m33())
@@ -175,8 +184,12 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             self.plot.getView().invertY(False)
         if(self.settingsWidget.ui.flipy.currentText() == 'Yes' or
            (self.settingsWidget.ui.flipy.currentText() == 'Auto' and
-            "flipy" in conf and conf['flipy'] is True)):
+            "flipy" in conf and conf['flipy'] == True)):
             self.plot.getView().invertY(not self.plot.getView().getViewBox().yInverted())
+        if(self.settingsWidget.ui.flipx.currentText() == 'Yes' or
+           (self.settingsWidget.ui.flipx.currentText() == 'Auto' and
+            "flipx" in conf and conf['flipx'] == True)):
+            self.plot.getView().invertX(not self.plot.getView().getViewBox().xInverted())
 
         # Tranpose images to make x (last dimension) horizontal
         axis_labels = ['left', 'bottom']
@@ -221,49 +234,117 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             if conf["log"]:
                 self.plot.imageItem.setLookupTable(self.lut)
 
-    def _fill_meanmap(self, triple, conf):
-        x,y,z = triple
+    def on_reset_cache(self):
+        self._reset_meanmap_cache()
+
+    def _reset_meanmap_cache(self):
+        if self.meanmap is not None and self.last_x is not None and self.last_y is not None:
+            xmin = self.last_x-self.mm_dx*self.mm_xbins/2.-self.mm_dx/2.
+            xmax = self.last_x+self.mm_dx*self.mm_xbins/2.-self.mm_dx/2.
+            ymin = self.last_y-self.mm_dy*self.mm_ybins/2.-self.mm_dy/2.
+            ymax = self.last_y+self.mm_dy*self.mm_ybins/2.-self.mm_dy/2.
+            self._init_meanmap(xmin, xmax, ymin, ymax, self.mm_xbins, self.mm_ybins)
+   
+    def _init_meanmap(self, xmin, xmax, ymin, ymax, xbins, ybins):
+        self.mm_xmin = xmin
+        self.mm_xmax = xmax
+        self.mm_ymin = ymin
+        self.mm_ymax = ymax
+        self.mm_xbins = xbins
+        self.mm_ybins = ybins
+        self.mm_dx = numpy.float(self.mm_xmax - self.mm_xmin)/self.mm_xbins
+        self.mm_dy = numpy.float(self.mm_ymax - self.mm_ymin)/self.mm_ybins
+        self.meanmap = numpy.zeros((3, self.mm_ybins, self.mm_xbins), dtype=numpy.float64)
+        self._update_meanmap_transform()
+
+    def _update_meanmap_transform(self):
+        translate_transform = QtGui.QTransform().translate(self.mm_ymin, self.mm_xmin)
+        scale_transform = QtGui.QTransform().scale(self.mm_dy, self.mm_dx)
+        transpose_transform = QtGui.QTransform()
+        transpose_transform *= QtGui.QTransform(0, 1, 0,
+                                                1, 0, 0,
+                                                0, 0, 1)
+        self.meanmap_transform = scale_transform*translate_transform*transpose_transform
         
-        xbins, ybins = (100,100)
-        xmin, xmax = (0,100)
-        ymin, ymax = (0,100)
-        if 'xbins' in conf:
-            xbins = conf['xbins']
-        if 'ybins' in conf:
-            ybins = conf['ybins']
-        if 'xmin' in conf:
-            xmin = conf['xmin']
-        if 'ymin' in conf:
-            ymin = conf['ymin']
-        if 'xmax' in conf:
-            xmax = conf['xmax']
-        if 'ymax' in conf:
-            ymax = conf['ymax']
-                        
+    def _extend_meanmap(self, x, y):
+        ix = numpy.round((x - self.mm_xmin)/self.mm_dx)
+        iy = numpy.round((y - self.mm_ymin)/self.mm_dx)
+        ix_max = max([self.meanmap.shape[2]-1, ix.max()])
+        ix_min = min([0, ix.min()])
+        iy_max = max([self.meanmap.shape[1]-1, iy.max()])
+        iy_min = min([0, iy.min()])
+        xbins = ix_max - ix_min + 1
+        ybins = iy_max - iy_min + 1
+        if xbins > self.meanmap.shape[2] or ybins > self.meanmap.shape[1]:
+            # A little nasty fix - just for now
+            if xbins > 5000 or ybins > 5000:
+                logging.warning("Too large extent of meanmap (%i, %i) - restting meanmap with new extent centered around corrent position: x=%f, y=%f" % (xbins, ybins, x[-1], y[-1]))
+                xbins = 100
+                ybins = 100
+                xmin = x[-1]-self.mm_dx*xbins/2
+                xmax = x[-1]+self.mm_dx*xbins/2
+                ymin = y[-1]-self.mm_dy*ybins/2
+                ymax = y[-1]+self.mm_dy*ybins/2
+                self._init_meanmap(xmin, xmax, ymin, ymax, xbins, ybins)
+                self._extend_meanmap(x,y)
+                return
+            temp = numpy.zeros(shape=(3, ybins, xbins), dtype=self.meanmap.dtype)
+            temp[:,
+                 -iy_min:-iy_min+self.meanmap.shape[1],
+                 -ix_min:-ix_min+self.meanmap.shape[2]] = self.meanmap[:,:,:]
+            self.meanmap = temp
+            self.mm_xmin = self.mm_xmin + ix_min * self.mm_dx
+            self.mm_xmax = self.mm_xmin + (xbins-1) * self.mm_dx
+            self.mm_ymin = self.mm_ymin + iy_min * self.mm_dx
+            self.mm_ymax = self.mm_ymin + (ybins-1) * self.mm_dx
+            self.mm_xbins = xbins
+            self.mm_ybins = ybins
+            self._update_meanmap_transform()
+        
+    def _fill_meanmap(self, times, triples, xmin=0, xmax=100, ymin=0, ymax=100, xbins=100, ybins=100, dynamic_extent=False, initial_reset=False):
+
+        triples_new = triples
+        if self.meanmap is not None:
+            w = numpy.where(self.mm_last==times)
+            if len(w) > 0:
+                if w[0] > 0:
+                    triples_new = triples[:w[0],:]
+        x = triples_new[:,0]
+        y = triples_new[:,1]
+        z = triples_new[:,2]
+
+        self.last_x = x[-1]
+        self.last_y = y[-1] 
+        
         if self.meanmap is None:
-            self.meanmap = numpy.zeros((3, ybins, xbins), dtype=float)
-            self.meanmap_dx = (xmax - float(xmin))/xbins
-            self.meanmap_dy = (ymax - float(ymin))/ybins
-            translate_transform = QtGui.QTransform().translate(ymin-self.meanmap_dy/2., xmin-self.meanmap_dx/2.)
-            scale_transform = QtGui.QTransform().scale(self.meanmap_dy, self.meanmap_dx)
-            transpose_transform = QtGui.QTransform()
-            transpose_transform *= QtGui.QTransform(0, 1, 0,
-                                                    1, 0, 0,
-                                                    0, 0, 1)
-            self.meanmap_transform = scale_transform*translate_transform*transpose_transform
-        ix = numpy.round((x - xmin)/self.meanmap_dx)
-        if (ix < 0):
-            ix = 0
-        elif (ix >= xbins):
-            ix = xbins - 1
-        iy = numpy.round((y - ymin)/self.meanmap_dy)
-        if (iy < 0):
-            iy = 0
-        elif (iy >= ybins):
-            iy = ybins - 1
-        self.meanmap[0,iy,ix] += z
-        self.meanmap[1,iy,ix] += 1
-        self.meanmap[2,iy,ix] = self.meanmap[0,iy,ix]/self.meanmap[1,iy,ix]
+            self._init_meanmap(xmin, xmax, ymin, ymax, xbins, ybins)
+
+        if self.mm_last is None and initial_reset:
+            self._reset_meanmap_cache()
+            
+        self.mm_last = times[0]
+            
+        if dynamic_extent:
+            self._extend_meanmap(triples_new[:,0], triples_new[:,1])                    
+
+        for x,y,z in triples_new:
+            
+            ix = numpy.round((x - (self.mm_xmin+self.mm_dx/2.))/self.mm_dx)
+            iy = numpy.round((y - (self.mm_ymin+self.mm_dy/2.))/self.mm_dy)
+            
+            if (ix < 0):                    
+                ix = 0
+            elif (ix >= self.mm_xbins):
+                ix = self.mm_xbins - 1
+            if (iy < 0):
+                iy = 0
+            elif (iy >= self.mm_ybins):
+                iy = self.mm_ybins - 1
+
+            self.meanmap[0,iy,ix] += z
+            self.meanmap[1,iy,ix] += 1
+            self.meanmap[2,iy,ix] = self.meanmap[0,iy,ix]/self.meanmap[1,iy,ix]
+
         if (self.settingsWidget.ui.show_heatmap.isChecked()):
             return self.meanmap[0], self.meanmap_transform, x, y
         elif (self.settingsWidget.ui.show_visitedmap.isChecked()):
@@ -288,7 +369,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             if self.hline is not None:
                 self.plot.getView().removeItem(self.hline)
                 self.hline = None
-        
+                
     def init_running_hist(self,source, title):
         conf = source.conf[title]
         self.settingsWidget.ui.runningHistWindow.setText(str(conf["window"]))
@@ -299,6 +380,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
     def replot(self):
         """Replot data"""
+
         for source, title in self.source_and_titles():
             if(title not in source.plotdata):
                 continue
@@ -356,7 +438,14 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     auto_rage = True
                     auto_histogram = True
                 if "data_type" in conf and conf["data_type"] == "triple":
-                    img, transform, x, y = self._fill_meanmap(img[0], conf)
+                    triples = numpy.array(pd.y, copy=False)
+                    times   = numpy.array(pd.x, copy=False)
+                    img, transform, x, y = self._fill_meanmap(times, triples,
+                                                              xmin=conf["xmin"], xmax=conf["xmax"], ymin=conf["ymin"], ymax=conf["ymax"],
+                                                              ybins=conf["ybins"], xbins=conf["xbins"],
+                                                              dynamic_extent=conf.get("dynamic_extent", False),
+                                                              initial_reset=conf.get("initial_reset", False),
+                    )
                 else:
                     x, y = (0,0)
                 if (self.settingsWidget.ui.show_trend.isChecked()):
@@ -441,11 +530,14 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         settings['colormap_min'] = str(self.settingsWidget.ui.colormap_min.text())
         settings['colormap_max'] = str(self.settingsWidget.ui.colormap_max.text())
         settings['transpose'] = self.settingsWidget.ui.transpose.currentText()
+        settings['flipx'] = self.settingsWidget.ui.flipx.currentText()
         settings['flipy'] = self.settingsWidget.ui.flipy.currentText()
         settings['viewbox'] = self.plot.getView().getViewBox().getState()
         settings['x_view'] = self.actionX_axis.isChecked()
         settings['y_view'] = self.actionY_axis.isChecked()
         settings['histogram_view'] = self.actionHistogram.isChecked()
+        settings['crosshair'] = self.actionCrosshair.isChecked()
+        settings['gradient_mode'] = self.plot.getHistogramWidget().item.gradient.saveState()
         
         return DataWindow.get_state(self, settings)
 
@@ -466,6 +558,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         transpose.setCurrentIndex(transpose.findText(settings['transpose']))
         flipy = self.settingsWidget.ui.flipy
         flipy.setCurrentIndex(flipy.findText(settings['flipy']))
+        flipx = self.settingsWidget.ui.flipx
+        flipx.setCurrentIndex(flipx.findText(settings['flipx']))
         self.plot.getView().getViewBox().setState(settings['viewbox'])
         self.actionX_axis.setChecked(settings['x_view'])
         self.actionX_axis.triggered.emit(settings['x_view'])
@@ -473,7 +567,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionY_axis.triggered.emit(settings['y_view'])
         self.actionHistogram.setChecked(settings['histogram_view'])
         self.actionHistogram.triggered.emit(settings['histogram_view'])
-
+        self.actionCrosshair.setChecked(settings['crosshair'])
+        self.actionCrosshair.triggered.emit(settings['crosshair'])
+        self.plot.getHistogramWidget().item.gradient.restoreState(settings['gradient_mode'])
+        
         return DataWindow.restore_from_state(self, settings, data_sources)
 
     def toggle_axis(self, visible):

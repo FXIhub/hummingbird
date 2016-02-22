@@ -39,8 +39,8 @@ def hitrate(evt, hit, good_hit=True, history=100):
     good_misses = evt["analysis"]["nrGoodMiss"].data
     hitrate = np.array(100 * hits / float(hits + misses))
     good_hitrate = np.array(100 * good_hits / float(good_hits + good_misses))
-    ipc.mpi.sum(hitrate)
-    ipc.mpi.sum(good_hitrate)
+    ipc.mpi.sum("hitrate", hitrate)
+    ipc.mpi.sum("goodhitrate", good_hitrate)
     v = evt["analysis"]
     if(ipc.mpi.is_main_worker()):
         add_record(v, "analysis", "hitrate", hitrate[()]/ipc.mpi.nr_workers(), unit='%')
@@ -49,10 +49,10 @@ def hitrate(evt, hit, good_hit=True, history=100):
         add_record(v, "analysis", "hitrate", None)
         add_record(v, "analysis", "good hitrate", None)
 
-def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None,
-                   label=""):
+def countLitPixels(evt, data_rec, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey=None):
     """A simple hitfinder that counts the number of lit pixels and
-    adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
+    adds a boolean to ``evt["analysis"][outkey + "isHit"]``,  ``evt["analysis"][outkey + "isMiss"]`` 
+    and  the hitscore to ``evt["analysis"][outkey + "hitscore"]``.
 
     Args:
         :evt:       The event variable
@@ -62,20 +62,23 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitsc
         :aduThreshold(int):      only pixels above this threshold (in ADUs) are valid, default=20
         :hitscoreThreshold(int): events with hitscore (Nr. of lit pixels)  above this threshold are hits, default=200
         :mask(int, bool):        only use masked pixel (mask == True or 1) for counting
+        :outkey(str):            event key for results, default is "" 
     
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    detector = evt[type][key]
-    hitscore = (detector.data[mask] > aduThreshold).sum()
+    if outkey is None:
+        outkey = ""
+    hitscore = (data_rec.data[mask] > aduThreshold).sum()
     v = evt["analysis"]
-    #v["isHit - "+key] = hitscore > hitscoreThreshold
     hit = int(hitscore > hitscoreThreshold)
     if hitscoreMax is not None:
         hit *= int(hitscore <= hitscoreMax)
-    add_record(v, "analysis", label+"isHit - "+key, hit)
-    add_record(v, "analysis", label+"isMiss - "+key, int(hit and (hitscore > hitscoreDark)))
-    add_record(v, "analysis", label+"hitscore - "+key, hitscore)
+
+    add_record(v, "analysis", outkey + "isHit", hit)
+    add_record(v, "analysis", outkey + "isMiss", int(not hit and (hitscore > hitscoreDark)))
+    add_record(v, "analysis", outkey + "hitscore", hitscore)
+
 
 def countTof(evt, type="ionTOFs", key="tof", signalThreshold = 1, minWindow = 0, maxWindow = -1, hitscoreThreshold=2):
     """A simple hitfinder that performs a peak counting test on a time-of-flight detector signal, in a specific subwindow.

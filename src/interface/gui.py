@@ -26,6 +26,11 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self._init_timer()
         GUI.instance = self
 
+    # This is to fix a resizing bug on Mac
+    def resizeEvent(self, event):
+        QtGui.QMainWindow.resizeEvent(self, event)
+        QtGui.QApplication.processEvents()
+
     def clear(self):
         """Closes all DataWindows and remove all DataSources"""
         # Need to copy self._data_windows before iterating
@@ -59,7 +64,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         try:
             loaded_sources = self._init_data_sources(s)
         except (TypeError, KeyError):
-            raise
+            # raise
+            #raise
             # Be a bit more resilient against configuration problems
             logging.warning("Failed to load data source settings! Continuing...")
         if do_restore:

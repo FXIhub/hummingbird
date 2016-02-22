@@ -3,7 +3,7 @@ import numpy as np
 import ipc
 
 images = {}
-def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None, msg=None, alert=False, name=None):
+def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None, msg=None, alert=False, name=None, group=None):
     """Plotting an image.
 
     Args:
@@ -23,7 +23,7 @@ def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None, ms
     else:
         n = name
     if(not n in images):
-        ipc.broadcast.init_data(n, data_type='image', history_length=history, vmin=vmin, vmax=vmax, log=log)
+        ipc.broadcast.init_data(n, data_type='image', history_length=history, vmin=vmin, vmax=vmax, log=log, group=group)
         images[n] = True
     image = record.data
     sh = image.shape

@@ -1,56 +1,48 @@
-analysis package
-================
+analysis
+========
 
-analysis.background module
---------------------------
-
-.. automodule:: analysis.background
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-analysis.beamline module
-------------------------
+analysis.beamline
+-----------------
 
 .. automodule:: analysis.beamline
     :members:
     :undoc-members:
     :show-inheritance:
 
-analysis.event module
----------------------
+analysis.event
+--------------
 
 .. automodule:: analysis.event
     :members:
     :undoc-members:
     :show-inheritance:
 
-analysis.hitfinding module
---------------------------
+analysis.hitfinding
+-------------------
 
 .. automodule:: analysis.hitfinding
     :members:
     :undoc-members:
     :show-inheritance:
 
-analysis.sizing module
---------------------------
+analysis.sizing
+---------------
 
 .. automodule:: analysis.sizing
     :members:
     :undoc-members:
     :show-inheritance:
        
-analysis.pixel_detector module
-------------------------------
+analysis.pixel_detector
+-----------------------
 
 .. automodule:: analysis.pixel_detector
     :members:
     :undoc-members:
     :show-inheritance:
 
-analysis.template module
-------------------------------
+analysis.template
+-----------------
 
 .. automodule:: analysis.template
     :members:

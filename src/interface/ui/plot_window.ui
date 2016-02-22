@@ -797,7 +797,7 @@
     <property name="title">
      <string>Tools</string>
     </property>
-    <addaction name="actionSaveToJPG"/>
+    <addaction name="actionSaveToPNG"/>
     <addaction name="actionSettings"/>
    </widget>
    <addaction name="menuData_Sources"/>
@@ -831,9 +831,9 @@
     <string>Y axis</string>
    </property>
   </action>
-  <action name="actionSaveToJPG">
+  <action name="actionSaveToPNG">
    <property name="text">
-    <string>Save to JPG</string>
+    <string>Save to PNG</string>
    </property>
   </action>
   <action name="actionPoints">

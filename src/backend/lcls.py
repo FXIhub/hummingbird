@@ -34,8 +34,9 @@ class LCLSTranslator(object):
         else:
             raise ValueError("You need to set the '[LCLS][DataSource]'"
                              " in the configuration")
-
+        
         # Cache times of events that shall be extracted from XTC (does not work for stream)
+        self.event_slice = slice(0,None,1)
         if 'times' in state or 'fiducials' in state:
             if not ('times' in state and 'fiducials' in state):
                 raise ValueError("Times or fiducials missing in state."
@@ -50,17 +51,22 @@ class LCLSTranslator(object):
             self.i = 0
             self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()                        
-        elif 'do_full_run' in state:
+        elif 'indexing' in state:
             if dsrc[-len(':idx'):] != ':idx':
                 dsrc += ':idx'
-            self.i = 0
+            if 'index_offset' in state:
+                self.i = state['index_offset'] / ipc.mpi.nr_workers()
+            else:
+                self.i = 0
             self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()
             self.timestamps = self.run.times()[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
         else:
             self.times = None
             self.fiducials = None
-            self.i = None
+            self.i = 0
+            if not dsrc.startswith('shmem='):
+                self.event_slice = slice(ipc.mpi.slave_rank(), None, ipc.mpi.nr_workers())
             self.data_source = psana.DataSource(dsrc)
             self.run = None
 
@@ -128,13 +134,25 @@ class LCLSTranslator(object):
                     Worker.conf.end_of_run()
                 return None
             self.i += 1
-        elif self.times:
-            time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
-            self.i += 1
-            evt = self.run.event(time)            
+        elif self.times is not None:
+            evt = None
+            while self.i < len(self.times) and evt is None:
+                time = psana.EventTime(int(self.times[self.i]), self.fiducials[self.i])
+                self.i += 1
+                evt = self.run.event(time)
+                if evt is None:
+                    print "Unable to find event listed in index file"
+
+            # We got to the end without a valid event, time to call it a day
+            if evt is None:
+                return None
         else:
+            while (self.i%self.event_slice.step) != self.event_slice.start:
+                evt = self.data_source.events().next()
+                self.i += 1            
             try:
                 evt = self.data_source.events().next()
+                self.i += 1
             except StopIteration:
                 logging.warning('End of Run.')
                 if 'end_of_run' in dir(Worker.conf):
@@ -282,7 +300,10 @@ class LCLSTranslator(object):
 
     def _tr_cspad2x2(self, values, obj):
         """Translates CsPad2x2 to hummingbird numpy array"""
-        add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data16(), ureg.ADU)
+        try:
+            add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data(), ureg.ADU)
+        except AttributeError:
+            add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data16(), ureg.ADU)
     def _tr_camera(self, values, obj):
         """Translates Camera frame to hummingbird numpy array"""
         if obj.depth == 16:

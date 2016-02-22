@@ -1,17 +1,15 @@
 import numpy
+import utils.io
 from backend.record import add_record
-try:
-    import spimage
-    spimage_installed = True
-except ImportError:
-    spimage_installed = False
-
-
 
 def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None):
-    
-    if not spimage_installed:
-        print "For the sizing.findCenter, libspimage (https://github.com/FilipeMaia/libspimage) needs to be installed"
+    """TODO: missing docstring
+
+    .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
+    """
+    success, module = utils.io.load_spimage()
+    if not success:
+        print "Skipping analysis.patterson.patterson"
         return
     img  = evt[type][key].data
     if mask is None:

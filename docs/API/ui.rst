@@ -1,5 +1,5 @@
-ui package
-=================
+ui
+==
 
 .. automodule:: interface.ui
 

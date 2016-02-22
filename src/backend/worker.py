@@ -20,17 +20,18 @@ class Worker(object):
     """
     state = None
     conf = None
-    def __init__(self, config_file):
+    def __init__(self, config_file, port):
+        # Save the port as global variable in ipc
+        ipc.port = port
         if(config_file is None):
             # Try to load an example configuration file
             config_file = os.path.abspath(os.path.dirname(__file__)+
-                                          "/../../examples/psana/cxitut13/conf.py")
+                                          "/../../examples/basic/dummy.py")
             logging.warning("No configuration file given! "
                             "Loading example configuration from %s",
                             (config_file))
         if not os.path.isfile(config_file):
             raise IOError('Could not find backend configuration file %s' % (config_file))        
-
         self._config_file = config_file
         # self.backend_conf = imp.load_source('backend_conf', config_file)
         signal.signal(signal.SIGUSR1, self.raise_interruption)
@@ -93,7 +94,9 @@ class Worker(object):
                 while(Worker.state['running']) and not self.reloadnow:
                     self.reloadnow = self.reloadnow or ipc.mpi.checkreload()
                     if(ipc.mpi.is_master()):
-                        ipc.mpi.master_loop()
+                        is_exiting = ipc.mpi.master_loop()
+                        if is_exiting:
+                            return
                     else:
                         try:
                             evt = self.translator.next_event()

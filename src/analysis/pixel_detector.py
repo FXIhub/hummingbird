@@ -1,9 +1,9 @@
-from numpy import sum, mean, min, max, std
-import ipc
-import numpy as np
 from backend import ureg
 from backend import add_record
+import utils.io
 import utils.array
+from numpy import sum, mean, min, max, std
+import numpy as np
 
 def printStatistics(detectors):
     for k,r in detectors.iteritems():
@@ -52,24 +52,68 @@ def getCentral4Asics(evt, type, key):
     getSubsetAsics(evt, type, key, map(lambda i : (i * 8 + 1) * 2, xrange(4)), "central4Asics")
 
     
-def totalNrPhotons(evt, type, key, aduPhoton=1, aduThreshold=0.5):
-    """Estimates the total nr. of photons on the detector and adds it to ``evt["analysis"]["nrPhotons - " + key]``.
+def totalNrPhotons(evt, record, aduPhoton=1, aduThreshold=0.5, outkey=None):
+    """Estimates the total nr. of photons on the detector and adds it to ``evt["analysis"][outkey]``.
 
     Args:
         :evt:       The event variable
-        :type(str): The event type (e.g. photonPixelDetectors)
-        :key(str):  The event key (e.g. CCD)
+        :record:    The data record (e.g. evt['photonPixelDetectors']['CCD'])
 
     Kwargs:
         :aduPhoton(int):    ADU count per photon, default = 1
         :aduThreshold(int): only pixels above this threshold given in units of ADUs are valid, default = 0.5
+        :outkey(str):       Data key of resulting data record, default is 'nrPhotons' 
     
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    data  = evt[type][key].data.flat
+    if outkey is None:
+        outkey = 'nrPhotons'
+    data  = record.data.flat
     valid = data > aduThreshold
-    add_record(evt["analysis"], "analysis", "nrPhotons - " + key, sum(data[valid]) / float(aduPhoton))
+    add_record(evt["analysis"], "analysis", outkey, sum(data[valid]) / float(aduPhoton))
+
+def maxPhotonValue(evt, record, aduPhoton=1, outkey=None):
+    """Estimates the maximum number of photons on one pixel on the detector and adds it to ``evt["analysis"][outkey]``.
+
+    Args:
+        :evt:       The event variable
+        :record:    The data record (e.g. evt['photonPixelDetectors']['CCD'])
+
+    Kwargs:
+        :aduPhoton(int):  ADU count per photon, default = 1
+        :outkey(str):     Data key of resulting data record, default is 'maxPhotons' 
+    
+    :Authors:
+        Tomas Ekeberg (ekeberg@xray.bmc.uu.se)
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
+    """
+    if outkey is None:
+        outkey = 'maxPhotons'
+    data = record.data.flat
+    add_record(evt["analysis"], "analysis", outkey, max(data) / float(aduPhoton))
+
+def threshold(evt, record, threshold, outkey=None):
+    """Set all values in an array that are lower than the threshold to zero.
+    
+    Args:
+        :evt:       The event variable
+        :record:    The data record
+        :threshold: Set everything lower than this number to zero
+
+    Kwargs:
+        :aduPhoton(int):  ADU count per photon, default = 1
+        :outkey(str):     Data key of resulting data record, default is 'maxPhotons' 
+    
+    :Authors:
+        Tomas Ekeberg (ekeberg@xray.bmc.uu.se)
+    """
+    if outkey is None:
+        outkey = "thresholded"
+    data_clean = record.data.copy()
+    data_clean[data_clean < threshold] = 0.
+    rec = add_record(evt["analysis"], "analysis", outkey, data_clean)
+    return rec
 
 initialized = {}
 def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
@@ -118,6 +162,8 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
     shape = initialized[key]['shape']
     y = initialized[key]['y']
     x = initialized[key]['x']
+    #from IPython.core.debugger import Tracer
+    #Tracer()()
     if subset is not None:
         data = []
         for i in subset:
@@ -133,11 +179,12 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
     else:
         add_record(evt["analysis"], "analysis", outkey, assembled)
 
-
-
     
 def bin(evt, type, key, binning, mask=None):
-    """Bin a detector image given a binning factor (and mask) to ``evt["analysis"]["binned image - " + key]`` (``evt["analysis"]["binned mask - " + key]``
+    """Bin a detector image given a binning factor (and mask).
+    Adds the records ``evt["analysis"]["binned image - " + key]`` and  ``evt["analysis"]["binned mask - " + key]``.
+
+    .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
 
     Args:
         :evt:        The event variable
@@ -151,7 +198,10 @@ def bin(evt, type, key, binning, mask=None):
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
     """
-    import spimage
+    success, spimage = utils.io.load_spimage()
+    if not success:
+        print "Skipping analysis.pixel_detector.bin"
+        return
     image = evt[type][key].data
     binned_image, binned_mask = spimage.binImage(image, binning, msk=mask, output_binned_mask=True)
     add_record(evt["analysis"], "analysis", "binned image - "+key, binned_image)
@@ -159,7 +209,10 @@ def bin(evt, type, key, binning, mask=None):
         add_record(evt["analysis"], "analysis", "binned mask - "+key, binned_mask)
 
 def radial(evt, type, key, mask=None, cx=None, cy=None):
-    """Compute the radial average of a detector image given the center position (and a mask) and saves it to ``evt["analysis"]["radial average - " + key]`` and the radial distances are saved to``evt["analysis"]["radial distance - " + key]``
+    """Compute the radial average of a detector image given the center position (and a mask). 
+    Adds the records ``evt["analysis"]["radial average - " + key]`` and ``evt["analysis"]["radial distance - " + key]``.
+
+    .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
 
     Args:
         :evt:        The event variable
@@ -174,21 +227,23 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
     """
-    import spimage
+    success, spimage = utils.io.load_spimage()
+    if not success:
+        print "Skipping analysis.pixel_detector.radial"
+        return
     image = evt[type][key].data
     r, img_r = spimage.radialMeanImage(image, msk=mask, cx=cx, cy=cy, output_r=True)
     valid = np.isfinite(img_r)
     if valid.sum() > 0:
         r = r[valid]
         img_r = img_r[valid]
-    add_record(evt["analysis"], "analysis", "radial distance - "+key, r)
-    add_record(evt["analysis"], "analysis", "radial average - "+key, img_r)
+    add_record(evt["analysis"], "analysis", "radial distance - " + key, r)
+    add_record(evt["analysis"], "analysis", "radial average - "  + key, img_r)
 
-
+def commonModeCSPAD2x2(evt, type, key, mask=None):
+    """Subtraction of common mode using median value of masked pixels (left and right half of detector are treated separately). 
+    Adds a record ``evt["analysis"]["cm_corrected - " + key]``.
     
-def cmc(evt, type, key, mask=None):
-    """ Common mode subtraction with median value from pixels within given mask. Add record ``evt["analysis"]["cmc - " + key]``
-
     Args:
       :evt:        The event variable
       :type(str):  The event type (e.g. photonPixelDetectors)
@@ -199,26 +254,101 @@ def cmc(evt, type, key, mask=None):
     
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
     data = evt[type][key].data
-    dataCorrected = utils.array.cmc(data, mask=mask)
-    add_record(evt["analysis"], "analysis", "cmc - " + key, dataCorrected)
-
-def cmc_pnccd(evt, type, key):
-    try:
-        data = evt[type][key].data
-    except:
-        print "NO DATA!"
-        return
-    if data is None:
-        return
-    dataCorrected = utils.array.cmc_pnccd(data)
-    add_record(evt["analysis"], "analysis", "cmc_pnccd - " + key, dataCorrected)
-
-def bgsub(evt, type, key, bg):
-    data = evt[type][key].data
-    if bg is not None:
-        dataCorrected = data - bg
+    dataCorrected = np.copy(data)
+    lData = data[:,:data.shape[1]/2]
+    rData = data[:,data.shape[1]/2:]
+    if mask is None:
+        lMask = np.ones(shape=lData.shape, dtype="bool")
+        rMask = np.ones(shape=rData.shape, dtype="bool")
     else:
-        dataCorrected = data
-    add_record(evt["analysis"], "analysis", "bgsub - " + key, dataCorrected)
+        lMask = mask[:,:data.shape[1]/2] == False
+        rMask = mask[:,data.shape[1]/2:] == False
+    if lMask.sum() > 0:
+        dataCorrected[:,:data.shape[1]/2] -= np.median(lData[lMask])
+    if rMask.sum() > 0:
+        dataCorrected[:,data.shape[1]/2:] -= np.median(rData[rMask])    
+    add_record(evt["analysis"], "analysis", "cm_corrected - " + key, dataCorrected)
+
+def commonModePNCCD(evt, type, key, outkey=None, transpose=False):
+    """Common mode correction for PNCCDs.
+
+    For each row its median value is subtracted (left and right half of detector are treated separately).
+    Adds a record ``evt["analysis"][outkey]``.
+    
+    Args:
+      :evt:         The event variable
+      :type(str):   The event type (e.g. photonPixelDetectors)
+      :key(str):    The event key (e.g. CCD)
+
+    Kwargs:
+      :outkey(str): The event key for the corrected image, default is "corrected - " + key
+    
+    :Authors:
+        Max F. Hantke (hantke@xray.bmc.uu.se)
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
+    """
+    if outkey is None:
+        outkey = "corrected - " + key
+    data = evt[type][key].data
+    if transpose:
+        data = data.transpose()
+    dataCorrected = np.copy(data)
+    lData = data[:,:data.shape[1]/2]
+    rData = data[:,data.shape[1]/2:]
+    dataCorrected[:,:data.shape[1]/2] -= np.median(lData,axis=1).repeat(lData.shape[1]).reshape(lData.shape)
+    dataCorrected[:,data.shape[1]/2:] -= np.median(rData,axis=1).repeat(rData.shape[1]).reshape(rData.shape)
+    if transpose:
+        dataCorrected = dataCorrect.transpose()
+    add_record(evt["analysis"], "analysis", outkey, dataCorrected)
+
+def subtractImage(evt, type, key, image, outkey=None):
+    """Subtract an image.
+
+    Adds a record ``evt["analysis"][outkey]``.
+
+    Args:
+      :evt:        The event variable
+      :type(str):  The event type (e.g. photonPixelDetectors)
+      :key(str):   The event key (e.g. CCD)
+    
+     Kwargs:
+      :outkey(str): The event key for the subtracted image, default is "subtraced - " + key
+
+    :Authors:
+        Max F. Hantke (hantke@xray.bmc.uu.se)
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
+    """
+    if outkey is None:
+        outkey = "subtracted - " + key
+    data = evt[type][key].data
+    dataCorrected = data - image
+    add_record(evt["analysis"], "analysis", outkey, dataCorrected)
+
+def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
+    
+    data = data_rec.data
+    name = data_rec.name
+    Ny, Nx = data.shape
+    if cx is None:
+        cx = (Nx-1)/2.
+    if cy is None:
+        cy = (Ny-1)/2.
+    # Round to .0 / .5    
+    cx = np.round(cx * 2)/2.
+    cy = np.round(cy * 2)/2.
+    if w is None:
+        w = Nx
+    if h is None:
+        h = Ny
+    data_cropped = data[cy-h/2:cy+h/2, cx-w/2:cx+w/2]
+    add_record(evt["analysis"], "analysis", "cropped/centered", data_cropped)
+
+def rotate90(evt, data_rec, k=1, outkey=None):
+    if outkey is None:
+        outkey = 'rotated'
+    data_rotated = np.rot90(data_rec.data,k)
+    return add_record(evt["analysis"], "analysis", outkey, data_rotated)
+    

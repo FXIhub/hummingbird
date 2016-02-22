@@ -21,6 +21,9 @@ class PlotDataTable(QtGui.QWidget):
         self.table.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.table.itemSelectionChanged.connect(self._on_selection_changed)
+
+        self._groups = {None: [[], None]}
+        
         vbox.addWidget(self.table)
         hbox = QtGui.QHBoxLayout()
         hbox.addStretch()
@@ -44,16 +47,44 @@ class PlotDataTable(QtGui.QWidget):
         source.plotdata_added.connect(self._on_plotdata_added)
         # Add existing plotdata
         for plotdata in source.plotdata.values():
-            self.add_row(source,plotdata)
+            #self.add_row(source,plotdata)
+            self.add_to_group(plotdata.group, source, plotdata)
         source.unsubscribed.connect(self._on_unsubscribe)
         source.subscribed.connect(self._on_subscribe)
 
+    def add_to_group(self, group, source, plotdata):
+        if group is None:
+            pass
+            # no group, add it on top
+        if group not in self._groups:
+            ref_item = self.add_header(group)
+            self._groups[group] = [[plotdata], ref_item]
+        else:
+            self._groups[group][0].append(plotdata)
+        row_index = self.get_group_row(group) + len(self._groups[group][0])
+        self.add_row(source, plotdata, row_index)
+
+    def get_group_row(self, group):
+        if group is None:
+            return -1
+        if group not in self._groups:
+            return None
+        return self.table.indexFromItem(self._groups[group][1]).row()
+
+    def item_is_group_header(self, item):
+        return isinstance(item.data(QtCore.Qt.UserRole), unicode)
+    
     def _on_plotdata_added(self, plotdata):
         source = self.sender()
-        self.add_row(source, plotdata)
+        if plotdata.group is None:
+            self.add_to_group(None, source, plotdata)
+        else:
+            self.add_to_group(plotdata.group, source, plotdata)
+        #self.add_row(source, plotdata)
 
-    def add_row(self, source, plotdata):
-        row = self.table.rowCount()
+    def add_row(self, source, plotdata, row=None):
+        if row is None:
+            row = self.table.rowCount()
         self.table.insertRow(row)
         item = QtGui.QTableWidgetItem(source.name())
         item.setData(QtCore.Qt.UserRole, source)
@@ -78,6 +109,26 @@ class PlotDataTable(QtGui.QWidget):
         if(plotdata.title in source.subscribed_titles):
             self._set_subscription(source, plotdata.title, True)
 
+    def add_header(self, name, row=None):
+        if row is None:
+            row = self.table.rowCount()
+        self.table.insertRow(row)
+        named_item = QtGui.QTableWidgetItem(name)
+        header_font = QtGui.QFont()
+        header_font.setBold(True)
+        named_item.setFont(header_font)
+        named_item.setData(QtCore.Qt.UserRole, str(name))
+        self.table.setItem(row, 1, named_item)
+        separator_text = ""
+        item = QtGui.QTableWidgetItem(separator_text)
+        self.table.setItem(row, 0, item)
+        item = QtGui.QTableWidgetItem(separator_text)
+        self.table.setItem(row, 2, item)
+        item = QtGui.QTableWidgetItem(separator_text)
+        self.table.setItem(row, 3, item)
+        item = QtGui.QTableWidgetItem(separator_text)
+        self.table.setItem(row, 4, item)
+        return named_item
 
     def _on_unsubscribe(self, title):
         source = self.sender()
@@ -108,6 +159,8 @@ class PlotDataTable(QtGui.QWidget):
     def update(self):
         """Update the capacity bars"""
         for row in range(0,self.table.rowCount()):
+            if self.item_is_group_header(self.table.item(row, 1)):
+                continue
             item = self.table.item(row, 1)
             plotdata = item.data(QtCore.Qt.UserRole)
             bar = self.table.cellWidget(row, 2).findChild(QtGui.QProgressBar)
@@ -124,6 +177,8 @@ class PlotDataTable(QtGui.QWidget):
         """Save PlotData that are marked for saving"""
         pd_settings = []
         for row in range(0,self.table.rowCount()):
+            if self.item_is_group_header(self.table.item(row, 1)):
+                continue
             # Check if this row is marked for saving
             checkbox = self.table.cellWidget(row, 3).findChild(QtGui.QCheckBox)
             if(not checkbox.isChecked()):
@@ -142,6 +197,8 @@ class PlotDataTable(QtGui.QWidget):
     def record_titles(self, is_recording):
         titles = {}
         for row in range(0, self.table.rowCount()):
+            if self.item_is_group_header(self.table.item(row, 1)):
+                continue
             #Check if this row is marked for recording
             checkbox = self.table.cellWidget(row,4).findChild(QtGui.QCheckBox)
             item = self.table.item(row,0)
@@ -161,12 +218,14 @@ class PlotDataTable(QtGui.QWidget):
         
     def _on_selection_changed(self):
         table = self.sender()
-        if(len(table.selectedItems())):      
+        if(len(table.selectedItems())):
             self.buffer_size.setEnabled(True)
             self.buffer_spin.setEnabled(True)
             self.clear_buffer.setEnabled(True)
             row = table.currentRow()
             item = table.item(row, 1)
+            if self.item_is_group_header(item):
+                return
             plotdata = item.data(QtCore.Qt.UserRole)
             self.buffer_spin.setValue(plotdata.maxlen)
         else:
