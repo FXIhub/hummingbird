@@ -112,6 +112,12 @@ class Worker(object):
                             logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info=True)
                         except (RuntimeError) as e:
                             logging.warning("Some problem with psana, probably due to reloading the backend.", exc_info=True)
+                        except StopIteration:
+                            print "Stopping iteration ..."
+                            if 'end_of_run' in dir(Worker.conf):
+                                Worker.conf.end_of_run()
+                            ipc.mpi.slave_done()
+                            return
             except KeyboardInterrupt:
                 try:
                     print "Hit Ctrl+c again in the next second to quit..."

@@ -40,10 +40,10 @@ def log(logger, message, lvl, exception=None, rollback=1):
         raise exception(message)
 
 from mpi4py import MPI
-MPI_TAG_INIT   = 1
-MPI_TAG_EXPAND = 2
-MPI_TAG_READY  = 3
-MPI_TAG_CLOSE  = 4
+MPI_TAG_INIT   = 1 + 4353
+MPI_TAG_EXPAND = 2 + 4353
+MPI_TAG_READY  = 3 + 4353
+MPI_TAG_CLOSE  = 4 + 4353
 
 class CXIWriter:
     def __init__(self, filename, chunksize=2, compression=None, comm=None):
@@ -60,7 +60,7 @@ class CXIWriter:
         if compression is not None:
             self._create_dataset_kwargs["compression"] = compression
         self._fopen()
-        self.comm = comm.Dup()
+        self.comm = comm
 
     def _fopen(self):
         if os.path.exists(self._filename):
@@ -163,16 +163,14 @@ class CXIWriter:
         for k in keys:
             if isinstance(D[k],dict):
                 group_prefix_new = group_prefix + k + "/"
-                if k not in self._f[group_prefix]:
-                    log_debug(logger, "(%i) Creating group %s" % (self._rank, group_prefix_new))
-                    self._f.create_group(group_prefix_new)
-                    self._initialise_tree(D, group_prefix=group_prefix_new)
+                log_debug(logger, "(%i) Creating group %s" % (self._rank, group_prefix_new))
+                self._f.create_group(group_prefix_new)
+                self._initialise_tree(D[k], group_prefix=group_prefix_new)
             else:
                 name = group_prefix + k
                 log_debug(logger, "(%i) Creating dataset %s" % (self._rank, name))
                 data = D[k]
-                if k not in self._f[group_prefix]:
-                    self._create_dataset(data, name)
+                self._create_dataset(data, name)
                     
     def _write_without_iterate(self, D, group_prefix="/"):
         keys = D.keys()
