@@ -4,8 +4,9 @@ import numpy
 
 class PlotData(object):
     """Stores the data associated with a given broadcast"""
-    def __init__(self, parent, title, maxlen=1000):
+    def __init__(self, parent, title, maxlen=1000, group=None):
         self._title = title
+        self._group = group
         self._y = None # pylint: disable=invalid-name
         self._x = None # pylint: disable=invalid-name
         self._l = None # pylint: disable=invalid-name
@@ -60,6 +61,11 @@ class PlotData(object):
         return self._title
 
     @property
+    def group(self):
+        """Returns the plot group"""
+        return self._group
+
+    @property
     def y(self):
         """Gives access to the y buffer"""
         return self._y
@@ -101,6 +107,7 @@ class PlotData(object):
         pds['y'] = self.y.save_state()
         pds['l'] = self.l.save_state()
         pds['title'] = self.title
+        pds['group'] = self.group
         pds['maxlen'] = self.maxlen
         pds['recordhistory'] = self.recordhistory
         return pds

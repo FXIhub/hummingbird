@@ -23,6 +23,7 @@ class DataSource(QtCore.QObject):
         self._recorder = None
         self._data_socket = ZmqSocket(SUB, self)
         self.conf = {}
+        self._group_structure = {None: []}
         try:
             self._connect()
             self.connected = True
@@ -144,8 +145,10 @@ class DataSource(QtCore.QObject):
                     continue
                 self.data_type[k] = self.conf[k]['data_type']
                 if(k not in self._plotdata):
-                    self._plotdata[k] = PlotData(self, k)
+                    group = self.conf[k]["group"]
+                    self._plotdata[k] = PlotData(self, k, group=group)
                     self.plotdata_added.emit(self._plotdata[k])
+                    self.add_item_to_group_structure(k, group)
             # Remove PlotData which is no longer in the conf
             for k in self._plotdata.keys():
                 if k not in self.titles:
@@ -215,7 +218,18 @@ class DataSource(QtCore.QObject):
                pds['data_source'][2] == self.ssh_tunnel):
                 # It's a match!
                 k = pds['title']
-                pd = PlotData(self, k)
+                group = pds["group"]
+                pd = PlotData(self, k, group=group)
                 pd.restore_state(pds, self)
                 self._plotdata[k] = pd            
                 self.plotdata_added.emit(self._plotdata[k])
+
+    @property
+    def group_structure(self):
+        return self._group_structure
+
+    def add_item_to_group_structure(self, title, group):
+        if group in self.group_structure:
+            self.group_structure[group].append(title)
+        else:
+            self.group_structure[group] = [title]

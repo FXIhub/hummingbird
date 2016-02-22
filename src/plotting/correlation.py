@@ -7,7 +7,7 @@ from backend import Record
 # Private classes / helper functions
 # ----------------------------------
 class _MeanMap:
-    def __init__(self, plotid, xmin, xmax, ymin, ymax, step, localRadius, overviewStep, xlabel, ylabel):
+    def __init__(self, name, xmin, xmax, ymin, ymax, step, localRadius, overviewStep, xlabel, ylabel, group=None):
 
         # Initialize local map
         self.localRadius = localRadius / float(step)
@@ -32,12 +32,12 @@ class _MeanMap:
         self.overviewMap = np.zeros((overviewNy, overviewNx))
 
         # Initialize plots
-        self.counter    = 0
-        ipc.broadcast.init_data(plotid+' -> Overview', data_type='image', history_length=1, flipy=True, \
-                                xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, xlabel=xlabel, ylabel=ylabel)
-        ipc.broadcast.init_data(plotid+' -> Local',    data_type='image', history_length=1, flipy=True, \
+        self.counter = 0
+        ipc.broadcast.init_data(name+' -> Overview', data_type='image', history_length=1, flipy=True, \
+                                xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax, xlabel=xlabel, ylabel=ylabel, group=group)
+        ipc.broadcast.init_data(name+' -> Local',    data_type='image', history_length=1, flipy=True, \
                                 xmin=self.localXmin, xmax=self.localXmax, \
-                                ymin=self.localYmin, ymax=self.localYmax, xlabel=xlabel, ylabel=ylabel)
+                                ymin=self.localYmin, ymax=self.localYmax, xlabel=xlabel, ylabel=ylabel, group=group)
 
     def append(self, X, Y, Z, N):
         try:
@@ -92,7 +92,7 @@ class _MeanMap:
 # ------------------------------------------------------------
 meanMaps = {}
 def plotMeanMapDynamic(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, ymin=0, ymax=100, step=10, \
-                localRadius=100, overviewStep=100, xlabel=None, ylabel=None, plotid=None):
+                       localRadius=100, overviewStep=100, xlabel=None, ylabel=None, name=None, group=None):
     """Plotting the mean of parameter Z as a function of parameters X and Y.
     (Using a buffer in the backend).
 
@@ -115,13 +115,13 @@ def plotMeanMapDynamic(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, y
         :localRadius (int):  The radius of a square neighborehood around the current position (X.data, Y.data) (default = 100)
         :overviewStep (int): The resolution of the overiew map (default = 100)
     """
-    if plotid is None:
-        plotid = "%s(%s,%s)" %(Z.name, X.name, Y.name)
-    if (not plotid in meanMaps):
+    if name is None:
+        name = "%s(%s,%s)" %(Z.name, X.name, Y.name)
+    if (not name in meanMaps):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
-        meanMaps[plotid] = _MeanMap(plotid, xmin, xmax, ymin, ymax, step, localRadius, overviewStep, xlabel, ylabel)
-    m = meanMaps[plotid]
+        meanMaps[name] = _MeanMap(name, xmin, xmax, ymin, ymax, step, localRadius, overviewStep, xlabel, ylabel, group=group)
+    m = meanMaps[name]
     m.append(X, Y, Z, norm)
     if(not m.counter % update):
         m.gatherSumsAndNorms()
@@ -132,16 +132,16 @@ def plotMeanMapDynamic(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, y
             m.updateLocalMap()
             m.updateOverviewMap(X,Y)
             print m.localXmin, m.localXmax, m.localYmin, m.localYmax
-            ipc.new_data(plotid+' -> Local', m.localMap, msg=msg, \
+            ipc.new_data(name+' -> Local', m.localMap, msg=msg, \
                          xmin=m.localXmin, xmax=m.localXmax, ymin=m.localYmin, ymax=m.localYmax)
-            ipc.new_data(plotid+' -> Overview', m.overviewMap) 
+            ipc.new_data(name+' -> Overview', m.overviewMap) 
 
 
 
 correlations = {}
 xArray = []
 yArray = []
-def plotCorrelation(X, Y, history=100):
+def plotCorrelation(X, Y, history=100, name=None, group=None):
     """Plotting the correlation of two parameters X and Y over time.
     (Using a buffer in the backend).
     
@@ -151,18 +151,19 @@ def plotCorrelation(X, Y, history=100):
     Kwargs: 
         :history(int): Buffer length
     """
-    plotid = "Corr(%s,%s)" %(X.name, Y.name)
-    if (not plotid in correlations):
-        ipc.broadcast.init_data(plotid, history_length=100)
-        correlations[plotid] = True
+    if name is None:
+        name = "Corr(%s,%s)" %(X.name, Y.name)
+    if (not name in correlations):
+        ipc.broadcast.init_data(name, history_length=100, group=group)
+        correlations[name] = True
     x,y = (X.data, Y.data)
     xArray.append(x)
     yArray.append(y)
     correlation = x*y/(np.mean(xArray)*np.mean(yArray))
-    ipc.new_data(plotid, correlation)
+    ipc.new_data(name, correlation)
 
 heatmaps = {}
-def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
+def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10, name=None, group=None):
     """Plotting the heatmap of two parameters X and Y. Has been tested in MPI mode.
     (Using a buffer in the backend).
 
@@ -177,11 +178,12 @@ def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
         :ymax(int):  default = 1
         :ybins(int): default = 10
     """
-    plotid = "Heatmap(%s,%s)" %(X.name, Y.name)
-    if not(plotid in heatmaps):        
+    if name is None:
+        name = "Heatmap(%s,%s)" %(X.name, Y.name)
+    if not(name in heatmaps):        
         # initiate (y, x) in 2D array to get correct orientation of image
-        heatmaps[plotid] = np.zeros((ybins, xbins), dtype=int)
-        ipc.broadcast.init_data(plotid, data_type="image")
+        heatmaps[name] = np.zeros((ybins, xbins), dtype=int)
+        ipc.broadcast.init_data(name, data_type="image", group=group)
     deltaX = (xmax - float(xmin))/xbins
     deltaY = (ymax - float(ymin))/ybins
     nx = np.ceil((X.data - xmin)/deltaX)
@@ -195,15 +197,15 @@ def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10):
     elif (ny >= ybins):
         ny = ybins - 1
     # assign y to row and x to col in 2D array
-    heatmaps[plotid][ny, nx] += 1
-    current_heatmap = np.copy(heatmaps[plotid])
+    heatmaps[name][ny, nx] += 1
+    current_heatmap = np.copy(heatmaps[name])
     ipc.mpi.sum(current_heatmap)
     if ipc.mpi.is_main_worker():
-        ipc.new_data(plotid, current_heatmap[()])
+        ipc.new_data(name, current_heatmap[()])
 
 
 meanMaps = {}
-def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, xlabel=None, ylabel=None, msg='', dynamic_extent=False, initial_reset=False, name=None):
+def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, xlabel=None, ylabel=None, msg='', dynamic_extent=False, initial_reset=False, name=None, group=None):
     """Plotting the meanmap of Z as a function of two parameters X and Y.
     (No buffer in the backend).
 
@@ -231,7 +233,9 @@ def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, xla
         ipc.broadcast.init_data(name, data_type='triple', history_length=1,
                                 xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
                                 xbins=xbins, ybins=ybins,
-                                xlabel=xlabel, ylabel=ylabel, flipy=True, dynamic_extent=dynamic_extent, initial_reset=initial_reset)
+                                xlabel=xlabel, ylabel=ylabel, flipy=True,
+                                dynamic_extent=dynamic_extent, initial_reset=initial_reset,
+                                group=group)
     x = X if not isinstance(X, Record) else X.data
     y = Y if not isinstance(Y, Record) else Y.data
     z = Z if not isinstance(Z, Record) else Z.data
@@ -239,7 +243,7 @@ def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, xla
 
     
 scatterPlots = {}
-def plotScatter(X,Y, name=None, history=100, xlabel=None, ylabel=None):
+def plotScatter(X,Y, name=None, history=100, xlabel=None, ylabel=None, group=None):
     """Plotting the scatter of two parameters X and Y.
     (No buffer in the backend).
 
@@ -258,12 +262,12 @@ def plotScatter(X,Y, name=None, history=100, xlabel=None, ylabel=None):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
         ipc.broadcast.init_data(name, data_type='tuple', history_length=history,
-                                xlabel=xlabel, ylabel=ylabel)
+                                xlabel=xlabel, ylabel=ylabel, group=group)
         scatterPlots[name] = True
     ipc.new_data(name, np.array([X.data, Y.data]))
 
 scatterBgPlots = {}
-def plotScatterBg(X,Y, name=None, history=100, xlabel=None, ylabel=None, bg_filename=None, bg_xmin=0., bg_xmax=1., bg_ymin=0., bg_ymax=0., bg_angle=0.):
+def plotScatterBg(X,Y, name=None, history=100, xlabel=None, ylabel=None, bg_filename=None, bg_xmin=0., bg_xmax=1., bg_ymin=0., bg_ymax=0., bg_angle=0., group=None):
     """Plotting the scatter of two parameters X and Y.
     """
     if name is None:
@@ -276,14 +280,13 @@ def plotScatterBg(X,Y, name=None, history=100, xlabel=None, ylabel=None, bg_file
                                 bg_filename=bg_filename,
                                 bg_xmin=bg_xmin, bg_xmax=bg_xmax,
                                 bg_ymin=bg_ymin, bg_ymax=bg_ymax,
-                                bg_angle=bg_angle,
-        )
+                                bg_angle=bg_angle, group=group)
         scatterBgPlots[name] = True
     ipc.new_data(name, np.array([X.data, Y.data]))
     
 
 scatterColorPlots = {}
-def plotScatterColor(X,Y,Z, name=None, history=100, xlabel=None, ylabel=None, zlabel=None, vmin=None, vmax=None):
+def plotScatterColor(X,Y,Z, name=None, history=100, xlabel=None, ylabel=None, zlabel=None, vmin=None, vmax=None, group=None):
     """Plotting the scatter of two parameters X and Y and use Z for color.
     (No buffer in the backend).
 
@@ -307,7 +310,7 @@ def plotScatterColor(X,Y,Z, name=None, history=100, xlabel=None, ylabel=None, zl
         if vmax is None: vmax = 1
         ipc.broadcast.init_data(name, data_type='triple', history_length=history,
                                 xlabel=xlabel, ylabel=ylabel, zlabel=zlabel,
-                                vmin=vmin, vmax=vmax)
+                                vmin=vmin, vmax=vmax, group=group)
     ipc.new_data(name, np.array([X.data, Y.data, Z.data]))
 
     

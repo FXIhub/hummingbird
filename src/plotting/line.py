@@ -5,7 +5,7 @@ import utils.array
 
 
 histories = {}
-def plotHistory(param, label='', history=100, hline=None, runningHistogram=False, window=20, bins=100, hmin=0, hmax=100, name_extension="", name=None):
+def plotHistory(param, label='', history=100, hline=None, runningHistogram=False, window=20, bins=100, hmin=0, hmax=100, name_extension="", name=None, group=None):
     """Plotting history of a parameter.
 
     Args:
@@ -23,18 +23,22 @@ def plotHistory(param, label='', history=100, hline=None, runningHistogram=False
     if (not param.name in histories):
         if runningHistogram:
             data_type = 'running_hist'
-            ipc.broadcast.init_data(name, data_type=data_type, ylabel=label, history_length=history, window=window, bins=bins, hmin=hmin, hmax=hmax)
+            ipc.broadcast.init_data(name, data_type=data_type, ylabel=label, history_length=history, window=window, bins=bins, hmin=hmin, hmax=hmax, group=group)
         else:
             data_type = 'scalar'
-            ipc.broadcast.init_data(name, data_type=data_type, ylabel=label, history_length=history, hline=hline)
+            ipc.broadcast.init_data(name, data_type=data_type, ylabel=label, history_length=history, hline=hline, group=group)
         histories[param.name] = True
     ipc.new_data(name, param.data)
 
-def plotTimestamp(timestamp):
-    ipc.new_data('History(Fiducial)', timestamp.fiducials)
+def plotTimestamp(timestamp, name=None, group=None):
+    if name is None:
+        name = "History(Fiducial)"
+    if not name in histories:
+        ipc.broadcast_init(name, timestamp.fiducials, group=group)
+    ipc.new_data(name, timestamp.fiducials)
 
 histograms = {}
-def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, vline=None, history=100, mask=None, log10=False, name_extension="", name=None):
+def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, vline=None, history=100, mask=None, log10=False, name_extension="", name=None, group=None):
     """Plotting a histogram.
     
     Args:
@@ -53,7 +57,7 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
     if name is None:
         name = "Histogram(%s)%s" % (param.name, name_extension)
     if(not param.name in histograms):
-        ipc.broadcast.init_data(name, data_type='vector', xlabel=label, vline=vline, history_length=history)
+        ipc.broadcast.init_data(name, data_type='vector', xlabel=label, vline=vline, history_length=history, group=group)
         histograms[param.name] = True
     data = param.data
     if mask is not None:
@@ -66,7 +70,7 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
     ipc.new_data(name, H, xmin=B.min(), xmax=B.max())
 
 traces = {}
-def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None, name=None):
+def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None, name=None, group=None):
     """Plotting a trace.
     
     Args:
@@ -82,7 +86,7 @@ def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None, name=No
     if name is None:
         name = "Trace(%s)" %paramY.name
     if(not paramY.name in traces):
-        ipc.broadcast.init_data(name, data_type='vector', xlabel=label, history_length=history)
+        ipc.broadcast.init_data(name, data_type='vector', xlabel=label, history_length=history, group=group)
         histograms[paramY.name] = True
     if paramX is None:
         ipc.new_data(name, data_y=paramY.data.ravel())
