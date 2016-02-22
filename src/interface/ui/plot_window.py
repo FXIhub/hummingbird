@@ -9,6 +9,43 @@ import datetime
 import utils.array
 import utils.time
 
+class Histogram(object):
+    def __init__(self, hmin, hmax, bins):
+        self._bins = bins
+        self._range = (hmin, hmax)
+        self._step = (hmax-hmin) / float(bins)
+        self._histogram = numpy.zeros(self._bins)
+        self._last_add_index = 0
+
+    def _value_to_index(self, value):
+        index = int((value - self._range[0]) / self._step)
+        if index < 0 or index >= self._bins:
+            return None
+        else:
+            return index
+        
+    def add_value(self, value):
+        index = self._value_to_index(value)
+        if index is not None:
+            self._histogram[index] += 1
+
+    def add_values_from_ringbuffer(self, ringbuffer):
+        current_index = ringbuffer.number_of_added_elements
+        values = numpy.array(ringbuffer, copy=False)[-(current_index-self._last_add_index):]
+        for this_value in values:
+            self.add_value(this_value)
+        self._last_add_index = current_index
+
+    def reset(self):
+        self._histogram[:] = 0
+
+    @property
+    def values_x(self):
+        return numpy.linspace(self._range[0] + self._step/2., self._range[1] - self._step/2., self._bins)
+
+    @property
+    def values_y(self):
+        return self._histogram
 
 class PlotWindow(DataWindow, Ui_plotWindow):
     """Window to display 2D plots"""
@@ -22,7 +59,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.actionLegend_Box.triggered.connect(self.on_view_legend_box)
         self.actionX_axis.triggered.connect(self.on_view_x_axis)
         self.actionY_axis.triggered.connect(self.on_view_y_axis)
-        self.acceptable_data_types = ['scalar', 'vector', 'tuple', 'triple', 'running_hist' ]
+        self.acceptable_data_types = ['scalar', 'vector', 'tuple', 'triple', 'running_hist', 'histogram' ]
         self.exclusive_source = False
         self.line_colors = [(252, 175, 62), (114, 159, 207), (255, 255, 255),
                             (239, 41, 41), (138, 226, 52), (173, 127, 168)]
@@ -36,6 +73,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.hline_color = (0,204,0)
         self.vline_color = (204,0,0)
         self._settings_diag = LinePlotSettings(self)
+        self._histograms = {}
         
     def on_view_legend_box(self):
         """Show/hide legend box"""
@@ -243,7 +281,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     self.last_vector_x = numpy.array(pd.x)
                 else:
                     y = self.last_vector_y[title][self.current_index % self.last_vector_y[title].shape[0]]
-
+            elif source.data_type[title] == 'histogram':
+                if title not in self._histograms:
+                    self._histograms[title] = Histogram(conf["hmin"], conf["hmax"], conf["bins"])
+                x = self._histograms[title].values_x
+                y = self._histograms[title].values_y
+                
             x = None
             if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
                 x = numpy.array(pd.x, copy=False)
@@ -280,6 +323,11 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 y,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
                 x = (x[:-1]+x[1:])/2.0
                 self._configure_axis(source, title, hist=True)
+            elif(source.data_type[title] == "histogram"):
+                ringbuffer = pd.y
+                self._histograms[title].add_values_from_ringbuffer(ringbuffer)
+                x = self._histograms[title].values_x
+                y = self._histograms[title].values_y
             else:
                 self._configure_axis(source, title)
             self.plot.setLogMode(x=self._settings_diag.logx.isChecked(),

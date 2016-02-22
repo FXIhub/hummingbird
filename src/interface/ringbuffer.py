@@ -19,6 +19,8 @@ class RingBuffer(object):
         self._len = length
         self._maxlen = maxlen
         self._data = data
+        self._counter = 0
+        
     def append(self, x):
         """Append a value to the end of the buffer"""
         if(self._data is None):
@@ -35,6 +37,7 @@ class RingBuffer(object):
         self._index = (self._index + 1) % self._maxlen
         if(self._len < self._maxlen):
             self._len += 1
+        self._counter += 1
 
     def resize(self, new_maxlen):
         """Change the capacity of the buffers"""
@@ -146,6 +149,11 @@ class RingBuffer(object):
         maxlen = state['maxlen']
         rb = RingBuffer(maxlen, data = data, index = index, length = length)
         return rb
+
+    @property
+    def number_of_added_elements(self):
+        return self._counter
+
         
 class RingBufferStr(object):
     """Provides a ring buffer for strings."""
@@ -154,6 +162,7 @@ class RingBufferStr(object):
         self._len = length
         self._maxlen = maxlen
         self._data = data
+        self._counter = 0
         
     def append(self, x):
         """Append a value to the end of the buffer"""
@@ -163,6 +172,7 @@ class RingBufferStr(object):
         self._index = (self._index + 1) % self._maxlen
         if(self._len < self._maxlen):
             self._len += 1
+        self._counter = 0
 
     def resize(self, new_maxlen):
         """Change the capacity of the buffers"""
@@ -218,4 +228,7 @@ class RingBufferStr(object):
         rb = RingBufferStr(maxlen, data = data, index = index, length = length)
         return rb
         
+    @property
+    def number_of_added_elements(self):
+        return self._counter
         
