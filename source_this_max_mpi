@@ -1,0 +1,11 @@
+# H5PY PARALLEL
+export LD_LIBRARY_PATH=/home/hantke/local_h5py_parallel_psana/lib/:$LD_LIBRARY_PATH
+export PYTHONPATH=/home/hantke/local_h5py_parallel_psana/lib/python2.7/site-packages/:$PYTHONPATH
+export PATH=/home/hantke/local_h5py_parallel_psana/bin/:$PATH
+# SPIMAGE
+export LD_LIBRARY_PATH=/home/hantke/local_libspimage_psana/lib64:$LD_LIBRARY_PATH
+export PYTHONPATH=/home/hantke/local_libspimage_psana/lib/python2.7/site-packages/:$PYTHONPATH
+# DAVINCI
+export PATH=$PATH:/davinci/bin
+export LD_LIBRARY_PATH=/davinci/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=$PYTHONPATH:/davinci/lib/python2.7/site-packages/

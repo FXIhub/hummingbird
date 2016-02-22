@@ -1,3 +1,2 @@
 #!/bin/bash
-
 mpiexec -n 2 python ./example.py
