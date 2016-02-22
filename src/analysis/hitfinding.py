@@ -49,7 +49,7 @@ def hitrate(evt, hit, good_hit=True, history=100):
         add_record(v, "analysis", "hitrate", None)
         add_record(v, "analysis", "good hitrate", None)
 
-def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey=None):
+def countLitPixels(evt, data_rec, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey=None):
     """A simple hitfinder that counts the number of lit pixels and
     adds a boolean to ``evt["analysis"][outkey + "isHit"]``,  ``evt["analysis"][outkey + "isMiss"]`` 
     and  the hitscore to ``evt["analysis"][outkey + "hitscore"]``.
@@ -69,8 +69,7 @@ def countLitPixels(evt, type, key, aduThreshold=20, hitscoreThreshold=200, hitsc
     """
     if outkey is None:
         outkey = ""
-    detector = evt[type][key]
-    hitscore = (detector.data[mask] > aduThreshold).sum()
+    hitscore = (data_rec.data[mask] > aduThreshold).sum()
     v = evt["analysis"]
     hit = int(hitscore > hitscoreThreshold)
     if hitscoreMax is not None:

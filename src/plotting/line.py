@@ -28,7 +28,7 @@ def plotHistory(param, label='', history=100, hline=None, runningHistogram=False
             data_type = 'scalar'
             ipc.broadcast.init_data(name, data_type=data_type, ylabel=label, history_length=history, hline=hline, group=group)
         histories[param.name] = True
-    ipc.new_data(name, param.data)
+    ipc.new_data(name, param.data, hline=hline)
 
 def plotTimestamp(timestamp, name=None, group=None):
     if name is None:
@@ -67,7 +67,7 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
     if hmin is None: hmin = data.min()
     if hmax is None: hmax = data.max()
     H,B = np.histogram(data.flat, range=(hmin, hmax), bins=bins, density=density)
-    ipc.new_data(name, H, xmin=B.min(), xmax=B.max())
+    ipc.new_data(name, H, xmin=B.min(), xmax=B.max(), vline=vline)
 
 traces = {}
 def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None, name=None, group=None):

@@ -300,7 +300,10 @@ class LCLSTranslator(object):
 
     def _tr_cspad2x2(self, values, obj):
         """Translates CsPad2x2 to hummingbird numpy array"""
-        add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data16(), ureg.ADU)
+        try:
+            add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data(), ureg.ADU)
+        except AttributeError:
+            add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data16(), ureg.ADU)
     def _tr_camera(self, values, obj):
         """Translates Camera frame to hummingbird numpy array"""
         if obj.depth == 16:
