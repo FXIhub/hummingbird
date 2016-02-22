@@ -5,49 +5,37 @@ import collections
 
 counter = collections.deque([])
 counter_good = collections.deque([])
-def countHits(evt, hit, good_hit=True, history=100):
-    """Takes a boolean (True for hit, False for miss) and adds accumulated nr. of hits to ``evt["analysis"]["nrHit"]`` and 
-    accumulated nr. of misses to ``evt["analysis"]["nrMiss"]``
+
+hitrate_counters = {}
+hit_counters = {}
+
+def countHits(evt, hit, history=100, outkey="nrHits"):
+    """Takes a boolean (True for hit, False for miss) and adds accumulated nr. of hits
 
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se),
         Jonas Sellberg 
+        Tomas Ekeberg
     """
-    global counter
-    global counter_good
-    if counter.maxlen is None or (counter.maxlen != history):
-        counter = collections.deque([], history)
-        counter_good = collections.deque([], history)
-    counter.append(bool(hit))
-    counter_good.append(bool(good_hit))
+    global hit_counters
+    if outkey not in hit_counters:
+        hit_counters[outkey] = 0
+    if hit:
+        hit_counters[outkey] += 1
     v = evt["analysis"]
-    add_record(v, "analysis", "nrHit", counter.count(True))
-    add_record(v, "analysis", "nrMiss", counter.count(False))
-    add_record(v, "analysis", "nrGoodHit", counter_good.count(True))
-    add_record(v, "analysis", "nrGoodMiss", counter_good.count(False))
+    add_record(v, "analysis", outkey, hit_counters[outkey])
 
-def hitrate(evt, hit, good_hit=True, history=100):
-    """Takes a boolean (True for hit, False for miss) and adds the hit rate in % to ``evt["analysis"]["hitrate"]`` if called by main worker, otherwise it returns None. Has been tested in MPI mode
-
-    :Authors:
-        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
-    """
-    countHits(evt, hit, good_hit=good_hit, history=history/ipc.mpi.nr_workers())
-    hits = evt["analysis"]["nrHit"].data
-    misses = evt["analysis"]["nrMiss"].data    
-    good_hits = evt["analysis"]["nrGoodHit"].data
-    good_misses = evt["analysis"]["nrGoodMiss"].data
-    hitrate = np.array(100 * hits / float(hits + misses))
-    good_hitrate = np.array(100 * good_hits / float(good_hits + good_misses))
+def hitrate(evt, hit, history=100, outkey="hitrate"):
+    #countHits(evt, hit, history=history/ipc.mpi.nr_workers(), outkey=outkey+" - counter")
+    global hitrate_counters
+    if outkey not in hitrate_counters or hitrate_counters[outkey].maxlen != history:
+        hitrate_counters[outkey] = collections.deque([], history)
+    hitrate_counters[outkey].append(bool(hit))
+    hitrate = np.array(hitrate_counters[outkey].count(True)/float(len(hitrate_counters[outkey])))
     ipc.mpi.sum("hitrate", hitrate)
-    ipc.mpi.sum("goodhitrate", good_hitrate)
     v = evt["analysis"]
-    if(ipc.mpi.is_main_worker()):
-        add_record(v, "analysis", "hitrate", hitrate[()]/ipc.mpi.nr_workers(), unit='%')
-        add_record(v, "analysis", "good hitrate", good_hitrate[()]/ipc.mpi.nr_workers(), unit='%')
-    else:
-        add_record(v, "analysis", "hitrate", None)
-        add_record(v, "analysis", "good hitrate", None)
+    if (ipc.mpi.is_main_worker()):
+        add_record(v, "analysis", outkey, hitrate[()]/ipc.mpi.nr_workers())
 
 def countLitPixels(evt, data_rec, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey=None):
     """A simple hitfinder that counts the number of lit pixels and
