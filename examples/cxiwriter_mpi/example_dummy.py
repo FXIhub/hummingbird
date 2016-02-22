@@ -7,6 +7,11 @@ import numpy as np
 # Set new random seed
 np.random.seed()
 
+import logging, sys
+h = logging.StreamHandler(sys.stdout)
+analysis.cxiwriter.logger.setLevel("INFO")
+analysis.cxiwriter.logger.addHandler(h)
+
 import ipc.mpi
 comm = ipc.mpi.slaves_comm
 is_slave = ipc.mpi.is_master() == False

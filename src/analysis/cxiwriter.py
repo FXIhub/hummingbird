@@ -82,7 +82,7 @@ class CXIWriter:
                 self._initialised = True
             self._i = (self._i + 1) if i is None else i
             if self._i >= (self._N-1):
-                self._expand_stacks()
+                self._expand_stacks(self._N * 2)
             self._write_without_iterate(D)
         # WITH MPI
         else:
@@ -122,9 +122,8 @@ class CXIWriter:
             recvbuf = numpy.empty(1, dtype='i')
             self.comm.Allreduce(sendbuf, recvbuf, MPI.MAX)
             i_max = recvbuf[0]
-            N = self._chunksize*(i_max/self._chunksize+1)
-            if N > self._N:
-                self._expand_stacks(N)
+            if i_max >= self._N:
+                self._expand_stacks(self._N * 2)
 
     def _close_signal(self):
         if self._rank == 0:
@@ -235,7 +234,7 @@ class CXIWriter:
         new_shape = list(self._f[name].shape)
         new_shape[0] = N
         new_shape = tuple(new_shape)
-        log_debug(logger, "(%i) Expand dataset %s [old shape: %s, new shape: %s]" % (self._rank, name, str(self._f[name].shape), str(new_shape)))
+        log_info(logger, "(%i) Expand dataset %s [old shape: %s, new shape: %s]" % (self._rank, name, str(self._f[name].shape), str(new_shape)))
         self._f[name].resize(new_shape)
         self._N = N
             
