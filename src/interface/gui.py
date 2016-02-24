@@ -1,5 +1,8 @@
-"""Displays the results of the analysis to the user, using images and plots.
-"""
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
+"""Displays the results of the analysis to the user, using images and plots."""
 from interface.Qt import QtGui, QtCore
 from interface.ui import AddBackendDialog, PreferencesDialog
 from interface.ui import PlotWindow, ImageWindow
