@@ -1,6 +1,6 @@
 # Import analysis/plotting modules
 import analysis.event
-import analysis.cxiwriter
+import utils.cxiwriter
 import plotting.image
 import numpy as np
 
@@ -9,8 +9,8 @@ np.random.seed()
 
 import logging, sys
 h = logging.StreamHandler(sys.stdout)
-analysis.cxiwriter.logger.setLevel("INFO")
-analysis.cxiwriter.logger.addHandler(h)
+utils.cxiwriter.logger.setLevel("INFO")
+utils.cxiwriter.logger.addHandler(h)
 
 import ipc.mpi
 comm = ipc.mpi.slaves_comm
@@ -44,7 +44,7 @@ state['Dummy'] = {
 }
 
 if is_slave:
-    W = analysis.cxiwriter.CXIWriter("./test_dummy.cxi", chunksize=2, comm=comm)
+    W = utils.cxiwriter.CXIWriter2("./test_dummy.cxi", chunksize=2, comm=comm)
 
 # This function is called for every single event
 # following the given recipy of analysis

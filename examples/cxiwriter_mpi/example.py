@@ -1,7 +1,7 @@
 from mpi4py import MPI
 import numpy
 import sys, os
-sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../../src/analysis")
+sys.path.insert(0, os.path.dirname(os.path.realpath(__file__)) + "/../../src/utils")
 import cxiwriter
 print cxiwriter.__file__
 
@@ -10,7 +10,7 @@ h = logging.StreamHandler(sys.stdout)
 cxiwriter.logger.setLevel("INFO")
 cxiwriter.logger.addHandler(h)
 
-W = cxiwriter.CXIWriter('test.cxi', comm=MPI.COMM_WORLD, chunksize=10)
+W = cxiwriter.CXIWriter2('test.cxi', comm=MPI.COMM_WORLD, chunksize=10)
 
 counter = 0
 
