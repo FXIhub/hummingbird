@@ -16,7 +16,7 @@ docs/.build/
 *~
 
 # TIFF files
-.tiff
+*.tiff
 
 # Distribution / packaging
 .Python
