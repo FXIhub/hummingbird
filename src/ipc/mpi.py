@@ -122,7 +122,7 @@ def master_loop():
             comm.send(data_y, source)
     elif(msg[0] == '__exit__'):
         slavesdone.append(True)
-        print "Slave with rank = %d reports to be done" %msg[1]
+        logging.warning("Slave with rank = %d reports to be done" %msg[1])
         if len(slavesdone) == nr_workers():
             MPI.Finalize()
             return True

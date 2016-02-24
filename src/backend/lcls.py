@@ -147,16 +147,17 @@ class LCLSTranslator(object):
             if evt is None:
                 return None
         else:
-            while (self.i%self.event_slice.step) != self.event_slice.start:
-                evt = self.data_source.events().next()
-                self.i += 1            
             try:
+                while (self.i % self.event_slice.step) != self.event_slice.start:
+                    evt = self.data_source.events().next()
+                    self.i += 1
                 evt = self.data_source.events().next()
                 self.i += 1
             except StopIteration:
                 logging.warning('End of Run.')
                 if 'end_of_run' in dir(Worker.conf):
                     Worker.conf.end_of_run()
+                ipc.mpi.slave_done()
                 return None
         return EventTranslator(evt, self)
 

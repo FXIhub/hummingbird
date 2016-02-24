@@ -113,7 +113,7 @@ class Worker(object):
                         except (RuntimeError) as e:
                             logging.warning("Some problem with psana, probably due to reloading the backend.", exc_info=True)
                         except StopIteration:
-                            print "Stopping iteration ..."
+                            logging.warning("Stopping iteration.")
                             if 'end_of_run' in dir(Worker.conf):
                                 Worker.conf.end_of_run()
                             ipc.mpi.slave_done()

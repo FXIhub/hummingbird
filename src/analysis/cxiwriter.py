@@ -35,6 +35,7 @@ def log(logger, message, lvl, exception=None, rollback=1):
                                                               code.co_name, 
                                                               code.co_filename, 
                                                               code.co_firstlineno)
+        
     logcall("%s:\t%s" % (lvl,msg))
     if exception is not None:
         raise exception(message)
@@ -95,7 +96,7 @@ class CXIWriter:
                     self._expand_signal()
                     self._expand_poll()
                     if self._i > (self._N-1):
-                        time.sleep(0.1)
+                        time.sleep(1)
             else:
                 self._expand_poll()
             self._write_without_iterate(D)
@@ -117,6 +118,7 @@ class CXIWriter:
             self.comm.Recv([buf, MPI.INT], source=MPI.ANY_SOURCE, tag=MPI_TAG_EXPAND)
             # Is expansion still needed or is the signal outdated?
             if buf[0] < self._N:
+                log_debug(logger, "(%i) Expansion signal no longer needed" % self._rank)
                 return                
             sendbuf = numpy.array(self._i, dtype='i')
             recvbuf = numpy.empty(1, dtype='i')
@@ -263,22 +265,22 @@ class CXIWriter:
         recvbuf = numpy.empty(1, dtype='i')
         log_debug(logger, "(%i) Entering allreduce with maximum index %i" % (self._rank, self._i_max))
         self.comm.Allreduce([sendbuf, MPI.INT], [recvbuf, MPI.INT], op=MPI.MAX)
-        log_debug(logger, "(%i) Maximum index is %i (A)" % (self._rank, self._i_max))
+        #log_debug(logger, "(%i) Maximum index is %i (A)" % (self._rank, self._i_max))
         self._i_max = recvbuf[0]
-        log_debug(logger, "(%i) Maximum index is %i (B)" % (self._rank, self._i_max))
+        #log_debug(logger, "(%i) Maximum index is %i (B)" % (self._rank, self._i_max))
         
     def close(self):
         if self.comm:
+            if not self._initialised:
+                log_and_raise_error(logger, "Cannot close uninitialised file. Every worker has to write at least one frame to file. Reduce your number of workers and try again.")
             self._close_signal()
             while True:
-                log_debug(logger, "(%i) Closing loop (A)" % self._rank)
+                log_debug(logger, "(%i) Closing loop" % self._rank)
                 self._expand_poll()
-                log_debug(logger, "(%i) Closing loop (B)" % self._rank)
                 self._update_ready()
                 if self._ready:
                     break
-                log_debug(logger, "(%i) Closing loop (C)" % self._rank)
-                time.sleep(0.1)
+                time.sleep(5.)
             self.comm.Barrier()
             log_debug(logger, "(%i) Sync reduce stack length" % self._rank)
             self._update_i_max()
