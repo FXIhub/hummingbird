@@ -41,7 +41,12 @@ try:
     size = comm.Get_size()
     slave_group = comm.Get_group().Incl(range(1, size))
     slaves_comm = comm.Create(slave_group)
-    reload_comm = comm.Clone()    
+    reload_comm = comm.Clone()
+
+    MPI_TAG_INIT   = 1 + 4353
+    MPI_TAG_EXPAND = 2 + 4353
+    MPI_TAG_READY  = 3 + 4353
+    MPI_TAG_CLOSE  = 4 + 4353
 
 except ImportError:
     rank = 0

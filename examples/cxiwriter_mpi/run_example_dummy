@@ -1,2 +1,2 @@
 #!/bin/bash
-mpiexec -n 10 python ./example_dummy.py
+mpiexec -n 10 hummingbird.py -b example_dummy.py

@@ -4,6 +4,7 @@
 # -------------------------------------------------------------------------
 # Code adapted from http://github.com/mhantke/condor
 # --------------------------------------------------
+import ipc.mpi
 import numpy, h5py, os
 import time
 import log
@@ -44,115 +45,26 @@ def log(logger, message, lvl, exception=None, rollback=1):
     if exception is not None:
         raise exception(message)
 
-from mpi4py import MPI
-MPI_TAG_INIT   = 1 + 4353
-MPI_TAG_EXPAND = 2 + 4353
-MPI_TAG_READY  = 3 + 4353
-MPI_TAG_CLOSE  = 4 + 4353
-
 class CXIWriter:
-    def __init__(self, filename, chunksize=2, gzip_compression=False):
-        self._filename = os.path.expandvars(filename)
-        if os.path.exists(filename):
-            log.log_warning(logger, "File %s exists and is being overwritten" % filename)
-            os.system("rm %s" % filename)
-        self._f = h5py.File(filename, "w")
-        self._i = 0
-        self._chunksize = chunksize
-        self._create_dataset_kwargs = {}
-        if gzip_compression:
-            self._create_dataset_kwargs["compression"] = "gzip"
-
-    def write(self, D):
-        self._write_without_iterate(D)
-        self._i += 1
-        
-    def _write_without_iterate(self, D, group_prefix="/"):
-        for k in D.keys():
-            if isinstance(D[k],dict):
-                group_prefix_new = group_prefix + k + "/"
-                log.log_debug(logger, "Writing group %s" % group_prefix_new)
-                if k not in self._f[group_prefix]:
-                    self._f.create_group(group_prefix_new)
-                self._write_without_iterate(D[k], group_prefix_new)
-            else:
-                name = group_prefix + k
-                log.log_debug(logger, "Writing dataset %s" % name)
-                data = D[k]
-                if k not in self._f[group_prefix]:
-                    if numpy.isscalar(data):
-                        maxshape = (None,)
-                        shape = (self._chunksize,)
-                        dtype = numpy.dtype(type(data))
-                        if dtype == "S":
-                            dtype = h5py.new_vlen(str)
-                        axes = "experiment_identifier:value"
-                    else:
-                        data = numpy.asarray(data)
-                        try:
-                            h5py.h5t.py_create(data.dtype, logical=1)
-                        except TypeError:
-                            log.log_warning(logger, "Could not save dataset %s. Conversion to numpy array failed" % name)
-                            continue
-                        maxshape = tuple([None]+list(data.shape))
-                        shape = tuple([self._chunksize]+list(data.shape))
-                        dtype = data.dtype
-                        ndim = data.ndim
-                        axes = "experiment_identifier"
-                        if ndim == 1: axes = axes + ":x"
-                        elif ndim == 2: axes = axes + ":y:x"
-                        elif ndim == 3: axes = axes + ":z:y:x"
-                    log.log_debug(logger, "Create dataset %s [shape=%s, dtype=%s]" % (name,str(shape),str(dtype)))
-                    self._f.create_dataset(name, shape, maxshape=maxshape, dtype=dtype, **self._create_dataset_kwargs)
-                    self._f[name].attrs.modify("axes",[axes])
-                if self._f[name].shape[0] <= self._i:
-                    if numpy.isscalar(data):
-                        data_shape = []
-                    else:
-                        data_shape = data.shape
-                    new_shape = tuple([self._chunksize*(self._i/self._chunksize+1)]+list(data_shape))
-                    log.log_debug(logger, "Resize dataset %s [old shape: %s, new shape: %s]" % (name,str(self._f[name].shape),str(new_shape)))
-                    self._f[name].resize(new_shape)
-                log.log_debug(logger, "Write to dataset %s at stack position %i" % (name, self._i))
-                if numpy.isscalar(data):
-                    self._f[name][self._i] = data
-                else:
-                    self._f[name][self._i,:] = data[:]
-
-    def _shrink_stacks(self, group_prefix="/"):
-        for k in self._f[group_prefix].keys():
-            name = group_prefix + k
-            if isinstance(self._f[name], h5py.Dataset):
-                log.log_debug(logger, "Shrinking dataset %s to stack length %i" % (name, self._i))
-                s = list(self._f[name].shape)
-                s.pop(0)
-                s.insert(0, self._i)
-                s = tuple(s)
-                self._f[name].resize(s)
-            else:
-                self._shrink_stacks(name + "/")
-                    
-    def close(self):
-        self._shrink_stacks()
-        log.log_debug(logger, "Closing file %s" % self._filename)
-        self._f.close()
-
-class CXIWriter2:
-    def __init__(self, filename, chunksize=2, compression=None, comm=None):
+    def __init__(self, filename, chunksize=2, compression=None):
+        if (ipc.mpi.size == 1):
+            self.comm = None
+            self._rank = -1
+        else:
+            if ipc.mpi.is_master(): return
+            self.comm = ipc.mpi.slaves_comm
+            self._rank = -1 if self.comm is None else self.comm.rank
         self._ready = False
         self._filename = os.path.expandvars(filename)
-        self.comm = comm
-        self._rank = -1 if self.comm is None else self.comm.rank
         self._i = -1
-        self._i_max = -1
-        self._initialised = False
         self._chunksize = chunksize
         self._N = chunksize
         self._create_dataset_kwargs = {}
+        self._initialised = False
+        self._i_max = -1
         if compression is not None:
             self._create_dataset_kwargs["compression"] = compression
         self._fopen()
-        self.comm = comm
 
     def _fopen(self):
         if os.path.exists(self._filename):
@@ -178,6 +90,7 @@ class CXIWriter2:
             self._write_without_iterate(D)
         # WITH MPI
         else:
+            i = self.comm.size*i+self.comm.rank
             if not self._initialised:
                 self._initialise_tree(D)
                 self._initialised = True
@@ -200,19 +113,19 @@ class CXIWriter2:
     def _expand_signal(self):
         for i in range(self.comm.size):
             # Send out signal
-            self.comm.Send([numpy.array(self._i, dtype="i"), MPI.INT], dest=i, tag=MPI_TAG_EXPAND)
+            self.comm.Send([numpy.array(self._i, dtype="i"), ipc.mpi.MPI.INT], dest=i, tag=ipc.mpi.MPI_TAG_EXPAND)
             log_debug(logger, "(%i) Send expand signal" % self._rank)
 
     def _expand_poll(self):
-        if self.comm.Iprobe(source=MPI.ANY_SOURCE, tag=MPI_TAG_EXPAND):
+        if self.comm.Iprobe(source=ipc.mpi.MPI.ANY_SOURCE, tag=ipc.mpi.MPI_TAG_EXPAND):
             buf = numpy.empty(1, dtype="i")
-            self.comm.Recv([buf, MPI.INT], source=MPI.ANY_SOURCE, tag=MPI_TAG_EXPAND)
+            self.comm.Recv([buf, ipc.mpi.MPI.INT], source=ipc.mpi.MPI.ANY_SOURCE, tag=ipc.mpi.MPI_TAG_EXPAND)
             # Is expansion still needed or is the signal outdated?
             if buf[0] < self._N:
                 return                
             sendbuf = numpy.array(self._i, dtype='i')
             recvbuf = numpy.empty(1, dtype='i')
-            self.comm.Allreduce(sendbuf, recvbuf, MPI.MAX)
+            self.comm.Allreduce(sendbuf, recvbuf, ipc.mpi.MPI.MAX)
             i_max = recvbuf[0]
             if i_max >= self._N:
                 self._expand_stacks(self._N * 2)
@@ -223,28 +136,28 @@ class CXIWriter2:
             self._closing_clients = [i for i in range(self.comm.size) if i != self._rank]
             self._signal_sent     = False
         else:
-            self.comm.Isend([numpy.array(self._rank, dtype="i"), MPI.INT], dest=0, tag=MPI_TAG_READY)
+            self.comm.Isend([numpy.array(self._rank, dtype="i"), ipc.mpi.MPI.INT], dest=0, tag=ipc.mpi.MPI_TAG_READY)
             
     def _update_ready(self):
         if self._rank == 0:
             if (len(self._busy_clients) > 0):
                 for i in self._busy_clients:
-                    if self.comm.Iprobe(source=i, tag=MPI_TAG_READY):
+                    if self.comm.Iprobe(source=i, tag=ipc.mpi.MPI_TAG_READY):
                         self._busy_clients.remove(i)
             else:
                 if not self._signal_sent:
                     for i in self._closing_clients:
                         # Send out signal
-                        self.comm.Isend([numpy.array(-1, dtype="i"), MPI.INT], dest=i, tag=MPI_TAG_CLOSE)
+                        self.comm.Isend([numpy.array(-1, dtype="i"), ipc.mpi.MPI.INT], dest=i, tag=ipc.mpi.MPI_TAG_CLOSE)
                     self._signal_sent = True
                 # Collect more confirmations
                 for i in self._closing_clients:
-                    if self.comm.Iprobe(source=i, tag=MPI_TAG_CLOSE):
+                    if self.comm.Iprobe(source=i, tag=ipc.mpi.MPI_TAG_CLOSE):
                         self._closing_clients.remove(i)
             self._ready = len(self._closing_clients) == 0
         else:
-            if self.comm.Iprobe(source=0, tag=MPI_TAG_CLOSE):
-                self.comm.Isend([numpy.array(1, dtype="i"), MPI.INT], dest=0, tag=MPI_TAG_CLOSE)
+            if self.comm.Iprobe(source=0, tag=ipc.mpi.MPI_TAG_CLOSE):
+                self.comm.Isend([numpy.array(1, dtype="i"), ipc.mpi.MPI.INT], dest=0, tag=ipc.mpi.MPI_TAG_CLOSE)
                 self._ready = True
         log_debug(logger, "(%i) Ready status updated: %i" % (self._rank, self._ready))
         
@@ -354,7 +267,7 @@ class CXIWriter2:
         sendbuf = numpy.array(self._i_max, dtype='i')
         recvbuf = numpy.empty(1, dtype='i')
         log_debug(logger, "(%i) Entering allreduce with maximum index %i" % (self._rank, self._i_max))
-        self.comm.Allreduce([sendbuf, MPI.INT], [recvbuf, MPI.INT], op=MPI.MAX)
+        self.comm.Allreduce([sendbuf, ipc.mpi.MPI.INT], [recvbuf, ipc.mpi.MPI.INT], op=ipc.mpi.MPI.MAX)
         log_debug(logger, "(%i) Maximum index is %i (A)" % (self._rank, self._i_max))
         self._i_max = recvbuf[0]
         log_debug(logger, "(%i) Maximum index is %i (B)" % (self._rank, self._i_max))
@@ -381,5 +294,4 @@ class CXIWriter2:
             self.comm.Barrier()
         log_debug(logger, "(%i) Closing file %s" % (self._rank, self._filename))
         self._fclose()
-
         
