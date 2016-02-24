@@ -1,4 +1,4 @@
-Copyright (c) 2016, Benedikt J. Daurer, Max F. Hantke, Carl Nettelblad, Filipe R.N.C. Maia
+Copyright (c) 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 
 All rights reserved.
 
