@@ -18,6 +18,9 @@ docs/.build/
 # TIFF files
 *.tiff
 
+# CXI files
+*.cxi
+
 # Distribution / packaging
 .Python
 env/
