@@ -15,6 +15,11 @@ docs/.build/
 .fuse_hidden*
 *~
 
+# TIFF files
+*.tiff
+
+# CXI files
+*.cxi
 
 # Distribution / packaging
 .Python

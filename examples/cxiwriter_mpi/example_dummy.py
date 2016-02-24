@@ -1,23 +1,17 @@
 # Import analysis/plotting modules
 import analysis.event
-import analysis.cxiwriter
 import plotting.image
+import utils.cxiwriter
 import numpy as np
 
 # Set new random seed
 np.random.seed()
 
+# Logging for the CXI writer
 import logging, sys
 h = logging.StreamHandler(sys.stdout)
-analysis.cxiwriter.logger.setLevel("INFO")
-analysis.cxiwriter.logger.addHandler(h)
-
-import ipc.mpi
-comm = ipc.mpi.slaves_comm
-is_slave = ipc.mpi.is_master() == False
-
-i_frame = 0
-N_frames = 2
+utils.cxiwriter.logger.setLevel("INFO")
+utils.cxiwriter.logger.addHandler(h)
 
 # Specify the facility
 state = {}
@@ -43,8 +37,12 @@ state['Dummy'] = {
     }
 }
 
-if is_slave:
-    W = analysis.cxiwriter.CXIWriter("./test_dummy.cxi", chunksize=2, comm=comm)
+# Initialize CXIWriter with MPI capabilities
+W = utils.cxiwriter.CXIWriter("./test_dummy.cxi", chunksize=2)
+
+# Initialize counter/total frames
+counter = 0
+total_frames= 2
 
 # This function is called for every single event
 # following the given recipy of analysis
@@ -53,24 +51,24 @@ def onEvent(evt):
     # Processin rate [Hz]
     analysis.event.printProcessingRate()
 
-    if not is_slave:
-        return
-    
-    global i_frame
-    if i_frame >= N_frames:
+    # Stop when counter reaches total number of frames
+    global counter
+    if counter >= total_frames:
         raise StopIteration
         return
 
-    data = np.array( evt['photonPixelDetectors']['CCD'].data )
+    # Get detector image
+    data = np.array(evt['photonPixelDetectors']['CCD'].data)
 
+    # Write detector image into entry_1/data_1/data
     out = {}
     out["entry_1"] = {}
     out["entry_1"]["data_1"] = {}
     out["entry_1"]["data_1"]["data"] = data
+    W.write(out, counter)
 
-    W.write(out, i=comm.size*i_frame+comm.rank)
-
-    i_frame += 1
+    # Increment counter
+    counter += 1
 
 def end_of_run():
     W.close()

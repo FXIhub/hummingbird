@@ -1,5 +1,8 @@
-"""Coordinates data reading, translation and analysis.
-"""
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
+"""Coordinates data reading, translation and analysis."""
 import os
 import logging
 import imp

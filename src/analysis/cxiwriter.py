@@ -292,5 +292,3 @@ class CXIWriter:
         log_debug(logger, "(%i) Closing file %s" % (self._rank, self._filename))
         self._fclose()
 
-
-

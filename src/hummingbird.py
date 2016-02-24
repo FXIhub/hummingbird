@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-"""Hummingbird main file."""
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
+"""The main hummingbird file."""
 import sys
 import argparse
 import logging
