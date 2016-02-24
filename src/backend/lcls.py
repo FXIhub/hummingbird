@@ -38,6 +38,15 @@ class LCLSTranslator(object):
         else:
             raise ValueError("You need to set the '[LCLS][DataSource]'"
                              " in the configuration")
+
+        if 'LCLS/CalibDir' in state:
+            calibdir = state['LCLS/CalibDir']
+            logging.info("Setting calib-dir to %s" % calibdir)
+            psana.setOption('psana.calib-dir', calibdir)
+        elif('LCLS' in state and 'CalibDir' in state['LCLS']):
+            calibdir = state['LCLS']['CalibDir']
+            logging.info("Setting calib-dir to %s" % calibdir)
+            psana.setOption('psana.calib-dir', calibdir)
         
         # Cache times of events that shall be extracted from XTC (does not work for stream)
         self.event_slice = slice(0,None,1)
