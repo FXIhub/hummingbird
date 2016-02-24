@@ -2,7 +2,11 @@ LCLS examples
 =============
 
 To be able to run from LCLS data you need to have a functioning `PSANA` environment. There
-is lots of documentation about how to set up things on the `LCLS Data Analysis <https://confluence.slac.stanford.edu/display/PSDM/psana+python>`_ page.
+is lots of documentation about how to set up things on the |psana| page.
+
+.. |psana| raw:: html
+
+          <a href="https://confluence.slac.stanford.edu/display/PSDM/psana+python">LCLS Data Analysis</a>
 
 .. tip::
    
@@ -16,9 +20,13 @@ is lots of documentation about how to set up things on the `LCLS Data Analysis <
 Hit finding of mimivirus
 ------------------------
 
-This example is based on diffraction data from mimivirus (cite) published in the `CXIDB <http://www.cxidb.org>`_ (entry 30).
+This example is based on diffraction data from mimivirus (cite) published in the |cxidb| (entry 30).
 In order to run this example, it is necessary to download raw data files (XTC format) for a dark run (73) and a diffraction run (92)
 and put it inside a directory `XTC_DIR`.
+
+.. |cxidb| raw:: html
+                 
+   <a href="http://www.cxidb.org">CXIDB</a>
 
 mimi_dark.py
 ------------

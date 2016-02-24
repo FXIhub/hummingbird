@@ -8,12 +8,16 @@ Hummingbird is a python-based software tool for monitoring and analysing Flash X
 
 Getting Hummingbird
 -------------------
-The easiest way to get Hummingbird is to clone it from the `Github project <https://github.com/FXIhub/hummingbird>`_:
+The easiest way to get Hummingbird is to clone it from the |git_link|.
+
+.. |git_link| raw:: html
+                    
+   <a href="https://github.com/FXIhub/hummingbird" target="_blank">Github project</a>
 
 ::
 
     $ git clone https://github.com/FXIhub/hummingbird.git
-
+    
 More instructions can be found in the `Installation guide <installation.html>`_.
 
 Getting started
@@ -22,7 +26,11 @@ Hummingbird is very simple to use. `Configuration <configuration.html>`_ is done
 
 Getting help
 ------------
-`More advanced examples <advanced_examples.html>`_ and a full `API documentation <API/modules.html>`_ are available here at `http://fxihub.github.io/hummingbird/docs <https://fxihub.github.io/hummingbird/docs>`_.
+`More advanced examples <advanced_examples.html>`_ and a full `API documentation <API/modules.html>`_ are available here at |hum_doc|.
+
+.. |hum_doc| raw:: html
+
+                   <a href="http://fxihub.github.io/hummingbird/docs" target="_blank">https://fxihub.github.io/hummingbird/docs<a/>
 
 Supported facilities
 --------------------
@@ -42,7 +50,6 @@ Hummingbird is meant to be an open project, developed by users of Flash X-ray Im
    getting_started
    configuration
    basic_examples
-   advanced_examples
    lcls_examples
    API/modules
    contribute
