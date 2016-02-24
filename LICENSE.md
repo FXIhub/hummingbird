@@ -1,4 +1,4 @@
-Copyright (c) 2015, SPIhub
+Copyright (c) 2016, Benedikt J. Daurer, Max F. Hantke, Carl Nettelblad, Filipe F.R.C. Maia
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
