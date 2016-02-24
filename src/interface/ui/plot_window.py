@@ -11,7 +11,6 @@ from interface.Qt import QtCore, QtGui
 from interface.colorbar import ColorBar
 import datetime
 import utils.array
-import utils.time
 
 class Histogram(object):
     def __init__(self, hmin, hmax, bins):
