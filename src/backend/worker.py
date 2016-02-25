@@ -85,7 +85,7 @@ class Worker(object):
     def ctrlcevent(self, whatSignal, stack):
         self.reloadnow = True
         signal.signal(signal.SIGINT, self.oldHandler)
-
+        
     def event_loop(self):
         """The event loop.
 
