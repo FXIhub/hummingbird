@@ -43,41 +43,37 @@ def parse_cmdline_args():
         parser.print_help()
     return parser.parse_args()
 
-cmdline_args = None
 def main():
     """The entry point of the program"""
-    global cmdline_args
-    print cmdline_args
-    cmdline_args = parse_cmdline_args()
-    print cmdline_args
+    args = parse_cmdline_args()
     level = logging.WARNING
-    if cmdline_args.verbose:
+    if args.verbose:
         level = logging.INFO
-    if cmdline_args.debug:
+    if args.debug:
         level = logging.DEBUG
     logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s', level=level)
 
-    if cmdline_args.port < PORT_RANGE[0] or cmdline_args.port > PORT_RANGE[1]:
+    if args.port < PORT_RANGE[0] or args.port > PORT_RANGE[1]:
         print "The port must be from {0} to {1}".format(PORT_RANGE[0], PORT_RANGE[1])
         exit(0)
 
-    if(cmdline_args.backend is not None):
+    if(args.backend is not None):
         from backend import Worker
-        if(cmdline_args.backend != True):
-            worker = Worker(cmdline_args.backend, cmdline_args.port)
+        if(args.backend != True):
+            worker = Worker(args.backend, args.port)
         else:
-            worker = Worker(None, cmdline_args.port)
-        if not cmdline_args.profile:
+            worker = Worker(None, args.port)
+        if not args.profile:
             worker.start()
         else:
             from pycallgraph import PyCallGraph
             from pycallgraph.output import GraphvizOutput
             with PyCallGraph(output=GraphvizOutput()):
                 worker.start()
-    elif(cmdline_args.interface is not False):
+    elif(args.interface is not False):
         import interface
-        interface.start_interface(cmdline_args.no_restore)
-    elif(cmdline_args.reload is not False):
+        interface.start_interface(args.no_restore)
+    elif(args.reload is not False):
         import os, signal
         with open('.pid', 'r') as file:
             pid = int(file.read())

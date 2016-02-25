@@ -44,6 +44,15 @@ class LCLSTranslator(object):
             logging.info("Info: Found configuration file %s.", config_file)
             psana.setConfigFile(config_file)
 
+        if 'LCLS/CalibDir' in state:
+            calibdir = state['LCLS/CalibDir']
+            logging.info("Setting calib-dir to %s" % calibdir)
+            psana.setOption('psana.calib-dir', calibdir)
+        elif('LCLS' in state and 'CalibDir' in state['LCLS']):
+            calibdir = state['LCLS']['CalibDir']
+            logging.info("Setting calib-dir to %s" % calibdir)
+            psana.setOption('psana.calib-dir', calibdir)
+
         if('LCLS/DataSource' in state):
             dsrc = state['LCLS/DataSource']
         elif('LCLS' in state and 'DataSource' in state['LCLS']):
@@ -91,15 +100,6 @@ class LCLSTranslator(object):
                 self.event_slice = slice(ipc.mpi.slave_rank(), None, ipc.mpi.nr_workers())
             self.data_source = psana.DataSource(dsrc)
             self.run = None
-
-        if 'LCLS/CalibDir' in state:
-            calibdir = state['LCLS/CalibDir']
-            logging.info("Setting calib-dir to %s" % calibdir)
-            psana.setOption('psana.calib-dir', calibdir)
-        elif('LCLS' in state and 'CalibDir' in state['LCLS']):
-            calibdir = state['LCLS']['CalibDir']
-            logging.info("Setting calib-dir to %s" % calibdir)
-            psana.setOption('psana.calib-dir', calibdir)
             
         # Define how to translate between LCLS types and Hummingbird ones
         self._n2c = {}

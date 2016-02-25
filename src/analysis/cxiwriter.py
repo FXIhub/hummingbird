@@ -272,6 +272,7 @@ class CXIWriter:
         if self.comm:
             if not self._initialised:
                 log_and_raise_error(logger, "Cannot close uninitialised file. Every worker has to write at least one frame to file. Reduce your number of workers and try again.")
+                exit(1)
             self._close_signal()
             while True:
                 log_debug(logger, "(%i) Closing loop" % self._rank)
