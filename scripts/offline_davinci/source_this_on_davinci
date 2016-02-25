@@ -1,0 +1,17 @@
+# DAVINCI
+export PATH=/davinci/bin:$PATH
+export LD_LIBRARY_PATH=/davinci/lib:$LD_LIBRARY_PATH
+export PYTHONPATH=/davinci/lib/python2.7/site-packages/:$PYTHONPATH
+# PSANA ENV
+export PATH=/reg/g/psdm/sw/releases/ana-current/arch/x86_64-rhel6-gcc44-opt/bin/:$PATH
+export LD_LIBRARY_PATH=/reg/g/psdm/sw/releases/ana-current/arch/x86_64-rhel6-gcc44-opt/lib/:$LD_LIBRARY_PATH
+export PYTHONPATH=/reg/g/psdm/sw/releases/ana-current/arch/x86_64-rhel6-gcc44-opt/python/
+export PYTHONPATH=/reg/g/psdm/sw/releases/ana-current/arch/x86_64-rhel6-gcc44-opt/python/pyextra:$PYTHONPATH
+export SIT_DATA=/reg/g/psdm/sw/releases/ana-current/data:/reg/g/psdm/data
+# H5PY PARALLEL
+export LD_LIBRARY_PATH=/home/hantke/local_h5py_parallel_psana/lib/:$LD_LIBRARY_PATH
+export PYTHONPATH=/home/hantke/local_h5py_parallel_psana/lib/python2.7/site-packages/:$PYTHONPATH
+export PATH=/home/hantke/local_h5py_parallel_psana/bin/:$PATH
+# SPIMAGE
+export LD_LIBRARY_PATH=/home/hantke/local_libspimage_psana/lib64:$LD_LIBRARY_PATH
+export PYTHONPATH=/home/hantke/local_libspimage_psana/lib/python2.7/site-packages/:$PYTHONPATH

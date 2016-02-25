@@ -9,6 +9,8 @@ import argparse
 import logging
 import socket
 
+import backend.lcls
+
 PORT_RANGE = (0, 65535)
 
 def parse_cmdline_args():
@@ -35,41 +37,47 @@ def parse_cmdline_args():
     parser.add_argument("--no-restore", help="no restoring of Qsettings",
                         action="store_false")
     
+    parser = backend.lcls.add_cmdline_args(parser)
+    
     if(len(sys.argv) == 1):
         parser.print_help()
     return parser.parse_args()
 
+cmdline_args = None
 def main():
     """The entry point of the program"""
-    args = parse_cmdline_args()
+    global cmdline_args
+    print cmdline_args
+    cmdline_args = parse_cmdline_args()
+    print cmdline_args
     level = logging.WARNING
-    if args.verbose:
+    if cmdline_args.verbose:
         level = logging.INFO
-    if args.debug:
+    if cmdline_args.debug:
         level = logging.DEBUG
     logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s', level=level)
 
-    if args.port < PORT_RANGE[0] or args.port > PORT_RANGE[1]:
+    if cmdline_args.port < PORT_RANGE[0] or cmdline_args.port > PORT_RANGE[1]:
         print "The port must be from {0} to {1}".format(PORT_RANGE[0], PORT_RANGE[1])
         exit(0)
 
-    if(args.backend is not None):
+    if(cmdline_args.backend is not None):
         from backend import Worker
-        if(args.backend != True):
-            worker = Worker(args.backend, args.port)
+        if(cmdline_args.backend != True):
+            worker = Worker(cmdline_args.backend, cmdline_args.port)
         else:
-            worker = Worker(None, args.port)
-        if not args.profile:
+            worker = Worker(None, cmdline_args.port)
+        if not cmdline_args.profile:
             worker.start()
         else:
             from pycallgraph import PyCallGraph
             from pycallgraph.output import GraphvizOutput
             with PyCallGraph(output=GraphvizOutput()):
                 worker.start()
-    elif(args.interface is not False):
+    elif(cmdline_args.interface is not False):
         import interface
-        interface.start_interface(args.no_restore)
-    elif(args.reload is not False):
+        interface.start_interface(cmdline_args.no_restore)
+    elif(cmdline_args.reload is not False):
         import os, signal
         with open('.pid', 'r') as file:
             pid = int(file.read())

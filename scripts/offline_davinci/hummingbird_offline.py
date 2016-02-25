@@ -32,6 +32,7 @@ if __name__ == "__main__":
     args = parse_cmdline_args()
     this_dir = os.path.dirname(os.path.realpath(__file__))
     cmd = ""
+    #cmd = "source source_this_on_davinci; "
     cmd += "export HB_RUN=%i; " % args.run_number
     if args.number_of_frames is not None:
         cmd += "export HB_NUMBER_OF_FRAMES=%i; " % args.number_of_frames
@@ -40,3 +41,5 @@ if __name__ == "__main__":
     cmd += "mpiexec -n %i %s/../hummingbird.py -b %s" % (args.number_of_processes, this_dir, args.backend)
     print cmd
     os.system(cmd)
+
+    

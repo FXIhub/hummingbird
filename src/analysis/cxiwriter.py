@@ -61,7 +61,6 @@ class CXIWriter:
         if compression is not None:
             self._create_dataset_kwargs["compression"] = compression
         self._fopen()
-        self.comm = comm
 
     def _fopen(self):
         if os.path.exists(self._filename):

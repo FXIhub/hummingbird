@@ -14,7 +14,20 @@ from pytz import timezone
 from . import ureg
 from backend import Worker
 import ipc
+from hummingbird import parse_cmdline_args
 
+def add_cmdline_args(parser):
+    global argparser
+    argparser = parser
+    group = argparser.add_argument_group('LCLS', 'Options for the LCLS event translator')
+    group.add_argument('--lcls-run-number', metavar='lcls_run_number', nargs='?',
+                       help="run number",
+                       type=int)
+    group.add_argument('--lcls-number-of-frames', metavar='lcls_number_of_frames', nargs='?',
+                       help="number of frames to be processed",
+                       type=int)
+    return argparser
+    
 class LCLSTranslator(object):
     """Translate between LCLS events and Hummingbird ones"""
     def __init__(self, state):
@@ -38,16 +51,12 @@ class LCLSTranslator(object):
         else:
             raise ValueError("You need to set the '[LCLS][DataSource]'"
                              " in the configuration")
-
-        if 'LCLS/CalibDir' in state:
-            calibdir = state['LCLS/CalibDir']
-            logging.info("Setting calib-dir to %s" % calibdir)
-            psana.setOption('psana.calib-dir', calibdir)
-        elif('LCLS' in state and 'CalibDir' in state['LCLS']):
-            calibdir = state['LCLS']['CalibDir']
-            logging.info("Setting calib-dir to %s" % calibdir)
-            psana.setOption('psana.calib-dir', calibdir)
         
+        cmdline_args = parse_cmdline_args()
+        self.N = cmdline_args.lcls_number_of_frames          
+        if cmdline_args.lcls_run_number is not None:
+            dsrc += ":run=%i" % cmdline_args.lcls_run_number
+
         # Cache times of events that shall be extracted from XTC (does not work for stream)
         self.event_slice = slice(0,None,1)
         if 'times' in state or 'fiducials' in state:
@@ -83,6 +92,15 @@ class LCLSTranslator(object):
             self.data_source = psana.DataSource(dsrc)
             self.run = None
 
+        if 'LCLS/CalibDir' in state:
+            calibdir = state['LCLS/CalibDir']
+            logging.info("Setting calib-dir to %s" % calibdir)
+            psana.setOption('psana.calib-dir', calibdir)
+        elif('LCLS' in state and 'CalibDir' in state['LCLS']):
+            calibdir = state['LCLS']['CalibDir']
+            logging.info("Setting calib-dir to %s" % calibdir)
+            psana.setOption('psana.calib-dir', calibdir)
+            
         # Define how to translate between LCLS types and Hummingbird ones
         self._n2c = {}
         self._n2c[psana.Bld.BldDataFEEGasDetEnergy] = 'pulseEnergies'
@@ -154,8 +172,7 @@ class LCLSTranslator(object):
                 self.i += 1
                 evt = self.run.event(time)
                 if evt is None:
-                    print "Unable to find event listed in index file"
-
+                    print "Unable to find event listed in index file"                    
             # We got to the end without a valid event, time to call it a day
             if evt is None:
                 return None
@@ -164,6 +181,8 @@ class LCLSTranslator(object):
                 while (self.i % self.event_slice.step) != self.event_slice.start:
                     evt = self.data_source.events().next()
                     self.i += 1
+                if self.N is not None and self.i >= self.N:
+                    raise StopIteration
                 evt = self.data_source.events().next()
                 self.i += 1
             except StopIteration:
