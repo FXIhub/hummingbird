@@ -75,7 +75,7 @@ class CXIWriter:
             self._f.close()
             
     def write(self, D, i=None, flush=False):
-        # NO MPI
+        # WITHOUT MPI
         if self.comm is None:
             if not self._initialised:
                 self._initialise_tree(D)
@@ -99,32 +99,34 @@ class CXIWriter:
             else:
                 self._expand_poll()
             self._write_without_iterate(D)
-        # NO/WITH MPI
+        # BOTH WITHOUT AND WITH MPI
         if self._i > self._i_max:
             self._i_max = self._i
         if flush:
             self._f.flush()
             
     def _expand_signal(self):
+        log_debug(logger, "(%i) Send expand signal" % self._rank)
         for i in range(self.comm.size):
-            # Send out signal
             self.comm.Send([numpy.array(self._i, dtype="i"), MPI.INT], dest=i, tag=MPI_TAG_EXPAND)
-            log_debug(logger, "(%i) Send expand signal" % self._rank)
 
     def _expand_poll(self):
-        if self.comm.Iprobe(source=MPI.ANY_SOURCE, tag=MPI_TAG_EXPAND):
-            buf = numpy.empty(1, dtype="i")
-            self.comm.Recv([buf, MPI.INT], source=MPI.ANY_SOURCE, tag=MPI_TAG_EXPAND)
+        L = []
+        for i in range(self.comm.size): 
+            if self.comm.Iprobe(source=i, tag=MPI_TAG_EXPAND):
+                buf = numpy.empty(1, dtype="i")
+                self.comm.Recv([buf, MPI.INT], source=i, tag=MPI_TAG_EXPAND)
+                L.append(buf[0])
+        if len(L) > 0:
+            i_max = max(L)
             # Is expansion still needed or is the signal outdated?
-            if buf[0] < self._N:
-                log_debug(logger, "(%i) Expansion signal no longer needed" % self._rank)
-                return                
-            sendbuf = numpy.array(self._i, dtype='i')
-            recvbuf = numpy.empty(1, dtype='i')
-            self.comm.Allreduce(sendbuf, recvbuf, MPI.MAX)
-            i_max = recvbuf[0]
-            if i_max >= self._N:
-                self._expand_stacks(self._N * 2)
+            if i_max < self._N:
+                log_debug(logger, "(%i) Expansion signal no longer needed (%i < %i)" % (self._rank, i_max, self._N))
+                return
+            # OK - There is a process that needs longer stacks, so we'll actually expand the stacks
+            N_new = self._N * 2
+            log_debug(logger, "(%i) Start stack expansion (%i >= %i) - new stack length will be %i" % (self._rank, i_max, self._N, N_new))
+            self._expand_stacks(N_new)
 
     def _close_signal(self):
         if self._rank == 0:
@@ -178,7 +180,7 @@ class CXIWriter:
         for k in keys:
             if isinstance(D[k],dict):
                 group_prefix_new = group_prefix + k + "/"
-                log_debug(logger, "(%i) Writing group %s" % (self._rank, group_prefix_new))
+                #log_debug(logger, "(%i) Writing to group %s" % (self._rank, group_prefix_new))
                 self._write_without_iterate(D[k], group_prefix_new)
             else:
                 name = group_prefix + k
@@ -186,11 +188,9 @@ class CXIWriter:
                 log_debug(logger, "(%i) Write to dataset %s at stack position %i" % (self._rank, name, self._i))
                 if numpy.isscalar(data):
                     self._f[name][self._i] = data
-                    #self._f[name][0] = data
                 else:
                     self._f[name][self._i,:] = data[:]
-                    #self._f[name][0,:] = data[:]
-                log_debug(logger, "(%i) Writing to dataset %s at stack position %i completed" % (self._rank, name, self._i))
+                #log_debug(logger, "(%i) Write to dataset %s at stack position %i (completed)" % (self._rank, name, self._i))
                 
     def _create_dataset(self, data, name):
         if numpy.isscalar(data):
@@ -259,14 +259,12 @@ class CXIWriter:
             else:
                 self._shrink_stacks(name + "/")
 
-    def _update_i_max(self):
+    def _sync_i_max(self):
         sendbuf = numpy.array(self._i_max, dtype='i')
         recvbuf = numpy.empty(1, dtype='i')
         log_debug(logger, "(%i) Entering allreduce with maximum index %i" % (self._rank, self._i_max))
         self.comm.Allreduce([sendbuf, MPI.INT], [recvbuf, MPI.INT], op=MPI.MAX)
-        #log_debug(logger, "(%i) Maximum index is %i (A)" % (self._rank, self._i_max))
         self._i_max = recvbuf[0]
-        #log_debug(logger, "(%i) Maximum index is %i (B)" % (self._rank, self._i_max))
         
     def close(self):
         if self.comm:
@@ -282,8 +280,8 @@ class CXIWriter:
                     break
                 time.sleep(5.)
             self.comm.Barrier()
-            log_debug(logger, "(%i) Sync reduce stack length" % self._rank)
-            self._update_i_max()
+            log_debug(logger, "(%i) Sync stack length" % self._rank)
+            self._sync_i_max()
             log_debug(logger, "(%i) Shrink stacks" % self._rank)
             self.comm.Barrier()
         self._shrink_stacks()
@@ -291,4 +289,4 @@ class CXIWriter:
             self.comm.Barrier()
         log_debug(logger, "(%i) Closing file %s" % (self._rank, self._filename))
         self._fclose()
-
+        
