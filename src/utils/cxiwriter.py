@@ -47,8 +47,10 @@ try:
     MPI_TAG_EXPAND = 2 + 4353
     MPI_TAG_READY  = 3 + 4353
     MPI_TAG_CLOSE  = 4 + 4353
+    MpiException = mpi4py.MPI.Exception
     mpi = True
 except:
+    MpiException = Exception
     mpi = False
 
 class CXIWriter:
@@ -82,7 +84,10 @@ class CXIWriter:
         self._f.close()
 
     def _is_active(self):
-        return (self.comm is None or self.comm.rank != mpi4py.MPI.UNDEFINED)
+        try:
+            return (self.comm is None or self.comm.rank != mpi4py.MPI.UNDEFINED)
+        except mpi4py.MPI.Exception:
+            return False
             
     def write(self, D, i=None, flush=False):
         # WITHOUT MPI

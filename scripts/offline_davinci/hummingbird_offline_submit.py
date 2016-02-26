@@ -48,8 +48,13 @@ if __name__ == "__main__":
     s += "#SBATCH --cpus-per-task=1\n"
     s += "#SBATCH -p regular\n"
     s += "#SBATCH --output=%s\n" % output
+    #s += "#SBATCH -w a013,a014,a015,a016\n"
     cmd = "source %s/source_this_on_davinci; " % this_dir
-    cmd += "mpiexec -n %i %s/../../hummingbird.py -b %s --lcls-run-number %i --port %i" % (args.number_of_processes, this_dir, args.backend, args.lcls_run_number, port)
+    #cmd += "which mpiexec; which mpirun; " 
+    cmd += "mpiexec -n %i " % args.number_of_processes
+    #cmd += "mpirun -n %i " % args.number_of_processes
+    #cmd += "srun "
+    cmd += "%s/../../hummingbird.py -b %s --lcls-run-number %i --port %i" % (this_dir, args.backend, args.lcls_run_number, port)
     if args.lcls_number_of_frames is not None:
         cmd += " --lcls-number-of-frames %i" % args.lcls_number_of_frames
     cmd += "\n"
