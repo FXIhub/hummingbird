@@ -77,7 +77,8 @@ def is_main_worker():
 
 def send(title, data):
     """Send a list of data items to the master node."""
-    comm.send([title, data], 0)
+    if comm is not None:
+        comm.send([title, data], 0)
 
 def checkreload():
     global subscribed
