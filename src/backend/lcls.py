@@ -163,6 +163,7 @@ class LCLSTranslator(object):
                 logging.warning('End of Run.')
                 if 'end_of_run' in dir(Worker.conf):
                     Worker.conf.end_of_run()
+                ipc.mpi.slave_done()
                 return None
             self.i += 1
         elif self.times is not None:
