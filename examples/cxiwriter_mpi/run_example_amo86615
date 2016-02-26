@@ -1,0 +1,2 @@
+#!/bin/bash
+mpiexec -n 4 hummingbird.py -b example_amo86615.py --lcls-run-number 194 --lcls-number-of-frames 500

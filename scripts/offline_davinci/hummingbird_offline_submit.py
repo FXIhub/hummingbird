@@ -39,6 +39,7 @@ if __name__ == "__main__":
     run = "r%04i" % args.lcls_run_number
     slurm = "%s/%s.sh" % (this_dir, run)
     output = "%s/%s.out" % (this_dir, run)
+    port = 13131 + args.lcls_run_number
     
     s = []
     s += "#!/bin/sh\n"
@@ -48,7 +49,7 @@ if __name__ == "__main__":
     s += "#SBATCH -p regular\n"
     s += "#SBATCH --output=%s\n" % output
     cmd = "source %s/source_this_on_davinci; " % this_dir
-    cmd += "mpiexec -n %i %s/../../hummingbird.py -b %s --lcls-run-number %i" % (args.number_of_processes, this_dir, args.backend, args.lcls_run_number)
+    cmd += "mpiexec -n %i %s/../../hummingbird.py -b %s --lcls-run-number %i --port %i" % (args.number_of_processes, this_dir, args.backend, args.lcls_run_number, port)
     if args.lcls_number_of_frames is not None:
         cmd += " --lcls-number-of-frames %i" % args.lcls_number_of_frames
     cmd += "\n"

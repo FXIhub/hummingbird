@@ -1,13 +1,7 @@
-# --------------------------------------------------------------------------------------
-# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
-# Hummingbird is distributed under the terms of the Simplified BSD License.
-# -------------------------------------------------------------------------
-# Code adapted from http://github.com/mhantke/condor
-# --------------------------------------------------
-import ipc.mpi
-import numpy, h5py, os
-import time
-import log
+# Adapted code from condor (https://github.com/mhantke/condor)
+import numpy, os, time
+import h5py
+
 import logging,inspect
 logger = logging.getLogger(__name__)
 
@@ -28,7 +22,7 @@ def log(logger, message, lvl, exception=None, rollback=1):
     # This should maybe go into a handler
     if (logger.getEffectiveLevel() >= logging.INFO) or rollback is None:
         # Short output
-        msg = "%s" % message
+        msg = message
     else:
         # Detailed output only in debug mode
         func = inspect.currentframe()
@@ -41,27 +35,37 @@ def log(logger, message, lvl, exception=None, rollback=1):
                                                               code.co_name, 
                                                               code.co_filename, 
                                                               code.co_firstlineno)
+
     logcall("%s:\t%s" % (lvl,msg))
     if exception is not None:
         raise exception(message)
 
+try:
+    import mpi4py
+    from mpi4py import MPI
+    MPI_TAG_INIT   = 1 + 4353
+    MPI_TAG_EXPAND = 2 + 4353
+    MPI_TAG_READY  = 3 + 4353
+    MPI_TAG_CLOSE  = 4 + 4353
+    mpi = True
+except:
+    mpi = False
+
 class CXIWriter:
-    def __init__(self, filename, chunksize=2, compression=None):
-        if (ipc.mpi.size == 1):
-            self.comm = None
-            self._rank = -1
-        else:
-            if ipc.mpi.is_master(): return
-            self.comm = ipc.mpi.slaves_comm
-            self._rank = -1 if self.comm is None else self.comm.rank
+    def __init__(self, filename, chunksize=2, compression=None, comm=None):
+        self.comm = comm
+        # This "if" avoids that processes that are not in the communicator (like the master process of hummingbird) interact with the file and block
+        if not self._is_active():
+            return
         self._ready = False
         self._filename = os.path.expandvars(filename)
-        self._i = -1
+        self._rank = -1 if self.comm is None else self.comm.rank
+        self._i = -1 if self.comm is None else (self.comm.rank-1)
+        self._i_max = -1
+        self._initialised = False
         self._chunksize = chunksize
         self._N = chunksize
         self._create_dataset_kwargs = {}
-        self._initialised = False
-        self._i_max = -1
         if compression is not None:
             self._create_dataset_kwargs["compression"] = compression
         self._fopen()
@@ -75,11 +79,13 @@ class CXIWriter:
             self._f = h5py.File(self._filename, "w", driver='mpio', comm=self.comm)
 
     def _fclose(self):
-        if self._f is not None:
-            self._f.close()
+        self._f.close()
+
+    def _is_active(self):
+        return (self.comm is None or self.comm.rank != mpi4py.MPI.UNDEFINED)
             
     def write(self, D, i=None, flush=False):
-        # NO MPI
+        # WITHOUT MPI
         if self.comm is None:
             if not self._initialised:
                 self._initialise_tree(D)
@@ -90,7 +96,6 @@ class CXIWriter:
             self._write_without_iterate(D)
         # WITH MPI
         else:
-            i = self.comm.size*i+self.comm.rank
             if not self._initialised:
                 self._initialise_tree(D)
                 self._initialised = True
@@ -100,35 +105,38 @@ class CXIWriter:
                     self._expand_signal()
                     self._expand_poll()
                     if self._i > (self._N-1):
-                        time.sleep(0.1)
+                        time.sleep(1)
             else:
                 self._expand_poll()
             self._write_without_iterate(D)
-        # NO/WITH MPI
+        # BOTH WITHOUT AND WITH MPI
         if self._i > self._i_max:
             self._i_max = self._i
         if flush:
             self._f.flush()
             
     def _expand_signal(self):
+        log_debug(logger, "(%i) Send expand signal" % self._rank)
         for i in range(self.comm.size):
-            # Send out signal
-            self.comm.Send([numpy.array(self._i, dtype="i"), ipc.mpi.MPI.INT], dest=i, tag=ipc.mpi.MPI_TAG_EXPAND)
-            log_debug(logger, "(%i) Send expand signal" % self._rank)
+            self.comm.Send([numpy.array(self._i, dtype="i"), MPI.INT], dest=i, tag=MPI_TAG_EXPAND)
 
     def _expand_poll(self):
-        if self.comm.Iprobe(source=ipc.mpi.MPI.ANY_SOURCE, tag=ipc.mpi.MPI_TAG_EXPAND):
-            buf = numpy.empty(1, dtype="i")
-            self.comm.Recv([buf, ipc.mpi.MPI.INT], source=ipc.mpi.MPI.ANY_SOURCE, tag=ipc.mpi.MPI_TAG_EXPAND)
+        L = []
+        for i in range(self.comm.size): 
+            if self.comm.Iprobe(source=i, tag=MPI_TAG_EXPAND):
+                buf = numpy.empty(1, dtype="i")
+                self.comm.Recv([buf, MPI.INT], source=i, tag=MPI_TAG_EXPAND)
+                L.append(buf[0])
+        if len(L) > 0:
+            i_max = max(L)
             # Is expansion still needed or is the signal outdated?
-            if buf[0] < self._N:
-                return                
-            sendbuf = numpy.array(self._i, dtype='i')
-            recvbuf = numpy.empty(1, dtype='i')
-            self.comm.Allreduce(sendbuf, recvbuf, ipc.mpi.MPI.MAX)
-            i_max = recvbuf[0]
-            if i_max >= self._N:
-                self._expand_stacks(self._N * 2)
+            if i_max < self._N:
+                log_debug(logger, "(%i) Expansion signal no longer needed (%i < %i)" % (self._rank, i_max, self._N))
+                return
+            # OK - There is a process that needs longer stacks, so we'll actually expand the stacks
+            N_new = self._N * 2
+            log_debug(logger, "(%i) Start stack expansion (%i >= %i) - new stack length will be %i" % (self._rank, i_max, self._N, N_new))
+            self._expand_stacks(N_new)
 
     def _close_signal(self):
         if self._rank == 0:
@@ -136,28 +144,28 @@ class CXIWriter:
             self._closing_clients = [i for i in range(self.comm.size) if i != self._rank]
             self._signal_sent     = False
         else:
-            self.comm.Isend([numpy.array(self._rank, dtype="i"), ipc.mpi.MPI.INT], dest=0, tag=ipc.mpi.MPI_TAG_READY)
+            self.comm.Isend([numpy.array(self._rank, dtype="i"), MPI.INT], dest=0, tag=MPI_TAG_READY)
             
     def _update_ready(self):
         if self._rank == 0:
             if (len(self._busy_clients) > 0):
                 for i in self._busy_clients:
-                    if self.comm.Iprobe(source=i, tag=ipc.mpi.MPI_TAG_READY):
+                    if self.comm.Iprobe(source=i, tag=MPI_TAG_READY):
                         self._busy_clients.remove(i)
             else:
                 if not self._signal_sent:
                     for i in self._closing_clients:
                         # Send out signal
-                        self.comm.Isend([numpy.array(-1, dtype="i"), ipc.mpi.MPI.INT], dest=i, tag=ipc.mpi.MPI_TAG_CLOSE)
+                        self.comm.Isend([numpy.array(-1, dtype="i"), MPI.INT], dest=i, tag=MPI_TAG_CLOSE)
                     self._signal_sent = True
                 # Collect more confirmations
                 for i in self._closing_clients:
-                    if self.comm.Iprobe(source=i, tag=ipc.mpi.MPI_TAG_CLOSE):
+                    if self.comm.Iprobe(source=i, tag=MPI_TAG_CLOSE):
                         self._closing_clients.remove(i)
             self._ready = len(self._closing_clients) == 0
         else:
-            if self.comm.Iprobe(source=0, tag=ipc.mpi.MPI_TAG_CLOSE):
-                self.comm.Isend([numpy.array(1, dtype="i"), ipc.mpi.MPI.INT], dest=0, tag=ipc.mpi.MPI_TAG_CLOSE)
+            if self.comm.Iprobe(source=0, tag=MPI_TAG_CLOSE):
+                self.comm.Isend([numpy.array(1, dtype="i"), MPI.INT], dest=0, tag=MPI_TAG_CLOSE)
                 self._ready = True
         log_debug(logger, "(%i) Ready status updated: %i" % (self._rank, self._ready))
         
@@ -182,7 +190,7 @@ class CXIWriter:
         for k in keys:
             if isinstance(D[k],dict):
                 group_prefix_new = group_prefix + k + "/"
-                log_debug(logger, "(%i) Writing group %s" % (self._rank, group_prefix_new))
+                #log_debug(logger, "(%i) Writing to group %s" % (self._rank, group_prefix_new))
                 self._write_without_iterate(D[k], group_prefix_new)
             else:
                 name = group_prefix + k
@@ -190,11 +198,9 @@ class CXIWriter:
                 log_debug(logger, "(%i) Write to dataset %s at stack position %i" % (self._rank, name, self._i))
                 if numpy.isscalar(data):
                     self._f[name][self._i] = data
-                    #self._f[name][0] = data
                 else:
                     self._f[name][self._i,:] = data[:]
-                    #self._f[name][0,:] = data[:]
-                log_debug(logger, "(%i) Writing to dataset %s at stack position %i completed" % (self._rank, name, self._i))
+                #log_debug(logger, "(%i) Write to dataset %s at stack position %i (completed)" % (self._rank, name, self._i))
                 
     def _create_dataset(self, data, name):
         if numpy.isscalar(data):
@@ -263,30 +269,32 @@ class CXIWriter:
             else:
                 self._shrink_stacks(name + "/")
 
-    def _update_i_max(self):
+    def _sync_i_max(self):
         sendbuf = numpy.array(self._i_max, dtype='i')
         recvbuf = numpy.empty(1, dtype='i')
         log_debug(logger, "(%i) Entering allreduce with maximum index %i" % (self._rank, self._i_max))
-        self.comm.Allreduce([sendbuf, ipc.mpi.MPI.INT], [recvbuf, ipc.mpi.MPI.INT], op=ipc.mpi.MPI.MAX)
-        log_debug(logger, "(%i) Maximum index is %i (A)" % (self._rank, self._i_max))
+        self.comm.Allreduce([sendbuf, MPI.INT], [recvbuf, MPI.INT], op=MPI.MAX)
         self._i_max = recvbuf[0]
-        log_debug(logger, "(%i) Maximum index is %i (B)" % (self._rank, self._i_max))
         
     def close(self):
+        # This "if" avoids that processes that are not in the communicator (like the master process of hummingbird) interact with the file and block
+        if not self._is_active():
+            return
         if self.comm:
+            if not self._initialised:
+                log_and_raise_error(logger, "Cannot close uninitialised file. Every worker has to write at least one frame to file. Reduce your number of workers and try again.")
+                exit(1)
             self._close_signal()
             while True:
-                log_debug(logger, "(%i) Closing loop (A)" % self._rank)
+                log_debug(logger, "(%i) Closing loop" % self._rank)
                 self._expand_poll()
-                log_debug(logger, "(%i) Closing loop (B)" % self._rank)
                 self._update_ready()
                 if self._ready:
                     break
-                log_debug(logger, "(%i) Closing loop (C)" % self._rank)
-                time.sleep(0.1)
+                time.sleep(5.)
             self.comm.Barrier()
-            log_debug(logger, "(%i) Sync reduce stack length" % self._rank)
-            self._update_i_max()
+            log_debug(logger, "(%i) Sync stack length" % self._rank)
+            self._sync_i_max()
             log_debug(logger, "(%i) Shrink stacks" % self._rank)
             self.comm.Barrier()
         self._shrink_stacks()
@@ -294,4 +302,4 @@ class CXIWriter:
             self.comm.Barrier()
         log_debug(logger, "(%i) Closing file %s" % (self._rank, self._filename))
         self._fclose()
-        
+        log_info(logger, "(%i) File %s closed" % (self._rank, self._filename))
