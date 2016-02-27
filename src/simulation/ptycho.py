@@ -9,7 +9,7 @@ from matplotlib.colors import LogNorm
 import numpy as np
 from scipy.ndimage import zoom
 import h5py
-import sys
+import sys, os
 import utils.io
 
 # Physical constants
@@ -17,16 +17,20 @@ h = 6.62606957e-34 #[Js]
 c = 299792458 #[m/s]
 hc = h*c  #[Jm] 
 
+# Loading a test object (binary hummingbird logo)
+test_object = np.load(os.path.dirname(os.path.realpath(__file__)) + '/test_object.npy')*1e-2
+
 class Simulation:
     def __init__(self):
         """
-        Simulator for Ptychography experimetns at LCLS.
+        Simulator for Ptychography experiments at LCLS.
         
         :Authors:
             Simone Sala,
             Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
         """
         self.counter = 0
+        self.endless = False
 
     def setSource(self, wavelength=1e-10, focus_diameter=4.5e-6, pulse_energy=2e-3, transmission=1.):
         """
@@ -77,7 +81,7 @@ class Simulation:
         self.positions_x = np.array([start[0] + i*step for i in range(scanx)])
         self.positions_y = np.array([start[1] - i*step for i in range(scany)])
 
-    def setObject(self, sample='xradia_star', size=1e-3, thickness=200e-9, material='gold', filename='./', smooth=2):
+    def setObject(self, sample='default', size=1e-3, thickness=200e-9, material='gold', filename='./', smooth=2):
         """
         Specify the object.
 
@@ -92,19 +96,25 @@ class Simulation:
         if sample == 'xradia_star':
             img = self.loadXradiaStar()
         elif sample == 'file':
-            img = self.loadFromFile(filename, smooth)
+            img = self.loadFromFile(filename)
+            img = ndi.gaussian_filter(img, smooth)
+        elif sample == 'default':
+            img = test_object
+            img = ndi.gaussian_filter(img, smooth)
         self.sample_sidelength = np.round(size / self.dx)
 
         # Refractive index
         if material == 'gold':
             success, module = utils.io.load_condor()
             if not success:
-                print "Could not specify refractive index"
+                print "Could not lookup refractive index, using values for gold 6 keV"
+                dn = 8.45912218E-05 + 1j* 1.38081241E-05
             else:
                 m = module.utils.material.AtomDensityMaterial('custom', massdensity=19320, atomic_composition={'Au':1})
                 dn = m.get_dn(self.wavelength)
         else:
-            print "Material not defined"
+            print "Material not defined, use Gold at 6 keV"
+            dn = 8.45912218E-05 + 1j* 1.38081241E-05
 
         # Complex transmission function
         tr = 2*np.pi*dn*thickness/self.wavelength
@@ -124,7 +134,6 @@ class Simulation:
             assert nx == ny, "Can only load square images"
             sample = np.array(f.getdata()).reshape((nx,ny,nr_channels))
             sample = 1-sample[:,:,0]/255.
-            sample = ndi.gaussian_filter(sample, smooth)
         return sample
 
     def loadXradiaStar(self):
@@ -218,7 +227,11 @@ class Simulation:
         """
         frame = self.frames[self.counter % self.nframes]
         self.counter += 1
-        return frame
+        if not self.endless and self.get_end_of_scan():
+            raise IndexError
+            return None
+        else:
+            return frame
 
     def get_exitwave(self):
         """Iterate through pre-determined exitwaves, does not increment the counter

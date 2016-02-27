@@ -7,6 +7,7 @@ import time
 import random
 from backend.event_translator import EventTranslator
 from backend.record import add_record
+from backend import Worker
 from . import ureg
 import numpy
 import ipc
@@ -44,11 +45,19 @@ class DummyTranslator(object):
 
         if('Dummy' in self.state and 'Simulation' in self.state['Dummy']):
             self.state['Dummy']['Simulation'].next_event()
-        
-        for ds in self.state['Dummy']['Data Sources']:
-            evt[ds] = self.state['Dummy']['Data Sources'][ds]['data']()
-            self.keys.add(self.state['Dummy']['Data Sources'][ds]['type'])
-        
+
+        try:
+            for ds in self.state['Dummy']['Data Sources']:
+                evt[ds] = self.state['Dummy']['Data Sources'][ds]['data']()
+                self.keys.add(self.state['Dummy']['Data Sources'][ds]['type'])
+
+        except IndexError:
+            #logging.warning('End of Run.')
+            if 'end_of_run' in dir(Worker.conf):
+                Worker.conf.end_of_run()
+            ipc.mpi.slave_done()
+            return None
+
         return EventTranslator(evt, self)
 
     def event_keys(self, _):
