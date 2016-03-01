@@ -1,2 +1,6 @@
-#!/bin/bash
-mpiexec -n 10 hummingbird.py -b example_dummy.py
+#!/usr/bin/env python
+import os
+this_dir = os.path.dirname(os.path.realpath(__file__))
+cmd = "mpiexec -n 4 %s/../../hummingbird.py -b example_dummy.py" % this_dir
+print cmd
+os.system(cmd)

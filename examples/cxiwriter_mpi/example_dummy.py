@@ -8,13 +8,8 @@ import numpy as np
 np.random.seed()
 
 # Logging for the CXI writer
-utils.cxiwriter.logger.setLevel("DEBUG")
-
-# MPI
-import ipc.mpi
-mpi = ipc.mpi.comm.size > 1
-comm = ipc.mpi.slaves_comm if mpi else None
-is_slave = ipc.mpi.is_master() == False
+#utils.cxiwriter.logger.setLevel("DEBUG")
+utils.cxiwriter.logger.setLevel("INFO")
 
 # Specify the facility
 state = {}
@@ -41,7 +36,7 @@ state['Dummy'] = {
 }
 
 # Initialize CXIWriter (with MPI capabilities if started in MPI mode)
-W = utils.cxiwriter.CXIWriter("./test_dummy.cxi", chunksize=100, comm=comm)
+W = utils.cxiwriter.CXIWriter("./test_dummy.cxi", chunksize=100)
 
 # Initialize counter/total frames
 counter = 0
@@ -68,7 +63,7 @@ def onEvent(evt):
     out["entry_1"] = {}
     out["entry_1"]["data_1"] = {}
     out["entry_1"]["data_1"]["data"] = data
-    W.write(out)
+    W.write_slice(out)
 
     # Increment counter
     counter += 1
