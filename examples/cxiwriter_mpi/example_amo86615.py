@@ -22,17 +22,6 @@ utils.cxiwriter.logger.setLevel("INFO")
 from hummingbird import parse_cmdline_args
 cmdline_args = parse_cmdline_args()
 
-# MPI
-mpi = ipc.mpi.comm.size > 1
-comm = ipc.mpi.slaves_comm if mpi else None
-is_slave = ipc.mpi.is_master() == False
-if is_slave and mpi:
-    size = comm.size
-    rank = comm.rank
-else:
-    size = 1
-    rank = 0
-
 # DATA PARAMS
 user = os.environ["USER"]
 run_nr = cmdline_args.lcls_run_number 
@@ -57,8 +46,7 @@ back_type = "image"
 back_key  = "pnccdBack[%s]" % back_type
 
 # OPEN FILE FOR WRITING
-if is_slave:
-    W = utils.cxiwriter.CXIWriter("/scratch/fhgfs/hantke/r%04i.cxi" % (run_nr), chunksize=100, comm=comm)
+W = utils.cxiwriter.CXIWriter("/scratch/fhgfs/hantke/r%04i.cxi" % (run_nr), chunksize=100)
 
 t_start = time.time()
     
@@ -70,10 +58,6 @@ def onEvent(evt):
     # Processin rate [Hz]
     analysis.event.printProcessingRate()
 
-    if N_frames > 0 and i_frame * size >= N_frames:
-        raise StopIteration
-        return
-    
     # Simple hitfinding (Count Nr. of lit pixels)
     aduThreshold = 30*16
     hitscoreThreshold = 700
@@ -83,7 +67,7 @@ def onEvent(evt):
     hitscore = evt["analysis"]["hitscore"].data
 
     hitratio = 100.*i_hit/float(i_frame+1)
-    print "[rank=%03i] %05i/%05i - %.1f %% hits - %s (score=%i)" % (rank, i_frame*size+1, N_frames, hitratio, "HIT" if hit else "miss", hitscore)
+    #print "[rank=%03i] %05i/%05i - %.1f %% hits - %s (score=%i)" % (rank, i_frame*size+1, N_frames, hitratio, "HIT" if hit else "miss", hitscore)
 
     if hit:
 
@@ -93,16 +77,15 @@ def onEvent(evt):
         
         output["pnccd_back"]["data"] = numpy.asarray(evt[back_type][back_key].data)
 
-        W.write(output)
+        W.write_slice(output)
 
         i_hit += 1
 
     i_frame += 1
 
 def end_of_run():
-    if is_slave:
-        W.close()
-        dt = time.time()-t_start
-        N = (i_frame+1)*size
-        r = N/dt
-        print "Finished after %.1f seconds processing of %i frames (%.1f Hz)" % (dt, N, r)
+    W.close()
+    dt = time.time()-t_start
+    N = (i_frame+1)
+    r = N/dt
+    print "Finished after %.1f seconds processing of %i frames (%.1f Hz / worker)" % (dt, N, r)
