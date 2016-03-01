@@ -9,8 +9,6 @@ import argparse
 import logging
 import socket
 
-import backend.lcls
-
 PORT_RANGE = (0, 65535)
 
 def parse_cmdline_args():
@@ -36,9 +34,15 @@ def parse_cmdline_args():
                         action="store_true")
     parser.add_argument("--no-restore", help="no restoring of Qsettings",
                         action="store_false")
-    
-    parser = backend.lcls.add_cmdline_args(parser)
-    
+
+    # LCLS-specific arguments
+    try:
+        import backend.lcls
+        parser = backend.lcls.add_cmdline_args(parser)
+    except ImportError:
+        pass
+        
+    # Print help
     if(len(sys.argv) == 1):
         parser.print_help()
     return parser.parse_args()
