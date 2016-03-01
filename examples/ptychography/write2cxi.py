@@ -97,8 +97,7 @@ else:
 
 # Open a CXI file
 filename = "test.cxi"
-if is_slave:
-    W = utils.cxiwriter.CXIWriter(filename, chunksize=100, comm=comm)
+W = utils.cxiwriter.CXIWriter(filename, chunksize=100)
 
 # This is the backbone we are going to use to extend the CXI file with data frames and translation vectors
 extend_dict= {'entry_1':{'instrument_1':{'detector_1':{}},
@@ -119,7 +118,7 @@ def onEvent(evt):
     D = extend_dict.copy()
     D["entry_1"]["instrument_1"]["detector_1"]["data"] = evt['photonPixelDetectors']['CCD'].data
     D["entry_1"]["sample_1"]["geometry_1"]["translation"] = translations
-    W.write(D)
+    W.write_slice(D)
 
     # Stop running at the end of the scan
     if evt['simulation']['end'].data:
