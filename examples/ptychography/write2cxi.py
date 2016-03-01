@@ -21,17 +21,17 @@ ev2J = np.double(1.60217657e-19)  # [J/eV]
 photon_energy_keV = 6 # keV
 photon_energy_J   = np.double(photon_energy_keV * 1000.) * ev2J  # J
 wavelength        = (hev*c) / np.double(photon_energy_keV * 1000.) # m
-focus_diameter    = 200e-9 # m
+focus_diameter    = 500e-9 # m
 pulse_energy      = 4e-3 # J
-transmission      = 1e-8   
+transmission      = 1e-8
 det_pixelsize     = 110e-6 # m
 det_distance      = 2.4 # m
-det_sidelength    = 184 # px
+det_sidelength    = 20 # px
 det_aduphoton     = 30 # Nr. of ADUs per photon
 scan_exposure     = 1 # Shots (exposures) per position
-scan_x, scan_y    = (5,5) # px
-scan_step         = 100e-9 # m
-sample_size       = 40e-6 # m
+scan_x, scan_y    = (30,30) # px
+scan_step         = 400e-9 # m
+sample_size       = 80e-6  # m
 sample_thickness  = 200e-9 # m
 sample_material   = 'gold'
 corner_position   = [det_sidelength/2 * det_pixelsize, det_sidelength/2 * det_pixelsize, det_distance]
@@ -42,10 +42,10 @@ sim.setSource(wavelength=wavelength, focus_diameter=focus_diameter,
 sim.setDetector(pixelsize=det_pixelsize, nx=det_sidelength,
                 distance=det_distance, adus_per_photon=det_aduphoton)
 sim.setScan(nperpos=scan_exposure, scanx=scan_x, scany=scan_y,
-            step=scan_step, start=(-2e-6, 2e-6))
-sim.setObject(sample='default', size=sample_size,
+            step=scan_step, start=(0, 0))
+sim.setObject(sample='logo', size=sample_size,
               thickness=sample_thickness, material=sample_material)
-sim.setIllumination()
+sim.setIllumination(shape='gaussian')
 print "Simulating a scanning experiment, this might take a few seconds..."
 sim.start()
 
@@ -58,11 +58,6 @@ state = {
                 'data': lambda: sim.get_nextframe(),
                 'unit': 'ADU',     
                 'type': 'photonPixelDetectors'
-            },
-            'illumination': {
-                'data': lambda: np.abs(sim.get_illumination()),
-                'unit': '',
-                'type': 'simulation'
             },
             'position_x': {
                 'data': lambda: sim.get_position_x(),
@@ -115,7 +110,7 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
 
     # Translation vector
-    x = evt['simulation']['position_x'].data
+    x = evt['simulation']['position_x'].data 
     y = evt['simulation']['position_y'].data
     z = evt['simulation']['position_z'].data
     translations = np.array([x,y,z])
@@ -164,9 +159,9 @@ def end_of_run():
 
         # These are optional data that should be provided (if known)
         # ----------------------------------------------------------
-        #source_1.create_dataset("illumination", data=illumination)
+        source_1.create_dataset("illumination", data=sim.get_illumination())
         #detector_1.create_dataset("Fillumination_mask", data=illumination_intensities_mask)
-        #detector_1.create_dataset("solution", data=solution)
+        #detector_1.create_dataset("solution", data=sim.obj)
         #detector_1.create_dataset("initial_image",data=initial_image)
         
         # Close CXI file and exit

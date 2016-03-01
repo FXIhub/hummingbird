@@ -18,7 +18,7 @@ c = 299792458 #[m/s]
 hc = h*c  #[Jm] 
 
 # Loading a test object (binary hummingbird logo)
-test_object = np.load(os.path.dirname(os.path.realpath(__file__)) + '/test_object.npy')*1e-2
+test_object = np.load(os.path.dirname(os.path.realpath(__file__)) + '/test_object.npy')*1e2
 
 class Simulation:
     def __init__(self):
@@ -79,7 +79,7 @@ class Simulation:
         self.scany       = scany
         self.nframes     = nperpos * scanx * scany
         self.positions_x = np.array([start[0] + i*step for i in range(scanx)])
-        self.positions_y = np.array([start[1] - i*step for i in range(scany)])
+        self.positions_y = np.array([start[1] + i*step for i in range(scany)])
 
     def setObject(self, sample='default', size=1e-3, thickness=200e-9, material='gold', filename='./', smooth=2):
         """
@@ -98,9 +98,11 @@ class Simulation:
         elif sample == 'file':
             img = self.loadFromFile(filename)
             img = ndi.gaussian_filter(img, smooth)
-        elif sample == 'default':
+        elif sample == 'logo':
             img = test_object
             img = ndi.gaussian_filter(img, smooth)
+        elif sample == 'sinus':
+            img = self.loadTestObject(np.round(size / self.dx))
         self.sample_sidelength = np.round(size / self.dx)
 
         # Refractive index
@@ -146,6 +148,16 @@ class Simulation:
             print "Siemens star cannot be loaded with the ptypy package (https://github.com/ptycho/ptypy)"
         sample = ptypy.utils.xradia_star((900, 900),spokes=60,minfeature=1,ringfact=1.8,rings=5)
         return sample
+
+    def loadTestObject(self, size):
+        """Loads a simple test object.
+
+        Args:
+            :size(int): Size of test object in [px].
+        """
+        [X,Y] = np.meshgrid(np.arange(-np.pi,np.pi,2.0*np.pi/size),
+                            np.arange(-np.pi,np.pi,2.0*np.pi/size))
+        return np.sin(X)*np.sin(X*Y) * 10.
 
     def setIllumination(self, shape='gaussian'):
         """
@@ -195,7 +207,7 @@ class Simulation:
         self.exitwave = self.obj[ytop:ybottom, xleft:xright] * self.illumination
         
         # Propagate to far-field
-        self.fourier_pattern = np.fft.fftshift(np.fft.fftn(self.exitwave)) / (self.det_sidelength)
+        self.fourier_pattern = np.flipud(np.fft.fftshift(np.fft.fftn(self.exitwave)) / (self.det_sidelength))
         self.diffraction_pattern = np.abs(self.fourier_pattern)**2 
         
         # Sample photons (and apply detector gain)
@@ -225,8 +237,8 @@ class Simulation:
     def get_nextframe(self):
         """Iterate through pre-determined frames, inrements the counter
         """
-        frame = self.frames[self.counter % self.nframes]
         self.counter += 1
+        frame = self.frames[self.counter % self.nframes - 1]
         if not self.endless and self.get_end_of_scan():
             raise IndexError
             return None
@@ -236,7 +248,7 @@ class Simulation:
     def get_exitwave(self):
         """Iterate through pre-determined exitwaves, does not increment the counter
         """
-        exitwave = self.exitwaves[self.counter % self.nframes]
+        exitwave = self.exitwaves[self.counter % self.nframes - 1]
         return exitwave
         
     def get_illumination(self):
@@ -247,17 +259,17 @@ class Simulation:
     def get_position_x(self):
         """Iterate through pre-determined x positions, does not increment the counter
         """
-        return self.positions[self.counter % self.nframes, 0]
+        return self.positions[self.counter % self.nframes - 1, 0]
 
     def get_position_y(self):
         """Iterate through pre-determined y positions, does not increment the counter
         """
-        return self.positions[self.counter % self.nframes, 1]
+        return self.positions[self.counter % self.nframes - 1, 1]
 
     def get_end_of_scan(self):
         """Returns True if the end of the scan has been reached
         """
-        return self.counter == (self.nframes - 1)
+        return self.counter == (self.nframes + 1)
 
 if __name__ == '__main__':
     
