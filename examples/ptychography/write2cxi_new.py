@@ -84,19 +84,61 @@ state = {
 }
 
 if ipc.mpi.is_worker():
+
     # Open a CXI file
     filename = "test.cxi"
     W = utils.cxiwriter.CXIWriter(filename, chunksize=100)
 
+    # Build tree for ptychography datasets, see http://www.cxidb.org/cxi.html
+    init_dict = {}
+    init_dict['entry_1'] = {}
+    init_dict['entry_1']['instrument_1'] = {}
+    init_dict['entry_1']['instrument_1']['detector_1'] = {}
+    init_dict['entry_1']['instrument_1']['source_1'] = {}
+    init_dict['entry_1']['sample_1'] = {}
+    init_dict['entry_1']['sample_1']['geometry_1'] = {}
+    init_dict['entry_1']['data_1'] = {}
+
+    # Handles for detector/source/geometry
+    entry_1    = init_dict['entry_1']
+    detector_1 = init_dict['entry_1']['instrument_1']['detector_1']
+    source_1   = init_dict['entry_1']['instrument_1']['source_1']
+    geometry_1 = init_dict['entry_1']['sample_1']['geometry_1']
+    data_1     = init_dict['entry_1']['data_1']
+
+    # Add initial data to CXI file (non-stacks)
+    init_dict['cxi_version'] = 140
+    source_1['energy'] = photon_energy_J
+    detector_1['distance'] = det_distance
+    detector_1['x_pixel_size'] = det_pixelsize
+    detector_1['y_pixel_size'] = det_pixelsize
+    detector_1['corner_position'] = corner_position
+
+    # Add soft links
+    detector_1['translation'] = h5py.SoftLink('/entry_1/sample_1/geometry_1/translation')
+    data_1['data'] = h5py.SoftLink('/entry_1/instrument_1/detector_1/data')
+    data_1['translation'] = h5py.SoftLink('/entry_1/sample_1/geometry_1/translation')
+    
+    # These are optional data that should be provided (if known)
+    # ----------------------------------------------------------
+    source_1['illumination'] = sim.get_illumination()
+    #detector_1['Fillumination_mask'] = ...
+    #detector_1['solution'] = ...
+    #detector_1['initial_image'] = ...
+
+    # Write non-stacks to CXI file
+    W.write_solo(init_dict)
+    
     # This is the backbone we are going to use to extend the CXI file with data frames and translation vectors
     extend_dict= {'entry_1':{'instrument_1':{'detector_1':{}},
-                             'sample_1':{'geometry_1':{}}}}
-    
+                         'sample_1':{'geometry_1':{}}}}
+
+
 def onEvent(evt):
     
     # Processin rate [Hz]
     analysis.event.printProcessingRate()
-
+    
     # Translation vector
     x = evt['simulation']['position_x'].data 
     y = evt['simulation']['position_y'].data
@@ -108,7 +150,7 @@ def onEvent(evt):
     D["entry_1"]["instrument_1"]["detector_1"]["data"] = evt['photonPixelDetectors']['CCD'].data
     D["entry_1"]["sample_1"]["geometry_1"]["translation"] = translations
     W.write_slice(D)
-
+    
     # Stop running at the end of the scan
     if evt['simulation']['end'].data:
         print "Reached the end of the scan"
@@ -118,39 +160,3 @@ def end_of_run():
     
     # Close CXI file
     W.close()
-
-    if ipc.mpi.is_main_worker():
-
-        # Reopen CXI file to append with more information nessesary
-        # for ptychography datasets, see http://www.cxidb.org/cxi.html
-        f = h5py.File(filename, "r+")
-        
-        # Already existing fields
-        entry_1 = f['entry_1']
-        instrument_1 = f['entry_1']['instrument_1']
-        detector_1   = f['entry_1']['instrument_1']['detector_1']
-        sample_1     = f['entry_1']['sample_1']
-        geometry_1   = f['entry_1']['sample_1']['geometry_1']
-
-        # Add new data fields
-        f.create_dataset("cxi_version",data=140)
-        source_1 = instrument_1.create_group("source_1")
-        source_1.create_dataset("energy", data=photon_energy_J) # in J
-        detector_1.create_dataset("distance", data=det_distance) 
-        detector_1.create_dataset("x_pixel_size", data=det_pixelsize)
-        detector_1.create_dataset("y_pixel_size", data=det_pixelsize)
-        detector_1["translation"] = h5py.SoftLink('/entry_1/sample_1/geometry_1/translation')
-        detector_1.create_dataset("corner_position", data=corner_position) 
-        data_1 = entry_1.create_group("data_1")
-        data_1["data"] = h5py.SoftLink('/entry_1/instrument_1/detector_1/data')
-        data_1["translation"] = h5py.SoftLink('/entry_1/sample_1/geometry_1/translation')
-
-        # These are optional data that should be provided (if known)
-        # ----------------------------------------------------------
-        source_1.create_dataset("illumination", data=sim.get_illumination())
-        #detector_1.create_dataset("Fillumination_mask", data=illumination_intensities_mask)
-        #detector_1.create_dataset("solution", data=sim.obj)
-        #detector_1.create_dataset("initial_image",data=initial_image)
-        
-        # Close CXI file and exit
-        f.close()
