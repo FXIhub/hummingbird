@@ -91,7 +91,10 @@ class LCLSTranslator(object):
                 self.i = 0
             self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()
-            self.timestamps = self.run.times()[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
+            self.timestamps = self.run.times()
+            if self.N is not None:
+                self.timestamps = self.timestamps[:self.N]
+            self.timestamps = self.timestamps[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
         else:
             self.times = None
             self.fiducials = None
@@ -159,7 +162,7 @@ class LCLSTranslator(object):
         if self.timestamps:            
             try:
                 evt = self.run.event(self.timestamps[self.i])
-            except IndexError:
+            except (IndexError, StopIteration) as e:
                 logging.warning('End of Run.')
                 if 'end_of_run' in dir(Worker.conf):
                     Worker.conf.end_of_run()

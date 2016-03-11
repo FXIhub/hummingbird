@@ -23,18 +23,21 @@ from hummingbird import parse_cmdline_args
 cmdline_args = parse_cmdline_args()
 
 # DATA PARAMS
-user = os.environ["USER"]
 run_nr = cmdline_args.lcls_run_number 
 N_frames = -1 if cmdline_args.lcls_number_of_frames is None else cmdline_args.lcls_number_of_frames
-experiment_dir = '/scratch/fhgfs/LCLS/amo/amo86615'
 state = {
     'Facility': 'LCLS',
-    'LCLS': {'DataSource': 'exp=amo86615:dir=%s/xtc/' % (experiment_dir),
-             'PsanaConf': '%s/psana.cfg' % this_dir,
-             'CalibDir': '%s/calib' % experiment_dir,
+    'LCLS': {
+        'DataSource': 'exp=amo86615',
+        'PsanaConf': '%s/psana.cfg' % this_dir,
     },
     'indexing': True,
 }
+davinci_experiment_dir = '/scratch/fhgfs/LCLS/amo/amo86615'
+if os.path.isdir(davinci_experiment_dir):
+    state['LCLS']['DataSource'] += ':dir=%s/xtc/' % (davinci_experiment_dir)
+    state['LCLS']['CalibDir'] = '%s/calib' % davinci_experiment_dir
+    
 
 # COUNTERS
 i_frame = 0
@@ -46,7 +49,10 @@ back_type = "image"
 back_key  = "pnccdBack[%s]" % back_type
 
 # OPEN FILE FOR WRITING
-W = utils.cxiwriter.CXIWriter("/scratch/fhgfs/hantke/r%04i.cxi" % (run_nr), chunksize=100)
+outdir = "."
+#user = os.environ["USER"]
+#outdir = "/scratch/fhgfs/%s" % user
+W = utils.cxiwriter.CXIWriter("%s/r%04i.cxi" % (outdir,run_nr), chunksize=100)
 
 t_start = time.time()
     
@@ -67,14 +73,16 @@ def onEvent(evt):
     hitscore = evt["analysis"]["hitscore"].data
 
     hitratio = 100.*i_hit/float(i_frame+1)
-    #print "[rank=%03i] %05i/%05i - %.1f %% hits - %s (score=%i)" % (rank, i_frame*size+1, N_frames, hitratio, "HIT" if hit else "miss", hitscore)
+
+    index_str = "%06i" % (i_frame*ipc.mpi.nr_workers()+1)
+    if N_frames > 0:
+        index_str += "/%06i" % N_frames
+    print "(%03i)\t%s\t%.1f %% hits\t%s\tscore=%i" % (ipc.mpi.slave_rank(), index_str, hitratio, "HIT" if hit else "", hitscore)
 
     if hit:
 
         output = {}
-        
         output["pnccd_back"] = {}
-        
         output["pnccd_back"]["data"] = numpy.asarray(evt[back_type][back_key].data)
 
         W.write_slice(output)

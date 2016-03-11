@@ -84,4 +84,5 @@ def main():
         os.kill(pid, signal.SIGUSR1)
 
 if __name__ == "__main__":
-    main()
+    sys.settrace(main())
+    #main()

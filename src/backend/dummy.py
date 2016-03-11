@@ -51,8 +51,8 @@ class DummyTranslator(object):
                 evt[ds] = self.state['Dummy']['Data Sources'][ds]['data']()
                 self.keys.add(self.state['Dummy']['Data Sources'][ds]['type'])
 
-        except IndexError:
-            #logging.warning('End of Run.')
+        except (IndexError, StopIteration) as e:
+            logging.warning('End of Run.')
             if 'end_of_run' in dir(Worker.conf):
                 Worker.conf.end_of_run()
             ipc.mpi.slave_done()
