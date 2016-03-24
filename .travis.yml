@@ -30,8 +30,13 @@ before_install:
   - pip install pyzmq
   - pip install codecov
   - pip install mpi4py
+  - cd $HOME
+  - if [ ! -d "$HOME/h5py/.git" ]; then git clone  https://github.com/h5py/h5py.git; else echo 'Using h5py from cached directory'; fi
+  - git pull
   - export CC=mpicc
-  - pip install h5py
+  - python setup.py configure --mpi
+  - python setup.py build
+  - python setup.py install
   - export CC=''
   - pip install h5writer
   
