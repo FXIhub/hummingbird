@@ -24,9 +24,9 @@ addons:
       - python-h5py
       - python-numpy
       - python-scipy
-      - python-zmq
 
 before_install:
+  - pip install zmq
   - pip install h5writer
   - pip install codecov
   
