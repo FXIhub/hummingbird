@@ -21,6 +21,7 @@ addons:
 #      - kubuntu-backports
     packages:
       - libopenmpi-dev
+      - openmpi-bin
       - libhdf5-openmpi-dev
       - python-numpy
       - python-scipy
@@ -39,7 +40,7 @@ before_install:
   - python setup.py build
   - python setup.py install
   - export CC=''
-#  - pip install h5writer
+  - pip install h5writer
   
 install:
   - pip install pytest-cov
