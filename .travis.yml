@@ -1,0 +1,39 @@
+language: python
+
+python:
+  - "2.7"
+  - "3.4"
+
+notifications:
+  email: false
+
+sudo: false
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/local
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+      - kubuntu-backports
+    packages:
+    
+before_install:
+  - pip install codecov
+  
+install:
+  - pip install numpy
+  - pip install scipy
+  - pip install pyzmq
+  - pip install ipython
+  - pip install pytest-cov
+
+after_success:
+  - codecov
+
+script:
+  - cd ${HOME}/build/daurer/hummingbird
+  - coverage run --source hummingbird -m py.test  -v --color=yes --showlocals --durations=10
