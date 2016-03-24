@@ -22,11 +22,10 @@ addons:
     packages:
     
 before_install:
+  - sudo apt-get install -qq python-numpy python-scipy
   - pip install codecov
   
 install:
-  - pip install numpy
-  - pip install scipy
   - pip install pyzmq
   - pip install ipython
   - pip install pytest-cov
