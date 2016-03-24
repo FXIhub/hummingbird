@@ -29,8 +29,10 @@ addons:
 before_install:
   - pip install pyzmq
   - pip install codecov
-  - pip install h5py
   - pip install mpi4py
+  - export CC=mpicc
+  - pip install h5py
+  - export CC=''
   - pip install h5writer
   
 install:
