@@ -32,6 +32,7 @@ before_install:
   - pip install mpi4py
   - cd $HOME
   - if [ ! -d "$HOME/h5py/.git" ]; then git clone  https://github.com/h5py/h5py.git; else echo 'Using h5py from cached directory'; fi
+  - mkdir -p h5py && cd h5py 
   - git pull
   - export CC=mpicc
   - python setup.py configure --mpi
