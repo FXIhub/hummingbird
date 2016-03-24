@@ -2,7 +2,7 @@ language: python
 
 python:
   - "2.7"
-  - "3.4"
+#  - "3.4"
 
 notifications:
   email: false
@@ -27,7 +27,6 @@ addons:
       - python-numpy
       - python-scipy
       
-
 before_install:
   - pip install pyzmq
   - pip install codecov
