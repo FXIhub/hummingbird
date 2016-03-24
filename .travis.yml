@@ -39,7 +39,7 @@ before_install:
   - python setup.py build
   - python setup.py install
   - export CC=''
-  - pip install h5writer
+#  - pip install h5writer
   
 install:
   - pip install pytest-cov
