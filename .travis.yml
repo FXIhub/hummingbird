@@ -1,8 +1,8 @@
 language: python
 
 python:
-  - "2.7_with_system_site_packages"
-  - "2.7_with_system_site_packages"
+  - "2.7"
+  - "3.4"
 
 notifications:
   email: false
@@ -16,13 +16,14 @@ cache:
 
 addons:
   apt:
-    sources:
-      - ubuntu-toolchain-r-test
-      - kubuntu-backports
+#    sources:
+#      - ubuntu-toolchain-r-test
+#      - kubuntu-backports
     packages:
+      - python-numpy
+      - python-scipy
     
 before_install:
-  - sudo apt-get install -qq python-numpy python-scipy
   - pip install codecov
   
 install:
