@@ -12,6 +12,7 @@ sudo: false
 cache:
   directories:
     - $HOME/.cache/pip
+    - $HOME/h5py
     - $HOME/local
 
 addons:
