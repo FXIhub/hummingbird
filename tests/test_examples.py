@@ -6,11 +6,14 @@ import subprocess32 as subprocess # backport of subprocess from python 3 to work
 __thisdir__ = os.path.dirname(os.path.realpath(__file__))
 
 def stop_example(proc):
-    os.kill(proc.pid, signal.SIGINT)
+    proc.send_signal(signal.SIGINT)
+    #os.kill(proc.pid, signal.SIGINT)
     time.sleep(200e-3)
-    os.kill(proc.pid, signal.SIGINT)
+    proc.send_signal(signal.SIGINT)
+    #os.kill(proc.pid, signal.SIGINT)
     time.sleep(200e-3)
-    os.kill(proc.pid, signal.SIGINT)
+    proc.send_signal(signal.SIGINT)
+    #os.kill(proc.pid, signal.SIGINT)
 
 def reload_example(proc):
     os.kill(proc.pid, signal.SIGINT)
