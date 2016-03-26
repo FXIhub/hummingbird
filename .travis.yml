@@ -28,6 +28,7 @@ addons:
       - python-scipy
       
 before_install:
+  - pip install subprocess32
   - pip install pyzmq
   - pip install codecov
   - pip install mpi4py
@@ -41,7 +42,7 @@ before_install:
   - python setup.py install
   - export CC=''
   - pip install h5writer
-  - pip install subprocess32
+
   
 install:
   - pip install pytest-cov
