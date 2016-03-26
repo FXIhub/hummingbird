@@ -41,6 +41,7 @@ before_install:
   - python setup.py install
   - export CC=''
   - pip install h5writer
+  - pip install subprocess32
   
 install:
   - pip install pytest-cov
