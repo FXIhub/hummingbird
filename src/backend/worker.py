@@ -106,7 +106,7 @@ class Worker(object):
                             if evt is None:
                                 return
                         except (RuntimeError) as e:
-                            logging.warning("Some problem with psana, probably due to reloading the backend. (%s)" % e)
+                            logging.warning("Some problem with %s (library used for translation), probably due to reloading the backend. (%s)" % (self.translator.library,e))
                             raise KeyboardInterrupt
                         ipc.set_current_event(evt)
                         try:
@@ -114,7 +114,7 @@ class Worker(object):
                         except (KeyError, TypeError) as exc:
                             logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info=True)
                         except (RuntimeError) as e:
-                            logging.warning("Some problem with psana, probably due to reloading the backend.", exc_info=True)
+                            logging.warning("Some problem with %s (library used for translation), probably due to reloading the backend." %self.translator.library, exc_info=True)
                         except StopIteration:
                             logging.warning("Stopping iteration.")
                             if 'end_of_run' in dir(Worker.conf):

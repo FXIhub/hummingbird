@@ -15,6 +15,7 @@ import ipc
 class DummyTranslator(object):
     """Creates Hummingbird events for testing purposes"""
     def __init__(self, state):
+        self.library = 'dummy'
         self.state = state
         self.keys = set()
         self.keys.add('analysis')
