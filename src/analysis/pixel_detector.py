@@ -2,12 +2,12 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from numpy import sum, mean, min, max, std
+import numpy as np
 from backend import ureg
 from backend import add_record
 import utils.io
 import utils.array
-from numpy import sum, mean, min, max, std
-import numpy as np
 
 def printStatistics(detectors):
     for k,r in detectors.iteritems():
@@ -166,8 +166,7 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
     shape = initialized[key]['shape']
     y = initialized[key]['y']
     x = initialized[key]['x']
-    #from IPython.core.debugger import Tracer
-    #Tracer()()
+
     if subset is not None:
         data = []
         for i in subset:

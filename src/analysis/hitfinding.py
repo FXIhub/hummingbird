@@ -3,12 +3,9 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 import ipc
-from backend import add_record
 import numpy as np
 import collections
-
-counter = collections.deque([])
-counter_good = collections.deque([])
+from backend import add_record
 
 hitrate_counters = {}
 hit_counters = {}
@@ -30,7 +27,6 @@ def countHits(evt, hit, history=100, outkey="nrHits"):
     add_record(v, "analysis", outkey, hit_counters[outkey])
 
 def hitrate(evt, hit, history=100, outkey="hitrate"):
-    #countHits(evt, hit, history=history/ipc.mpi.nr_workers(), outkey=outkey+" - counter")
     global hitrate_counters
     if outkey not in hitrate_counters or hitrate_counters[outkey].maxlen != history:
         hitrate_counters[outkey] = collections.deque([], history)

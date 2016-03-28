@@ -6,8 +6,6 @@ import collections
 import datetime
 import ipc
 import numpy as np
-
-from backend import Record
 from backend import EventTranslator
 
 processingTimes = collections.deque([], 100)

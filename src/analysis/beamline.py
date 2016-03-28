@@ -2,10 +2,9 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-import collections
 import ipc
 import numpy as np
-from backend import  ureg
+from backend import ureg
 from backend import add_record
 
 def averagePulseEnergy(evt, records, outkey="averagePulseEnergy"):
