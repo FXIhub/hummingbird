@@ -41,7 +41,7 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
 
     # Simple hit finding (counting the number of lit pixels)
-    analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD", aduThreshold=10, hitscoreThreshold=100)
+    analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["CCD"], aduThreshold=10, hitscoreThreshold=100)
 
     # Extract boolean (hit or miss)
     hit = evt["analysis"]["isHit"].data

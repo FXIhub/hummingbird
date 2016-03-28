@@ -72,7 +72,7 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
 
     # Simple hit finding (counting the number of lit pixels)
-    analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD",
+    analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["CCD"],
                                        aduThreshold=10, hitscoreThreshold=100)
 
     # Extract boolean (hit or miss)
@@ -91,4 +91,4 @@ def onEvent(evt):
 
     # Plot heat map of hitrate as function of injector position
     plotting.correlation.plotMeanMap(evt["parameters"]['injectorX'], evt["parameters"]['injectorY'],
-                                     evt["analysis"]["hitrate"].data, plotid='hitrateMeanMap', **hitmapParams)
+                                     evt["analysis"]["hitrate"].data, name='hitrateMeanMap', **hitmapParams)

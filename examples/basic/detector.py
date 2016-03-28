@@ -51,8 +51,8 @@ def onEvent(evt):
     analysis.pixel_detector.printStatistics(evt["photonPixelDetectors"])
 
     # Count Nr. of Photons
-    analysis.pixel_detector.totalNrPhotons(evt, "photonPixelDetectors", "CCD")
-    plotting.line.plotHistory(evt["analysis"]["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
+    analysis.pixel_detector.totalNrPhotons(evt, evt["photonPixelDetectors"]["CCD"], outkey="nrPhotons")
+    plotting.line.plotHistory(evt["analysis"]["nrPhotons"], label='Nr of photons / frame', history=50)
 
     # Detector histogram
     plotting.line.plotHistogram(evt["photonPixelDetectors"]["CCD"], **histogramCCD)
