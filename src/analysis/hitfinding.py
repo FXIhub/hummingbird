@@ -10,11 +10,18 @@ from backend import add_record
 hitrate_counters = {}
 hit_counters = {}
 
-def countHits(evt, hit, history=100, outkey="nrHits"):
-    """Takes a boolean (True for hit, False for miss) and adds accumulated nr. of hits
+def countHits(evt, hit, outkey="nrHits"):
+    """Counts hits and adds the total nr. of hits to ``evt["analysis"][outkey]``.
+
+    Args:
+        :evt:     The event variable
+        :hit:     A boolean (True for hit, False for miss)
+    
+    Kwargs:
+        :outkey(str):  Data key of resulting ``Record``, default is "nrHits" 
 
     :Authors:
-        Benedikt J. Daurer (benedikt@xray.bmc.uu.se),
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
         Jonas Sellberg 
         Tomas Ekeberg
     """
@@ -27,6 +34,20 @@ def countHits(evt, hit, history=100, outkey="nrHits"):
     add_record(v, "analysis", outkey, hit_counters[outkey])
 
 def hitrate(evt, hit, history=100, outkey="hitrate"):
+    """Counts hits and adds current hit rate to ``evt["analysis"][outkey]``.
+
+    Args:
+        :evt:     The event variable
+        :hit:     A boolean (True for hit, False for miss)
+    
+    Kwargs:
+        :history(int):  Buffer length, default = 100
+        :outkey(str):   Data key of resulting ``Record``, default is "hitrate" 
+
+    :Authors:
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
+        Tomas Ekeberg
+    """
     global hitrate_counters
     if outkey not in hitrate_counters or hitrate_counters[outkey].maxlen != history:
         hitrate_counters[outkey] = collections.deque([], history)
@@ -37,79 +58,76 @@ def hitrate(evt, hit, history=100, outkey="hitrate"):
     if (ipc.mpi.is_main_worker()):
         add_record(v, "analysis", outkey, hitrate[()]/ipc.mpi.nr_workers())
 
-def countLitPixels(evt, data_rec, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey=None):
+def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey="litpixel: "):
     """A simple hitfinder that counts the number of lit pixels and
-    adds a boolean to ``evt["analysis"][outkey + "isHit"]``,  ``evt["analysis"][outkey + "isMiss"]`` 
+    adds the result to ``evt["analysis"][outkey + "isHit"]``,  ``evt["analysis"][outkey + "isMiss"]``, 
     and  the hitscore to ``evt["analysis"][outkey + "hitscore"]``.
 
     Args:
         :evt:       The event variable
-        :type(str): The event type (e.g. photonPixelDetectors)
-        :key(str):  The event key (e.g. CCD)
+        :record:    A pixel detector ``Record``
+
     Kwargs:
         :aduThreshold(int):      only pixels above this threshold (in ADUs) are valid, default=20
         :hitscoreThreshold(int): events with hitscore (Nr. of lit pixels)  above this threshold are hits, default=200
-        :mask(int, bool):        only use masked pixel (mask == True or 1) for counting
-        :outkey(str):            event key for results, default is "" 
+        :mask(int, bool):        only use masked pixel (mask == True or 1) for countin
+        :outkey(str):            Prefix of data key of resulting ``Record``, default is "litpixel: " 
     
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    if outkey is None:
-        outkey = ""
-    hitscore = (data_rec.data[mask] > aduThreshold).sum()
-    v = evt["analysis"]
+    hitscore = (record.data[mask] > aduThreshold).sum()
     hit = int(hitscore > hitscoreThreshold)
     if hitscoreMax is not None:
         hit *= int(hitscore <= hitscoreMax)
-
+    v = evt["analysis"]
     add_record(v, "analysis", outkey + "isHit", hit)
     add_record(v, "analysis", outkey + "isMiss", int(not hit and (hitscore > hitscoreDark)))
     add_record(v, "analysis", outkey + "hitscore", hitscore)
 
-
-def countTof(evt, type="ionTOFs", key="tof", signalThreshold = 1, minWindow = 0, maxWindow = -1, hitscoreThreshold=2):
-    """A simple hitfinder that performs a peak counting test on a time-of-flight detector signal, in a specific subwindow.
-    Adds a boolean to ``evt["analysis"]["isHit" + key]`` and  the hitscore to ``evt["analysis"]["hitscore - " + key]``.
+def countTof(evt, record, signalThreshold=1, minWindow=0, maxWindow=-1, hitscoreThreshold=2, outkey="tof: "):
+    """A simple hitfinder that performs a peak counting test on a time-of-flight detector signal, in a specific subwindow and adds the result to ``evt["analysis"][outkey + "isHit"]``, and  the hitscore to ``evt["analysis"][outkey + "hitscore"]``.
 
     Args:
         :evt:       The event variable
-        :type(str): The event type (e.g. ionTOFs)
-        :key(str):  The event key (e.g. tof)
-
+        :record:    A ToF detector record
 
     Kwargs:
-        :signalThreshold(str): The threshold of the signal, anything above this contributes to the score
-        :hitscoreThreshold(int): events with hitscore (Nr. of photons)  above this threshold are hits, default=200
-    
+        :signalThreshold(str):   The threshold of the signal, anything above this contributes to the score, default=1
+        :minWindow(int):         Lower limit of window, default=0
+        :maxWindow(int):         Upper limit of window, default=1
+        :hitscoreThreshold(int): events with hitscore (Nr. of photons)  above this threshold are hits, default=2
+        :outkey(str):            Prefix of data key of resulting ``Record``, default is "tof: " 
+
     :Authors:
         Carl Nettelblad (carl.nettelblad@it.uu.se)
     """
-    v = evt[type][key]
-    hitscore = v.data[minWindow:maxWindow] > signalThreshold
+    hitscore = record.data[minWindow:maxWindow] > signalThreshold
+    hit = hitscore > hitscoreThreshold
     v = evt["analysis"]
-    v["isHit - "+key] = hitscore > hitscoreThreshold
-    add_record(v, "analysis", "hitscore - "+key, hitscore)
-
-def countPhotons(evt, type, key, hitscoreThreshold=200):
-    """A simple hitfinder that performs a limit test against an already defined
-    photon count for detector key. Adds a boolean to ``evt["analysis"]["isHit" + key]`` and
-    the hitscore to ``evt["analysis"]["hitscore - " + key]``.
+    add_record(v, "analysis", outkey + "isHit", hit) 
+    add_record(v, "analysis", outley + "hitscore", hitscore)
+    
+def countHitscore(evt, hitscore, hitscoreThreshold=200, outkey=""):
+    """A simple hitfinder that performs a limit test against an already defined hitscore 
+    and adds the result to ``evt["analysis"][outkey + "isHit"]``, and
+    the hitscore to ``evt["analysis"][outkey + "hitscore"]``.
 
     Args:
         :evt:       The event variable
-        :type(str): The event type (e.g. photonPixelDetectors)
-        :key(str):  The event key (e.g. CCD)
+        :hitscore:  A pre-defined hitscore
+
     Kwargs:
-        :hitscoreThreshold(int): events with hitscore (Nr. of photons)  above this threshold are hits, default=200
+        :hitscoreThreshold(int):   Events with hitscore above this threshold are hits, default=200
     
     :Authors:
         Carl Nettelblad (carl.nettelblad@it.uu.se)
+        Benedikt J. Daurer
     """
+    hit = hitscore > hitscoreThreshold
     v = evt["analysis"]
-    hitscore = v["nrPhotons - "+key]    
-    v["isHit - "+key] = hitscore > hitscoreThreshold
-    add_record(v, "analysis", "hitscore - "+key, hitscore)
+    add_record(v, "analysis", outkey + "isHit", hit) 
+    add_record(v, "analysis", outley + "hitscore", hitscore)
 
 def countPhotonsAgainstEnergyFunction(evt, type, key, energyKey = "averagePulseEnergy", energyFunction = lambda x : 200):
     """A hitfinder that tests photon count against a predicted photon threshold
