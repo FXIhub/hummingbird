@@ -49,7 +49,7 @@ def onEvent(evt):
 
     # Detector statistics
     analysis.pixel_detector.printStatistics(evt["photonPixelDetectors"])
-
+    
     # Count Nr. of Photons
     analysis.pixel_detector.totalNrPhotons(evt, evt["photonPixelDetectors"]["CCD"], outkey="nrPhotons")
     plotting.line.plotHistory(evt["analysis"]["nrPhotons"], label='Nr of photons / frame', history=50)

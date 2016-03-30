@@ -44,13 +44,13 @@ def onEvent(evt):
     analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["CCD"], aduThreshold=10, hitscoreThreshold=100)
 
     # Extract boolean (hit or miss)
-    hit = evt["analysis"]["isHit"].data
+    hit = evt["analysis"]["litpixel: isHit"].data
     
     # Compute the hitrate
     analysis.hitfinding.hitrate(evt, hit, history=5000)
     
     # Plot the hitscore
-    plotting.line.plotHistory(evt["analysis"]["hitscore"], label='Nr. of lit pixels', hline=100)
+    plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"], label='Nr. of lit pixels', hline=100)
 
     # Plot the hitrate
     plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
