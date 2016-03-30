@@ -7,7 +7,6 @@ from interface.Qt import QtGui, QtCore
 from interface.ui import Ui_imageWindow
 from interface.ui import DataWindow
 import utils.array
-import utils.time
 import pyqtgraph
 import numpy
 import datetime
