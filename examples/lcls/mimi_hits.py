@@ -44,13 +44,13 @@ def onEvent(evt):
                                 hmin=hist_min, hmax=hist_max, bins=hist_bins, vline=adu_photon)
 
     # Hitfinding
-    analysis.hitfinding.countLitPixels(evt, 'analysis', 'pnccdBackCorrected', 
+    analysis.hitfinding.countLitPixels(evt, evt['analysis']['pnccdBackCorrected'], 
                                        aduThreshold=adu_photon, hitscoreThreshold=threshold)
 
     # Plot hitscore (to monitor hitfinder -> hitscoreThreshold)
-    plotting.line.plotHistory(evt['analysis']['hitscore'], hline=threshold)
+    plotting.line.plotHistory(evt['analysis']['litpixel: hitscore'], hline=threshold)
 
     # Plot back detector image for hits only
-    if bool(evt['analysis']['isHit'].data):
+    if bool(evt['analysis']['litpixel: isHit'].data):
         plotting.image.plotImage(evt['analysis']['pnccdBackCorrected'], 
                                  log=True, name='pnccdBack - only hits')
