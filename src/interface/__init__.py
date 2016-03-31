@@ -13,6 +13,7 @@ def start_interface(restore):
     QtCore.QCoreApplication.setOrganizationDomain("spidocs.rtfd.org")
     QtCore.QCoreApplication.setApplicationName("Hummingbird")
     app = QtGui.QApplication(sys.argv)
+    app.setQuitOnLastWindowClosed(True)
     GUI(restore).show()
     sys.exit(app.exec_())
 
@@ -21,7 +22,7 @@ def sigint_handler(*_):
     if QtGui.QMessageBox.question(None, '', "Are you sure you want to quit?",
                                   QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                                   QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
-        GUI.instance.closeEvent(None)
+        GUI.instance.close()
 
 
 from interface.data_source import DataSource # pylint: disable=unused-import
