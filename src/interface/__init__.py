@@ -13,7 +13,7 @@ def start_interface(restore):
     QtCore.QCoreApplication.setOrganizationDomain("spidocs.rtfd.org")
     QtCore.QCoreApplication.setApplicationName("Hummingbird")
     app = QtGui.QApplication(sys.argv)
-    app.setQuitOnLastWindowClosed(true)
+    app.setQuitOnLastWindowClosed(True)
     GUI(restore).show()
     sys.exit(app.exec_())
 
