@@ -148,13 +148,17 @@ class LCLSTranslator(object):
 
         # Define how to translate between LCLS sources and Hummingbird ones
         self._s2c = {}
+        # CXI (OnAxis Cam)
         self._s2c['DetInfo(CxiEndstation.0:Opal4000.1)'] = 'Sc2Questar'
+        # CXI (OffAxis Cam)
+        self._s2c['DetInfo(CxiEndstation.0.Opal11000.0)'] = 'Sc2Offaxis'
+        # CXI (CsPad)
         self._s2c['DetInfo(CxiDs1.0:Cspad.0)'] = 'CsPad Ds1'
         self._s2c['DetInfo(CxiDsd.0:Cspad.0)'] = 'CsPad Dsd'
         self._s2c['DetInfo(CxiDs2.0:Cspad.0)'] = 'CsPad Ds2'
         self._s2c['DetInfo(CxiDg3.0:Cspad2x2.0)'] = 'CsPad Dg3'
         self._s2c['DetInfo(CxiDg2.0:Cspad2x2.0)'] = 'CsPad Dg2'
-        # AMO
+        # AMO (pnCCD)
         self._s2c['DetInfo(Camp.0:pnCCD.1)'] = 'pnccdBack'
         self._s2c['DetInfo(Camp.0:pnCCD.0)'] = 'pnccdFront'
         # --
