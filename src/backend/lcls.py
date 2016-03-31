@@ -122,9 +122,12 @@ class LCLSTranslator(object):
             self._n2c[psana.Bld.BldDataEBeamV7] = 'photonEnergies'
         except AttributeError:
             pass
+        # CXI (CsPad)
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
-        # AMO
+        # CXI (OffAxis Cam)
+        self._n2c[psana.Camera.FrameV1] = 'photonPixelDetectors'
+        # AMO (pnCCD)
         self._n2c[psana.PNCCD.FullFrameV1] = 'photonPixelDetectors'
         self._n2c[psana.PNCCD.FramesV1] = 'photonPixelDetectors'
         # --
