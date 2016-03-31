@@ -180,6 +180,8 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None, i
     else:
         data = evt[type][key].data
     
+    assembled[height-shape[0]:, :shape[1]][y,x] = data
+
     if outkey is None:
         add_record(evt["analysis"], "analysis", "assembled - "+key, assembled)
 
