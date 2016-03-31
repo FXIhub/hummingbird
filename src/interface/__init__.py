@@ -21,7 +21,7 @@ def sigint_handler(*_):
     if QtGui.QMessageBox.question(None, '', "Are you sure you want to quit?",
                                   QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                                   QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
-        QtGui.QApplication.instance.quit()
+        QtGui.qApp.quit()
 
 
 from interface.data_source import DataSource # pylint: disable=unused-import
