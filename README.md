@@ -1,4 +1,4 @@
-[![DOI](https://zenodo.org/badge/doi/10.5281/zenodo.45460.svg)](http://dx.doi.org/10.5281/zenodo.45460) [![Build Status](https://travis-ci.org/FXIhub/hummingbird.svg?branch=master)](https://travis-ci.org/FXIhub/hummingbird)
+[![Build Status](https://travis-ci.org/FXIhub/hummingbird.svg?branch=master)](https://travis-ci.org/FXIhub/hummingbird)
 # Hummingbird
 
 Monitoring and analysing flash X-ray imaging experiments in real time. 
