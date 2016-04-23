@@ -9,9 +9,11 @@ from interface.ui import DataWindow
 import utils.array
 import pyqtgraph
 import numpy
+import numpy.random
 import datetime
 import logging
 import os
+import utils.io
 
 class ImageWindow(DataWindow, Ui_imageWindow):
     """Window to display images"""
@@ -51,6 +53,23 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionY_axis.triggered.connect(self.toggle_axis)        
         self.settingsWidget.ui.histogram_show.toggled.connect(self.toggle_axis)
         self.actionHistogram.triggered.connect(self.toggle_axis)
+
+        self.settingsWidget.ui.modelCenterX.setValidator(QtGui.QDoubleValidator())
+        self.settingsWidget.ui.modelCenterY.setValidator(QtGui.QDoubleValidator())
+        self.settingsWidget.ui.modelDiameter.setValidator(QtGui.QDoubleValidator())
+        self.settingsWidget.ui.photonEnergy.setValidator(QtGui.QDoubleValidator())
+        self.settingsWidget.ui.detectorGain.setValidator(QtGui.QDoubleValidator())
+        self.settingsWidget.ui.detectorDistance.setValidator(QtGui.QDoubleValidator())        
+        self.settingsWidget.ui.detectorPixelSize.setValidator(QtGui.QDoubleValidator())
+        success, spimage = utils.io.load_spimage()
+        if not success:
+            # no spimage available, we need to disable the model settings
+            self.settingsWidget.ui.modelTab.setEnabled(False)
+        else:
+            self.spimage = spimage
+
+        self.settingsWidget.ui.colormap_max.setValidator(QtGui.QDoubleValidator())
+
 
         self.set_sounds_and_volume()
         self.actionSound_on_off.triggered.connect(self.toggle_alert)
@@ -454,6 +473,33 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 if (self.settingsWidget.ui.show_trend.isChecked()):
                     _trend = getattr(numpy, str(self.settingsWidget.ui.trend_options.currentText()))
                     img = _trend(img, axis=0)
+
+                if self.settingsWidget.ui.modelVisibility.value() > 0:
+                    # We should overwrite part of the image with a model
+                    centerx = float(self.settingsWidget.ui.modelCenterX.text())
+                    centery = float(self.settingsWidget.ui.modelCenterY.text())
+                    diameter = float(self.settingsWidget.ui.modelDiameter.text()) * 1e-9
+                    intensity = float(self.settingsWidget.ui.pulseIntensity.text()) * 1e-3 / 1e-12    
+                    wavelength = 1239.84193/float(self.settingsWidget.ui.photonEnergy.text()) * 1e-9
+                    distance = float(self.settingsWidget.ui.detectorDistance.text()) 
+                    pixelsize = float(self.settingsWidget.ui.detectorPixelSize.text()) * 1e-6
+                    material = 'virus'
+                    quantum_efficiency = 1.0
+                    adu_per_photon = float(self.settingsWidget.ui.detectorGain.text())/float(self.settingsWidget.ui.photonEnergy.text())*1e3
+                    size    = self.spimage.sphere_model_convert_diameter_to_size(diameter, wavelength,
+                                                                                 pixelsize, distance) 
+                    scaling = self.spimage.sphere_model_convert_intensity_to_scaling(intensity, diameter,
+                                                                                     wavelength, pixelsize,
+                                                                                     distance, quantum_efficiency,
+                                                                                     adu_per_photon, material)
+                    fit = self.spimage.I_sphere_diffraction(scaling,
+                                                            self.spimage.rgrid(img[0].shape, (centerx, centery)),
+                                                            size)
+                    if self.settingsWidget.ui.modelPoisson.isChecked():
+                        fit = numpy.random.poisson(fit/adu_per_photon)*adu_per_photon
+                    extent = numpy.ceil(img.shape[2]*self.settingsWidget.ui.modelVisibility.value()/100.0)
+                    img[:,:,:extent] = fit[:,:extent]
+                
                 self.plot.setImage(img,
                                    transform=transform,
                                    autoRange=auto_range, autoLevels=auto_levels,
