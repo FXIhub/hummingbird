@@ -46,15 +46,15 @@ class Frms6_frame_header():
             self.fmt = self.fmt[:-3]+str(length-40)+'s'
     
     def parse(self, fp):
+        headstr = fp.read(self.length)
+        if len(headstr) < self.length:
+            print 'Reached end of file'
+            return 1
         self.start, self.info, self.id, self.height, self.tv_sec, \
             self.tv_usec, self.index, self.temp, self.the_start, \
             self.the_height, self.external_id, self.bunch_id, self.fill \
-            = struct.unpack(self.fmt, fp.read(self.length))
-        
-        if not self.fill:
-            return 1
-        else:
-            return 0
+            = struct.unpack(self.fmt, headstr)
+        return 0
     
     def dump(self):
         print 'start',self.start
@@ -71,10 +71,8 @@ class Frms6_frame_header():
         print 'bunch_id',self.bunch_id
 
 class Frms6_reader():
-    def __init__(self, fname, num_frames=-1, start_num=0, shape_str='assem'):
+    def __init__(self, fname, shape_str='assem'):
         self.f = open(fname, 'rb')
-        self.num_frames = num_frames
-        self.start_num = start_num
         if shape_str == 'assem':
             self.shape_arg = 0
         elif shape_str == 'psana':
@@ -89,27 +87,28 @@ class Frms6_reader():
         self.file_header.parse(self.f)
         self.nx = self.file_header.the_width
         self.ny = self.file_header.the_max_height
-        self.f.seek(self.start_num*(self.file_header.fh_length + self.nx*self.ny*2))
         print 'nx ny =', self.nx, self.ny
     
-    def parse_frames(self):
+    def parse_frames(self, start_num=0, num_frames=-1):
+        self.f.seek(self.file_header.my_length + start_num*(self.file_header.fh_length + self.nx*self.ny*2))
         self.frame_headers = []
         self.frames = []
         i = 0
-        if self.num_frames == 0:
+        if num_frames == 0:
             return
         
         while True:
             self.frame_headers.append(Frms6_frame_header(length=self.file_header.fh_length))
             ret = self.frame_headers[-1].parse(self.f)
             if ret != 0:
+                self.frame_headers = self.frame_headers[:-1]
                 break
             self.frames.append(self.arg_reshape(np.fromfile(self.f, '=i2', count=self.nx*self.ny).reshape(self.nx, self.ny)))
             i += 1
-            sys.stderr.write('\rParsed %d frames' % i)
-            if self.num_frames > 0 and i >= self.num_frames:
+            #sys.stderr.write('\rParsed %d frames' % i)
+            if num_frames > 0 and i >= num_frames:
                 break
-        sys.stderr.write('\n')
+        #sys.stderr.write('\n')
 
     def frms6_to_psana(self, a):
         return a.reshape(512,4,512).transpose(1,0,2)
@@ -137,7 +136,7 @@ if __name__ == '__main__':
         args.output_fname = os.path.splitext(os.path.basename(args.fname))[0]+'.h5'
     
     reader = Frms6_reader(args.fname, num_frames=args.num_frames, start_num=args.start_num)
-    reader.parse_frames()
+    reader.parse_frames(num_frames=args.num_frames, start_num=args.start_num)
     reader.f.close()
     
     print 'Writing to', args.output_fname
