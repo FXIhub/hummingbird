@@ -13,6 +13,7 @@ import numpy
 import ipc
 import backend.convert_frms6 as convert
 import glob
+import sys
 import os
 import h5py
 
@@ -34,13 +35,7 @@ class FLASHTranslator(object):
         """Generates and returns the next event"""
         evt = {}        
         
-        # Check for new file
-        # If yes, grab first designated image in that file
-        #   and set num=0
-        # If no grab num+1'th file in the same frame
-        # Data type 'photonPixelDetectors', ds='pnCCD'
         self.new_file_check()
-        
         
         # Check if we need to sleep
         if(self._last_event_time > 0):
@@ -53,7 +48,6 @@ class FLASHTranslator(object):
                 time.sleep(target_t - t)
         self._last_event_time = time.time()
         
-        
         self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
         if len(self.reader.frames) > 0:
             evt['pnCCD'] = self.reader.frames[0]
@@ -62,8 +56,9 @@ class FLASHTranslator(object):
             while True:
                 while not self.new_file_check():
                     if ipc.mpi.slave_rank() == 0:
-                        print 'Waiting for file list to update'
-                    time.sleep(5.)
+                        sys.stderr.write('\rWaiting for file list to update')
+                    time.sleep(2.)
+                sys.stderr.write('\n')
                 self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
                 if len(self.reader.frames) > 0:
                     evt['pnCCD'] = self.reader.frames[0]
@@ -84,15 +79,21 @@ class FLASHTranslator(object):
     def translate(self, evt, key):
         """Returns a dict of Records that match a given Humminbird key"""
         values = {}
-        if('Dummy' not in self.state or 
-           'Data Sources' not in self.state['Dummy']):
-            if(key == 'photonPixelDetectors'):
-                # Translate default CCD as default
-                add_record(values, key, 'pnCCD', evt['pnCCD'], ureg.ADU)
-            if(values == {}):
-                raise RuntimeError('%s not found in event' % (key))
-            return values
-        
+        if key == 'photonPixelDetectors':
+            # Translate pnCCD
+            add_record(values, key, 'pnCCD', evt['pnCCD'], ureg.ADU)
+        elif key == 'motorPositions':
+            val = motors.get(self.state)
+            if val is None:
+                raise RuntimeError('%s not found in event' % key)
+            for motorname,motorpos in val.iteritems():
+                add_record(values, key, motorname, motorpos[0], motorpos[1])
+        elif key == 'ID':
+            add_record(values, key, 'DataSetID', self.reader.file_header.dataSetID.rstrip('\0'))
+            add_record(values, key, 'BunchID', self.reader.frame_headers[-1].external_id)
+            add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec)
+            add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec)
+        '''
         for ds in self.state['Dummy']['Data Sources']:
             if self.state['Dummy']['Data Sources'][ds]['type'] == key:
                 # If unit is a string translate into PINT quantity
@@ -102,6 +103,7 @@ class FLASHTranslator(object):
                 add_record(values, key, ds, evt[ds], u)
         if(values == {} and not key == 'analysis'):
             raise RuntimeError('%s not found in event' % (key))
+        '''
         return values
 
     def event_id(self, _):
