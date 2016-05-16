@@ -13,6 +13,8 @@ import numpy
 import ipc
 import backend.convert_frms6 as convert
 import glob
+import os
+import h5py
 
 class FLASHTranslator(object):
     """Creates Hummingbird events for testing purposes"""
@@ -22,9 +24,11 @@ class FLASHTranslator(object):
         self.keys = set()
         self.keys.add('analysis')
         self._last_event_time = -1
-        flist = glob.glob(state['FLASH/DataSource'] + '/*.frms6')
-        self.reader = convert.Frms6_reader(flist[0])
-        self.num = 0
+        self.current_fname = None
+        self.current_dark = None
+        self.offset = None
+        self.get_dark()
+        print self.offset.mean()
 
     def next_event(self):
         """Generates and returns the next event"""
@@ -35,7 +39,9 @@ class FLASHTranslator(object):
         #   and set num=0
         # If no grab num+1'th file in the same frame
         # Data type 'photonPixelDetectors', ds='pnCCD'
-        '''
+        self.new_file_check()
+        
+        
         # Check if we need to sleep
         if(self._last_event_time > 0):
             rep_rate = 1e9
@@ -46,32 +52,25 @@ class FLASHTranslator(object):
             if(t < target_t):
                 time.sleep(target_t - t)
         self._last_event_time = time.time()
-        '''
         
-        # Generate a simple CCD as default
-        #evt['pnCCD'] = numpy.random.rand(128, 128)
+        
         self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
-        self.num += 1
         if len(self.reader.frames) > 0:
             evt['pnCCD'] = self.reader.frames[0]
             self.keys.add('photonPixelDetectors')
-        '''
-        if('Dummy' in self.state and 'Simulation' in self.state['Dummy']):
-            self.state['Dummy']['Simulation'].next_event()
+        else:
+            while True:
+                while not self.new_file_check():
+                    if ipc.mpi.slave_rank() == 0:
+                        print 'Waiting for file list to update'
+                    time.sleep(5.)
+                self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
+                if len(self.reader.frames) > 0:
+                    evt['pnCCD'] = self.reader.frames[0]
+                    self.keys.add('photonPixelDetectors')
+                    break
 
-        try:
-            for ds in self.state['Dummy']['Data Sources']:
-                evt[ds] = self.state['Dummy']['Data Sources'][ds]['data']()
-                self.keys.add(self.state['Dummy']['Data Sources'][ds]['type'])
-
-        except (IndexError, StopIteration) as e:
-            logging.warning('End of Run.')
-            if 'end_of_run' in dir(Worker.conf):
-                Worker.conf.end_of_run()
-            ipc.mpi.slave_done()
-            return None
-
-        '''
+        self.num += 1
         return EventTranslator(evt, self)
 
     def event_keys(self, _):
@@ -113,3 +112,40 @@ class FLASHTranslator(object):
     def event_id2(self, _):
         """Returns an alternative id, which is jsut a copy of the usual id here"""
         return event_id
+
+    def new_file_check(self):
+        flist = glob.glob(self.state['FLASH/DataSource'] + '/*.frms6')
+        latest_fname = max(flist, key=os.path.getmtime)
+        if latest_fname != self.current_fname:
+            # Check if file is too small
+            if os.path.getsize(latest_fname) < 1024:
+                return False
+            print 'Found new file', latest_fname
+            self.get_dark()
+            # Parse file header and reset self.num
+            self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
+            self.num = 0
+            self.current_fname = latest_fname
+            self.current_mtime = os.path.getmtime(latest_fname)
+            return True
+        elif os.path.getmtime(latest_fname) != self.current_mtime:
+            # Check if the same file has been updated since the last check
+            return True
+        else:
+            return False
+        
+    def get_dark(self):
+        flist = glob.glob(self.state['FLASH/DataSource']+'/*.darkcal.h5')
+        if len(flist) == 0:
+            self.offset = None
+            return False
+        
+        latest_fname = max(flist, key=os.path.getmtime)
+        if latest_fname != self.current_dark and os.path.getsize(latest_fname) > 1024**2:
+            print 'Found new dark file', latest_fname
+            self.current_dark = latest_fname
+            with h5py.File(latest_fname, 'r') as f:
+                self.offset = f['data/offset'][:]
+            return True
+        else:
+            return False
