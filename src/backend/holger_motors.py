@@ -11,7 +11,7 @@ class MotorPositions(object):
         self._date = None
 
     def get(self, timestamp):
-        #time.localtime(timestamp)
+        timestamp += 18590000
         filename = self._time_to_filename(timestamp)
         if filename != self._filename:
             tmp_time = time.localtime(timestamp)
@@ -48,29 +48,29 @@ class MotorPositions(object):
         
     def _parse_line(self, line):
         line_data = line.split()
-        data_dict = {"catcher_x": line_data[2],
-                     "catcher_y": line_data[3],
-                     "catcher_z": line_data[4],
-                     "aperture_x": line_data[6],
-                     "aperture_y": line_data[7],
-                     "aperture_z": line_data[8],
-                     "objective_x": line_data[10],
-                     "objective_y": line_data[11],
-                     "objective_z": line_data[12],
-                     "inline_mic": line_data[14],
-                     "inline_mirror_x": line_data[16],
-                     "inline_mirror_y": line_data[17],
-                     "fibre_x": line_data[19],
-                     "fibre_y": line_data[20],
-                     "fibre_z": line_data[21],
-                     "rod_x": line_data[23],
-                     "rod_y": line_data[24],
-                     "rod_z": line_data[25],
-                     "nozzle_x": line_data[27],
-                     "nozzle_y": line_data[28],
-                     "nozzle_z": line_data[29],
-                     "nozzle_rot": line_data[31],
-                     "dummy": line_data[33]}
+        data_dict = {"catcher_x": float(line_data[2]),
+                     "catcher_y": float(line_data[3]),
+                     "catcher_z": float(line_data[4]),
+                     "aperture_x": float(line_data[6]),
+                     "aperture_y": float(line_data[7]),
+                     "aperture_z": float(line_data[8]),
+                     "objective_x": float(line_data[10]),
+                     "objective_y": float(line_data[11]),
+                     "objective_z": float(line_data[12]),
+                     "inline_mic": float(line_data[14]),
+                     "inline_mirror_x": float(line_data[16]),
+                     "inline_mirror_y": float(line_data[17]),
+                     "fibre_x": float(line_data[19]),
+                     "fibre_y": float(line_data[20]),
+                     "fibre_z": float(line_data[21]),
+                     "rod_x": float(line_data[23]),
+                     "rod_y": float(line_data[24]),
+                     "rod_z": float(line_data[25]),
+                     "nozzle_x": float(line_data[27]),
+                     "nozzle_y": float(line_data[28]),
+                     "nozzle_z": float(line_data[29]),
+                     "nozzle_rot": float(line_data[31]),
+                     "dummy": float(line_data[33])}
         return (self._parse_time(line_data[0]), data_dict)
 
 

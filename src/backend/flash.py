@@ -12,6 +12,7 @@ from . import ureg
 import numpy
 import ipc
 import backend.convert_frms6 as convert
+import backend.holger_motors as holger_motors
 import glob
 import sys
 import os
@@ -29,6 +30,7 @@ class FLASHTranslator(object):
         self.current_dark = None
         self.offset = None
         self.get_dark()
+        self.motors = holger_motors.MotorPositions(state['FLASH/MotorFolder'])
 
     def next_event(self):
         """Generates and returns the next event"""
@@ -82,7 +84,7 @@ class FLASHTranslator(object):
             # Translate pnCCD
             add_record(values, key, 'pnCCD', evt['pnCCD'], ureg.ADU)
         elif key == 'motorPositions':
-            val = motors.get(self.reader.frame_headers[-1].tv_sec)
+            val = self.motors.get(self.reader.frame_headers[-1].tv_sec)
             if val is None:
                 raise RuntimeError('%s not found in event' % key)
             for motorname,motorpos in val.iteritems():
@@ -93,17 +95,8 @@ class FLASHTranslator(object):
             add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec)
             add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec)
         elif not key == 'analysis':
-        '''
-        for ds in self.state['Dummy']['Data Sources']:
-            if self.state['Dummy']['Data Sources'][ds]['type'] == key:
-                # If unit is a string translate into PINT quantity
-                u = self.state['Dummy']['Data Sources'][ds]['unit']
-                if not isinstance(self.state['Dummy']['Data Sources'][ds]['unit'],ureg.Quantity):
-                    u = ureg.parse_expression(u)
-                add_record(values, key, ds, evt[ds], u)
-        if(values == {} and not key == 'analysis'):
-            raise RuntimeError('%s not found in event' % (key))
-        '''
+            raise RuntimeError('%s not found in event' % key)
+        
         return values
 
     def event_id(self, _):
