@@ -11,7 +11,7 @@ class MotorPositions(object):
         self._date = None
 
     def get(self, timestamp):
-        timestamp += 18590000
+        #timestamp += 18590000
         filename = self._time_to_filename(timestamp)
         if filename != self._filename:
             tmp_time = time.localtime(timestamp)
