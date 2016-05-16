@@ -106,7 +106,10 @@ class Frms6_reader():
             if ret != 0:
                 self.frame_headers = self.frame_headers[:-1]
                 break
-            self.frames.append(self.arg_reshape(np.fromfile(self.f, '=i2', count=self.nx*self.ny))-self.offset)
+            raw_frame = np.fromfile(self.f, '=i2', count=self.nx*self.ny)
+            if raw_frame.size < self.nx*self.ny:
+                break
+            self.frames.append(self.arg_reshape(raw_frame)-self.offset)
             i += 1
             #sys.stderr.write('\rParsed %d frames' % i)
             if num_frames > 0 and i >= num_frames:
