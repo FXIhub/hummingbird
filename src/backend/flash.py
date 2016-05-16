@@ -29,8 +29,15 @@ class FLASHTranslator(object):
         self.current_fname = None
         self.current_dark = None
         self.offset = None
+        self.fnum = None
         self.get_dark()
         self.motors = holger_motors.MotorPositions(state['FLASH/MotorFolder'])
+        if 'do_offline' in state:
+            self.do_offline = state['do_offline']
+        else:
+            self.do_offline = False
+        if self.do_offline:
+            print 'Running offline i.e. on all files in glob'
 
     def next_event(self):
         """Generates and returns the next event"""
@@ -109,8 +116,17 @@ class FLASHTranslator(object):
         return event_id
 
     def new_file_check(self):
-        flist = glob.glob(self.state['FLASH/DataFolder'] + '/*.frms6')
-        latest_fname = max(flist, key=os.path.getmtime)
+        flist = glob.glob(self.state['FLASH/DataGlob'])
+        if self.do_offline:
+            if not self.fnum:
+                self.fnum = 0
+                self.flist = flist
+            else:
+                self.fnum += 1
+            latest_fname = flist[self.fnum]
+        else:
+            latest_fname = max(flist, key=os.path.getmtime)
+        
         if latest_fname != self.current_fname:
             # Check if file is too small
             if os.path.getsize(latest_fname) < 1024:
@@ -130,7 +146,7 @@ class FLASHTranslator(object):
             return False
         
     def get_dark(self):
-        flist = glob.glob(self.state['FLASH/CalibFolder']+'/*.darkcal.h5')
+        flist = glob.glob(self.state['FLASH/CalibGlob'])
         if len(flist) == 0:
             self.offset = None
             return False
