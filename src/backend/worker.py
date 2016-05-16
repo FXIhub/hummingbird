@@ -151,6 +151,9 @@ def init_translator(state):
     elif(state['Facility'].lower() == 'dummy'):
         from backend.dummy import DummyTranslator
         return DummyTranslator(state)
+    elif(state['Facility'].lower() == 'flash'):
+        from backend.flash import FLASHTranslator
+        return FLASHTranslator(state)
     else:
         raise ValueError('Facility %s not supported' % (state['Facility']))
 
