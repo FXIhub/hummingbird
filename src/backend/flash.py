@@ -29,7 +29,6 @@ class FLASHTranslator(object):
         self.current_dark = None
         self.offset = None
         self.get_dark()
-        print self.offset.mean()
 
     def next_event(self):
         """Generates and returns the next event"""
@@ -83,16 +82,17 @@ class FLASHTranslator(object):
             # Translate pnCCD
             add_record(values, key, 'pnCCD', evt['pnCCD'], ureg.ADU)
         elif key == 'motorPositions':
-            val = motors.get(self.state)
+            val = motors.get(self.reader.frame_headers[-1].tv_sec)
             if val is None:
                 raise RuntimeError('%s not found in event' % key)
             for motorname,motorpos in val.iteritems():
-                add_record(values, key, motorname, motorpos[0], motorpos[1])
+                add_record(values, key, motorname, motorpos, ureg.mm)
         elif key == 'ID':
             add_record(values, key, 'DataSetID', self.reader.file_header.dataSetID.rstrip('\0'))
             add_record(values, key, 'BunchID', self.reader.frame_headers[-1].external_id)
             add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec)
             add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec)
+        elif not key == 'analysis':
         '''
         for ds in self.state['Dummy']['Data Sources']:
             if self.state['Dummy']['Data Sources'][ds]['type'] == key:
@@ -116,7 +116,7 @@ class FLASHTranslator(object):
         return event_id
 
     def new_file_check(self):
-        flist = glob.glob(self.state['FLASH/DataSource'] + '/*.frms6')
+        flist = glob.glob(self.state['FLASH/DataFolder'] + '/*.frms6')
         latest_fname = max(flist, key=os.path.getmtime)
         if latest_fname != self.current_fname:
             # Check if file is too small
@@ -137,7 +137,7 @@ class FLASHTranslator(object):
             return False
         
     def get_dark(self):
-        flist = glob.glob(self.state['FLASH/DataSource']+'/*.darkcal.h5')
+        flist = glob.glob(self.state['FLASH/CalibFolder']+'/*.darkcal.h5')
         if len(flist) == 0:
             self.offset = None
             return False
