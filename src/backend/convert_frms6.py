@@ -48,7 +48,6 @@ class Frms6_frame_header():
     def parse(self, fp):
         headstr = fp.read(self.length)
         if len(headstr) < self.length:
-            print 'Reached end of file'
             return 1
         self.start, self.info, self.id, self.height, self.tv_sec, \
             self.tv_usec, self.index, self.temp, self.the_start, \
@@ -71,7 +70,7 @@ class Frms6_frame_header():
         print 'bunch_id',self.bunch_id
 
 class Frms6_reader():
-    def __init__(self, fname, shape_str='assem'):
+    def __init__(self, fname, shape_str='assem', offset=None):
         self.f = open(fname, 'rb')
         if shape_str == 'assem':
             self.shape_arg = 0
@@ -88,6 +87,10 @@ class Frms6_reader():
         self.nx = self.file_header.the_width
         self.ny = self.file_header.the_max_height
         print 'nx ny =', self.nx, self.ny
+        if offset is None:
+            self.offset = self.arg_reshape(np.zeros((self.nx, self.ny)))
+        else:
+            self.offset = offset
     
     def parse_frames(self, start_num=0, num_frames=-1):
         self.f.seek(self.file_header.my_length + start_num*(self.file_header.fh_length + self.nx*self.ny*2))
@@ -103,7 +106,7 @@ class Frms6_reader():
             if ret != 0:
                 self.frame_headers = self.frame_headers[:-1]
                 break
-            self.frames.append(self.arg_reshape(np.fromfile(self.f, '=i2', count=self.nx*self.ny).reshape(self.nx, self.ny)))
+            self.frames.append(self.arg_reshape(np.fromfile(self.f, '=i2', count=self.nx*self.ny))-self.offset)
             i += 1
             #sys.stderr.write('\rParsed %d frames' % i)
             if num_frames > 0 and i >= num_frames:
@@ -117,6 +120,7 @@ class Frms6_reader():
         return np.concatenate((np.concatenate((a[0],np.rot90(a[1],2))),np.concatenate((a[3],np.rot90(a[2],2)))),axis=1)
     
     def arg_reshape(self, a):
+        a = a.reshape(self.nx, self.ny)
         if self.shape_arg == 2:
             return a
         elif self.shape_arg == 1:
