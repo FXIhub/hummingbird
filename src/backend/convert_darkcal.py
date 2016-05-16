@@ -73,7 +73,7 @@ if __name__ == '__main__':
     args = parser.parse_args()
     
     if args.output_fname is None:
-        args.output_fname = os.path.splitext(os.path.basename(args.fname))[0]+'.h5'
+        args.output_fname = os.path.basename(args.fname) +'.h5'
     
     reader = darkcal_reader(args.fname)
     reader.parse_stats()
