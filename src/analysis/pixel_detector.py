@@ -1,9 +1,13 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
+from numpy import sum, mean, min, max, std
+import numpy as np
 from backend import ureg
 from backend import add_record
 import utils.io
 import utils.array
-from numpy import sum, mean, min, max, std
-import numpy as np
 
 def printStatistics(detectors):
     for k,r in detectors.iteritems():
@@ -116,7 +120,7 @@ def threshold(evt, record, threshold, outkey=None):
     return rec
 
 initialized = {}
-def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
+def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None, initkey=None):
     """Asesembles a detector image given some geometry and adds assembled image to ``evt["analysis"]["assembled - " + key]``.
 
     Args:
@@ -133,7 +137,10 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    if not key in initialized:
+    if initkey is None: 
+        initkey = key
+    
+    if not initkey in initialized:
         if subset is not None:
             x_ss = []
             y_ss = []
@@ -148,7 +155,7 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
             x_ss = x
             y_ss = y
         assembled, height, width, shape, y_ss, x_ss = utils.array.assembleImage(x_ss, y_ss ,nx=nx, ny=ny, return_indices=True)
-        initialized[key] = {
+        initialized[initkey] = {
             'assembled':assembled,
             'height':height,
             'width':width,
@@ -156,14 +163,13 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
             'y':y_ss,
             'x':x_ss
         }
-    assembled = initialized[key]['assembled']
-    height = initialized[key]['height']
-    width = initialized[key]['width']
-    shape = initialized[key]['shape']
-    y = initialized[key]['y']
-    x = initialized[key]['x']
-    #from IPython.core.debugger import Tracer
-    #Tracer()()
+    assembled = initialized[initkey]['assembled']
+    height = initialized[initkey]['height']
+    width = initialized[initkey]['width']
+    shape = initialized[initkey]['shape']
+    y = initialized[initkey]['y']
+    x = initialized[initkey]['x']
+
     if subset is not None:
         data = []
         for i in subset:
@@ -173,12 +179,15 @@ def assemble(evt, type, key, x, y, nx=None, ny=None, subset=None, outkey=None):
         data = np.hstack(data)
     else:
         data = evt[type][key].data
+    
     assembled[height-shape[0]:, :shape[1]][y,x] = data
+
     if outkey is None:
         add_record(evt["analysis"], "analysis", "assembled - "+key, assembled)
+
     else:
         add_record(evt["analysis"], "analysis", outkey, assembled)
-
+    
     
 def bin(evt, type, key, binning, mask=None):
     """Bin a detector image given a binning factor (and mask).

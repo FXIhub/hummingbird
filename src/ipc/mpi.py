@@ -1,3 +1,7 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
 """Allows the backend and analysis to run in parallel using MPI."""
 import ipc
 import numpy
@@ -37,7 +41,12 @@ try:
     size = comm.Get_size()
     slave_group = comm.Get_group().Incl(range(1, size))
     slaves_comm = comm.Create(slave_group)
-    reload_comm = comm.Clone()    
+    reload_comm = comm.Clone()
+
+    MPI_TAG_INIT   = 1 + 4353
+    MPI_TAG_EXPAND = 2 + 4353
+    MPI_TAG_READY  = 3 + 4353
+    MPI_TAG_CLOSE  = 4 + 4353
 
 except ImportError:
     rank = 0
@@ -62,13 +71,18 @@ def is_main_slave():
     """Returns True if the process has MPI rank == 1."""
     return rank == 1
 
+def is_worker():
+    """Returns True if the process is a slave or there is only one process."""
+    return is_slave() or size == 1
+
 def is_main_worker():
     """Returns True if the process is the main slave or there is only one process."""
     return is_main_slave() or size == 1
 
 def send(title, data):
     """Send a list of data items to the master node."""
-    comm.send([title, data], 0)
+    if comm is not None:
+        comm.send([title, data], 0)
 
 def checkreload():
     global subscribed
@@ -122,7 +136,7 @@ def master_loop():
             comm.send(data_y, source)
     elif(msg[0] == '__exit__'):
         slavesdone.append(True)
-        print "Slave with rank = %d reports to be done" %msg[1]
+        logging.warning("Slave with rank = %d reports to be done" %msg[1])
         if len(slavesdone) == nr_workers():
             MPI.Finalize()
             return True

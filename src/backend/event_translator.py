@@ -1,5 +1,8 @@
-"""Provides the interface between the analysis code and the various
-translators."""
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
+"""Provides the interface between the analysis code and the various translators."""
 
 class EventTranslator(object):
     """Provides the interface between the analysis code and the various

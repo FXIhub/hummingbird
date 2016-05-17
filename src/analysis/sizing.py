@@ -1,9 +1,12 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
 from backend import add_record
 import ipc
 import utils.io
 import numpy as np
 
-parameters = {}
 def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5, blur=4):
     """Estimating the center of diffraction based on pair-wise correlation enforcing friedel-symmetry and adding the estimated off center shifts cx and cy to
     ``evt['analysis']['offCenterX']`` and ``evt['analysis']['offCenterX']``.
@@ -45,7 +48,6 @@ def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5
     add_record(v, "analysis", "cx", (img.shape[1]-1)/2. + cx, unit='px')
     add_record(v, "analysis", "cy", (img.shape[0]-1)/2. + cy, unit='px')
 
-parameters = {}
 def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
                 wavelength=1., pixelsize=110, distance=1000, adu_per_photon=1,
                 quantum_efficiency=1, material='virus', mask_radius=100,
@@ -192,8 +194,6 @@ def sphereModel(evt, type, key_centerx, key_centery, key_diameter, key_intensity
     add_record(evt["analysis"], "analysis", "fit", fit, unit='ADU')
 
 
-
-parameters = {}
 def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=None, d0=100, i0=1.,
                     wavelength=1., pixelsize=110, distance=1000, adu_per_photon=1,
                     quantum_efficiency=1, material='virus', mask_radius=100,

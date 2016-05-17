@@ -1,2 +1,0 @@
-#!/bin/bash
-mpiexec -n 10 python ./example_dummy.py

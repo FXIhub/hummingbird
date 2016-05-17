@@ -1,5 +1,8 @@
-import ipc
-from backend import Record
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
+from backend import add_record
 
 def someAnalysis(evt, type, key, keyword=None):
     """An example for an analysis module. Please document here in the docstring:

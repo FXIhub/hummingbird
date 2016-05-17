@@ -1,3 +1,7 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
 """Translates between LCLS events and Hummingbird ones"""
 import os
 import logging
@@ -10,11 +14,25 @@ from pytz import timezone
 from . import ureg
 from backend import Worker
 import ipc
+from hummingbird import parse_cmdline_args
 
+def add_cmdline_args(parser):
+    global argparser
+    argparser = parser
+    group = argparser.add_argument_group('LCLS', 'Options for the LCLS event translator')
+    group.add_argument('--lcls-run-number', metavar='lcls_run_number', nargs='?',
+                       help="run number",
+                       type=int)
+    group.add_argument('--lcls-number-of-frames', metavar='lcls_number_of_frames', nargs='?',
+                       help="number of frames to be processed",
+                       type=int)
+    return argparser
+    
 class LCLSTranslator(object):
     """Translate between LCLS events and Hummingbird ones"""
     def __init__(self, state):
         self.timestamps = None
+        self.library = 'psana'
         config_file = None
         if('LCLS/PsanaConf' in state):
             config_file = os.path.abspath(state['LCLS/PsanaConf'])
@@ -27,6 +45,15 @@ class LCLSTranslator(object):
             logging.info("Info: Found configuration file %s.", config_file)
             psana.setConfigFile(config_file)
 
+        if 'LCLS/CalibDir' in state:
+            calibdir = state['LCLS/CalibDir']
+            logging.info("Setting calib-dir to %s" % calibdir)
+            psana.setOption('psana.calib-dir', calibdir)
+        elif('LCLS' in state and 'CalibDir' in state['LCLS']):
+            calibdir = state['LCLS']['CalibDir']
+            logging.info("Setting calib-dir to %s" % calibdir)
+            psana.setOption('psana.calib-dir', calibdir)
+
         if('LCLS/DataSource' in state):
             dsrc = state['LCLS/DataSource']
         elif('LCLS' in state and 'DataSource' in state['LCLS']):
@@ -35,6 +62,11 @@ class LCLSTranslator(object):
             raise ValueError("You need to set the '[LCLS][DataSource]'"
                              " in the configuration")
         
+        cmdline_args = parse_cmdline_args()
+        self.N = cmdline_args.lcls_number_of_frames          
+        if cmdline_args.lcls_run_number is not None:
+            dsrc += ":run=%i" % cmdline_args.lcls_run_number
+
         # Cache times of events that shall be extracted from XTC (does not work for stream)
         self.event_slice = slice(0,None,1)
         if 'times' in state or 'fiducials' in state:
@@ -60,7 +92,10 @@ class LCLSTranslator(object):
                 self.i = 0
             self.data_source = psana.DataSource(dsrc)
             self.run = self.data_source.runs().next()
-            self.timestamps = self.run.times()[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
+            self.timestamps = self.run.times()
+            if self.N is not None:
+                self.timestamps = self.timestamps[:self.N]
+            self.timestamps = self.timestamps[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
         else:
             self.times = None
             self.fiducials = None
@@ -69,7 +104,7 @@ class LCLSTranslator(object):
                 self.event_slice = slice(ipc.mpi.slave_rank(), None, ipc.mpi.nr_workers())
             self.data_source = psana.DataSource(dsrc)
             self.run = None
-
+            
         # Define how to translate between LCLS types and Hummingbird ones
         self._n2c = {}
         self._n2c[psana.Bld.BldDataFEEGasDetEnergy] = 'pulseEnergies'
@@ -87,9 +122,12 @@ class LCLSTranslator(object):
             self._n2c[psana.Bld.BldDataEBeamV7] = 'photonEnergies'
         except AttributeError:
             pass
+        # CXI (CsPad)
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
-        # AMO
+        # CXI (OffAxis Cam)
+        self._n2c[psana.Camera.FrameV1] = 'photonPixelDetectors'
+        # AMO (pnCCD)
         self._n2c[psana.PNCCD.FullFrameV1] = 'photonPixelDetectors'
         self._n2c[psana.PNCCD.FramesV1] = 'photonPixelDetectors'
         # --
@@ -110,13 +148,17 @@ class LCLSTranslator(object):
 
         # Define how to translate between LCLS sources and Hummingbird ones
         self._s2c = {}
+        # CXI (OnAxis Cam)
         self._s2c['DetInfo(CxiEndstation.0:Opal4000.1)'] = 'Sc2Questar'
+        # CXI (OffAxis Cam)
+        self._s2c['DetInfo(CxiEndstation.0.Opal11000.0)'] = 'Sc2Offaxis'
+        # CXI (CsPad)
         self._s2c['DetInfo(CxiDs1.0:Cspad.0)'] = 'CsPad Ds1'
         self._s2c['DetInfo(CxiDsd.0:Cspad.0)'] = 'CsPad Dsd'
         self._s2c['DetInfo(CxiDs2.0:Cspad.0)'] = 'CsPad Ds2'
         self._s2c['DetInfo(CxiDg3.0:Cspad2x2.0)'] = 'CsPad Dg3'
         self._s2c['DetInfo(CxiDg2.0:Cspad2x2.0)'] = 'CsPad Dg2'
-        # AMO
+        # AMO (pnCCD)
         self._s2c['DetInfo(Camp.0:pnCCD.1)'] = 'pnccdBack'
         self._s2c['DetInfo(Camp.0:pnCCD.0)'] = 'pnccdFront'
         # --
@@ -128,10 +170,11 @@ class LCLSTranslator(object):
         if self.timestamps:            
             try:
                 evt = self.run.event(self.timestamps[self.i])
-            except IndexError:
+            except (IndexError, StopIteration) as e:
                 logging.warning('End of Run.')
                 if 'end_of_run' in dir(Worker.conf):
                     Worker.conf.end_of_run()
+                ipc.mpi.slave_done()
                 return None
             self.i += 1
         elif self.times is not None:
@@ -141,22 +184,24 @@ class LCLSTranslator(object):
                 self.i += 1
                 evt = self.run.event(time)
                 if evt is None:
-                    print "Unable to find event listed in index file"
-
+                    print "Unable to find event listed in index file"                    
             # We got to the end without a valid event, time to call it a day
             if evt is None:
                 return None
         else:
-            while (self.i%self.event_slice.step) != self.event_slice.start:
-                evt = self.data_source.events().next()
-                self.i += 1            
             try:
+                while (self.i % self.event_slice.step) != self.event_slice.start:
+                    evt = self.data_source.events().next()
+                    self.i += 1
+                if self.N is not None and self.i >= self.N:
+                    raise StopIteration
                 evt = self.data_source.events().next()
                 self.i += 1
             except StopIteration:
                 logging.warning('End of Run.')
                 if 'end_of_run' in dir(Worker.conf):
                     Worker.conf.end_of_run()
+                ipc.mpi.slave_done()
                 return None
         return EventTranslator(evt, self)
 
@@ -301,17 +346,24 @@ class LCLSTranslator(object):
     def _tr_cspad2x2(self, values, obj):
         """Translates CsPad2x2 to hummingbird numpy array"""
         try:
-            add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data(), ureg.ADU)
+            add_record(values, 'photonPixelDetectors', 'CsPad2x2S', obj.data(), ureg.ADU)
         except AttributeError:
             add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data16(), ureg.ADU)
+
     def _tr_camera(self, values, obj):
         """Translates Camera frame to hummingbird numpy array"""
-        if obj.depth == 16:
-            data = obj.data16()
-        else:
-            data = obj.data8()
+        #if obj.depth == 16 or obj.depth() == 12:
+        #    data = obj.data16()
+        #    print data.shape
+        #else:
+        #    data = obj.data8()
+        #    print data.shape
+        data = obj.data16()
         
-        add_record(values, 'camera', 'opal', data, ureg.ADU)
+        if data.shape == (1024,1024):
+            add_record(values, 'camera', 'offAxis', data, ureg.ADU)
+        if data.shape == (1752,2336):
+            add_record(values, 'camera', 'onAxis', data, ureg.ADU)
 
     def _tr_cspad(self, values, obj, evt_key):
         """Translates CsPad to hummingbird numpy array, quad by quad"""

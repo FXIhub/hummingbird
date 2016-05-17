@@ -1,5 +1,9 @@
 #!/usr/bin/env python
-"""Hummingbird main file."""
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
+"""The main hummingbird file."""
 import sys
 import argparse
 import logging
@@ -30,7 +34,15 @@ def parse_cmdline_args():
                         action="store_true")
     parser.add_argument("--no-restore", help="no restoring of Qsettings",
                         action="store_false")
-    
+
+    # LCLS-specific arguments
+    try:
+        import backend.lcls
+        parser = backend.lcls.add_cmdline_args(parser)
+    except ImportError:
+        pass
+        
+    # Print help
     if(len(sys.argv) == 1):
         parser.print_help()
     return parser.parse_args()

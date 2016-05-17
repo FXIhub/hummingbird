@@ -1,8 +1,13 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
 """Creates Hummingbird events for testing purposes"""
 import time
 import random
 from backend.event_translator import EventTranslator
 from backend.record import add_record
+from backend import Worker
 from . import ureg
 import numpy
 import ipc
@@ -10,6 +15,7 @@ import ipc
 class DummyTranslator(object):
     """Creates Hummingbird events for testing purposes"""
     def __init__(self, state):
+        self.library = 'dummy'
         self.state = state
         self.keys = set()
         self.keys.add('analysis')
@@ -40,11 +46,19 @@ class DummyTranslator(object):
 
         if('Dummy' in self.state and 'Simulation' in self.state['Dummy']):
             self.state['Dummy']['Simulation'].next_event()
-        
-        for ds in self.state['Dummy']['Data Sources']:
-            evt[ds] = self.state['Dummy']['Data Sources'][ds]['data']()
-            self.keys.add(self.state['Dummy']['Data Sources'][ds]['type'])
-        
+
+        try:
+            for ds in self.state['Dummy']['Data Sources']:
+                evt[ds] = self.state['Dummy']['Data Sources'][ds]['data']()
+                self.keys.add(self.state['Dummy']['Data Sources'][ds]['type'])
+
+        except (IndexError, StopIteration) as e:
+            logging.warning('End of Run.')
+            if 'end_of_run' in dir(Worker.conf):
+                Worker.conf.end_of_run()
+            ipc.mpi.slave_done()
+            return None
+
         return EventTranslator(evt, self)
 
     def event_keys(self, _):

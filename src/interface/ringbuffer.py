@@ -1,3 +1,7 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
 """Provides a ring buffer for scalar and numpy data.
 It's always possible to retrieve the buffer data as a numpy array in O(1)
 This is achieve by always inserting two copies of any appended data, so

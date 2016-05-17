@@ -2,7 +2,11 @@ LCLS examples
 =============
 
 To be able to run from LCLS data you need to have a functioning `PSANA` environment. There
-is lots of documentation about how to set up things on the `LCLS Data Analysis <https://confluence.slac.stanford.edu/display/PSDM/psana+python>`_ page.
+is lots of documentation about how to set up things on the |psana| page.
+
+.. |psana| raw:: html
+
+          <a href="https://confluence.slac.stanford.edu/display/PSDM/psana+python">LCLS Data Analysis</a>
 
 .. tip::
    
@@ -16,9 +20,13 @@ is lots of documentation about how to set up things on the `LCLS Data Analysis <
 Hit finding of mimivirus
 ------------------------
 
-This example is based on diffraction data from mimivirus (cite) published in the `CXIDB <http://www.cxidb.org>`_ (entry 30).
+This example is based on diffraction data from mimivirus (cite) published in the |cxidb| (entry 30).
 In order to run this example, it is necessary to download raw data files (XTC format) for a dark run (73) and a diffraction run (92)
 and put it inside a directory `XTC_DIR`.
+
+.. |cxidb| raw:: html
+                 
+   <a href="http://www.cxidb.org">CXIDB</a>
 
 mimi_dark.py
 ------------
@@ -105,14 +113,14 @@ With the average dark image ready, we can run with the following configuration:
                                    hmin=hist_min, hmax=hist_max, bins=hist_bins, vline=adu_photon)
 
        # Hitfinding
-       analysis.hitfinding.countLitPixels(evt, 'analysis', 'pnccdBackCorrected', 
+       analysis.hitfinding.countLitPixels(evt, evt['analysis']['pnccdBackCorrected'], 
                                           aduThreshold=adu_photon, hitscoreThreshold=threshold)
 
        # Plot hitscore (to monitor hitfinder -> hitscoreThreshold)
-       plotting.line.plotHistory(evt['analysis']['hitscore'], hline=threshold)
+       plotting.line.plotHistory(evt['analysis']['litpixel: hitscore'], hline=threshold)
 
        # Plot back detector image for hits only
-       if bool(evt['analysis']['isHit'].data):
+       if bool(evt['analysis']['litpixel: isHit'].data):
            plotting.image.plotImage(evt['analysis']['pnccdBackCorrected'], 
                                     log=True, name='pnccdBack - only hits')
    

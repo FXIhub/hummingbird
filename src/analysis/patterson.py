@@ -1,3 +1,7 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
 import numpy
 import utils.io
 from backend.record import add_record
@@ -17,7 +21,7 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None):
     else:
         mask = numpy.array(mask, dtype="bool")
         
-    P = spimage.patterson(img, mask, floor_cut=100., mask_smooth=4., darkfield_x=None, darkfield_y=None, darkfield_sigma=None, normalize_median=True, radial_boost=False, log_boost=True, gauss_damp=True, gauss_damp_sigma=None, gauss_damp_threshold=None, subtract_fourier_kernel=True, log_min=1., full_output=False)    
+    P = module.patterson(img, mask, floor_cut=100., mask_smooth=4., darkfield_x=None, darkfield_y=None, darkfield_sigma=None, normalize_median=True, radial_boost=False, log_boost=True, gauss_damp=True, gauss_damp_sigma=None, gauss_damp_threshold=None, subtract_fourier_kernel=True, log_min=1., full_output=False)    
     v = evt["analysis"]
     add_record(v, "analysis", "patterson", abs(P), unit='')
 

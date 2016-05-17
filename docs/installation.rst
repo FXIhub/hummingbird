@@ -17,6 +17,13 @@ Requirements
 * `PyZMQ <http://zeromq.org/bindings:python>`_
 * `pexpect <https://pypi.python.org/pypi/pexpect/>`_
 * `mpi4py <http://pythonhosted.org/mpi4py/>`_
+* `h5py <http://h5py.org>`_
+* `h5writer <https://pypi.python.org/pypi/h5writer>`_
+
+Requirements for testing
+------------------------
+* `subprocess32 <https://pypi.python.org/pypi/subprocess32>`_
+* `pytest <https://pypi.python.org/pypi/pytest>`_
 
 Some of the `more advanced examples <advanced_examples.html>`_ require an installation of `libspimage <https://github.com/FilipeMaia/libspimage>`_ and/or `condor <https://github.com/mhantke/condor>`_.
 

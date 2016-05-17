@@ -1,3 +1,7 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
 """Manages a connection with one backend"""
 from interface.Qt import QtGui, QtCore
 from zmq import SUB, REQ
@@ -145,7 +149,11 @@ class DataSource(QtCore.QObject):
                     continue
                 self.data_type[k] = self.conf[k]['data_type']
                 if(k not in self._plotdata):
-                    group = self.conf[k]["group"]
+                    if "group" in self.conf[k]:
+                        group = self.conf[k]["group"]                        
+                    else:
+                        group = "No group"
+
                     self._plotdata[k] = PlotData(self, k, group=group)
                     self.plotdata_added.emit(self._plotdata[k])
                     self.add_item_to_group_structure(k, group)

@@ -1,3 +1,7 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
 """Implements the server that broadcasts the results from the backend.
 Analysis users do not need to deal with it."""
 import zmq
@@ -29,7 +33,10 @@ class ZmqServer(object):
 
         self._data_socket = self._context.socket(zmq.PUB)
         ## Does not match intent according to http://stackoverflow.com/questions/23800442/why-wont-zmq-drop-messages
-        #self._data_socket.setsockopt(zmq.SNDHWM, 10)
+        self._broker_sub_socket.setsockopt(zmq.RCVHWM, 125)
+        self._broker_pub_socket.setsockopt(zmq.SNDHWM, 125)
+        self._broker_pub_socket.setsockopt(zmq.SNDTIMEO, 0)
+        self._data_socket.setsockopt(zmq.SNDHWM, 125)
         self._data_socket.setsockopt(zmq.SNDTIMEO, 0)
         self._ctrl_socket.bind("tcp://*:%d" % (self._ctrl_port))
         self._broker_pub_socket.bind("tcp://*:%d" % (self._broker_pub_port))
@@ -37,6 +44,12 @@ class ZmqServer(object):
         self._data_socket.connect("tcp://127.0.0.1:%d" % (self._broker_sub_port))
 
         zmq.eventloop.ioloop.install()
+        # We are installing event handlers for those sockets
+        # but also for data stream, since a PUB socket actually
+        # can leak data if it never is asked to process its events.
+        # (According to some vague discussions.)
+        # (e.g. https://github.com/zeromq/libzmq/issues/1256 )
+        self._data_stream = zmq.eventloop.zmqstream.ZMQStream(self._data_socket)
         self._ctrl_stream = zmq.eventloop.zmqstream.ZMQStream(self._ctrl_socket)
         self._ctrl_stream.on_recv_stream(self._answer_command)
 

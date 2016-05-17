@@ -1,3 +1,7 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
 """Window to display 2D plots"""
 from interface.ui import Ui_plotWindow
 import pyqtgraph
@@ -7,7 +11,6 @@ from interface.Qt import QtCore, QtGui
 from interface.colorbar import ColorBar
 import datetime
 import utils.array
-import utils.time
 
 class Histogram(object):
     def __init__(self, hmin, hmax, bins):
@@ -231,6 +234,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             symbol_pen = None
             symbol_brush = None
             symbol_size = None
+            histoangle = 0
+
             if(self.actionLines.isChecked()):
                 pen = color
             if(self.actionPoints.isChecked()):
@@ -322,6 +327,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     hmax = float(self._settings_diag.histMax.text())
                 y,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
                 x = (x[:-1]+x[1:])/2.0
+                histoangle = 90
                 self._configure_axis(source, title, hist=True)
             elif(source.data_type[title] == "histogram"):
                 ringbuffer = pd.y
@@ -338,13 +344,13 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
             if 'hline' in conf and conf['hline'] is not None:
                 self.plot.getPlotItem().removeItem(self.hline)
-                self.hline = pyqtgraph.InfiniteLine(angle=0, movable=False, pen=self.hline_color)
+                self.hline = pyqtgraph.InfiniteLine(angle=0 + histoangle, movable=False, pen=self.hline_color)
                 self.plot.getPlotItem().addItem(self.hline)
                 self.hline.setPos(conf['hline'])
 
             if 'vline' in conf and conf['vline'] is not None:
                 self.plot.getPlotItem().removeItem(self.vline)
-                self.vline = pyqtgraph.InfiniteLine(angle=90, movable=False, pen=self.vline_color)
+                self.vline = pyqtgraph.InfiniteLine(angle=90 + histoangle, movable=False, pen=self.vline_color)
                 self.plot.getPlotItem().addItem(self.vline)
                 self.vline.setPos(conf['vline'])
 

@@ -1,5 +1,8 @@
-"""Coordinates data reading, translation and analysis.
-"""
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
+"""Coordinates data reading, translation and analysis."""
 import os
 import logging
 import imp
@@ -40,7 +43,7 @@ class Worker(object):
         self.load_conf()
         Worker.state['_config_file'] = config_file
         #Worker.state['_config_dir'] = os.path.dirname(config_file)
-
+        
         if(not ipc.mpi.is_master()):
             self.translator = init_translator(Worker.state)
 
@@ -82,7 +85,7 @@ class Worker(object):
     def ctrlcevent(self, whatSignal, stack):
         self.reloadnow = True
         signal.signal(signal.SIGINT, self.oldHandler)
-
+        
     def event_loop(self):
         """The event loop.
 
@@ -103,7 +106,7 @@ class Worker(object):
                             if evt is None:
                                 return
                         except (RuntimeError) as e:
-                            logging.warning("Some problem with psana, probably due to reloading the backend. (%s)" % e)
+                            logging.warning("Some problem with %s (library used for translation), probably due to reloading the backend. (%s)" % (self.translator.library,e))
                             raise KeyboardInterrupt
                         ipc.set_current_event(evt)
                         try:
@@ -111,9 +114,9 @@ class Worker(object):
                         except (KeyError, TypeError) as exc:
                             logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info=True)
                         except (RuntimeError) as e:
-                            logging.warning("Some problem with psana, probably due to reloading the backend.", exc_info=True)
+                            logging.warning("Some problem with %s (library used for translation), probably due to reloading the backend." %self.translator.library, exc_info=True)
                         except StopIteration:
-                            print "Stopping iteration ..."
+                            logging.warning("Stopping iteration.")
                             if 'end_of_run' in dir(Worker.conf):
                                 Worker.conf.end_of_run()
                             ipc.mpi.slave_done()

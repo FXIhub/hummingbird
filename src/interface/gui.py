@@ -1,5 +1,8 @@
-"""Displays the results of the analysis to the user, using images and plots.
-"""
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
+"""Displays the results of the analysis to the user, using images and plots."""
 from interface.Qt import QtGui, QtCore
 from interface.ui import AddBackendDialog, PreferencesDialog
 from interface.ui import PlotWindow, ImageWindow
@@ -296,8 +299,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
     def closeEvent(self, event): #pylint: disable=invalid-name
         """Save settings and exit nicely"""
         self.save_settings()
-        # Force exit to prevent pyqtgraph from crashing
-        os._exit(0) #pylint: disable=protected-access
+        # Force exit to prevent pyqtgraph from crashing, lingering windows
+        QtGui.qApp.quit()
         # Never gets here, but anyway...
         event.accept()
 
