@@ -34,7 +34,11 @@ class Histogram(object):
 
     def add_values_from_ringbuffer(self, ringbuffer):
         current_index = ringbuffer.number_of_added_elements
-        values = numpy.array(ringbuffer, copy=False)[-(current_index-self._last_add_index):]
+        number_of_values_to_add = current_index-self._last_add_index
+        if number_of_values_to_add > 0:
+            values = numpy.array(ringbuffer, copy=False)[-(current_index-self._last_add_index):]
+        else:
+            return
         for this_value in values:
             self.add_value(this_value)
         self._last_add_index = current_index
