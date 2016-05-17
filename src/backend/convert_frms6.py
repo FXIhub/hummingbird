@@ -10,17 +10,18 @@ class Frms6_file_header():
         self.fmt = '2H4B80s2H932s'
         self.length = 1024
     
-    def parse(self, fp):
+    def parse(self, fname):
+        f = open(fname, 'rb')
         self.my_length, self.fh_length, self.nCCDs, self.width, self.max_height, \
             self.version, self.dataSetID, self.the_width, self.the_max_height, self.fill \
-            = struct.unpack(self.fmt, fp.read(self.length))
+            = struct.unpack(self.fmt, f.read(self.length))
+        f.close()
         
         if self.my_length != self.length:
             print 'Non-standard header length:', self.my_length
-            fp.seek(-self.length, 1)
             self.length = self.my_length
             self.fmt = self.fmt[:-4]+str(self.length-92)+'s'
-            self.parse(fp)
+            self.parse(fname)
         
         if not self.fill:
             return 1
@@ -45,10 +46,14 @@ class Frms6_frame_header():
         if length != 64:
             self.fmt = self.fmt[:-3]+str(length-40)+'s'
     
-    def parse(self, fp):
-        headstr = fp.read(self.length)
+    def parse(self, fname, curr_pos):
+        f = open(fname, 'rb')
+        f.seek(curr_pos, 0)
+        headstr = f.read(self.length)
+        f.close()
+        
         if len(headstr) < self.length:
-            return 1
+            return len(headstr)
         self.start, self.info, self.id, self.height, self.tv_sec, \
             self.tv_usec, self.index, self.temp, self.the_start, \
             self.the_height, self.external_id, self.bunch_id, self.fill \
@@ -71,7 +76,7 @@ class Frms6_frame_header():
 
 class Frms6_reader():
     def __init__(self, fname, shape_str='assem', offset=None):
-        self.f = open(fname, 'rb')
+        self.fname = fname
         if shape_str == 'assem':
             self.shape_arg = 0
         elif shape_str == 'psana':
@@ -83,7 +88,7 @@ class Frms6_reader():
             self.shape_arg = 2
         
         self.file_header = Frms6_file_header()
-        self.file_header.parse(self.f)
+        self.file_header.parse(self.fname)
         self.nx = self.file_header.the_width
         self.ny = self.file_header.the_max_height
         print 'nx ny =', self.nx, self.ny
@@ -93,7 +98,7 @@ class Frms6_reader():
             self.offset = offset
     
     def parse_frames(self, start_num=0, num_frames=-1):
-        self.f.seek(self.file_header.my_length + start_num*(self.file_header.fh_length + self.nx*self.ny*2))
+        curr_pos = self.file_header.my_length + start_num*(self.file_header.fh_length + self.nx*self.ny*2)
         self.frame_headers = []
         self.frames = []
         i = 0
@@ -102,14 +107,22 @@ class Frms6_reader():
         
         while True:
             self.frame_headers.append(Frms6_frame_header(length=self.file_header.fh_length))
-            ret = self.frame_headers[-1].parse(self.f)
+            ret = self.frame_headers[-1].parse(self.fname, curr_pos)
             if ret != 0:
+                print 'Frame header parsing failed:', ret
                 self.frame_headers = self.frame_headers[:-1]
                 break
-            raw_frame = np.fromfile(self.f, '=i2', count=self.nx*self.ny)
+            
+            f = open(self.fname, 'rb')
+            f.seek(curr_pos + self.file_header.fh_length, 0)
+            raw_frame = np.fromfile(f, '=i2', count=self.nx*self.ny)
+            f.close()
+            
             if raw_frame.size < self.nx*self.ny:
+                print 'Frame size = %d < %d' % (raw_frame.size, self.nx*self.ny)
                 break
             self.frames.append(self.arg_reshape(raw_frame)-self.offset)
+            
             i += 1
             #sys.stderr.write('\rParsed %d frames' % i)
             if num_frames > 0 and i >= num_frames:

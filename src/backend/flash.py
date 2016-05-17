@@ -30,13 +30,14 @@ class FLASHTranslator(object):
         self.current_dark = None
         self.offset = None
         self.fnum = None
+        self.reader = None
         self.get_dark()
         self.motors = holger_motors.MotorPositions(state['FLASH/MotorFolder'])
         if 'do_offline' in state:
             self.do_offline = state['do_offline']
         else:
             self.do_offline = False
-        if self.do_offline:
+        if self.do_offline and ipc.mpi.slave_rank() == 0:
             print 'Running offline i.e. on all files in glob'
 
     def next_event(self):
@@ -46,8 +47,8 @@ class FLASHTranslator(object):
         self.new_file_check()
         
         # Check if we need to sleep
-        if(self._last_event_time > 0):
-            rep_rate = 1e9
+        if('FLASH/ProcessingRate' in self.state and self._last_event_time > 0):
+            rep_rate = self.state['FLASH/ProcessingRate']
             if('Dummy' in self.state and 'Repetition Rate' in self.state['Dummy']):
                 rep_rate = self.state['Dummy']['Repetition Rate'] / float(ipc.mpi.nr_workers())
             target_t = self._last_event_time+1.0/rep_rate
@@ -61,18 +62,18 @@ class FLASHTranslator(object):
             evt['pnCCD'] = self.reader.frames[0]
             self.keys.add('photonPixelDetectors')
         else:
+            if ipc.mpi.slave_rank() == 0:
+                sys.stderr.write('Waiting for file list to update\n')
             while True:
                 while not self.new_file_check():
-                    if ipc.mpi.slave_rank() == 0:
-                        sys.stderr.write('\rWaiting for file list to update')
-                    time.sleep(2.)
-                sys.stderr.write('\n')
+                    time.sleep(0.1)
                 self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
+                
                 if len(self.reader.frames) > 0:
                     evt['pnCCD'] = self.reader.frames[0]
                     self.keys.add('photonPixelDetectors')
                     break
-
+        
         self.num += 1
         return EventTranslator(evt, self)
 
@@ -124,23 +125,29 @@ class FLASHTranslator(object):
             else:
                 self.fnum += 1
             latest_fname = flist[self.fnum]
+            file_size = os.path.getsize(latest_fname)
         else:
             latest_fname = max(flist, key=os.path.getmtime)
+            file_size = os.path.getsize(latest_fname)
         
         if latest_fname != self.current_fname:
+            self.current_size = file_size
             # Check if file is too small
-            if os.path.getsize(latest_fname) < 1024:
+            if file_size < 1024:
                 return False
-            print 'Found new file', latest_fname
+            if ipc.mpi.slave_rank() == 0:
+                print 'Found new file', latest_fname, 'size =', self.current_size
             self.get_dark()
             # Parse file header and reset self.num
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
             self.num = 0
             self.current_fname = latest_fname
-            self.current_mtime = os.path.getmtime(latest_fname)
             return True
-        elif os.path.getmtime(latest_fname) != self.current_mtime:
+        elif file_size != self.current_size:
             # Check if the same file has been updated since the last check
+            if ipc.mpi.slave_rank() == 0:
+                print 'File has changed with new size =', file_size
+            self.current_size = file_size
             return True
         else:
             return False
@@ -153,7 +160,8 @@ class FLASHTranslator(object):
         
         latest_fname = max(flist, key=os.path.getmtime)
         if latest_fname != self.current_dark and os.path.getsize(latest_fname) > 1024**2:
-            print 'Found new dark file', latest_fname
+            if ipc.mpi.slave_rank() == 0:
+                print 'Found new dark file', latest_fname
             self.current_dark = latest_fname
             with h5py.File(latest_fname, 'r') as f:
                 self.offset = f['data/offset'][:]
