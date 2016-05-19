@@ -7,25 +7,29 @@ class MotorPositions(object):
         self._history = []
         #self._modification_time = os.path.getmtime(self._filename)
         self._filename = None
-        self._modification_time = None
+        self._filesize = None
         self._date = None
+        self._num_lines = None
 
     def get(self, timestamp):
         #timestamp += 18590000
+        self.timestamp = timestamp
         filename = self._time_to_filename(timestamp)
         if filename != self._filename:
             tmp_time = time.localtime(timestamp)
             self._date = time.mktime((tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, 0, 0, 0, 0, 0, 0))
             self._history = []
             self._update_file(filename)
-        if os.path.getmtime(self._filename) > self._modification_time:
+        if os.path.getsize(self._filename) > self._filesize:
+            print 'File size change'
             self._update_file(self._filename)
-
+        
         for index in xrange(len(self._history)):
             if self._history[-index][0] > timestamp:
                 continue
             else:
                 return self._history[-index][1]
+        return self._history[0][1]
 
     def _time_to_filename(self, timestamp):
         time_info = time.localtime(timestamp)
@@ -33,19 +37,25 @@ class MotorPositions(object):
 
     def _update_file(self, filename):
         print "load file", filename
+        while not os.path.isfile(filename):
+            self.timestamp -= self.timestamp%(24.*3600.) + 5.
+            filename = self._time_to_filename(self.timestamp)
+            print filename
         with open(filename, "r") as file_handle:
             total_history = file_handle.readlines()
-        self._modification_time = os.path.getmtime(filename)
-        if len(total_history) == len(self._history):
+        self._filesize = os.path.getsize(filename)
+        if len(total_history) == self._num_lines:
             return
+        else:
+            self._num_lines = len(total_history)
         diff_history = total_history[len(self._history):]
         parsed_diff_history = [self._parse_line(l) for l in diff_history if len(l) > 150]
         self._history += parsed_diff_history
         self._filename = filename
 
     def _parse_time(self, time):
-        return self._date + int(time[:2])*3600 + int(time[3:5])*60 + int(time[7:9])
-        
+        return self._date + int(time[:2])*3600 + int(time[3:5])*60 + float(time[7:9])
+
     def _parse_line(self, line):
         line_data = line.split()
         data_dict = {"catcher_x": float(line_data[2]),
@@ -73,5 +83,3 @@ class MotorPositions(object):
                      "dummy": float(line_data[33])}
         return (self._parse_time(line_data[0]), data_dict)
 
-
-        
