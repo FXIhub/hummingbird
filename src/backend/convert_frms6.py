@@ -75,8 +75,9 @@ class Frms6_frame_header():
         print 'bunch_id',self.bunch_id
 
 class Frms6_reader():
-    def __init__(self, fname, shape_str='assem', offset=None):
+    def __init__(self, fname, shape_str='assem', offset=None, verbose=False):
         self.fname = fname
+        self.verbose = verbose
         if shape_str == 'assem':
             self.shape_arg = 0
         elif shape_str == 'psana':
@@ -117,17 +118,21 @@ class Frms6_reader():
             f.seek(curr_pos + self.file_header.fh_length, 0)
             raw_frame = np.fromfile(f, '=i2', count=self.nx*self.ny)
             f.close()
+            curr_pos += self.file_header.fh_length + 2*self.nx*self.ny
             
             if raw_frame.size < self.nx*self.ny:
                 print 'Frame size = %d < %d' % (raw_frame.size, self.nx*self.ny)
+                self.frame_headers = self.frame_headers[:-1]
                 break
             self.frames.append(self.arg_reshape(raw_frame)-self.offset)
             
             i += 1
-            #sys.stderr.write('\rParsed %d frames' % i)
+            if self.verbose:
+                sys.stderr.write('\rParsed %d frames' % i)
             if num_frames > 0 and i >= num_frames:
                 break
-        #sys.stderr.write('\n')
+        if self.verbose:
+            sys.stderr.write('\n')
 
     def frms6_to_psana(self, a):
         return a.reshape(512,4,512).transpose(1,0,2)
@@ -155,9 +160,8 @@ if __name__ == '__main__':
     if args.output_fname is None:
         args.output_fname = os.path.splitext(os.path.basename(args.fname))[0]+'.h5'
     
-    reader = Frms6_reader(args.fname, num_frames=args.num_frames, start_num=args.start_num)
+    reader = Frms6_reader(args.fname, verbose=True)
     reader.parse_frames(num_frames=args.num_frames, start_num=args.start_num)
-    reader.f.close()
     
     print 'Writing to', args.output_fname
     with h5py.File(args.output_fname, 'w') as hf:
