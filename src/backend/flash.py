@@ -27,8 +27,10 @@ class FLASHTranslator(object):
         self.keys.add('analysis')
         self._last_event_time = -1
         self.current_fname = None
+        self.daq_fname = None
         self.current_dark = None
         self.offset = None
+        self.num = None
         self.fnum = None
         self.reader = None
         self.get_dark()
@@ -65,7 +67,7 @@ class FLASHTranslator(object):
             if ipc.mpi.slave_rank() == 0:
                 sys.stderr.write('Waiting for file list to update\n')
             while True:
-                while not self.new_file_check():
+                while not self.new_file_check(force=True):
                     time.sleep(0.1)
                 self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
                 
@@ -92,7 +94,8 @@ class FLASHTranslator(object):
             # Translate pnCCD
             add_record(values, key, 'pnCCD', evt['pnCCD'], ureg.ADU)
         elif key == 'motorPositions':
-            val = self.motors.get(self.reader.frame_headers[-1].tv_sec)
+            #val = self.motors.get(self.reader.frame_headers[-1].tv_sec - 606.)
+            val = self.motors.get(self.get_bunch_time())
             if val is None:
                 raise RuntimeError('%s not found in event' % key)
             for motorname,motorpos in val.iteritems():
@@ -100,8 +103,9 @@ class FLASHTranslator(object):
         elif key == 'ID':
             add_record(values, key, 'DataSetID', self.reader.file_header.dataSetID.rstrip('\0'))
             add_record(values, key, 'BunchID', self.reader.frame_headers[-1].external_id)
-            add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec)
-            add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec)
+            add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec, ureg.s)
+            add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec, ureg.s)
+            add_record(values, key, 'bunch_sec', self.get_bunch_time(), ureg.s)
         elif not key == 'analysis':
             raise RuntimeError('%s not found in event' % key)
         
@@ -116,14 +120,17 @@ class FLASHTranslator(object):
         """Returns an alternative id, which is jsut a copy of the usual id here"""
         return event_id
 
-    def new_file_check(self):
+    def new_file_check(self, force=False):
         flist = glob.glob(self.state['FLASH/DataGlob'])
+        flist.sort()
         if self.do_offline:
-            if not self.fnum:
+            if self.fnum is None:
                 self.fnum = 0
                 self.flist = flist
+                print 'Found %d files'% len(flist)
             else:
-                self.fnum += 1
+                if force and self.fnum < len(flist) - 1:
+                    self.fnum += 1
             latest_fname = flist[self.fnum]
             file_size = os.path.getsize(latest_fname)
         else:
@@ -132,13 +139,12 @@ class FLASHTranslator(object):
         
         if latest_fname != self.current_fname:
             self.current_size = file_size
-            # Check if file is too small
             if file_size < 1024:
                 return False
             if ipc.mpi.slave_rank() == 0:
                 print 'Found new file', latest_fname, 'size =', self.current_size
             self.get_dark()
-            # Parse file header and reset self.num
+            
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
             self.num = 0
             self.current_fname = latest_fname
@@ -168,3 +174,16 @@ class FLASHTranslator(object):
             return True
         else:
             return False
+
+    def get_bunch_time(self):
+        tmp_time = time.localtime(self.reader.frame_headers[-1].tv_sec+606.)
+        filename = self.state['FLASH/DAQFolder']+'/daq-%.4d-%.2d-%.2d-%.2d.txt' % (tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, tmp_time.tm_hour)
+        if filename != self.daq_fname:
+            self.daq_fname = filename
+            with open(filename, 'r') as f:
+                lines = list(set(f.readlines()))
+            self.daq_lines = [l.split() for l in lines]
+            self.bunch_ids = numpy.array([int(l[1]) for l in self.daq_lines])
+            print 'DAQ file:', filename, 'max id = %d, min id = %d' % (self.bunch_ids.max(), self.bunch_ids.min())
+        return int(self.daq_lines[numpy.where(self.bunch_ids == self.reader.frame_headers[-1].external_id)[0][0]][0])
+         
