@@ -24,7 +24,7 @@ class MotorPositions(object):
             print 'File size change'
             self._update_file(self._filename)
         
-        for index in xrange(len(self._history)-1, 0):
+        for index in xrange(len(self._history)-1, 0, -1):
             if self._history[index][0] > timestamp:
                 continue
             else:
