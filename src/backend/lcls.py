@@ -122,9 +122,12 @@ class LCLSTranslator(object):
             self._n2c[psana.Bld.BldDataEBeamV7] = 'photonEnergies'
         except AttributeError:
             pass
+        # CXI (CsPad)
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
-        # AMO
+        # CXI (OffAxis Cam)
+        self._n2c[psana.Camera.FrameV1] = 'photonPixelDetectors'
+        # AMO (pnCCD)
         self._n2c[psana.PNCCD.FullFrameV1] = 'photonPixelDetectors'
         self._n2c[psana.PNCCD.FramesV1] = 'photonPixelDetectors'
         # --
@@ -145,13 +148,17 @@ class LCLSTranslator(object):
 
         # Define how to translate between LCLS sources and Hummingbird ones
         self._s2c = {}
+        # CXI (OnAxis Cam)
         self._s2c['DetInfo(CxiEndstation.0:Opal4000.1)'] = 'Sc2Questar'
+        # CXI (OffAxis Cam)
+        self._s2c['DetInfo(CxiEndstation.0.Opal11000.0)'] = 'Sc2Offaxis'
+        # CXI (CsPad)
         self._s2c['DetInfo(CxiDs1.0:Cspad.0)'] = 'CsPad Ds1'
         self._s2c['DetInfo(CxiDsd.0:Cspad.0)'] = 'CsPad Dsd'
         self._s2c['DetInfo(CxiDs2.0:Cspad.0)'] = 'CsPad Ds2'
         self._s2c['DetInfo(CxiDg3.0:Cspad2x2.0)'] = 'CsPad Dg3'
         self._s2c['DetInfo(CxiDg2.0:Cspad2x2.0)'] = 'CsPad Dg2'
-        # AMO
+        # AMO (pnCCD)
         self._s2c['DetInfo(Camp.0:pnCCD.1)'] = 'pnccdBack'
         self._s2c['DetInfo(Camp.0:pnCCD.0)'] = 'pnccdFront'
         # --
@@ -339,17 +346,24 @@ class LCLSTranslator(object):
     def _tr_cspad2x2(self, values, obj):
         """Translates CsPad2x2 to hummingbird numpy array"""
         try:
-            add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data(), ureg.ADU)
+            add_record(values, 'photonPixelDetectors', 'CsPad2x2S', obj.data(), ureg.ADU)
         except AttributeError:
             add_record(values, 'photonPixelDetectors', 'CsPad2x2', obj.data16(), ureg.ADU)
+
     def _tr_camera(self, values, obj):
         """Translates Camera frame to hummingbird numpy array"""
-        if obj.depth == 16:
-            data = obj.data16()
-        else:
-            data = obj.data8()
+        #if obj.depth == 16 or obj.depth() == 12:
+        #    data = obj.data16()
+        #    print data.shape
+        #else:
+        #    data = obj.data8()
+        #    print data.shape
+        data = obj.data16()
         
-        add_record(values, 'camera', 'opal', data, ureg.ADU)
+        if data.shape == (1024,1024):
+            add_record(values, 'camera', 'offAxis', data, ureg.ADU)
+        if data.shape == (1752,2336):
+            add_record(values, 'camera', 'onAxis', data, ureg.ADU)
 
     def _tr_cspad(self, values, obj, evt_key):
         """Translates CsPad to hummingbird numpy array, quad by quad"""

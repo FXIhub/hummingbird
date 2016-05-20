@@ -4,6 +4,7 @@
 # -------------------------------------------------------------------------
 import condor
 import numpy
+import utils.io
 
 class Simulation:
     def __init__(self, conf):
@@ -11,7 +12,7 @@ class Simulation:
         if not success:
             print "Could not run simulation"
             return
-        self.e = condor.experiment.experiment_from_configfile(conf)
+        self.e = module.experiment.experiment_from_configfile(conf)
         self._nx = self.e.detector.get_mask().shape[1]
         self._ny = self.e.detector.get_mask().shape[0]
         self._cx_mean = self.e.detector.get_cx_mean_value()

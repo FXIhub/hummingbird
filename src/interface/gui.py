@@ -299,8 +299,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
     def closeEvent(self, event): #pylint: disable=invalid-name
         """Save settings and exit nicely"""
         self.save_settings()
-        # Force exit to prevent pyqtgraph from crashing
-        os._exit(0) #pylint: disable=protected-access
+        # Force exit to prevent pyqtgraph from crashing, lingering windows
+        QtGui.qApp.quit()
         # Never gets here, but anyway...
         event.accept()
 

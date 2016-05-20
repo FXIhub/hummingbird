@@ -1,9 +1,6 @@
 Hummingbird
 ===========
 
-.. image:: https://zenodo.org/badge/doi/10.5281/zenodo.45460.svg
-              :target: http://dx.doi.org/10.5281/zenodo.45460
-
 Hummingbird is a python-based software tool for monitoring and analysing Flash X-ray Imaging (FXI) experiments in real time.
 
 Getting Hummingbird
@@ -30,7 +27,7 @@ Getting help
 
 .. |hum_doc| raw:: html
 
-                   <a href="http://fxihub.github.io/hummingbird/docs" target="_blank">https://fxihub.github.io/hummingbird/docs<a/>
+             <a href="http://fxihub.github.io/hummingbird/docs" target="_self">https://fxihub.github.io/hummingbird/docs</a>
 
 Supported facilities
 --------------------
@@ -39,6 +36,15 @@ Hummingbird is intended to be used across different user facilities. It has been
 Contribute to Hummingbird
 -------------------------
 Hummingbird is meant to be an open project, developed by users of Flash X-ray Imaging (FXI) using modern X-ray sources. You are welcome to `contribute <contribute.html>`_.
+
+
+How to cite
+-----------
+Daurer, B. J., Hantke, M. F., Nettelblad, C. & Maia, F. R. N. C. (2016). J. Appl. Cryst. 49, |hum_doi|.
+
+.. |hum_doi| raw:: html
+
+                   <a href="http://dx.doi.org/10.1107/S1600576716005926" target="_blank">http://dx.doi.org/10.1107/S1600576716005926</a>
 
 .. toctree::
    :maxdepth: 1

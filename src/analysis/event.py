@@ -15,10 +15,9 @@ def printProcessingRate():
     if(len(processingTimes) < 2):
         return
     dt = processingTimes[0] - processingTimes[-1]
-    proc_inverse = np.array(1.0 / ((len(processingTimes)-1)/dt.total_seconds()))
-    ipc.mpi.sum("processingRate", proc_inverse)
-    # Square of number of workers due to harmonic mean and total rate over everyone
-    proc_rate = ipc.mpi.nr_workers()**2 / proc_inverse[()]
+    proc_rate = np.array((len(processingTimes)-1)/dt.total_seconds())
+    ipc.mpi.sum("processingRate", proc_rate)
+    proc_rate = proc_rate[()]
     if(ipc.mpi.is_main_worker()):
         print 'Processing Rate %.2f Hz' % proc_rate
 
