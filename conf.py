@@ -58,6 +58,15 @@ def onEvent(evt):
 
     if ipc.mpi.is_main_worker():
         plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]', group='Metric')
+        plotting.correlation.plotMeanMap(evt['motorPositions']['nozzle_x'], 
+                                         evt['motorPositions']['nozzle_y'],
+                                         #evt['analysis']['litpixel: hitscore'].data / 1e5, 
+                                         evt['analysis']['hitrate'].data, 
+                                         xmin=0.68, xmax=0.72, ymin=4.20, ymax=4.23,
+                                         name='Hitscore mean map vs nozzle_xy',
+                                         xlabel='nozzle_x (mm)', 
+                                         ylabel='nozzle_y (mm)',
+                                         group='Metric')
     if hit:
         pass
         # Visualize detector image if hit
@@ -80,5 +89,10 @@ def onEvent(evt):
     plotting.correlation.plotScatter(evt['motorPositions']['nozzle_x'], evt['analysis']['litpixel: hitscore'], 
                                      name='Hitscore vs nozzle_x', 
                                      xlabel='nozzle_x (mm)', 
+                                     ylabel='Hit Score',
+                                     group='Metric')
+    plotting.correlation.plotScatter(evt['motorPositions']['nozzle_y'], evt['analysis']['litpixel: hitscore'], 
+                                     name='Hitscore vs nozzle_y', 
+                                     xlabel='nozzle_y (mm)', 
                                      ylabel='Hit Score',
                                      group='Metric')
