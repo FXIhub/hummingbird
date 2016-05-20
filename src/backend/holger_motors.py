@@ -17,18 +17,18 @@ class MotorPositions(object):
         filename = self._time_to_filename(timestamp)
         if filename != self._filename:
             tmp_time = time.localtime(timestamp)
-            self._date = time.mktime((tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, 0, 0, 0, 0, 0, 0))
+            self._date = time.mktime((tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, 0, 0, 0, tmp_time.tm_wday, tmp_time.tm_yday, tmp_time.tm_isdst))
             self._history = []
             self._update_file(filename)
         if os.path.getsize(self._filename) > self._filesize:
             print 'File size change'
             self._update_file(self._filename)
         
-        for index in xrange(len(self._history)):
-            if self._history[-index][0] > timestamp:
+        for index in xrange(len(self._history)-1, 0):
+            if self._history[index][0] > timestamp:
                 continue
             else:
-                return self._history[-index][1]
+                return self._history[index][1]
         return self._history[0][1]
 
     def _time_to_filename(self, timestamp):
@@ -36,7 +36,7 @@ class MotorPositions(object):
         return "{0}/stage-server_positions_{1:04}-{2:02}-{3:02}.log".format(self._path, time_info.tm_year, time_info.tm_mon, time_info.tm_mday)
 
     def _update_file(self, filename):
-        print "load file", filename
+        print "Motors file:", filename
         while not os.path.isfile(filename):
             self.timestamp -= self.timestamp%(24.*3600.) + 5.
             filename = self._time_to_filename(self.timestamp)
@@ -54,7 +54,7 @@ class MotorPositions(object):
         self._filename = filename
 
     def _parse_time(self, time):
-        return self._date + int(time[:2])*3600 + int(time[3:5])*60 + float(time[7:9])
+        return self._date + int(time[:2])*3600 + int(time[3:5])*60 + float(time[7:])
 
     def _parse_line(self, line):
         line_data = line.split()
