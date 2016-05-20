@@ -26,6 +26,7 @@ class FLASHTranslator(object):
         self.keys = set()
         self.keys.add('analysis')
         self._last_event_time = -1
+        self.time_offset = 606
         self.current_fname = None
         self.daq_fname = None
         self.current_dark = None
@@ -94,7 +95,7 @@ class FLASHTranslator(object):
             # Translate pnCCD
             add_record(values, key, 'pnCCD', evt['pnCCD'], ureg.ADU)
         elif key == 'motorPositions':
-            #val = self.motors.get(self.reader.frame_headers[-1].tv_sec - 606.)
+            #val = self.motors.get(self.reader.frame_headers[-1].tv_sec + self.time_offset)
             val = self.motors.get(self.get_bunch_time())
             if val is None:
                 raise RuntimeError('%s not found in event' % key)
@@ -176,7 +177,7 @@ class FLASHTranslator(object):
             return False
 
     def get_bunch_time(self):
-        tmp_time = time.localtime(self.reader.frame_headers[-1].tv_sec+606.)
+        tmp_time = time.localtime(self.reader.frame_headers[-1].tv_sec+self.time_offset)
         filename = self.state['FLASH/DAQFolder']+'/daq-%.4d-%.2d-%.2d-%.2d.txt' % (tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, tmp_time.tm_hour)
         if filename != self.daq_fname:
             self.daq_fname = filename
@@ -185,5 +186,9 @@ class FLASHTranslator(object):
             self.daq_lines = [l.split() for l in lines]
             self.bunch_ids = numpy.array([int(l[1]) for l in self.daq_lines])
             print 'DAQ file:', filename, 'max id = %d, min id = %d' % (self.bunch_ids.max(), self.bunch_ids.min())
-        return int(self.daq_lines[numpy.where(self.bunch_ids == self.reader.frame_headers[-1].external_id)[0][0]][0])
+        locations = numpy.where(self.bunch_ids == self.reader.frame_headers[-1].external_id)[0]
+        if len(locations) < 1:
+            return self.reader.frame_headers[-1].tv_sec+self.time_offset
+        else:
+            return int(self.daq_lines[locations[0]][0])
          
