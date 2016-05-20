@@ -20,9 +20,8 @@ state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
 state['FLASH/DataGlob'] = '/var/acqu/bl1camp/Chapman_2016/CCD_Data/*.frms6'
 state['FLASH/CalibGlob'] = '/var/acqu/bl1camp/Chapman_2016/CCD_Calib/*.darkcal.h5'
-#state['FLASH/DataGlob'] = '/tmp/*.frms6'
-#state['FLASH/CalibGlob'] = '/tmp/*.darkcal.h5'
 state['FLASH/MotorFolder'] = 'motors/stage-server/'
+state['FLASH/DAQFolder'] = '/var/acqu/bl1camp/Chapman_2016/DAQ/'
 #state['do_offline'] = True
 #state['FLASH/ProcessingRate'] = 1
 
