@@ -304,7 +304,7 @@ def commonModePNCCD(evt, type, key, outkey=None, transpose=False):
     dataCorrected[:,:data.shape[1]/2] -= np.median(lData,axis=1).repeat(lData.shape[1]).reshape(lData.shape)
     dataCorrected[:,data.shape[1]/2:] -= np.median(rData,axis=1).repeat(rData.shape[1]).reshape(rData.shape)
     if transpose:
-        dataCorrected = dataCorrect.transpose()
+        dataCorrected = dataCorrected.transpose()
     add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 
 def subtractImage(evt, type, key, image, outkey=None):
