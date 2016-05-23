@@ -54,6 +54,39 @@ class Histogram(object):
     def values_y(self):
         return self._histogram
 
+class NormalizedHistogram(Histogram):
+    def __init__(self, hmin, hmax, bins):
+        super(NormalizedHistogram, self).__init__(hmin, hmax, bins)
+        self._weight = numpy.zeros(self._histogram.shape)
+
+    def add_value(self, value, weight):
+        index = self._value_to_index(value)
+        if index is not None:
+            self._histogram[index] += weight
+            self._weight[index] += 1.
+
+    def add_values_from_ringbuffer(self, ringbuffer):
+        current_index = ringbuffer.number_of_added_elements
+        number_of_values_to_add = (current_index-self._last_add_index)
+        if number_of_values_to_add > 0:
+            values = numpy.array(ringbuffer, copy=False)[-number_of_values_to_add:, 0]
+            weights = numpy.array(ringbuffer, copy=False)[-number_of_values_to_add:, 1]
+        else:
+            return
+        for this_value, this_weight in zip(values, weights):
+            self.add_value(this_value, this_weight)
+        self._last_add_index = current_index
+
+    def reset(self):
+        super(NormalizedHistogram, self).reset()
+        self._weight[:] = 0.
+
+    @property
+    def values_y(self):
+        return_hist = self._histogram.copy()
+        return_hist[self._weight > 0.] /= self._weight[self._weight > 0.]
+        return return_hist
+            
 class PlotWindow(DataWindow, Ui_plotWindow):
     """Window to display 2D plots"""
     def __init__(self, parent=None):
@@ -66,7 +99,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.actionLegend_Box.triggered.connect(self.on_view_legend_box)
         self.actionX_axis.triggered.connect(self.on_view_x_axis)
         self.actionY_axis.triggered.connect(self.on_view_y_axis)
-        self.acceptable_data_types = ['scalar', 'vector', 'tuple', 'triple', 'running_hist', 'histogram' ]
+        self.acceptable_data_types = ['scalar', 'vector', 'tuple', 'triple', 'running_hist', 'histogram' , 'normalized_histogram']
         self.exclusive_source = False
         self.line_colors = [(252, 175, 62), (114, 159, 207), (255, 255, 255),
                             (239, 41, 41), (138, 226, 52), (173, 127, 168)]
@@ -81,6 +114,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.vline_color = (204,0,0)
         self._settings_diag = LinePlotSettings(self)
         self._histograms = {}
+        self._normalized_histograms = {}        
         
     def on_view_legend_box(self):
         """Show/hide legend box"""
@@ -295,6 +329,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     self._histograms[title] = Histogram(conf["hmin"], conf["hmax"], conf["bins"])
                 x = self._histograms[title].values_x
                 y = self._histograms[title].values_y
+            elif source.data_type[title] == 'normalized_histogram':
+                if title not in self._normalized_histograms:
+                    self._normalized_histograms[title] = NormalizedHistogram(conf["hmin"], conf["hmax"],
+                                                                    conf["bins"])
+                x = self._normalized_histograms[title].values_x
+                y = self._normalized_histograms[title].values_y
                 
             x = None
             if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
@@ -338,6 +378,11 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self._histograms[title].add_values_from_ringbuffer(ringbuffer)
                 x = self._histograms[title].values_x
                 y = self._histograms[title].values_y
+            elif(source.data_type[title] == "normalized_histogram"):
+                ringbuffer = pd.y
+                self._normalized_histograms[title].add_values_from_ringbuffer(ringbuffer)
+                x = self._normalized_histograms[title].values_x
+                y = self._normalized_histograms[title].values_y
             else:
                 self._configure_axis(source, title)
             self.plot.setLogMode(x=self._settings_diag.logx.isChecked(),
