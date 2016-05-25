@@ -179,7 +179,6 @@ class DataSource(QtCore.QObject):
 
     def _process_broadcast(self, payload):
         """Handle a data package received by the data socket"""
-        print payload[1]
         cmd = payload[1]
         title = payload[2]
         data = payload[3]
@@ -191,15 +190,15 @@ class DataSource(QtCore.QObject):
         if(cmd == 'new_data'):
             data_x = payload[4]
             conf = payload[5]
-            print conf
             self.conf[title].update(conf)
             if self._plotdata[title].recordhistory:
                 self._recorder.append(title, data, data_x)
             if 'msg' in conf:
-                self._plotdata[title].append(data, data_x, conf['msg'])
                 if 'sum_over' in conf:
                     self._plotdata[title].sum_over(data, data_x, conf['msg'])
-            if 'sum_over' in conf:
+                else:
+                    self._plotdata[title].append(data, data_x, conf['msg'])
+            elif 'sum_over' in conf:
                 self._plotdata[title].sum_over(data, data_x, '')
             else:
                 self._plotdata[title].append(data, data_x, '')
