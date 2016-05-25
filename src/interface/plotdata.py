@@ -40,6 +40,17 @@ class PlotData(object):
         self._x.append(x)
         self._l.append(l)
 
+    def sum_over(self, y, x, l):
+        if self._y is None:
+            self._y = RingBuffer(1)
+            self._y.append(y)
+            self._x = RingBuffer(1)
+            self._x.append(x)
+            self._l = RingBufferStr(1)
+            self._l.append(l)
+        else:
+            self._y += y
+
     def resize(self, new_maxlen):
         """Change the capacity of the buffers"""
         if(self._y is not None):
