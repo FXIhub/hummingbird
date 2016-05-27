@@ -281,6 +281,29 @@ def commonModeCSPAD2x2(evt, type, key, mask=None):
         dataCorrected[:,data.shape[1]/2:] -= np.median(rData[rMask])    
     add_record(evt["analysis"], "analysis", "cm_corrected - " + key, dataCorrected)
 
+
+def commonModeLines(evt, record, outkey=None, direction='vertical'):
+    """Common mode correction subtracting the median along lines.
+
+    Args:
+       :evt:      The event variable
+       :record:   A pixel detector ``Record```
+       
+    Kwargs:
+      :outkey:    The event key for the corrected detecor image, default is "corrected"
+      :direction: The direction of the lines across which median is taken, default is vertical  
+    """
+    if outkey is None:
+        outkey = "corrected"
+    data = record.data
+    dataCorrected = np.copy(data)
+    if direction is 'vertical':
+        dataCorrected -= np.transpose(np.median(data,axis=0).repeat(data.shape[0]).reshape(data.shape))
+    elif direction is 'horizontal':
+        dataCorrected -= np.median(data,axis=1).repeat(data.shape[1]).reshape(data.shape)
+    add_record(evt["analysis"], "analysis", outkey, dataCorrected)
+
+
 def commonModePNCCD(evt, type, key, outkey=None, transpose=False):
     """Common mode correction for PNCCDs.
 
