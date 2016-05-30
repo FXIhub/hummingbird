@@ -33,7 +33,7 @@ def countHits(evt, hit, outkey="nrHits"):
     v = evt["analysis"]
     add_record(v, "analysis", outkey, hit_counters[outkey])
 
-def hitrate(evt, hit, history=100, outkey="hitrate"):
+def hitrate(evt, hit, history=100, unit='fraction', outkey="hitrate"):
     """Counts hits and adds current hit rate to ``evt["analysis"][outkey]``.
 
     Args:
@@ -43,6 +43,7 @@ def hitrate(evt, hit, history=100, outkey="hitrate"):
     Kwargs:
         :history(int):  Buffer length, default = 100
         :outkey(str):   Data key of resulting ``Record``, default is "hitrate" 
+        :unit(str):     Unit of hitrate, 'fraction' or 'percent', default is 'fraction'
 
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
@@ -56,8 +57,10 @@ def hitrate(evt, hit, history=100, outkey="hitrate"):
     ipc.mpi.sum("hitrate", hitrate)
     v = evt["analysis"]
     if (ipc.mpi.is_main_worker()):
-        add_record(v, "analysis", outkey, hitrate[()]/ipc.mpi.nr_workers())
-        #add_record(v, "analysis", outkey, 100.*hitrate[()]/ipc.mpi.nr_workers())
+        if unit == 'fraction':
+            add_record(v, "analysis", outkey, hitrate[()]/ipc.mpi.nr_workers())
+        elif unit == 'percent':
+            add_record(v, "analysis", outkey, 100.*hitrate[()]/ipc.mpi.nr_workers())
 
 def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey="litpixel: "):
     """A simple hitfinder that counts the number of lit pixels and

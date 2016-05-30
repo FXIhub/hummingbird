@@ -378,9 +378,19 @@ def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
     data_cropped = data[cy-h/2:cy+h/2, cx-w/2:cx+w/2]
     add_record(evt["analysis"], "analysis", "cropped/centered", data_cropped)
 
-def rotate90(evt, data_rec, k=1, outkey=None):
-    if outkey is None:
-        outkey = 'rotated'
+def rotate90(evt, data_rec, k=1, outkey='rotated'):
     data_rotated = np.rot90(data_rec.data,k)
     return add_record(evt["analysis"], "analysis", outkey, data_rotated)
     
+def moveHalf(evt, record, vertical=0, horizontal=0, outkey='half-moved'):
+    data = record.data
+    ny,nx = data.shape
+    data_moved = np.zeros((ny + abs(vertical), nx + horizontal), dtype=data.dtype)
+    if horizontal < 0: horizontal = 0
+    if vertical < 0:
+        data_moved[-vertical:,:nx/2] = data[:,:nx/2]
+        data_moved[:vertical,nx/2+horizontal:] = data[:,nx/2:]
+    else:
+        data_moved[:-vertical,:nx/2] = data[:,:nx/2]
+        data_moved[vertical:,nx/2+horizontal:] = data[:,nx/2:]
+    return add_record(evt["analysis"], "analysis", outkey, data_moved)  

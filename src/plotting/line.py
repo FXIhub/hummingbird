@@ -38,7 +38,7 @@ def plotTimestamp(timestamp, name=None, group=None):
     if name is None:
         name = "History(Fiducial)"
     if not name in histories:
-        ipc.broadcast_init(name, timestamp.fiducials, group=group)
+        ipc.broadcast.init_data(name, data_type='scalar', group=group)
     ipc.new_data(name, timestamp.fiducials)
 
 histograms = {}
