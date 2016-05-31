@@ -7,6 +7,7 @@ from numpy.fft import fft2,ifft2,fftshift
 from scipy.ndimage import convolve as imfilter
 from pylab import imsave,rot90,flipud,fliplr
 import h5py
+from backend.record import add_record
 
 def gaussian_mask(dim1, dim2, centerX, centerY, sigma):
     [X, Y] = numpy.meshgrid(numpy.arange(dim1),numpy.arange(dim2))
@@ -82,21 +83,33 @@ def generate_masks(pattern,scattMaskRadius=50,scattMaskCenterX=523, scattMaskCen
     centerMask = euclid(dimx,dimx,numpy.round(dimx/2),numpy.round(dimx/2),150)
     return mask, gMask, centerMask
 
-def double_hit_finder(pattern,mask,gMask,centerMask,imname=''):
-    hitData = pattern.astype('double')
-    hitData *= mask
-    hitData *= gMask	
+def double_hit_finder_evt(evt, type, key, mask, weighting_mask, center_mask, threshold_med)
+    img = evt[type][key].data
+    img *= mask
+    img *= weighting_mask
+    recon = fftshift(numpy.abs(fftshift(img)))
+    recon *= center_mask
+    recon = recon[recon>0]    
+    med = numpy.median(recon)
+    lit_pix = recon > (med*threshold_med)
+    double_hitscore = lit_pix.sum()
+    add_record(evt["analysis"], "analysis", "hologram score", double_hitscore, unit='cats per doghnuts')
+
+def double_hit_finder(pattern, mask, gMask, centerMask, threshold_med, imname=''):
+    hitData = numpy.array(pattern, dtype=numpy.float64)
+    hitData *= numpy.array(mask)
+    hitData *= numpy.array(gMask)
     holoData = fftshift(numpy.abs(ifft2(hitData)))
-    if imname == '':
-        imsave('hit2.png',holoData*centerMask)
-    else: imsave('%s.png' % imname[:-4],holoData*centerMask)
+#    if imname == '':
+#        imsave('hit2.png',holoData*centerMask)
+#    else: imsave('%s.png' % imname[:-4],holoData*centerMask)
     holoData *= centerMask            
     hData = holoData[holoData>0]
     med = numpy.median(hData)
-    hitS = holoData > med*8
-    if imname == '':
-	imsave('hit.png',hitS)
-    else: imsave('hitS_%s.png' % imname[:-4],hitS)	
+    hitS = holoData > (med * threshold_med)
+#    if imname == '':
+#	imsave('hit.png',hitS)
+#    else: imsave('hitS_%s.png' % imname[:-4],hitS)	
     hitScore = hitS.sum()
 
     return hitScore
