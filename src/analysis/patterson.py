@@ -6,7 +6,7 @@ import numpy
 import utils.io
 from backend.record import add_record
 
-def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None):
+def patterson(evt, type, key, mask=None, threshold=None, floor_cut=100., mask_smooth=4., diameter_pix=None):
     """TODO: missing docstring
 
     .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
@@ -21,7 +21,7 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None):
     else:
         mask = numpy.array(mask, dtype="bool")
         
-    P = module.patterson(img, mask, floor_cut=100., mask_smooth=4., darkfield_x=None, darkfield_y=None, darkfield_sigma=None, normalize_median=True, radial_boost=False, log_boost=True, gauss_damp=True, gauss_damp_sigma=None, gauss_damp_threshold=None, subtract_fourier_kernel=True, log_min=1., full_output=False)    
+    P = module.patterson(img, mask, floor_cut=floor_cut, mask_smooth=mask_smooth, darkfield_x=None, darkfield_y=None, darkfield_sigma=None, normalize_median=True, radial_boost=False, log_boost=True, gauss_damp=True, gauss_damp_sigma=None, gauss_damp_threshold=None, subtract_fourier_kernel=True, log_min=1., full_output=False)    
     v = evt["analysis"]
     add_record(v, "analysis", "patterson", abs(P), unit='')
 
