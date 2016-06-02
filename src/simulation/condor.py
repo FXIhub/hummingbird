@@ -38,6 +38,13 @@ class Simulation:
         else:
             return self.e.detector.detect_photons(numpy.zeros(shape=(self._ny, self._nx)))[0]
 
+    def get_mask(self):
+        if self._is_hit:
+            return self._output["entry_1"]["data_1"]["mask"]
+        else:
+            # This is not quite right, it should be rather coupled with get_pattern call
+            return self.e.detector.detect_photons(numpy.zeros(shape=(self._ny, self._nx)))[1]
+
     def get_pulse_energy(self):
         if self._is_hit:
             return self._output["source"]["pulse_energy"]
