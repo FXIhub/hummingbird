@@ -161,9 +161,12 @@ class LCLSTranslator(object):
         # AMO (pnCCD)
         self._s2c['DetInfo(Camp.0:pnCCD.1)'] = 'pnccdBack'
         self._s2c['DetInfo(Camp.0:pnCCD.0)'] = 'pnccdFront'
-        # --
+        # CXI TOF
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.0)'] = 'Acqiris 0'
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.1)'] = 'Acqiris 1'
+        # AMO TOF
+        self._s2c['DetInfo(AmoETOF.0:Acqiris.0)'] = 'ETOF 0'
+        self._s2c['DetInfo(AmoITOF.0:Acqiris.0)'] = 'ITOF 0'
 
     def next_event(self):
         """Grabs the next event and returns the translated version"""
