@@ -18,6 +18,7 @@ def gaussian_mask(dim1, dim2, centerX, centerY, sigma):
     X -= centerX
     Y -= centerY
     mask = numpy.exp(-(X**2+Y**2)/(2*sigma**2))
+    mask[mask<1e-20] = 0
     return mask
 
 def euclid(dim1, dim2, center1, center2, radius):
