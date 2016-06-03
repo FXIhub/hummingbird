@@ -224,7 +224,7 @@ class DataWindow(QtGui.QMainWindow):
         if self.alertBlinking:
             self.setStyleSheet("");
         else:
-            self.setStyleSheet("background-color: #ef2929");
+            self.setStyleSheet("QMainWindow{background-color: #ef2929;}");
         self.alertBlinking = not self.alertBlinking
 
     def toggle_sounds(self):
