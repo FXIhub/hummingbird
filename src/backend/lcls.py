@@ -239,6 +239,8 @@ class LCLSTranslator(object):
             return self._tr_epics()
         elif(key == 'analysis'):
             return {}
+        elif(key == 'stream'):
+            return {}
         else:
             # check if the key matches any of the existing keys in the event
             event_keys = evt.keys()
