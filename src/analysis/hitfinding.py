@@ -58,9 +58,9 @@ def hitrate(evt, hit, history=100, unit='percent', outkey="hitrate"):
     v = evt["analysis"]
     if (ipc.mpi.is_main_worker()):
         if unit == 'fraction':
-            add_record(v, "analysis", outkey, hitrate[()]/ipc.mpi.nr_workers())
+            add_record(v, "analysis", outkey, hitrate[()])
         elif unit == 'percent':
-            add_record(v, "analysis", outkey, 100.*hitrate[()]/ipc.mpi.nr_workers())
+            add_record(v, "analysis", outkey, 100.*hitrate[()])
 
 def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey="litpixel: "):
     """A simple hitfinder that counts the number of lit pixels and
