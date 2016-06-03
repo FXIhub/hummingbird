@@ -63,25 +63,47 @@ def holographic_hitfinder_evt(evt, type, key,mask,gMask,centerMask,th=3):
     hitData = numpy.zeros((1044,1044))
     hitData[:513,:] = img[:513,:]
     hitData[-514:,:] = img[-514:,:]
-    hitData *= mask
+
+    pattern = hitData[10+256:-10-256,10+256:-10-256]
+    mask = mask[10+256:-10-256,10+256:-10-256]
+    gMask = gMask[10+256:-10-256,10+256:-10-256]
+    centerMask = centerMask[10+256:-10-256,10+256:-10-256]
+
+    hitData = pattern*mask
     hitData *= gMask	
     holoData = fftshift(numpy.abs(ifft2(hitData)))
     holoData *= centerMask
     hData = holoData[holoData>0]
     med = numpy.median(hData)
-    hitS = 1.*(holoData > med*th)
-    hitS[513:533,350:700] = 0
-    hitS[:,518:528] = 0
-    hitS = gaussian_filter(hitS,sigma=2)
-    hitS[hitS<0.65] = 0
-    hitS[hitS > 0.1] = 1
+ 
+    hitS = 1.*(holoData > 0.1)
     hitScore = hitS.sum()
-    out = numpy.zeros((1027,1044))
-    out[:513,:] = hitS[:513,:]
-    out[-514:,:] = hitS[-514:,:]
-    add_record(evt["analysis"], "analysis", "hologramScore", hitScore)
-    add_record(evt["analysis"], "analysis", "hologram", out)
+    
+    if hitScore > 2000:
+        hitS = 1.*(holoData > 0.3)
+        hitScore = hitS.sum()
 
+    if hitScore > 5000:
+        hitS = binary_erosion(hitS)
+        hitS = binary_dilation(hitS)
+        hitScore = hitS.sum()
+        return hitScore,holoData,hitS,pattern
+
+    hitS[0][0] = 2
+    
+    labeled, n = ndimage.measurements.label(hitS)
+
+    for i in range(1,n):
+        ss = ((labeled == i)*1.).sum()
+        if ss < 9:
+            labeled[labeled == i] = 0
+            hitS[labeled == i] = 0.
+
+    hitScore = ((labeled>0)*1).sum()
+    add_record(evt["analysis"], "analysis", "hologramScore", hitScore)
+    add_record(evt["analysis"], "analysis", "holoData", holoData)
+    add_record(evt["analysis"], "analysis", "labeledHolograms", labeled)
+    add_record(evt["analysis"], "analysis", "croppedPattern", pattern)
 
 
 def hitfind_cxi_file(fname, attribute='/entry_1/image_1/detector_corrected/data',initial=0, final=400):
