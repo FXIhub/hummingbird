@@ -389,7 +389,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             else:
                 if self.alertBlinkTimer.isActive():
                     self.alertBlinkTimer.stop()
-                    self.setStyleSheet("background-color: black");
+                    self.setStyleSheet("");
             
             if(self.settingsWidget.ui.ignore_source.isChecked() is False):
                 if 'vmin' in conf and conf['vmin'] is not None:

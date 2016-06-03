@@ -222,7 +222,7 @@ class DataWindow(QtGui.QMainWindow):
 
     def blink_alert(self):
         if self.alertBlinking:
-            self.setStyleSheet("background-color: black");
+            self.setStyleSheet("");
         else:
             self.setStyleSheet("background-color: #ef2929");
         self.alertBlinking = not self.alertBlinking
