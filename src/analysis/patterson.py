@@ -6,7 +6,7 @@ import numpy
 import utils.io
 from backend.record import add_record
 
-def patterson(evt, type, key, mask=None, threshold=None, floor_cut=100., mask_smooth=4., diameter_pix=None):
+def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop=None, full_output=False, **params):
     """TODO: missing docstring
 
     .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
@@ -20,9 +20,23 @@ def patterson(evt, type, key, mask=None, threshold=None, floor_cut=100., mask_sm
         mask = numpy.ones(shape=img.shape, dtype="bool")
     else:
         mask = numpy.array(mask, dtype="bool")
+
+    if crop is not None:
+        img = module.crop(img, crop)
+        mask = module.crop(mask, crop)
         
-    P = module.patterson(img, mask, floor_cut=floor_cut, mask_smooth=mask_smooth, darkfield_x=None, darkfield_y=None, darkfield_sigma=None, normalize_median=True, radial_boost=False, log_boost=True, gauss_damp=True, gauss_damp_sigma=None, gauss_damp_threshold=None, subtract_fourier_kernel=True, log_min=1., full_output=False)    
+    out = module.patterson(img, mask, full_output=full_output, normalize_median=True, **params)
+
     v = evt["analysis"]
+    
+    if full_output:
+        P = abs(out[0])
+        info = out[1]
+        add_record(v, "analysis", "patterson kernel", info["kernel"], unit='')
+        add_record(v, "analysis", "patterson kernel", info["intensities_times_kernel"], unit='')
+    else:
+        P = abs(out)
+    
     add_record(v, "analysis", "patterson", abs(P), unit='')
 
     if threshold is not None:
@@ -33,6 +47,8 @@ def patterson(evt, type, key, mask=None, threshold=None, floor_cut=100., mask_sm
             Y -= P.shape[0]/2
             Rsq = X**2+Y**2
             M *= Rsq > diameter_pix**2
+            if full_output:
+                add_record(v, "analysis", "patterson multiples", M, unit='')
         multiple_score = M.sum()
         add_record(v, "analysis", "multiple score", multiple_score, unit='')
     
