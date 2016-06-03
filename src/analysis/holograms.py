@@ -6,7 +6,7 @@ import numpy
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pylab as pylab
-from numpy.fft import fft2,ifft2,fftshift
+from scipy.fftpack import fft2,ifft2,fftshift
 from scipy.ndimage import convolve as imfilter
 from pylab import imsave,sqrt,rot90,flipud,fliplr,subplots,savefig,close
 from matplotlib.colors import LogNorm
