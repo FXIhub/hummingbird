@@ -26,6 +26,12 @@ def add_cmdline_args(parser):
     group.add_argument('--lcls-number-of-frames', metavar='lcls_number_of_frames', nargs='?',
                        help="number of frames to be processed",
                        type=int)
+    
+    # ADUthreshold for offline analysis
+    group.add_argument('--ADUthreshold', metavar='ADUthreshold', nargs='?',
+                       help="ADU threshold",
+                       type=int)
+
     return argparser
     
 class LCLSTranslator(object):
@@ -126,7 +132,7 @@ class LCLSTranslator(object):
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
         # CXI (OffAxis Cam)
-        self._n2c[psana.Camera.FrameV1] = 'photonPixelDetectors'
+        #self._n2c[psana.Camera.FrameV1] = 'photonPixelDetectors'
         # AMO (pnCCD)
         self._n2c[psana.PNCCD.FullFrameV1] = 'photonPixelDetectors'
         self._n2c[psana.PNCCD.FramesV1] = 'photonPixelDetectors'
@@ -161,9 +167,12 @@ class LCLSTranslator(object):
         # AMO (pnCCD)
         self._s2c['DetInfo(Camp.0:pnCCD.1)'] = 'pnccdBack'
         self._s2c['DetInfo(Camp.0:pnCCD.0)'] = 'pnccdFront'
-        # --
-        self._s2c['DetInfo(CxiEndstation.0:Acqiris.0)'] = 'Acqiris 0'
-        self._s2c['DetInfo(CxiEndstation.0:Acqiris.1)'] = 'Acqiris 1'
+        # ToF detector
+        self._s2c['DetInfo(AmoEndstation.0:Acqiris.0)'] = 'Acqiris 0'
+        self._s2c['DetInfo(AmoEndstation.0:Acqiris.1)'] = 'Acqiris 1'
+        self._s2c['DetInfo(AmoEndstation.0:Acqiris.2)'] = 'Acqiris 2'
+        # MCP Camera
+        self._s2c['DetInfo(AmoEndstation.0:Opal1000.1)'] = 'OPAL1'
 
     def next_event(self):
         """Grabs the next event and returns the translated version"""
@@ -228,6 +237,7 @@ class LCLSTranslator(object):
 
     def translate(self, evt, key):
         """Returns a dict of Records that match a given humminbird key"""
+        values = {}
         if(key in self._c2n):
             return self.translate_core(evt, key)
         elif(key == 'parameters'):
@@ -359,9 +369,15 @@ class LCLSTranslator(object):
         #    data = obj.data8()
         #    print data.shape
         data = obj.data16()
-        
+
+        # off Axis cam at CXI
+        #if data.shape == (1024,1024):
+        #    add_record(values, 'camera', 'offAxis', data, ureg.ADU)
+  
+        # MCP (PNCCD replacement) at AMO (June 2016)
         if data.shape == (1024,1024):
-            add_record(values, 'camera', 'offAxis', data, ureg.ADU)
+            add_record(values, 'camera', 'mcp', data, ureg.ADU)
+
         if data.shape == (1752,2336):
             add_record(values, 'camera', 'onAxis', data, ureg.ADU)
 
