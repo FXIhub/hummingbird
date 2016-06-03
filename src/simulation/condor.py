@@ -27,6 +27,9 @@ class Simulation:
 
     def miss(self):
         self._is_hit = False
+
+    def get_is_hit(self):
+        return self._is_hit
         
     def next_event(self):
         if numpy.random.rand() < self.hitrate: self.hit()
@@ -38,6 +41,13 @@ class Simulation:
         else:
             return self.e.detector.detect_photons(numpy.zeros(shape=(self._ny, self._nx)))[0]
 
+    def get_mask(self):
+        if self._is_hit:
+            return self._output["entry_1"]["data_1"]["mask"]
+        else:
+            # This is not quite right, it should be rather coupled with get_pattern call
+            return self.e.detector.detect_photons(numpy.zeros(shape=(self._ny, self._nx)))[1]
+
     def get_pulse_energy(self):
         if self._is_hit:
             return self._output["source"]["pulse_energy"]
@@ -46,45 +56,65 @@ class Simulation:
 
     def get_intensity_mJ_um2(self):
         if self._is_hit:
-            I = self._output["particles"]["intensity"][0,0]
-            E = self._output["source"]["photon_energy"][0]
+            I = self._output["particles"]["particle_00"]["intensity"]
+            E = self._output["source"]["photon_energy"]
             return (I*E/1E-3*1E-12)
         else:
             return 0.
-    
+
+    def get_intensity(self):
+        if self._is_hit:
+            I = self._output["particles"]["particle_00"]["intensity"]
+            E = self._output["source"]["photon_energy"]
+            return I*E
+        else:
+            return 0.
+        
     def get_particle_diameter_nm(self):
         if self._is_hit:
-            return self._output["particles"]["diameter"][0,0] * 1e9
+            return self._output["particles"]["particle_00"]["diameter"] * 1e9
         else:
             return None
 
+    def get_particle_diameter(self):
+        if self._is_hit:
+            return self._output["particles"]["particle_00"]["diameter"]
+        else:
+            return None
+
+    def get_particle_number(self):
+        if self._is_hit:
+            return len(self._output["particles"].keys())
+        else:
+            return 0
+
     def get_offCenterX(self):
         if self._is_hit:
-            return self._output["detector"]["cx"]-self.cx_mean
+            return self._output["detector"]["cx"]-self._cx_mean
         else:
             return None
 
     def get_offCenterY(self):
         if self._is_hit:
-            return self._output["detector"]["cy"]-self.cy_mean
+            return self._output["detector"]["cy"]-self._cy_mean
         else:
             return None
 
     def get_injector_x(self):
         if self._is_hit:
-            return self._output["particles"]["position"][0,0,0]*(1e9)
+            return self._output["particles"]["particle_00"]["position"][0]*(1e9)
         else:
             return None
 
     def get_injector_y(self):
         if self._is_hit:
-            return self._output["particles"]["position"][0,0,1]*(1e9)
+            return self._output["particles"]["particle_00"]["position"][1]*(1e9)
         else:
             return None
 
     def get_injector_z(self):
         if self._is_hit:
-            return self._output["particles"]["position"][0,0,2]*(1e9)
+            return self._output["particles"]["particle_00"]["position"][2]*(1e9)
         else:
             return None
 
