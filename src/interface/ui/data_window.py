@@ -15,13 +15,15 @@ class DataWindow(QtGui.QMainWindow):
         self._enabled_sources = {}
         self.settings = QtCore.QSettings()
         self.setupUi(self)
+        self.alertBlinkTimer = QtCore.QTimer()
+        self.alertBlinkTimer.setInterval(500)
         self._setup_connections()
         self._parent = parent
         # If True this DataWindow was restored from saved settings
         self.restored = False
         self.alert = False
+        self.alertBlinking = False
         self.set_sounds_and_volume()
-
 
     # This is to fix a resizing bug on Mac
     def resizeEvent(self, event):
@@ -34,6 +36,7 @@ class DataWindow(QtGui.QMainWindow):
         self.actionSaveToPNG.triggered.connect(self.on_save_to_png)
         self.actionSaveToPNG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
         self.actionSound_on_off.triggered.connect(self.toggle_alert)
+        self.alertBlinkTimer.timeout.connect(self.blink_alert)
 
     def _finish_layout(self):
         """This is called after the derived classes finish settings up so
@@ -216,6 +219,13 @@ class DataWindow(QtGui.QMainWindow):
         
     def toggle_alert(self, activated):
         self.alert = activated
+
+    def blink_alert(self):
+        if self.alertBlinking:
+            self.setStyleSheet("background-color: black");
+        else:
+            self.setStyleSheet("background-color: #ef2929");
+        self.alertBlinking = not self.alertBlinking
 
     def toggle_sounds(self):
         self.sound = str(self.soundsGroup.checkedAction().text())

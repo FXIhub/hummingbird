@@ -382,10 +382,14 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 continue
             
             conf = source.conf[title]
-            if "alert" in conf and self.alert:
-                alert = conf['alert']
-                if alert:
-                    os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+            if "alert" in conf and self.alert and conf['alert']:
+                os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+                if not self.alertBlinkTimer.isActive():
+                    self.alertBlinkTimer.start()
+            else:
+                if self.alertBlinkTimer.isActive():
+                    self.alertBlinkTimer.stop()
+                    self.setStyleSheet("background-color: black");
             
             if(self.settingsWidget.ui.ignore_source.isChecked() is False):
                 if 'vmin' in conf and conf['vmin'] is not None:

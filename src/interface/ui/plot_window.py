@@ -208,10 +208,15 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     self._settings_diag._configure_bg(**conf_bg)
                     # Use only first if there are many
                     break
-                if "alert" in conf and self.alert:
-                    alert = conf['alert']
-                    if alert:
-                        os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+                if "alert" in conf and self.alert and conf['alert']:
+                    os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+                    if not self.alertBlinkTimer.isActive():
+                        self.alertBlinkTimer.start()
+                else:
+                    if self.alertBlinkTimer.isActive():
+                        self.alertBlinkTimer.stop()
+                        self.setStyleSheet("background-color: black");
+
         # Load background if configured
         self._update_bg()
             
