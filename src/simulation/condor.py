@@ -100,6 +100,18 @@ class Simulation:
         else:
             return None
 
+    def get_cx(self):
+        if self._is_hit:
+            return self._output["detector"]["cx"]
+        else:
+            return None
+        
+    def get_cy(self):
+        if self._is_hit:
+            return self._output["detector"]["cy"]
+        else:
+            return None
+
     def get_injector_x(self):
         if self._is_hit:
             return self._output["particles"]["particle_00"]["position"][0]*(1e9)

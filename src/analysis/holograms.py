@@ -6,7 +6,7 @@ import numpy
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pylab as pylab
-from numpy.fft import fft2,ifft2,fftshift
+from scipy.fftpack import fft2,ifft2,fftshift
 from scipy.ndimage import convolve as imfilter
 from pylab import imsave,sqrt,rot90,flipud,fliplr,subplots,savefig,close
 from matplotlib.colors import LogNorm
@@ -18,6 +18,7 @@ def gaussian_mask(dim1, dim2, centerX, centerY, sigma):
     X -= centerX
     Y -= centerY
     mask = numpy.exp(-(X**2+Y**2)/(2*sigma**2))
+    mask[mask<1e-20] = 0
     return mask
 
 def euclid(dim1, dim2, center1, center2, radius):

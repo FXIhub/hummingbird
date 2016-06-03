@@ -11,6 +11,7 @@ from interface.Qt import QtCore, QtGui
 from interface.colorbar import ColorBar
 import datetime
 import utils.array
+import os
 
 class Histogram(object):
     def __init__(self, hmin, hmax, bins):
@@ -197,6 +198,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
         # Init background if defined in a data source
         if self._settings_diag.bg is None:
+            alert_flag = False
             for source, title in self.source_and_titles():
                 conf = source.conf[title]
                 if "bg_filename" in conf:
@@ -207,6 +209,24 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     self._settings_diag._configure_bg(**conf_bg)
                     # Use only first if there are many
                     break
+
+        alert_flag = False
+        for source, title in self.source_and_titles():
+            conf = source.conf[title]
+            if "alert" in conf and self.alert and conf['alert']:
+                alert_flag = True
+
+        if alert_flag:
+            os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+            if not self.alertBlinkTimer.isActive():
+                self.alertBlinkTimer.start()
+        else:
+            if self.alertBlinkTimer.isActive():
+                self.alertBlinkTimer.stop()
+                self.setStyleSheet("")
+
+
+
         # Load background if configured
         self._update_bg()
             
