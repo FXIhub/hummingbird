@@ -19,6 +19,9 @@ class DataWindow(QtGui.QMainWindow):
         self._parent = parent
         # If True this DataWindow was restored from saved settings
         self.restored = False
+        self.alert = False
+        self.set_sounds_and_volume()
+
 
     # This is to fix a resizing bug on Mac
     def resizeEvent(self, event):
@@ -30,6 +33,7 @@ class DataWindow(QtGui.QMainWindow):
         self.menuData_Sources.aboutToShow.connect(self.on_menu_show)
         self.actionSaveToPNG.triggered.connect(self.on_save_to_png)
         self.actionSaveToPNG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
+        self.actionSound_on_off.triggered.connect(self.toggle_alert)
 
     def _finish_layout(self):
         """This is called after the derived classes finish settings up so
@@ -73,6 +77,33 @@ class DataWindow(QtGui.QMainWindow):
                         submenu = menu.addMenu(name)
                     for item in items_of_right_type:
                         add_menu(item, submenu)
+
+    def set_sounds_and_volume(self):
+        self.soundsGroup = QtGui.QActionGroup(self.menuSounds)
+        self.soundsGroup.setExclusive(True)
+        self.actionBeep.setActionGroup(self.soundsGroup)
+        self.actionBeep.triggered.connect(self.toggle_sounds)
+        self.actionClick.setActionGroup(self.soundsGroup)
+        self.actionClick.triggered.connect(self.toggle_sounds)
+        self.actionPunch.setActionGroup(self.soundsGroup)
+        self.actionPunch.triggered.connect(self.toggle_sounds)
+        self.actionWhack.setActionGroup(self.soundsGroup)
+        self.actionWhack.triggered.connect(self.toggle_sounds)
+        self.actionSharp.setActionGroup(self.soundsGroup)
+        self.actionSharp.triggered.connect(self.toggle_sounds)
+        self.actionGlass.setActionGroup(self.soundsGroup)
+        self.actionGlass.triggered.connect(self.toggle_sounds)
+        self.sound = 'beep'
+        
+        self.volumeGroup = QtGui.QActionGroup(self.menuVolume)
+        self.volumeGroup.setExclusive(True)
+        self.actionHigh.setActionGroup(self.volumeGroup)
+        self.actionHigh.triggered.connect(self.toggle_volume)
+        self.actionMedium.setActionGroup(self.volumeGroup)
+        self.actionMedium.triggered.connect(self.toggle_volume)
+        self.actionLow.setActionGroup(self.volumeGroup)
+        self.actionLow.triggered.connect(self.toggle_volume)
+        self.volume = 1
 
     def get_time(self, index=None):
         """Returns the time of the given index, or the time of the last data point"""
@@ -183,3 +214,17 @@ class DataWindow(QtGui.QMainWindow):
         self.restored = True
         logging.debug("Loaded %s from settings", type(self).__name__)
         
+    def toggle_alert(self, activated):
+        self.alert = activated
+
+    def toggle_sounds(self):
+        self.sound = str(self.soundsGroup.checkedAction().text())
+
+    def toggle_volume(self):
+        volume = str(self.volumeGroup.checkedAction().text())
+        if volume == "High":
+            self.volume = 10
+        elif volume == "Medium":
+            self.volume = 1
+        elif volume == "Low":
+            self.volume = 0.1
