@@ -171,9 +171,18 @@ class LCLSTranslator(object):
         self._s2c['DetInfo(AmoEndstation.0:Acqiris.0)'] = 'Acqiris 0'
         self._s2c['DetInfo(AmoEndstation.0:Acqiris.1)'] = 'Acqiris 1'
         self._s2c['DetInfo(AmoEndstation.0:Acqiris.2)'] = 'Acqiris 2'
+        # AMO (Acqiris)
+        #self._s2c['DetInfo(AmoETOF.0:Acqiris.0)'] = 'Acqiris 0'
+        #self._s2c['DetInfo(AmoETOF.0:Acqiris.1)'] = 'Acqiris 1'
+        #self._s2c['DetInfo(AmoITOF.0:Acqiris.0)'] = 'Acqiris 2'
+        #self._s2c['DetInfo(AmoITOF.0:Acqiris.1)'] = 'Acqiris 3'
+
         # MCP Camera
         self._s2c['DetInfo(AmoEndstation.0:Opal1000.1)'] = 'OPAL1'
-
+        # CXI (Acqiris)
+        self._s2c['DetInfo(CxiEndstation.0:Acqiris.0)'] = 'Acqiris 0'
+        self._s2c['DetInfo(CxiEndstation.0:Acqiris.1)'] = 'Acqiris 1'
+    
     def next_event(self):
         """Grabs the next event and returns the translated version"""
         if self.timestamps:            
