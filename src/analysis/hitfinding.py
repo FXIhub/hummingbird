@@ -33,7 +33,7 @@ def countHits(evt, hit, outkey="nrHits"):
     v = evt["analysis"]
     add_record(v, "analysis", outkey, hit_counters[outkey])
 
-def hitrate(evt, hit, history=100, unit='fraction', outkey="hitrate"):
+def hitrate(evt, hit, history=100, unit='percent', outkey="hitrate"):
     """Counts hits and adds current hit rate to ``evt["analysis"][outkey]``.
 
     Args:
