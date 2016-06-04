@@ -53,14 +53,15 @@ def hitrate(evt, hit, history=100, unit='percent', outkey="hitrate"):
     if outkey not in hitrate_counters or hitrate_counters[outkey].maxlen != history:
         hitrate_counters[outkey] = collections.deque([], history)
     hitrate_counters[outkey].append(bool(hit))
-    hitrate = np.array(hitrate_counters[outkey].count(True)/float(len(hitrate_counters[outkey])))
-    ipc.mpi.sum("hitrate", hitrate)
+    hitcount = np.array(hitrate_counters[outkey].count(True))
+    ipc.mpi.sum("hitcount - " + outkey, hitcount)
     v = evt["analysis"]
     if (ipc.mpi.is_main_worker()):
+        hitrate = hitcount[()] / (ipc.mpi.nr_workers() * float(len(hitrate_counters[outkey])))
         if unit == 'fraction':
-            add_record(v, "analysis", outkey, hitrate[()]/ipc.mpi.nr_workers())
+            add_record(v, "analysis", outkey, hitrate)
         elif unit == 'percent':
-            add_record(v, "analysis", outkey, 100.*hitrate[()]/ipc.mpi.nr_workers())
+            add_record(v, "analysis", outkey, 100.*hitrate)
 
 def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey="litpixel: "):
     """A simple hitfinder that counts the number of lit pixels and
