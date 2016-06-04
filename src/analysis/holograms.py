@@ -127,14 +127,11 @@ def holographic_hitfinder_evt(evt, type, key,mask,gMask,centerMask,th=3):
     if holoData.max() > 1: holoData /= holoData.max()
  
     hitS = 1.*(holoData > 0.1)
-#    hitS[220:292, :] = 0
-#    hitS[:,230:282] = 0
     hitScore = hitS.sum()
-
+    
     if hitScore > 2000:
         hitS = 1.*(holoData > 0.2)
- #       hitS[220:292, :] = 0
- #       hitS[:,230:282] = 0
+
         hitScore = hitS.sum()
 
     if hitScore > 5000:
@@ -143,30 +140,30 @@ def holographic_hitfinder_evt(evt, type, key,mask,gMask,centerMask,th=3):
         hitS = binary_erosion(hitS)
         hitS = binary_erosion(hitS)
         hitS = binary_dilation(hitS)
-#        hitS[220:292, :] = 0
-#        hitS[:,230:282] = 0
 
         hitScore = hitS.sum()
         #labeled = hitS
         labeled, n = ndimage.measurements.label(hitS)
+    
     else:
         hitS[0][0] = 2
     
         labeled, n = ndimage.measurements.label(hitS)
-
+        
         for i in range(1,n):
             ss = ((labeled == i)*1.).sum()
             if ss < 20:
                 labeled[labeled == i] = 0
                 hitS[labeled == i] = 0.
-
+        
         hitScore = ((labeled>0)*1).sum()
+#        print hitScore
     
     add_record(evt["analysis"], "analysis", "hologramScore", hitScore)
     add_record(evt["analysis"], "analysis", "holoData", holoData)
-    add_record(evt["analysis"], "analysis", "labeledHolograms", labeled)
-    add_record(evt["analysis"], "analysis", "croppedPattern", hitData)
-    add_record(evt["analysis"], "analysis", "holomask", mask)
+#    add_record(evt["analysis"], "analysis", "labeledHolograms", labeled)
+#    add_record(evt["analysis"], "analysis", "croppedPattern", hitData)
+#    add_record(evt["analysis"], "analysis", "holomask", mask)
 
 def segment_holographic_hit(evt, type, key):
     labeled = evt[type][key].data
