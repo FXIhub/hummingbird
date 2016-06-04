@@ -31,6 +31,10 @@ def add_cmdline_args(parser):
     group.add_argument('--ADUthreshold', metavar='ADUthreshold', nargs='?',
                        help="ADU threshold",
                        type=int)
+    # Hitscore threshold for offline analysis
+    group.add_argument('--hitscore-thr', metavar='hitscore_thr', nargs='?',
+                       help="Hitscore threshold",
+                       type=int)
 
     return argparser
     
