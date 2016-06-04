@@ -46,6 +46,7 @@ class Worker(object):
         
         if(not ipc.mpi.is_master()):
             self.translator = init_translator(Worker.state)
+        print "MPI rank %d, pid %d" % (ipc.mpi.rank, os.getpid())
 
         if (ipc.mpi.is_zmqserver()):
             try:
