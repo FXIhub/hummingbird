@@ -15,6 +15,8 @@ import ipc.mpi
 import backend.worker
 import logging
 
+eventLimit = 375
+
 class ZmqServer(object):
     """Implements the server that broadcasts the results from the backend.
     Analysis users do not need to deal with it."""
@@ -33,10 +35,10 @@ class ZmqServer(object):
 
         self._data_socket = self._context.socket(zmq.PUB)
         ## Does not match intent according to http://stackoverflow.com/questions/23800442/why-wont-zmq-drop-messages
-        self._broker_sub_socket.setsockopt(zmq.RCVHWM, 125)
-        self._broker_pub_socket.setsockopt(zmq.SNDHWM, 125)
+        self._broker_sub_socket.setsockopt(zmq.RCVHWM, eventLimit)
+        self._broker_pub_socket.setsockopt(zmq.SNDHWM, eventLimit)
         self._broker_pub_socket.setsockopt(zmq.SNDTIMEO, 0)
-        self._data_socket.setsockopt(zmq.SNDHWM, 125)
+        self._data_socket.setsockopt(zmq.SNDHWM, eventLimit)
         self._data_socket.setsockopt(zmq.SNDTIMEO, 0)
         self._ctrl_socket.bind("tcp://*:%d" % (self._ctrl_port))
         self._broker_pub_socket.bind("tcp://*:%d" % (self._broker_pub_port))
