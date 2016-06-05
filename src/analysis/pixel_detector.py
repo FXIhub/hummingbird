@@ -359,7 +359,7 @@ def subtractImage(evt, type, key, image, outkey=None):
     dataCorrected = data - image
     add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 
-def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
+def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None, outkey='cropped'):
     
     data = data_rec.data
     name = data_rec.name
@@ -376,7 +376,7 @@ def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
     if h is None:
         h = Ny
     data_cropped = data[cy-h/2:cy+h/2, cx-w/2:cx+w/2]
-    add_record(evt["analysis"], "analysis", "cropped/centered", data_cropped)
+    add_record(evt["analysis"], "analysis", outkey, data_cropped)
 
 def rotate90(evt, data_rec, k=1, outkey='rotated'):
     data_rotated = np.rot90(data_rec.data,k)
