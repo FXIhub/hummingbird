@@ -92,7 +92,10 @@ def generate_masks(pattern,scattMaskRadius=50,scattMaskCenterX=523, scattMaskCen
     newMask = 1-(blurred<0.99)
     H2 = H
     newMask = imfilter(newMask.astype('double'), H2)
+
     #newMask = imfilter(newMask.astype('double'), H2)
+
+
     mask *= newMask
 
     gMask = gaussian_mask(dimx,dimx,400,700,300)
@@ -149,6 +152,7 @@ def holographic_hitfinder_evt(evt, type, key, mask, gMask, centerMask, off_x, th
     holoData *= centerMask
     hData = holoData[holoData>0]
     med = numpy.median(hData)
+
     #if holoData.max() > 1: holoData /= holoData.max()
     med = numpy.median(holoData)
     #hitS = 1.*(holoData > 0.1)
@@ -160,6 +164,7 @@ def holographic_hitfinder_evt(evt, type, key, mask, gMask, centerMask, off_x, th
         #hitS = 1.*(holoData > 0.2)
         hitS = 1.*(holoData > med*5)
         hitS = crossremove(hitS)
+
         hitScore = hitS.sum()
 
     if hitScore > 5000:
@@ -168,7 +173,9 @@ def holographic_hitfinder_evt(evt, type, key, mask, gMask, centerMask, off_x, th
         hitS = binary_erosion(hitS)
         hitS = binary_erosion(hitS)
         hitS = binary_dilation(hitS)
+
         hitS = crossremove(hitS)
+
         hitScore = hitS.sum()
         #labeled = hitS
         labeled, n = ndimage.measurements.label(hitS)
@@ -189,8 +196,10 @@ def holographic_hitfinder_evt(evt, type, key, mask, gMask, centerMask, off_x, th
     
     add_record(evt["analysis"], "analysis", "hologramScore", hitScore)
     add_record(evt["analysis"], "analysis", "holoData", holoData)
+
     add_record(evt["analysis"], "analysis", "labeledHolograms", labeled)
     add_record(evt["analysis"], "analysis", "croppedPattern", pattern*mask)
+
 #    add_record(evt["analysis"], "analysis", "holomask", mask)
 
 def segment_holographic_hit(evt, type, key):
@@ -203,7 +212,10 @@ def segment_holographic_hit(evt, type, key):
 
     for i in range(4):
         hitS = ndimage.morphology.binary_dilation(hitS)
+
     hh = gaussian_filter(hitS*4,sigma=15)
+
+
     thresh = 5*numpy.median(hh)
     hh[hh > thresh] = 1
     hh[hh <= thresh] = 0
@@ -224,7 +236,9 @@ def segment_holographic_hit(evt, type, key):
         
 
     centroids = numpy.array(centroids, dtype=numpy.int64)
+
     add_record(evt["analysis"], "analysis", "labeledHolograms", labeled)
+
     add_record(evt["analysis"], "analysis", "centroids", centroids)
    
 def centeroidnp(arr):
@@ -319,6 +333,7 @@ def find_foci(evt, type,key,type2,key2,minPhase=-500000, maxPhase=500000, steps=
         add_record(evt["analysis"], "analysis", "focus distance", focus_distance)
         add_record(evt["analysis"], "analysis", "CC_size", CC_size)
         add_record(evt["analysis"], "analysis", "propagation length", prop_length)
+
 
 
 def hitfind_cxi_file(fname, attribute='/entry_1/image_1/detector_corrected/data',initial=0, final=400):
