@@ -488,11 +488,11 @@ def make_propagation(evt, type, key_img, key_mask, imnr, minPhase=-120000, maxPh
     z_location = []
     for i in range(num_holograms):
         minn = numpy.argmax(numpy.array(variance[i]))
-        imsave('hitScores/hollows/img_%s_%05d_%06d_%d.png'%(runname,imnr,phase,i), images[i][minn])
+        #imsave('hitScores/hollows/img_%s_%05d_%06d_%d.png'%(runname,imnr,phase,i), images[i][minn])
         focused_CC.append(images[i][numpy.argmin(numpy.array(variance[i]))])
         z_location.append(stepsize*minn)
 
-    if len(focused_CC) > ):
+    if len(focused_CC) > 0:
         add_record(evt["analysis"], "analysis", "focused_CC", focused_CC[0])
         add_record(evt["analysis"], "analysis", "focus distance", z_location)
     #add_record(evt["analysis"], "analysis", "CC_size", CC_size)
