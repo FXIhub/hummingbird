@@ -210,6 +210,10 @@ class LCLSTranslator(object):
                     print "Unable to find event listed in index file"                    
             # We got to the end without a valid event, time to call it a day
             if evt is None:
+                logging.warning('End of Run.')
+                if 'end_of_run' in dir(Worker.conf):
+                    Worker.conf.end_of_run()
+                ipc.mpi.slave_done()
                 return None
         else:
             try:
