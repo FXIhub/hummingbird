@@ -10,6 +10,8 @@ import hashlib
 
 evt = None
 data_conf = {}
+sent_time = {}
+
 
 def init_data(title, **kwds):
     """Configures the data broadcast named title. All the keyword=value
@@ -50,8 +52,24 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
     values at the interface. If mpi_reduce is True data_y will be
     summed over all the slaves. All keywords pairs given will also be
     transmitted and available at the interface."""
+    global sent_time
     _check_type(title, data_y)
     event_id = evt.event_id()
+
+    # If send_rate is given limit the send rate to it
+    if 'send_rate' in kwds:
+        send_rate = float(kwds['send_rate'])/ipc.mpi.nr_workers()
+        cur_time = event_id
+        if title in sent_time:
+            send_probability = (cur_time-sent_time[title])*send_rate
+        else:
+            send_probability = 1
+        sent_time[title] = cur_time
+        print 'send_probability', send_probability
+        if numpy.random.random() > send_probability:
+            # do not send the data
+            return
+
     if(ipc.mpi.is_slave()):
         if(mpi_reduce):
             ipc.mpi.send_reduce(title, 'new_data', data_y, event_id, **kwds)
