@@ -57,7 +57,7 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
     event_id = evt.event_id()
 
     # If send_rate is given limit the send rate to it
-    if 'send_rate' in kwds:
+    if 'send_rate' in kwds and kwds['send_rate'] is not None:
         send_rate = float(kwds['send_rate'])/ipc.mpi.nr_workers()
         cur_time = event_id
         if title in sent_time:
