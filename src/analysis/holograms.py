@@ -6,7 +6,8 @@ import numpy
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pylab as pylab
-from scipy.fftpack import fft2,ifft2,fftshift
+
+from scipy.fftpack import fft2,ifft2,fftshift, fftn, ifftn
 from scipy.ndimage import convolve as imfilter
 from pylab import imsave,sqrt,rot90,flipud,fliplr,subplots,savefig,close
 from matplotlib.colors import LogNorm
@@ -99,7 +100,7 @@ def generate_masks(pattern,scattMaskRadius=50,scattMaskCenterX=523, scattMaskCen
     mask *= newMask
 
     gMask = gaussian_mask(dimx,dimx,400,700,300)
-    centerMask = euclid(dimx,dimx,numpy.round(dimx/2),numpy.round(dimx/2),70)
+    centerMask = euclid(dimx,dimx,numpy.round(dimx/2),numpy.round(dimx/2),90)
     return mask, gMask, centerMask
 
 def plotting_hologram(imname,pattern,holoData,hitS,runname=''):
@@ -115,31 +116,65 @@ def plotting_hologram(imname,pattern,holoData,hitS,runname=''):
     savefig('hitScores/hologram_%s_%06d.png' % (runname,imname))
     close(fig)
 
-def crossremove(img,width=4):
+def crossremove(img,width=10):
     a = img.shape[0]/2
     b = 217
     c = 297
-    img[a-width:a+width,:] = 0
-    img[b-width:b+width,:] = 0
-    img[c-width:c+width,:] = 0
-    img[:,a-width:a+width] = 0
+    img[a-width:a+width,:] = 1
+    img[a-width*2:b+width*2,a-70*2:a+70*2] = 1
+    #img[c-width:c+width,:] = 0
+    img[:,a-width:a+width] = 1
     return img
 
-def holographic_hitfinder_evt(evt, type, key, mask, gMask, centerMask, off_x, th=3):
+import time
+def make_filter(image_size, sigma):
+    #image_size = 1024
+    x_array = numpy.arange(image_size) - image_size/2
+    y_array = numpy.arange(image_size) - image_size/2
+    X_array, Y_array = numpy.meshgrid(x_array, y_array)
+    r = numpy.sqrt(X_array**2 + Y_array**2)
+   
+    kernel = (r/2.0/sigma)**4*numpy.exp(2.0-r**2/2.0/sigma**2)
+    kernel[r > 2.0*sigma] = numpy.ones(numpy.shape(kernel))[r > 2.0*sigma]
+
+    return kernel, r
+
+def autocorrelation(I, sigma):
+  
+  image_size = int(min(I.shape)/2)*2
+
+
+  #ensure square image with even number of pix
+  d0 = (I.shape[0]-image_size)/2
+  d1 = (I.shape[1]-image_size)/2
+  I  =  I[d0:image_size+d0, d1:image_size+d1]  
+
+  Ifilter = make_filter( image_size,sigma )[0]
+  AC_real = fft2(I*Ifilter)
+  a = fftshift(abs(AC_real))
+  
+  return a
+
+def holographic_hitfinder_evt(evt, type, key, maskt, gMask, centerMask, off_x, th=3,radius_smooth=70):
+    t = time.time()
     img = evt[type][key].data
     #img = gaussian_filter(img,sigma=3)
     hitData = numpy.zeros((1024+off_x,1024+off_x))
-   
     hitData[:513,:] = img[:513,:]
     hitData[-514:,:] = img[-514:,:]
-    
+
+    #mask = numpy.zeros((1024+off_x,1024+off_x))
+    #mask[:513,:] = mask[:513,:]
+    #mask[-514:,:] = maskt[-514:,:]
+
     hitData[hitData > 12000] = 0
+    hitData[hitData < 30] = 0
     #    hitData[:512,393] = 0
     #   hitData[-512:,395] = 0
     dd = int(off_x/2)
     cropsize = 256
     pattern = hitData[dd+cropsize:-dd-cropsize,dd+cropsize:-dd-cropsize]
-    mask = mask[dd+cropsize:-dd-cropsize,dd+cropsize:-dd-cropsize]
+    mask = maskt[dd+cropsize:-dd-cropsize,dd+cropsize:-dd-cropsize]
     gMask = gMask[dd+cropsize:-dd-cropsize,dd+cropsize:-dd-cropsize]
     centerMask = centerMask[dd+cropsize:-dd-cropsize,dd+cropsize:-dd-cropsize]
 
@@ -147,25 +182,28 @@ def holographic_hitfinder_evt(evt, type, key, mask, gMask, centerMask, off_x, th
     pattern[-512:,395] = 0
 
     hitData = pattern*mask
-    #hitData *= gMask	
+    Ifilter = make_filter( pattern.shape[0],radius_smooth )[0]
+    hitData *= Ifilter
+    #holoData = autocorrelation(hitData,radius_smooth)
+    #holoData *= gMask
+    hitData *= gMask	
     holoData = fftshift(numpy.abs(ifft2(hitData)))
     holoData *= centerMask
     hData = holoData[holoData>0]
     med = numpy.median(hData)
 
-    #if holoData.max() > 1: holoData /= holoData.max()
+    if holoData.max() > 0: holoData /= holoData.max()
     med = numpy.median(holoData)
-    #hitS = 1.*(holoData > 0.1)
-    hitS = 1.*(holoData > med*3)
-    hitS = crossremove(hitS)
+    #hitS = 1.*(holoData > 0.05)
+    hitS = 1.*(holoData > med*4)
+    #hitS = crossremove(hitS)
     hitScore = hitS.sum()
     
     if hitScore > 2000:
-        #hitS = 1.*(holoData > 0.2)
-        hitS = 1.*(holoData > med*5)
-        hitS = crossremove(hitS)
-
-        hitScore = hitS.sum()
+        #hitS = 1.*(holoData > 0.15)
+        hitS = 1.*(holoData > med*6)
+        #hitS = crossremove(hitS)
+        #hitScore = hitS.sum()
 
     if hitScore > 5000:
         hitS = binary_erosion(hitS)
@@ -174,26 +212,28 @@ def holographic_hitfinder_evt(evt, type, key, mask, gMask, centerMask, off_x, th
         hitS = binary_erosion(hitS)
         hitS = binary_dilation(hitS)
 
-        hitS = crossremove(hitS)
-
-        hitScore = hitS.sum()
+        
+        #hitScore = hitS.sum()
         #labeled = hitS
-        labeled, n = ndimage.measurements.label(hitS)
+        #labeled, n = ndimage.measurements.label(hitS)
     
-    else:
-        hitS[0][0] = 2
+    #else:
+        #hitS[0][0] = 2
     
-        labeled, n = ndimage.measurements.label(hitS)
+    hitS = crossremove(hitS)    
+    labeled, n = ndimage.measurements.label(hitS)
+    
+    holoData[labeled == labeled[256][256]] = 0
+    labeled[labeled == labeled[256][256]] = 0
+    for i in range(1,n):
+        ss = ((labeled == i)*1.).sum()
+        if ss < 8:
+            labeled[labeled == i] = 0
+            hitS[labeled == i] = 0.
         
-        for i in range(1,n):
-            ss = ((labeled == i)*1.).sum()
-            if ss < 20:
-                labeled[labeled == i] = 0
-                hitS[labeled == i] = 0.
-        
-        hitScore = ((labeled>0)*1).sum()
+    hitScore = ((labeled>0)*1).sum()
 #        print hitScore
-    
+    #print holoData
     add_record(evt["analysis"], "analysis", "hologramScore", hitScore)
     add_record(evt["analysis"], "analysis", "holoData", holoData)
 
@@ -210,7 +250,7 @@ def segment_holographic_hit(evt, type, key):
     hitS = ((labeled >0)*1)
     hitS = ndimage.morphology.binary_dilation(hitS)
 
-    for i in range(4):
+    for i in range(20):
         hitS = ndimage.morphology.binary_dilation(hitS)
 
     hh = gaussian_filter(hitS*4,sigma=15)
@@ -425,7 +465,7 @@ def make_propagation(evt, type, key_img, key_mask, imnr, minPhase=-120000, maxPh
         sob = numpy.hypot(sx, sy)
         sob[rr < 31] = sob.max()
         sobt += (sob > 0.1*sob.max())*1.
-      
+       
         diff = abs(sob-sob.max())
         diff /= diff.max()
       
