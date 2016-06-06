@@ -338,6 +338,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     x = numpy.linspace(xmin,xmax, y.shape[-1])
             if(self._settings_diag.histogram.isChecked()):
                 bins = int(self._settings_diag.histBins.text())
+                histMode = self._settings_diag.histMode.currentText()
                 if (self._settings_diag.histAutorange.isChecked()):
                     hmin, hmax = y.min(), y.max()
                     self._settings_diag.histMin.setText("%.2f"%hmin)
@@ -345,7 +346,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 else:
                     hmin = float(self._settings_diag.histMin.text())
                     hmax = float(self._settings_diag.histMax.text())
-                y,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
+                if histMode == 'count':
+                    y,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
+                elif histMode == 'mean':
+                    num,x = numpy.histogram(y, range=(hmin, hmax), bins=bins, weights=x)
+                    den,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
+                    y = num/(den+1e-20)
                 x = (x[:-1]+x[1:])/2.0
                 histoangle = 90
                 self._configure_axis(source, title, hist=True)
