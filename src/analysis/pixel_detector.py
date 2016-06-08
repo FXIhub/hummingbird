@@ -17,6 +17,29 @@ def printStatistics(detectors):
                                                                 min(v), max(v),
                                                                 std(v))
 
+
+def pnccdGain(evt, record, gainmode):
+    """Returns gain (Number of ADUs per photon) based on photon energy record and gain mode.
+    
+    Args:
+        :evt:    The event variable
+        :record: A photon energy ``Record`` given in eV
+        :gainmode: The gain mode of PNCCD (3,4,5,6) or 0 for no gain
+    """
+    maximum_gain = 1250  # at photon energy of 1keV
+    if gain_mode == 6:   # 1/1
+        gain = maximum_gain
+    elif gain_mode == 5 :# 1/4
+        gain = maximum_gain/4
+    elif gain_mode == 4: # 1/16
+        gain = maximum_gain/16
+    elif gain_mode == 3: # 1/64
+        gain = maximum_gain/64
+    gain *= (record.data / 1000.) # Rescale gain given a photon energy in eV
+    if gain_mode == 0:
+        gain = 1.
+    add_record(evt, evt['analysis'], 'analysis', 'gain', gain)
+
 def getSubsetAsics(evt, type, key, subset, output):
     """Adds a one-dimensional stack of an arbitrary subset of asics
     to ``evt["analysis"][output]``.
