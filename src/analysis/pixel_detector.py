@@ -17,6 +17,29 @@ def printStatistics(detectors):
                                                                 min(v), max(v),
                                                                 std(v))
 
+
+def pnccdGain(evt, record, gainmode):
+    """Returns gain (Number of ADUs per photon) based on photon energy record and gain mode.
+    
+    Args:
+        :evt:    The event variable
+        :record: A photon energy ``Record`` given in eV
+        :gainmode: The gain mode of PNCCD (3,4,5,6) or 0 for no gain
+    """
+    maximum_gain = 1250  # at photon energy of 1keV
+    if gainmode == 6:   # 1/1
+        gain = maximum_gain
+    elif gainmode == 5 :# 1/4
+        gain = maximum_gain/4
+    elif gainmode == 4: # 1/16
+        gain = maximum_gain/16
+    elif gainmode == 3: # 1/64
+        gain = maximum_gain/64
+    gain *= (record.data / 1000.) # Rescale gain given a photon energy in eV
+    if gainmode == 0:
+        gain = 1.
+    add_record(evt['analysis'], 'analysis', 'gain', gain)
+
 def getSubsetAsics(evt, type, key, subset, output):
     """Adds a one-dimensional stack of an arbitrary subset of asics
     to ``evt["analysis"][output]``.
@@ -378,7 +401,7 @@ def subtractImage(evt, type, key, image, outkey=None):
     dataCorrected = data - image
     add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 
-def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
+def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None, outkey='cropped'):
     
     data = data_rec.data
     name = data_rec.name
@@ -395,7 +418,7 @@ def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
     if h is None:
         h = Ny
     data_cropped = data[cy-h/2:cy+h/2, cx-w/2:cx+w/2]
-    add_record(evt["analysis"], "analysis", "cropped/centered", data_cropped)
+    add_record(evt["analysis"], "analysis", outkey, data_cropped)
 
 def rotate90(evt, data_rec, k=1, outkey='rotated'):
     data_rotated = np.rot90(data_rec.data,k)

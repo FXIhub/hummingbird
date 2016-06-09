@@ -198,6 +198,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
         # Init background if defined in a data source
         if self._settings_diag.bg is None:
+            alert_flag = False
             for source, title in self.source_and_titles():
                 conf = source.conf[title]
                 if "bg_filename" in conf:
@@ -208,14 +209,23 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     self._settings_diag._configure_bg(**conf_bg)
                     # Use only first if there are many
                     break
-                if "alert" in conf and self.alert and conf['alert']:
-                    os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
-                    if not self.alertBlinkTimer.isActive():
-                        self.alertBlinkTimer.start()
-                else:
-                    if self.alertBlinkTimer.isActive():
-                        self.alertBlinkTimer.stop()
-                        self.setStyleSheet("background-color: black");
+
+        alert_flag = False
+        for source, title in self.source_and_titles():
+            conf = source.conf[title]
+            if "alert" in conf and self.alert and conf['alert']:
+                alert_flag = True
+
+        if alert_flag:
+            os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+            if not self.alertBlinkTimer.isActive():
+                self.alertBlinkTimer.start()
+        else:
+            if self.alertBlinkTimer.isActive():
+                self.alertBlinkTimer.stop()
+                self.setStyleSheet("")
+
+
 
         # Load background if configured
         self._update_bg()
@@ -311,7 +321,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 if self._settings_diag.showTrendScalar.isChecked():
                     wl = int(self._settings_diag.windowLength.text())
                     y = utils.array.runningMean(y, wl)
-                    x = x[-max(len(y),1):]
+                    x = numpy.asarray(x[-max(y.size,1):])
             elif(source.data_type[title] == 'tuple') or (source.data_type[title] == 'triple'):
                 x = pd.y[:,0]
             elif(source.data_type[title] == 'vector'):
@@ -328,6 +338,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     x = numpy.linspace(xmin,xmax, y.shape[-1])
             if(self._settings_diag.histogram.isChecked()):
                 bins = int(self._settings_diag.histBins.text())
+                histMode = self._settings_diag.histMode.currentText()
                 if (self._settings_diag.histAutorange.isChecked()):
                     hmin, hmax = y.min(), y.max()
                     self._settings_diag.histMin.setText("%.2f"%hmin)
@@ -335,7 +346,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 else:
                     hmin = float(self._settings_diag.histMin.text())
                     hmax = float(self._settings_diag.histMax.text())
-                y,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
+                if histMode == 'count':
+                    y,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
+                elif histMode == 'mean':
+                    num,x = numpy.histogram(y, range=(hmin, hmax), bins=bins, weights=x)
+                    den,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
+                    y = num/(den+1e-20)
                 x = (x[:-1]+x[1:])/2.0
                 histoangle = 90
                 self._configure_axis(source, title, hist=True)

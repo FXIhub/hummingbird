@@ -13,7 +13,11 @@ class H5Reader:
             self._fileno.close()
             
     def load_dataset(self, key):
-        return self._fileno[key][:]
+        try:
+            d = self._fileno[key][:]
+        except ValueError:
+            d = self._fileno[key][...]
+        return d
         
 class MaskReader(H5Reader):
     def __init__(self, filename, key='data/data'):

@@ -33,7 +33,7 @@ def countHits(evt, hit, outkey="nrHits"):
     v = evt["analysis"]
     add_record(v, "analysis", outkey, hit_counters[outkey])
 
-def hitrate(evt, hit, history=100, unit='fraction', outkey="hitrate"):
+def hitrate(evt, hit, history=100, unit='percent', outkey="hitrate"):
     """Counts hits and adds current hit rate to ``evt["analysis"][outkey]``.
 
     Args:
@@ -53,14 +53,15 @@ def hitrate(evt, hit, history=100, unit='fraction', outkey="hitrate"):
     if outkey not in hitrate_counters or hitrate_counters[outkey].maxlen != history:
         hitrate_counters[outkey] = collections.deque([], history)
     hitrate_counters[outkey].append(bool(hit))
-    hitrate = np.array(hitrate_counters[outkey].count(True)/float(len(hitrate_counters[outkey])))
-    ipc.mpi.sum("hitrate", hitrate)
+    hitcount = np.array(hitrate_counters[outkey].count(True))
+    ipc.mpi.sum("hitcount - " + outkey, hitcount)
     v = evt["analysis"]
     if (ipc.mpi.is_main_worker()):
+        hitrate = hitcount[()] / (ipc.mpi.nr_workers() * float(len(hitrate_counters[outkey])))
         if unit == 'fraction':
-            add_record(v, "analysis", outkey, hitrate[()]/ipc.mpi.nr_workers())
+            add_record(v, "analysis", outkey, hitrate)
         elif unit == 'percent':
-            add_record(v, "analysis", outkey, 100.*hitrate[()]/ipc.mpi.nr_workers())
+            add_record(v, "analysis", outkey, 100.*hitrate)
 
 def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey="litpixel: "):
     """A simple hitfinder that counts the number of lit pixels and
@@ -133,44 +134,49 @@ def countHitscore(evt, hitscore, hitscoreThreshold=200, outkey=""):
     add_record(v, "analysis", outkey + "isHit", hit) 
     add_record(v, "analysis", outley + "hitscore", hitscore)
 
-def countPhotonsAgainstEnergyFunction(evt, type, key, energyKey = "averagePulseEnergy", energyFunction = lambda x : 200):
-    """A hitfinder that tests photon count against a predicted photon threshold
-    that is dependent on some existing key
-    adds a boolean to ``evt["analysis"]["isHit" + key]``,  the hitscore to ``evt["analysis"]["hitscore - " + key]`` and
-    the limit to ``evt["analysis"]["photonLimit - " + key]
+def countPhotonsAgainstEnergyFunction(evt, photonscore_record, energy_record, energyFunction = lambda x : 200, outkey='photons: '):
+    """A hitfinder that tests given photon score (e.g. photon count) against a predicted photon threshold
+    that is dependent on some given energy and
+    adds a boolean to ``evt["analysis"][outkey + "isHit"]``,  the hitscore to ``evt["analysis"][outkey + "hitscore"]`` and
+    the limit to ``evt["analysis"][outkey + "photonLimit"]
 
     Args:
         :evt:       The event variable
-        :type(str): The event type (e.g. photonPixelDetectors)
-        :key(str):  The event key (e.g. CCD)
+        :photonscore_record: A ``Record`` containting a photon score, e.g. total photon count
+        :energy_record:"     A ``Record`` containting an energy value, e.g. from gas monitor detector 
+
     Kwargs:
-	:energyKey(str): The analysis key where the pulse energy is expected to be found
         :energyFunction(function with double argument): function that computes the photon threshold, given the energy
+        :outkey(str):            Prefix of data key of resulting ``Record``, default is "photons: " 
     
     :Authors:
         Carl Nettelblad (carl.nettelblad@it.uu.se)
     """
+    score  = photonscore_record.data
+    energy = energy_record.data
+    photonLimit = energyFunction(energy)
     v = evt["analysis"]
-    hitscore = v["nrPhotons - "+key]
-    photonLimit = energyFunction(v[energyKey])
-    v["isHit - "+key] = hitscore > photonLimit
-    add_record(v, "analysis", "photonLimit - "+key, photonLimit)
-    add_record(v, "analysis", "hitscore - "+key, hitscore)
+    hit = score > photonLimit
+    add_record(v, "analysis", outkey + "isHit", hit)
+    add_record(v, "analysis", outkey + "photonLimit", photonLimit)
+    add_record(v, "analysis", outkey + "hitscore", score)
 
-def countPhotonsAgainstEnergyPolynomial(evt, type, key, energyKey = "averagePulseEnergy", energyPolynomial = [200]):
-    """A hitfinder that tests photon count against a predicted photon threshold
-    that is dependent on some existing key
-    adds a boolean to ``evt["analysis"]["isHit" + key]``,  the hitscore to ``evt["analysis"]["hitscore - " + key]`` and
-    the limit to ``evt["analysis"]["photonLimit - " + key]
+def countPhotonsAgainstEnergyPolynomial(evt, photonscore_record, energy_record, energyPolynomial = [200], outkey='photons: '):
+    """A hitfinder that tests photon score (e.g. photon count) against a predicted photon threshold
+    that is dependent on some given energy and 
+    adds a boolean to ``evt["analysis"][outkey + "isHit"]``,  the hitscore to ``evt["analysis"][outkey + "hitscore"]`` and
+    the limit to ``evt["analysis"][outkey + "photonLimit"]
 
     Args:
         :evt:       The event variable
-        :type(str): The event type (e.g. photonPixelDetectors)
-        :key(str):  The event key (e.g. CCD)
+        :photonscore_record: A ``Record`` containting a photon score, e.g. total photon count
+        :energy_record:"     A ``Record`` containting an energy value, e.g. from gas monitor detector 
+
     Kwargs:
         :energyPolynomial: array_like with polynomial coefficients fed to polyval (polynomial order one less than list length)
+        :outkey(str):            Prefix of data key of resulting ``Record``, default is "photons: " 
     
     :Authors:
         Carl Nettelblad (carl.nettelblad@it.uu.se)
     """
-    countPhotonsAgainstEnergyFunction(evt, type, key, energyKey, lambda x : numpy.polyval(energyPolynomial, x))
+    countPhotonsAgainstEnergyFunction(evt, photonscore_record, energy_record, lambda x : numpy.polyval(energyPolynomial, x), outkey=outkey)

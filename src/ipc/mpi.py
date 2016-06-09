@@ -165,6 +165,7 @@ def sum(cmd, array):
     """Element-wise sum of a numpy array across all the slave processes.
     The result is only available in the main_slave (rank 1)."""
     #_reduce(array, "SUM")
+    #return
     if(isinstance(array, numbers.Number)):
         comm.send(['__reduce__', cmd, (), array, is_main_slave()], 0)
     else:
