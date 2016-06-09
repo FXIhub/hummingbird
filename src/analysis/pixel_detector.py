@@ -304,19 +304,21 @@ def commonModeLines(evt, record, outkey=None, direction='vertical'):
     add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 
 
-def commonModePNCCD(evt, type, key, outkey=None, transpose=False):
+def commonModePNCCD(evt, type, key, outkey=None, transpose=False, signal_threshold=None):
     """Common mode correction for PNCCDs.
 
     For each row its median value is subtracted (left and right half of detector are treated separately).
     Adds a record ``evt["analysis"][outkey]``.
     
     Args:
-      :evt:         The event variable
-      :type(str):   The event type (e.g. photonPixelDetectors)
-      :key(str):    The event key (e.g. CCD)
+      :evt:                     The event variable
+      :type(str):               The event type (e.g. photonPixelDetectors)
+      :key(str):                The event key (e.g. CCD)
 
     Kwargs:
-      :outkey(str): The event key for the corrected image, default is "corrected - " + key
+      :outkey(str):             The event key for the corrected image, default is "corrected - " + key
+      :transpose(bool):         Apply procedure on transposed image
+      :signal_threshold(float): Apply procedure by using only pixels below given value
     
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
@@ -325,15 +327,32 @@ def commonModePNCCD(evt, type, key, outkey=None, transpose=False):
     if outkey is None:
         outkey = "corrected - " + key
     data = evt[type][key].data
+
     if transpose:
         data = data.transpose()
+
     dataCorrected = np.copy(data)
+
     lData = data[:,:data.shape[1]/2]
     rData = data[:,data.shape[1]/2:]
-    dataCorrected[:,:data.shape[1]/2] -= np.median(lData,axis=1).repeat(lData.shape[1]).reshape(lData.shape)
-    dataCorrected[:,data.shape[1]/2:] -= np.median(rData,axis=1).repeat(rData.shape[1]).reshape(rData.shape)
+    if signal_threshold is not None:
+        # Set values above singal_threshold to nan
+        np.putmask(lData, lData > signal_threshold, np.nan)
+        np.putmask(rData, rData > signal_threshold, np.nan)
+    # Calculate median from values that are not nan
+    lCM = np.nanmedian(lData,axis=1).repeat(lData.shape[1]).reshape(lData.shape)
+    rCM = np.nanmedian(rData,axis=1).repeat(rData.shape[1]).reshape(rData.shape)
+    # If a whole row is above threshold the CM correction shall not be applied
+    np.putmask(lCM, np.isnan(lCM) , 0.)
+    np.putmask(rCM, np.isnan(rCM) , 0.)
+
+    # Subtract common modes
+    dataCorrected[:,:data.shape[1]/2] -= lCM
+    dataCorrected[:,data.shape[1]/2:] -= rCM
+
     if transpose:
         dataCorrected = dataCorrected.transpose()
+
     add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 
 def subtractImage(evt, type, key, image, outkey=None):
