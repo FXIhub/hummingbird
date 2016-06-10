@@ -356,8 +356,8 @@ def commonModePNCCD(evt, type, key, outkey=None, transpose=False, signal_thresho
 
     dataCorrected = np.copy(data)
 
-    lData = data[:,:data.shape[1]/2]
-    rData = data[:,data.shape[1]/2:]
+    lData = np.copy(data[:,:data.shape[1]/2])
+    rData = np.copy(data[:,data.shape[1]/2:])
     if signal_threshold is not None:
         # Set values above singal_threshold to nan
         np.putmask(lData, lData > signal_threshold, np.nan)

@@ -25,7 +25,7 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
         img = module.crop(img, crop)
         mask = module.crop(mask, crop)
         
-    out = module.patterson(img, mask, full_output=full_output, normalize_median=True, **params)
+    out = module.patterson(numpy.float64(img), mask, full_output=full_output, normalize_median=True, **params)
 
     v = evt["analysis"]
     
@@ -33,7 +33,7 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
         P = abs(out[0])
         info = out[1]
         add_record(v, "analysis", "patterson kernel", info["kernel"], unit='')
-        add_record(v, "analysis", "patterson kernel", info["intensities_times_kernel"], unit='')
+        add_record(v, "analysis", "patterson intensities", info["intensities_times_kernel"], unit='')
     else:
         P = abs(out)
     
