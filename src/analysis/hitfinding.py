@@ -180,3 +180,17 @@ def countPhotonsAgainstEnergyPolynomial(evt, photonscore_record, energy_record, 
         Carl Nettelblad (carl.nettelblad@it.uu.se)
     """
     countPhotonsAgainstEnergyFunction(evt, photonscore_record, energy_record, lambda x : numpy.polyval(energyPolynomial, x), outkey=outkey)
+
+import numpy
+
+def generate_radial_mask(mask,cx,cy,radius):
+    [dimy,dimx] = mask.shape
+
+    x = numpy.arange(dimx)-cx
+    y = numpy.arange(dimy)-cy
+    X,Y = numpy.meshgrid(x,y)
+    R = numpy.sqrt(X**2+Y**2)
+
+    mask2 = mask.copy()
+    mask2[R > radius] = 0
+    return mask2
