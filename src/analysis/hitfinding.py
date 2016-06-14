@@ -183,6 +183,43 @@ def countPhotonsAgainstEnergyPolynomial(evt, photonscore_record, energy_record, 
 
 import numpy
 
+def photon_count_frame(evt,front_type_s,front_key_s,aduThreshold,outkey=""):
+    photon_frame = (evt[front_type_s][front_key_s].data/aduThreshold).round()
+    photon_frame[photon_frame<=0] = 0
+    v = evt["analysis"]
+    add_record(v, "analysis", outkey+"photon_count", photon_frame)    
+
+def lambda_values(evt,pulse_energy,sum_over_bkg_frames,fit_bkg,sample_params,outkey=""):
+    frame_expected_phc = numpy.dot(sample_params,numpy.array([pulse_energy**3,pulse_energy**2,pulse_energy,1]))
+    lambdav = sum_over_bkg_frames*frame_expected_phc/fit_bkg.sum()
+    lambdav[lambdav<=0] = 1e-30
+    v = evt["analysis"]
+    add_record(v, "analysis", outkey+"lambda_values", lambdav)
+    add_record(v, "analysis", outkey+"expected_phc", frame_expected_phc)
+
+def baglivo_score(evt,poisson_mask,outkey=""):
+    #poisson_mask = poisson_mask.astype(bool)
+    N = evt["analysis"]["expected_phc"].data
+    observed_phc = evt["analysis"]["photon_count"].data[poisson_mask]
+    lambda_values = evt["analysis"]["lambda_values"].data[poisson_mask]
+    normalized_lambdas = lambda_values/lambda_values.sum()
+
+    partial_sum = observed_phc*(numpy.log(observed_phc) - numpy.log(normalized_lambdas) - numpy.log(N))
+    partial_sum[observed_phc==0] = 0
+
+    logval = partial_sum.sum()
+     
+    v = evt["analysis"]
+    add_record(v, "analysis", outkey+"baglivo_score", logval)
+
+def stat_hitfinder(evt,pulse_energy,thr_params,bag_bkg,outkey="bagscore: "):
+    thr = thr_params[0]*pulse_energy + thr_params[1] + 2*bag_bkg.std()    
+    hit = evt["analysis"]["baglivo_score"].data > thr
+    v = evt["analysis"]
+    add_record(v, "analysis", outkey+"isHit", hit)
+    add_record(v, "analysis", outkey+"threshold", thr)
+
+
 def generate_radial_mask(mask,cx,cy,radius):
     [dimy,dimx] = mask.shape
 
