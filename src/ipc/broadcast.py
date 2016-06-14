@@ -65,7 +65,7 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
         else:
             send_probability = 1
         sent_time[title] = cur_time
-        print 'send_probability', send_probability
+        #print 'send_probability', send_probability
         if numpy.random.random() > send_probability:
             # do not send the data
             return

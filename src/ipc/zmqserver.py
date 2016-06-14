@@ -15,7 +15,7 @@ import ipc.mpi
 import backend.worker
 import logging
 
-eventLimit = 375
+eventLimit = 125
 
 class ZmqServer(object):
     """Implements the server that broadcasts the results from the backend.
