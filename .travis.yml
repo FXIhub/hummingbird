@@ -24,6 +24,7 @@ addons:
       - libopenmpi-dev
       - openmpi-bin
 #      - libhdf5-openmpi-dev
+      - libhdf5-serial-dev
       - python-numpy
       - python-scipy
       
