@@ -18,19 +18,19 @@ def stop_example(proc):
 def reload_example(proc):
     os.kill(proc.pid, signal.SIGINT)
     
-def start_example(filename='', options=None):
-    cmd = '/bin/ls'
-    if filename is not None:
+def start_example(conf=None, options=None, cmd=None):
+    if cmd is None:
         cmd = __thisdir__ +  "/../hummingbird.py -b "
-        cmd += filename
+    if conf is not None:
+        cmd += conf
     if options is not None:
         cmd += options
     print "Running: ", cmd
     return subprocess.Popen(cmd.split(), shell=False, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
-def run_example(example=''):
+def run_example(conf=None,cmd=None):
     try:
-        p = start_example(example)
+        p = start_example(conf=conf, cmd=cmd)
         try:
             output, error = p.communicate(timeout=2)
         except subprocess.TimeoutExpired:
@@ -50,22 +50,25 @@ def run_example(example=''):
         
 # Testing default execution of backend
 def test_testing_framework():
-    run_example(None)
+    run_example(cmd='/bin/ls')
+
+def test_script_start():
+    run_example(cmd=__thisdir__ +'/../hummingbird.py')
 
 def test_basic_execution():
-    run_example()
+    run_example(conf='')
 
 # Testing basic examples
 def test_dummy_example():
-    run_example(__thisdir__ + '/../examples/basic/dummy.py')
+    run_example(conf=__thisdir__ + '/../examples/basic/dummy.py')
 def test_simulation_example():
-    run_example(__thisdir__ + '/../examples/basic/simulation.py')
+    run_example(conf=__thisdir__ + '/../examples/basic/simulation.py')
 def test_detector_example():
-    run_example(__thisdir__ + '/../examples/basic/detector.py')
+    run_example(conf=__thisdir__ + '/../examples/basic/detector.py')
 def test_hitfinding_example():
-    run_example(__thisdir__ + '/../examples/basic/hitfinding.py')
+    run_example(conf=__thisdir__ + '/../examples/basic/hitfinding.py')
 def test_correlation_example():
-    run_example(__thisdir__ + '/../examples/basic/correlation.py')
+    run_example(conf=__thisdir__ + '/../examples/basic/correlation.py')
 
 if __name__ == '__main__':
     #test_detector_example()
