@@ -19,8 +19,10 @@ def reload_example(proc):
     os.kill(proc.pid, signal.SIGINT)
     
 def start_example(filename='', options=None):
-    cmd = __thisdir__ +  "/../hummingbird.py -b "
-    cmd += filename
+    cmd = '/bin/ls'
+    if filename is not None:
+        cmd = __thisdir__ +  "/../hummingbird.py -b "
+        cmd += filename
     if options is not None:
         cmd += options
     print "Running: ", cmd
@@ -47,6 +49,9 @@ def run_example(example=''):
     assert (ret == 0), "Example %s did not finish successfully!" %example
         
 # Testing default execution of backend
+def test_testing_framework():
+    run_example(None)
+
 def test_basic_execution():
     run_example()
 
