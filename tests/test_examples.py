@@ -46,7 +46,7 @@ def run_example(conf=None,cmd=None):
         print e.errno, e.strerror, e.filename
     except:
         print sys.exc_info()[0]
-    assert (ret == 0), "Example %s did not finish successfully!" %example
+    assert (ret == 0), "Example %s did not finish successfully!" % (conf)
         
 # Testing default execution of backend
 def test_testing_framework():
