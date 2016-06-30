@@ -31,6 +31,7 @@ addons:
 before_install:
   - pip install subprocess32
   - pip install pyzmq
+  - pip install tornado
   - pip install codecov
   #  - pip install mpi4py
   - pip install h5py
