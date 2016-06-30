@@ -23,7 +23,7 @@ addons:
     packages:
       - libopenmpi-dev
       - openmpi-bin
-      - libhdf5-openmpi-dev
+#      - libhdf5-openmpi-dev
       - python-numpy
       - python-scipy
       - python-h5py
