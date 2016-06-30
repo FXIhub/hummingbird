@@ -166,6 +166,9 @@ def sum(cmd, array):
     The result is only available in the main_slave (rank 1)."""
     #_reduce(array, "SUM")
     #return
+    if size == 1:
+        return
+
     if(isinstance(array, numbers.Number)):
         comm.send(['__reduce__', cmd, (), array, is_main_slave()], 0)
     else:
