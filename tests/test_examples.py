@@ -48,6 +48,22 @@ def run_example(conf=None,cmd=None):
         print sys.exc_info()[0]
     assert (ret == 0), "Example %s did not finish successfully!" % (conf)
         
+def test_import_ipc():
+    sys.path.insert(0, __thisdir__ + "/../src")
+    import ipc
+    sys.path.pop(0)
+    assert(1 == 1)
+
+def test_import_backend_lcls():
+    sys.path.insert(0, __thisdir__ + "/../src")
+    try:
+        import backend.lcls
+    except ImportError:
+        pass
+    sys.path.pop(0)
+    assert(1 == 1)
+
+
 # Testing default execution of backend
 def test_testing_framework():
     run_example(cmd='/bin/ls')
