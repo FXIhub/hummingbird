@@ -12,7 +12,6 @@ sudo: false
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/h5py
     - $HOME/local
 
 addons:
@@ -28,7 +27,6 @@ addons:
       - python-numpy
       - python-scipy
       - python-h5py
-      - python-zmq
       
 virtualenv:
     system_site_packages: true
@@ -37,7 +35,7 @@ before_install:
   - SITE_PKG_DIR=$VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/site-packages
   - rm -f $VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/no-global-site-packages.txt  
   - pip install subprocess32
-  #  - pip install pyzmq
+  - pip install pyzmq
   #- pip install tornado
   - pip install codecov
   #  - pip install mpi4py
