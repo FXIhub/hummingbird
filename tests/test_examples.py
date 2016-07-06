@@ -55,6 +55,19 @@ def test_import_mpi4py():
         pass
     assert(1 == 1)
 
+def test_mpi4py_use():
+    try:
+        from mpi4py import MPI
+        comm = MPI.COMM_WORLD
+        rank = comm.Get_rank()
+        size = comm.Get_size()
+        slave_group = comm.Get_group().Incl(range(1, size))
+        slaves_comm = comm.Create(slave_group)
+        reload_comm = comm.Clone()
+    except ImportError:
+        pass
+    assert(1 == 1)
+
 def test_import_ipc():
     sys.path.insert(0, __thisdir__ + "/../src")
     import ipc
