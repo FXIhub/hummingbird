@@ -21,8 +21,8 @@ addons:
 #      - ubuntu-toolchain-r-test
 #      - kubuntu-backports
     packages:
-      # - libopenmpi-dev
-      # - openmpi-bin
+      - libopenmpi-dev
+      - openmpi-bin
 #      - libhdf5-openmpi-dev
       - libhdf5-serial-dev
       - python-numpy
@@ -39,7 +39,7 @@ before_install:
   - pip install pyzmq
   - pip install tornado
   - pip install codecov
-  #  - pip install mpi4py
+  - pip install mpi4py
   # - pip install h5py
   # - cd $HOME
   # - if [ ! -d "$HOME/h5py/.git" ]; then git clone  https://github.com/h5py/h5py.git; else echo 'Using h5py from cached directory'; fi
