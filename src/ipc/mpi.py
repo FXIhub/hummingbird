@@ -39,14 +39,22 @@ try:
     comm = MPI.COMM_WORLD
     rank = comm.Get_rank()
     size = comm.Get_size()
-    slave_group = comm.Get_group().Incl(range(1, size))
-    slaves_comm = comm.Create(slave_group)
-    reload_comm = comm.Clone()
+    if(size > 1):
+        # This needs to be protected against creating an
+        # empty group or certain MPI implementations seg fault
+        slave_group = comm.Get_group().Incl(range(1, size))
+        slaves_comm = comm.Create(slave_group)
+        reload_comm = comm.Clone()
+        MPI_TAG_INIT   = 1 + 4353
+        MPI_TAG_EXPAND = 2 + 4353
+        MPI_TAG_READY  = 3 + 4353
+        MPI_TAG_CLOSE  = 4 + 4353        
+    else:
+        # If there's only 1 rank, no not use MPI
+        comm = None
+        slaves_comm = None
+        reload_comm = None
 
-    MPI_TAG_INIT   = 1 + 4353
-    MPI_TAG_EXPAND = 2 + 4353
-    MPI_TAG_READY  = 3 + 4353
-    MPI_TAG_CLOSE  = 4 + 4353
 
 except ImportError:
     rank = 0
