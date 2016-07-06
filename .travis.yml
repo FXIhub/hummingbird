@@ -9,8 +9,7 @@ notifications:
 
 sudo: false
 
-cache:
-  - pip
+cache: pip
   directories:
     - $HOME/local
 
