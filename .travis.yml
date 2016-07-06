@@ -29,10 +29,10 @@ addons:
 
 matrix:
   include:
-    # Job 1, no MPI
-    - env: MPI=none
+    # Default job no MPI
     # Job 2, OpenMPI
-    - env: MPI=openmpi
+    - os: linux
+      env: MPI=openmpi
       addons:
         apt:
           packages:
