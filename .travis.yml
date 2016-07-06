@@ -10,8 +10,8 @@ notifications:
 sudo: false
 
 cache:
+  - pip
   directories:
-    - $HOME/.cache/pip
     - $HOME/local
 
 addons:
