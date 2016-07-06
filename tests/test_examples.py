@@ -61,9 +61,14 @@ def test_mpi4py_use():
         comm = MPI.COMM_WORLD
         rank = comm.Get_rank()
         size = comm.Get_size()
-        slave_group = comm.Get_group().Incl(range(1, size))
-        slaves_comm = comm.Create(slave_group)
-        reload_comm = comm.Clone()
+        if(size > 1):
+            slave_group = comm.Get_group().Incl(range(1, size))
+            slaves_comm = comm.Create(slave_group)
+            reload_comm = comm.Clone()
+        else:
+            comm = None
+            slaves_comm = None
+            reload_comm = None
     except ImportError:
         pass
     assert(1 == 1)
