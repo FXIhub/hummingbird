@@ -48,6 +48,13 @@ def run_example(conf=None,cmd=None):
         print sys.exc_info()[0]
     assert (ret == 0), "Example %s did not finish successfully!" % (conf)
         
+def test_import_mpi4py():
+    try:
+        from mpi4py import MPI
+    except ImportError:
+        pass
+    assert(1 == 1)
+
 def test_import_ipc():
     sys.path.insert(0, __thisdir__ + "/../src")
     import ipc
