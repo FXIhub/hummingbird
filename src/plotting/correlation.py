@@ -5,6 +5,8 @@
 """A plotting module for correlations and maps"""
 import numpy as np
 import ipc
+import scipy
+import scipy.sparse
 from scipy.sparse import lil_matrix
 from backend import Record
 
