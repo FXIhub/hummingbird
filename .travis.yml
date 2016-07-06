@@ -28,6 +28,7 @@ addons:
       - python-numpy
       - python-scipy
       - python-h5py
+      - python-mpi4py
       
 virtualenv:
     system_site_packages: true
@@ -39,7 +40,7 @@ before_install:
   - pip install pyzmq
   - pip install tornado
   - pip install codecov
-  - pip install mpi4py
+  # - pip install mpi4py
   # - pip install h5py
   # - cd $HOME
   # - if [ ! -d "$HOME/h5py/.git" ]; then git clone  https://github.com/h5py/h5py.git; else echo 'Using h5py from cached directory'; fi
