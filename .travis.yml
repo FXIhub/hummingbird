@@ -35,6 +35,10 @@ matrix:
       addons:
         apt:
           packages:
+            - libhdf5-serial-dev
+            - python-numpy
+            - python-scipy
+            - python-h5py
             - libopenmpi-dev
             - openmpi-bin
             - python-mpi4py
