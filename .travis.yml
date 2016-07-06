@@ -37,7 +37,7 @@ before_install:
   - rm -f $VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/no-global-site-packages.txt  
   - pip install subprocess32
   - pip install pyzmq
-  #- pip install tornado
+  - pip install tornado
   - pip install codecov
   #  - pip install mpi4py
   # - pip install h5py
