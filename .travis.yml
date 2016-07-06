@@ -10,6 +10,7 @@ sudo: false
 
 cache:
   directories:
+    - $HOME/h5py
     - $HOME/.cache/pip
     - $HOME/.venv
     - $HOME/local
@@ -50,6 +51,8 @@ matrix:
             - libopenmpi-dev
             - openmpi-bin
             - python-mpi4py
+  allow_failures:
+    - env: MPI=openmpi HDF5=mpi
 
       
 virtualenv:
