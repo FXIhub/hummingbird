@@ -11,6 +11,9 @@ notifications:
 
 sudo: false
 
+services:
+  - docker
+
 cache:
   directories:
     - $HOME/h5py
@@ -54,9 +57,14 @@ matrix:
             - libopenmpi-dev
             - openmpi-bin
             - python-mpi4py
+    - env: MPI=none HDF5=serial DOCKER=true
+      before_install:
+        - docker pull filipemaia/psana
+        - docker run filipemaia/psana
+      
   allow_failures:
     - env: MPI=openmpi HDF5=mpi
-
+    - env: MPI=none HDF5=serial DOCKER=true
       
 virtualenv:
     system_site_packages: true
