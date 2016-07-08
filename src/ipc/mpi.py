@@ -22,10 +22,28 @@ def is_zmqserver():
     is always the worker hosting the zmq server."""
     return rank == 0
 
+def is_reader():
+    """Returns True if the process is a process dedicated for reading events,
+    i.e. a slave process that runs an event loop."""
+    return (slave_rank() >= min_slave_rank_for_reading())
+
 def nr_workers():
     """Returns nr. of available workers."""
     return (size - 1) if (size > 1) else size
 
+def nr_readers():
+    """Returns nr. of available readers."""
+    return nr_workers() - min_slave_rank_for_reading()
+
+def min_slave_rank_for_reading():
+    """Returns lowest rank in slaves_comm that is reading data,
+    i.e. running an event loop"""
+    from backend import worker
+    if isinstance(worker.Worker.state, dict) and 'reduce_nr_readers' in worker.Worker.state:
+        return worker.Worker.state['reduce_nr_readers']
+    else:
+        return 0
+    
 def get_source(sources):
     """Returns source based on a given list of sources and 
     given the rank of the current process. Slaves are distributed equally 
@@ -50,7 +68,7 @@ try:
         MPI_TAG_READY  = 3 + 4353
         MPI_TAG_CLOSE  = 4 + 4353        
     else:
-        # If there's only 1 rank, no not use MPI
+        # If there's only 1 rank, do not use MPI
         comm = None
         slaves_comm = None
         reload_comm = None
@@ -71,6 +89,16 @@ def slave_rank():
     else:
         return 0
 
+def reader_rank():
+    if not is_reader():
+        return None
+    elif size > 1:
+        sr =  slave_rank()
+        rr_min = min_slave_rank_for_reading()
+        return sr - rr_min
+    else:
+        return 0
+    
 def is_slave():
     """Returns True if the process has MPI rank > 0."""
     return rank > 0

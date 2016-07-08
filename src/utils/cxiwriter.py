@@ -15,6 +15,6 @@ logger = h5writer.logger
 if ipc.mpi.size == 1:
     CXIWriter = h5writer.H5Writer
 else:
-    class CXIWriter(h5writer.H5WriterMPI):
+    class CXIWriter(h5writer.H5WriterMPISW):
         def __init__(self, filename, chunksize=100, compression=None):
-            h5writer.H5WriterMPI.__init__(self, filename=filename, chunksize=chunksize, compression=compression, comm=ipc.mpi.slaves_comm.Clone())
+            h5writer.H5WriterMPISW.__init__(self, filename=filename, chunksize=chunksize, compression=compression, comm=ipc.mpi.slaves_comm.Clone())

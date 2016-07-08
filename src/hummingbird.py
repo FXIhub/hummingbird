@@ -36,11 +36,11 @@ def parse_cmdline_args():
                         action="store_false")
 
     # LCLS-specific arguments
-    try:
-        import backend.lcls
-        parser = backend.lcls.add_cmdline_args(parser)
-    except ImportError:
-        pass
+    #try:
+    import backend.lcls
+    parser = backend.lcls.add_cmdline_args(parser)
+    #except ImportError:
+    #    pass
         
     # Print help
     if(len(sys.argv) == 1):

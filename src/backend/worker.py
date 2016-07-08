@@ -63,7 +63,6 @@ class Worker(object):
             except KeyError:
                 with open('.pid', 'w') as file: file.write(str(os.getpid()))
         self.reloadnow = False
-        print 'Starting backend...'
 
     def raise_interruption(self, signum, stack):
         self.reloadnow = True
@@ -81,7 +80,11 @@ class Worker(object):
     def start(self):
         """Start the event loop."""
         Worker.state['running'] = True
-        self.event_loop()
+        if ipc.mpi.is_reader():
+            print 'Starting event loop %i/%i ...' % (ipc.mpi.reader_rank()+1, ipc.mpi.nr_readers())
+            self.event_loop()
+        else:
+            ipc.mpi.slave_done()
 
     def ctrlcevent(self, whatSignal, stack):
         self.reloadnow = True

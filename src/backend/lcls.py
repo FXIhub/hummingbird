@@ -97,7 +97,7 @@ class LCLSTranslator(object):
             if dsrc[-len(':idx'):] != ':idx':
                 dsrc += ':idx'
             if 'index_offset' in state:
-                self.i = state['index_offset'] / ipc.mpi.nr_workers()
+                self.i = state['index_offset'] / ipc.mpi.nr_readers()
             else:
                 self.i = 0
             self.data_source = psana.DataSource(dsrc)
@@ -105,13 +105,13 @@ class LCLSTranslator(object):
             self.timestamps = self.run.times()
             if self.N is not None:
                 self.timestamps = self.timestamps[:self.N]
-            self.timestamps = self.timestamps[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
+            self.timestamps = self.timestamps[ipc.mpi.reader_rank()::ipc.mpi.nr_readers()]
         else:
             self.times = None
             self.fiducials = None
             self.i = 0
             if not dsrc.startswith('shmem='):
-                self.event_slice = slice(ipc.mpi.slave_rank(), None, ipc.mpi.nr_workers())
+                self.event_slice = slice(ipc.mpi.reader_rank(), None, ipc.mpi.nr_readers())
             self.data_source = psana.DataSource(dsrc)
             self.run = None
             
@@ -189,7 +189,7 @@ class LCLSTranslator(object):
 
 
     def next_event(self):
-        """Grabs the next event and returns the translated version"""
+        """Grabs the next event and returns the translated version"""           
         if self.timestamps:            
             try:
                 evt = self.run.event(self.timestamps[self.i])
