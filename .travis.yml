@@ -11,8 +11,6 @@ notifications:
 
 sudo: false
 
-services:
-  - docker
 
 cache:
   directories:
@@ -60,6 +58,8 @@ matrix:
     - env: MPI=none HDF5=serial DOCKER=true
       sudo: required
       dist: trusty
+      services:
+        - docker
       before_install:
         - docker pull filipemaia/psana
         - docker run filipemaia/psana
