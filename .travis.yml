@@ -58,6 +58,7 @@ matrix:
             - openmpi-bin
             - python-mpi4py
     - env: MPI=none HDF5=serial DOCKER=true
+      sudo: required
       before_install:
         - docker pull filipemaia/psana
         - docker run filipemaia/psana
