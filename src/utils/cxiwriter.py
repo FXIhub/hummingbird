@@ -17,4 +17,4 @@ if ipc.mpi.size == 1:
 else:
     class CXIWriter(h5writer.H5WriterMPISW):
         def __init__(self, filename, chunksize=100, compression=None):
-            h5writer.H5WriterMPISW.__init__(self, filename=filename, chunksize=chunksize, compression=compression, comm=ipc.mpi.slaves_comm.Clone())
+            h5writer.H5WriterMPISW.__init__(self, filename=filename, chunksize=chunksize, compression=compression, comm=ipc.mpi.slaves_comm)

@@ -22,27 +22,14 @@ def is_zmqserver():
     is always the worker hosting the zmq server."""
     return rank == 0
 
-def is_reader():
-    """Returns True if the process is a process dedicated for reading events,
-    i.e. a slave process that runs an event loop."""
-    return (slave_rank() >= min_slave_rank_for_reading())
-
 def nr_workers():
     """Returns nr. of available workers."""
     return (size - 1) if (size > 1) else size
 
-def nr_readers():
-    """Returns nr. of available readers."""
-    return nr_workers() - min_slave_rank_for_reading()
-
-def min_slave_rank_for_reading():
-    """Returns lowest rank in slaves_comm that is reading data,
-    i.e. running an event loop"""
-    from backend import worker
-    if isinstance(worker.Worker.state, dict) and 'reduce_nr_readers' in worker.Worker.state:
-        return worker.Worker.state['reduce_nr_readers']
-    else:
-        return 0
+def nr_event_readers():
+    """Returns nr. of event readers that run an event loop."""
+    return 1 if (size == 1) else _nr_event_readers
+        
     
 def get_source(sources):
     """Returns source based on a given list of sources and 
@@ -62,6 +49,9 @@ try:
         # empty group or certain MPI implementations seg fault
         slave_group = comm.Get_group().Incl(range(1, size))
         slaves_comm = comm.Create(slave_group)
+        event_reader_group = None
+        event_reader_comm = None
+        _nr_event_readers = None
         reload_comm = comm.Clone()
         MPI_TAG_INIT   = 1 + 4353
         MPI_TAG_EXPAND = 2 + 4353
@@ -71,6 +61,8 @@ try:
         # If there's only 1 rank, do not use MPI
         comm = None
         slaves_comm = None
+        event_reader_comm = None
+        _nr_event_readers = None
         reload_comm = None
 
 
@@ -79,25 +71,42 @@ except ImportError:
     size = 1
     comm = None
     slaves_comm = None
+    event_reader_comm = None
+    _nr_event_readers = None
     reload_comm = None
 
 subscribed = set()
+
+def init_event_reader_comm(slave_event_reader_min_rank):
+    if size == 1:
+        return
+    global event_reader_group
+    global event_reader_comm
+    global _nr_event_readers
+    rmin = slave_event_reader_min_rank
+    if rmin > 0 and size > 1:
+        # Reduce event_reader_comm
+        event_reader_group = comm.Get_group().Incl(range(1+rmin, comm.size))
+        _nr_event_readers = comm.size - 1 - rmin
+    else:
+        event_reader_group = comm.Get_group().Incl(range(1+0, comm.size))
+        _nr_event_readers = comm.size - 1
+    event_reader_comm = comm.Create(event_reader_group)
+
+
 
 def slave_rank():
     if size > 1:
         return rank -1
     else:
         return 0
-
-def reader_rank():
-    if not is_reader():
+worker_rank = slave_rank
+    
+def event_reader_rank():
+    try:
+        return 0 if (size == 1) else event_reader_comm.rank
+    except MPI.Exception:
         return None
-    elif size > 1:
-        sr =  slave_rank()
-        rr_min = min_slave_rank_for_reading()
-        return sr - rr_min
-    else:
-        return 0
     
 def is_slave():
     """Returns True if the process has MPI rank > 0."""
@@ -111,9 +120,19 @@ def is_worker():
     """Returns True if the process is a slave or there is only one process."""
     return is_slave() or size == 1
 
-def is_main_worker():
-    """Returns True if the process is the main slave or there is only one process."""
-    return is_main_slave() or size == 1
+def is_event_reader():
+    """Returns True if the process is an event reader."""
+    try:
+        return (size == 1) or (event_reader_comm.rank != MPI.UNDEFINED)
+    except MPI.Exception:
+        return False
+        
+def is_main_event_reader():
+    """Returns True if the process has rank == 0 in the reader communicator or if there is only one process."""
+    try:
+        return (size == 1) or (event_reader_comm.rank == 0)
+    except MPI.Exception:
+        return False
 
 def send(title, data):
     """Send a list of data items to the master node."""
