@@ -56,8 +56,8 @@ def hitrate(evt, hit, history=100, unit='percent', outkey="hitrate"):
     hitcount = np.array(hitrate_counters[outkey].count(True))
     ipc.mpi.sum("hitcount - " + outkey, hitcount)
     v = evt["analysis"]
-    if (ipc.mpi.is_main_worker()):
-        hitrate = hitcount[()] / (ipc.mpi.nr_workers() * float(len(hitrate_counters[outkey])))
+    if (ipc.mpi.is_main_event_reader()):
+        hitrate = hitcount[()] / (ipc.mpi.nr_event_readers() * float(len(hitrate_counters[outkey])))
         if unit == 'fraction':
             add_record(v, "analysis", outkey, hitrate)
         elif unit == 'percent':
