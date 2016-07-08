@@ -63,7 +63,7 @@ matrix:
       before_install:
         - docker pull filipemaia/hummingbird-testing
       script:
-        - docker run -v ${HOME}/build/FXIhub/hummingbird:/opt/hummingbird filipemaia/hummingbird-testing /bin/sh -c "source /reg/g/psdm/etc/ana_env.sh && PATH=${PATH}:/reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/ && cd /opt/hummingbird; coverage run --source  hummingbird -m py.test  -v --color=yes --showlocals --durations=10; codecov"
+        - docker run -v ${HOME}/build/FXIhub/hummingbird:/opt/hummingbird filipemaia/hummingbird-testing /bin/sh -c "source /reg/g/psdm/etc/ana_env.sh && PATH=${PATH}:/reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/ && cd /opt/hummingbird && coverage run --source  hummingbird -m py.test  -v --color=yes --showlocals --durations=10 && codecov"
   
       
   allow_failures:
