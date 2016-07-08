@@ -1,4 +1,4 @@
-deactivate
+#deactivate
 # CLEAN UP
 export PATH=/usr/local/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/sbin
 export LD_LIBRARY_PATH=/lib:/lib64
