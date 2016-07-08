@@ -61,8 +61,10 @@ matrix:
       services:
         - docker
       before_install:
-        - docker pull filipemaia/psana
-        - docker run filipemaia/psana
+        - docker pull filipemaia/hummingbird-testing
+      script:
+        - docker run -v ${HOME}/build/FXIhub/hummingbird:/opt/hummingbird filipemaia/psana /bin/sh -c "cd /opt/hummingbird; /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/coverage run --source  hummingbird -m py.test  -v --color=yes --showlocals --durations=10; /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/codecov"
+  
       
   allow_failures:
     - env: MPI=openmpi HDF5=mpi
