@@ -63,7 +63,7 @@ def hitrate(evt, hit, history=100, unit='percent', outkey="hitrate"):
         elif unit == 'percent':
             add_record(v, "analysis", outkey, 100.*hitrate)
 
-def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, mask=None, outkey="litpixel: "):
+def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey="litpixel: "):
     """A simple hitfinder that counts the number of lit pixels and
     adds the result to ``evt["analysis"][outkey + "isHit"]``,  ``evt["analysis"][outkey + "isMiss"]``, 
     and  the hitscore to ``evt["analysis"][outkey + "hitscore"]``.
@@ -75,6 +75,7 @@ def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscore
     Kwargs:
         :aduThreshold(int):      only pixels above this threshold (in ADUs) are valid, default=20
         :hitscoreThreshold(int): events with hitscore (Nr. of lit pixels) above this threshold are hits, default=200
+        :hitscoreMax(int):       events with hitscore (Nr. of lit pixels) below this threshold (if not None) are hits, default=None
         :hitscoreDark(int):      events with hitscore (Nr. of lit pixels) above this threshold are not darks (so either hit or miss), default=0
         :mask(int, bool):        only use masked pixel (mask == True or 1) for counting the nr. of lit pixels
         :outkey(str):            Prefix of data key of resulting :func:`~backend.Record` object, default is "litpixel: " 
