@@ -12,10 +12,10 @@ def averagePulseEnergy(evt, records, outkey="averagePulseEnergy"):
 
     Args:
         :evt:      The event variable
-        :records:  A dictionary of pulse energy ``Records``
+        :records:  A dictionary of pulse energy :func:`~Record` objects
 
     Kwargs:
-        :outkey(str):  Data key of resulting ``Record``, default is 'averagePulseEnergy'
+        :outkey(str):  Data key of resulting :func:`~backend.Record`, default is 'averagePulseEnergy'
 
     :Authors:
         Filipe Maia,
@@ -36,7 +36,7 @@ def averagePhotonEnergy(evt, records, outkey="averagePhotonEnergy"):
         :records:  A dictionary of photon energy :func:`~backend.Record` objects
 
     Kwargs:
-        :outkey(str):  Data key of resulting :func: ~backend.Record`, default is 'averagePhotonEnergy'
+        :outkey(str):  Data key of resulting :func:`~backend.Record`, default is 'averagePhotonEnergy'
 
     :Authors:
         Benedikt J. Daurer
@@ -49,11 +49,11 @@ def averagePhotonEnergy(evt, records, outkey="averagePhotonEnergy"):
         add_record(evt["analysis"], "analysis", outkey, np.mean(photonEnergy), ureg.eV)
         
 def printPulseEnergy(pulseEnergies):
-    """Expects a dictionary of pulse energy :func: ~backend.Record` objects and prints pulse energies to screen."""
+    """Expects a dictionary of pulse energy :func:`~backend.Record` objects and prints pulse energies to screen."""
     for k,v in pulseEnergies.iteritems():
         print "%s = %s" % (k, (v.data*v.unit))
 
 def printPhotonEnergy(photonEnergies):
-    """Expects a dictionary of photon energy :func: ~backend.Record` objects and prints photon energies to screen."""
+    """Expects a dictionary of photon energy :func:`~backend.Record` objects and prints photon energies to screen."""
     for k,v in photonEnergies.iteritems():
         print "%s = %s" % (k, v.data*v.unit)
