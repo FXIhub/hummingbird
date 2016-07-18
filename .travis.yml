@@ -43,20 +43,6 @@ matrix:
             - libopenmpi-dev
             - openmpi-bin
             - python-mpi4py
-    # Job 3, OpenMPI, hdf5 with mpi
-    - env: MPI=openmpi HDF5=mpi
-      addons:
-        apt:
-          packages:
-            - libhdf5-openmpi-dev
-            - python-numpy
-            - python-scipy
-            - libopenmpi-dev
-            - openmpi-bin
-            - python-mpi4py
-  allow_failures:
-    - env: MPI=openmpi HDF5=mpi
-
       
 virtualenv:
     system_site_packages: true
