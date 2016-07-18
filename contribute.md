@@ -14,7 +14,7 @@ git checkout -b issue/XX/description
 with the issue number and a short description in the branch name.
 
 ## 3. Work and commit to your local branch
-Just commit and push your changes as usual
+Just commit (tip: use "Close #XX" inside the commit message for closing the issue with the final commit) and push your changes as usual
 ```
 git push -u origin issue/XX/description
 ```
