@@ -28,7 +28,7 @@ before you continue to the next step.
 You can create a pull request from your branch on the Github page: https://github.com/FXIhub/hummingbird/pull/new/master or
 from the command line (if you have *hub* installed, e.g. by running `brew install hub`):
 ```
-hub pull-request -i XX 
+hub pull-request
 ```
 Now your changes can be reviewed.
 
