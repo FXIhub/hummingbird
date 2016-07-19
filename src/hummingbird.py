@@ -26,6 +26,8 @@ def parse_cmdline_args():
                        action='store_true')
     parser.add_argument("-p", "--port",
                         type=int, default=13131, help="overwrites the port, defaults to 13131")
+    parser.add_argument("-I", "--influxdb", const="influxdb://localhost/hummingbird",
+                        type=str, help="spool all scalar data to the specified InfluxDB instance", nargs = "?")
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
                         action="store_true")
     parser.add_argument("-d", "--debug", help="output debug messages",
@@ -62,6 +64,9 @@ def main():
         exit(0)
 
     if(args.backend is not None):
+        if (args.influxdb is not None):
+            from ipc import influx
+            influx.init(args.influxdb)
         from backend import Worker
         if(args.backend != True):
             worker = Worker(args.backend, args.port)

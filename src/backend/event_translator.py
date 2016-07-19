@@ -51,7 +51,7 @@ class EventTranslator(object):
         return self._id
 
     def event_id2(self):
-        """Returns an alternaive id"""
+        """Returns an alternative id"""
         if self._id2 is None:
             self._id2 = self._trans.event_id2(self._evt)
         return self._id2
