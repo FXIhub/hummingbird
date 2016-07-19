@@ -97,7 +97,7 @@ class LCLSTranslator(object):
             if dsrc[-len(':idx'):] != ':idx':
                 dsrc += ':idx'
             if 'index_offset' in state:
-                self.i = state['index_offset'] / ipc.mpi.nr_workers()
+                self.i = state['index_offset'] / ipc.mpi.nr_event_readers()
             else:
                 self.i = 0
             self.data_source = psana.DataSource(dsrc)
@@ -105,13 +105,13 @@ class LCLSTranslator(object):
             self.timestamps = self.run.times()
             if self.N is not None:
                 self.timestamps = self.timestamps[:self.N]
-            self.timestamps = self.timestamps[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
+            self.timestamps = self.timestamps[ipc.mpi.event_reader_rank()::ipc.mpi.nr_event_readers()]
         else:
             self.times = None
             self.fiducials = None
             self.i = 0
             if not dsrc.startswith('shmem='):
-                self.event_slice = slice(ipc.mpi.slave_rank(), None, ipc.mpi.nr_workers())
+                self.event_slice = slice(ipc.mpi.event_reader_rank(), None, ipc.mpi.nr_event_readers())
             self.data_source = psana.DataSource(dsrc)
             self.run = None
             
@@ -189,15 +189,14 @@ class LCLSTranslator(object):
 
 
     def next_event(self):
-        """Grabs the next event and returns the translated version"""
+        """Grabs the next event and returns the translated version"""           
         if self.timestamps:            
             try:
                 evt = self.run.event(self.timestamps[self.i])
             except (IndexError, StopIteration) as e:
-                logging.warning('End of Run.')
-                if 'end_of_run' in dir(Worker.conf):
-                    Worker.conf.end_of_run()
-                ipc.mpi.slave_done()
+                #if 'end_of_run' in dir(Worker.conf):
+                #    Worker.conf.end_of_run()
+                #ipc.mpi.slave_done()
                 return None
             self.i += 1
         elif self.times is not None:
@@ -210,10 +209,9 @@ class LCLSTranslator(object):
                     print "Unable to find event listed in index file"                    
             # We got to the end without a valid event, time to call it a day
             if evt is None:
-                logging.warning('End of Run.')
-                if 'end_of_run' in dir(Worker.conf):
-                    Worker.conf.end_of_run()
-                ipc.mpi.slave_done()
+                #if 'end_of_run' in dir(Worker.conf):
+                #    Worker.conf.end_of_run()
+                #ipc.mpi.slave_done()
                 return None
         else:
             try:
@@ -225,10 +223,9 @@ class LCLSTranslator(object):
                 evt = self.data_source.events().next()
                 self.i += 1
             except StopIteration:
-                logging.warning('End of Run.')
-                if 'end_of_run' in dir(Worker.conf):
-                    Worker.conf.end_of_run()
-                ipc.mpi.slave_done()
+                #if 'end_of_run' in dir(Worker.conf):
+                #    Worker.conf.end_of_run()
+                #ipc.mpi.slave_done()
                 return None
         return EventTranslator(evt, self)
 

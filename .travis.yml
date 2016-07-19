@@ -1,7 +1,9 @@
 language: python
 
-python:
-  - "2.7"
+# When using just 1 python version it needs to be in the same
+# line as "python" due to a bug in travis:
+# https://github.com/travis-ci/travis-ci/issues/3674
+python: "2.7"
 #  - "3.4"
 
 notifications:
@@ -9,26 +11,53 @@ notifications:
 
 sudo: false
 
+
 cache:
   directories:
+    - $HOME/h5py
     - $HOME/.cache/pip
     - $HOME/.venv
     - $HOME/local
 
 addons:
   apt:
-#    sources:
-#      - ubuntu-toolchain-r-test
-#      - kubuntu-backports
     packages:
-      - libopenmpi-dev
-      - openmpi-bin
-#      - libhdf5-openmpi-dev
       - libhdf5-serial-dev
       - python-numpy
       - python-scipy
       - python-h5py
-      - python-mpi4py
+
+env: MPI=none HDF5=serial
+
+matrix:
+  include:
+    # Default job no MPI
+    # Job 2, OpenMPI
+    - env: MPI=openmpi HDF5=serial
+      addons:
+        apt:
+          packages:
+            - libhdf5-serial-dev
+            - python-numpy
+            - python-scipy
+            - python-h5py
+            - libopenmpi-dev
+            - openmpi-bin
+            - python-mpi4py
+    - env: MPI=none HDF5=serial DOCKER=true
+      sudo: required
+      dist: trusty
+      services:
+        - docker
+      before_install:
+        - docker pull filipemaia/hummingbird-testing
+      script:
+        # For some reason I cannot set the path to include the directory where
+        # coverage is. I start getting errors about missing packages.
+        - docker run -v ${HOME}/build/FXIhub/hummingbird:/opt/hummingbird filipemaia/hummingbird-testing /bin/sh -c "source /reg/g/psdm/etc/ana_env.sh && cd /opt/hummingbird && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/coverage run --source  hummingbird -m py.test  -v --color=yes --showlocals --durations=10"
+      
+#  allow_failures:
+#    - env: MPI=none HDF5=serial DOCKER=true
       
 virtualenv:
     system_site_packages: true
@@ -40,19 +69,8 @@ before_install:
   - pip install pyzmq
   - pip install tornado
   - pip install codecov
-  # - pip install mpi4py
-  # - pip install h5py
-  # - cd $HOME
-  # - if [ ! -d "$HOME/h5py/.git" ]; then git clone  https://github.com/h5py/h5py.git; else echo 'Using h5py from cached directory'; fi
-  # - mkdir -p h5py && cd h5py 
-  # - git pull
-  # - export CC=mpicc
-  # - python setup.py configure --mpi
-  # - python setup.py build
-  # - python setup.py install
-  # - export CC=''
+  - cd $HOME
   - pip install h5writer
-
   
 install:
   - pip install pytest-cov

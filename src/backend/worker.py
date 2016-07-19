@@ -35,16 +35,22 @@ class Worker(object):
                             (config_file))
         if not os.path.isfile(config_file):
             raise IOError('Could not find backend configuration file %s' % (config_file))        
-        self._config_file = config_file
-        # self.backend_conf = imp.load_source('backend_conf', config_file)
+        Worker._config_file = config_file
+        # Worker.backend_conf = imp.load_source('backend_conf', config_file)
         signal.signal(signal.SIGUSR1, self.raise_interruption)
         self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
-        
         self.load_conf()
         Worker.state['_config_file'] = config_file
-        #Worker.state['_config_dir'] = os.path.dirname(config_file)
+        #self.state['_config_dir'] = os.path.dirname(config_file)
+
+        if 'reduce_nr_event_readers' in Worker.conf.state:
+            rmin = Worker.conf.state['reduce_nr_event_readers']
+        else:
+            rmin = 0
+            
+        ipc.mpi.init_event_reader_comm(rmin)
         
-        if(not ipc.mpi.is_master()):
+        if ipc.mpi.is_event_reader():
             self.translator = init_translator(Worker.state)
         print "MPI rank %d, pid %d" % (ipc.mpi.rank, os.getpid())
 
@@ -63,7 +69,6 @@ class Worker(object):
             except KeyError:
                 with open('.pid', 'w') as file: file.write(str(os.getpid()))
         self.reloadnow = False
-        print 'Starting backend...'
 
     def raise_interruption(self, signum, stack):
         self.reloadnow = True
@@ -77,12 +82,25 @@ class Worker(object):
             # Only copy the keys that exist in the newly loaded state
             for k in Worker.conf.state:
                 Worker.state[k] = Worker.conf.state[k]
-
+            
     def start(self):
         """Start the event loop."""
-        Worker.state['running'] = True
-        self.event_loop()
-
+        self.state['running'] = True
+        if 'beginning_of_run' in dir(Worker.conf) and not ipc.mpi.is_master():
+            print 'Beginning of run (worker %i/%i) ...' % (ipc.mpi.worker_index()+1, ipc.mpi.nr_workers())
+            Worker.conf.beginning_of_run()
+        if ipc.mpi.is_event_reader():
+            print 'Starting event loop (event reader %i/%i) ...' % (ipc.mpi.event_reader_rank()+1, ipc.mpi.nr_event_readers())
+            self.event_loop()
+        elif ipc.mpi.is_master():
+            print 'Starting master loop ...'
+            self.event_loop()            
+        if 'end_of_run' in dir(Worker.conf) and not ipc.mpi.is_master():
+            print 'End of run (worker %i/%i) ...' % (ipc.mpi.worker_index()+1, ipc.mpi.nr_workers())
+            self.conf.end_of_run()
+        if not ipc.mpi.is_master():
+            ipc.mpi.slave_done()
+        
     def ctrlcevent(self, whatSignal, stack):
         self.reloadnow = True
         signal.signal(signal.SIGINT, self.oldHandler)
@@ -115,12 +133,10 @@ class Worker(object):
                         except (KeyError, TypeError) as exc:
                             logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info=True)
                         except (RuntimeError) as e:
-                            logging.warning("Some problem with %s (library used for translation), probably due to reloading the backend." %self.translator.library, exc_info=True)
+                            logging.warning("Some problem with %s (library used for translation), probably due to reloading the backend." % self.translator.library,
+                                            exc_info=True)
                         except StopIteration:
                             logging.warning("Stopping iteration.")
-                            if 'end_of_run' in dir(Worker.conf):
-                                Worker.conf.end_of_run()
-                            ipc.mpi.slave_done()
                             return
             except KeyboardInterrupt:
                 try:

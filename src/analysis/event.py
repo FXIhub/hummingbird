@@ -18,7 +18,7 @@ def printProcessingRate():
     proc_rate = np.array((len(processingTimes)-1)/dt.total_seconds())
     ipc.mpi.sum("processingRate", proc_rate)
     proc_rate = proc_rate[()]
-    if(ipc.mpi.is_main_worker()):
+    if(ipc.mpi.is_main_event_reader()):
         print 'Processing Rate %.2f Hz' % proc_rate
 
 def printKeys(evt, group=None):
