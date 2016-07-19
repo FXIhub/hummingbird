@@ -132,7 +132,7 @@ def plotMeanMapDynamic(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, y
     if(not m.counter % update):
         m.gatherSumsAndNorms()
         m.gatherOverview()
-        if(ipc.mpi.is_main_worker()):
+        if(ipc.mpi.is_main_event_reader()):
             m.updateCenter(X, Y)
             m.updateLocalLimits()
             m.updateLocalMap()
@@ -205,7 +205,7 @@ def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10, name=N
     _existingPlots[name][ny, nx] += 1
     current_heatmap = np.copy(heatmaps[name])
     ipc.mpi.sum(current_heatmap)
-    if ipc.mpi.is_main_worker():
+    if ipc.mpi.is_main_event_reader():
         ipc.new_data(name, current_heatmap[()])
 
 
