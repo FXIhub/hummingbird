@@ -12,7 +12,7 @@ import ipc.mpi
 
 logger = h5writer.logger
 
-if ipc.mpi.size == 1:
+if ipc.mpi.size <= 2:
     CXIWriter = h5writer.H5Writer
 else:
     class CXIWriter(h5writer.H5WriterMPISW):

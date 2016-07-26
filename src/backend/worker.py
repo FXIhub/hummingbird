@@ -50,7 +50,7 @@ class Worker(object):
             
         ipc.mpi.init_event_reader_comm(rmin)
         
-        if(not ipc.mpi.is_master()):
+        if ipc.mpi.is_event_reader():
             self.translator = init_translator(Worker.state)
         print "MPI rank %d, pid %d" % (ipc.mpi.rank, os.getpid())
 
@@ -87,15 +87,19 @@ class Worker(object):
         """Start the event loop."""
         self.state['running'] = True
         if 'beginning_of_run' in dir(Worker.conf) and not ipc.mpi.is_master():
-            print 'Beginning of run (worker %i/%i) ...' % (ipc.mpi.worker_rank()+1, ipc.mpi.nr_workers())
+            print 'Beginning of run (worker %i/%i) ...' % (ipc.mpi.worker_index()+1, ipc.mpi.nr_workers())
             Worker.conf.beginning_of_run()
         if ipc.mpi.is_event_reader():
             print 'Starting event loop (event reader %i/%i) ...' % (ipc.mpi.event_reader_rank()+1, ipc.mpi.nr_event_readers())
             self.event_loop()
+        elif ipc.mpi.is_master():
+            print 'Starting master loop ...'
+            self.event_loop()            
         if 'end_of_run' in dir(Worker.conf) and not ipc.mpi.is_master():
-            print 'End of run (worker %i/%i) ...' % (ipc.mpi.worker_rank()+1, ipc.mpi.nr_workers())
+            print 'End of run (worker %i/%i) ...' % (ipc.mpi.worker_index()+1, ipc.mpi.nr_workers())
             self.conf.end_of_run()
-        ipc.mpi.slave_done()
+        if not ipc.mpi.is_master():
+            ipc.mpi.slave_done()
         
     def ctrlcevent(self, whatSignal, stack):
         self.reloadnow = True
