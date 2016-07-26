@@ -11,6 +11,7 @@ notifications:
 
 sudo: false
 
+
 cache:
   directories:
     - $HOME/h5py
@@ -43,20 +44,20 @@ matrix:
             - libopenmpi-dev
             - openmpi-bin
             - python-mpi4py
-    # Job 3, OpenMPI, hdf5 with mpi
-    - env: MPI=openmpi HDF5=mpi
-      addons:
-        apt:
-          packages:
-            - libhdf5-openmpi-dev
-            - python-numpy
-            - python-scipy
-            - libopenmpi-dev
-            - openmpi-bin
-            - python-mpi4py
-  allow_failures:
-    - env: MPI=openmpi HDF5=mpi
-
+    - env: MPI=none HDF5=serial DOCKER=true
+      sudo: required
+      dist: trusty
+      services:
+        - docker
+      before_install:
+        - docker pull filipemaia/hummingbird-testing
+      script:
+        # For some reason I cannot set the path to include the directory where
+        # coverage is. I start getting errors about missing packages.
+        - docker run -v ${HOME}/build/FXIhub/hummingbird:/opt/hummingbird filipemaia/hummingbird-testing /bin/sh -c "source /reg/g/psdm/etc/ana_env.sh && cd /opt/hummingbird && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/coverage run --source  hummingbird -m py.test  -v --color=yes --showlocals --durations=10"
+      
+#  allow_failures:
+#    - env: MPI=none HDF5=serial DOCKER=true
       
 virtualenv:
     system_site_packages: true
@@ -69,11 +70,7 @@ before_install:
   - pip install tornado
   - pip install codecov
   - cd $HOME
-  - if [[ "$HDF5" == "mpi" ]]; then if [ ! -d "$HOME/h5py/.git" ]; then git  clone  https://github.com/h5py/h5py.git; else echo 'Using h5py from cached  directory'; fi ; fi
-  - if [[ "$HDF5" == "mpi" ]]; then mkdir -p h5py && cd h5py && git pull &&  export CC=mpicc; fi
-  - if [[ "$HDF5" == "mpi" ]]; then python setup.py configure --mpi && python setup.py install && export CC=''; fi
   - pip install h5writer
-
   
 install:
   - pip install pytest-cov

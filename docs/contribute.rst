@@ -72,7 +72,7 @@ Online Editing
 
 Simply click on the ``Edit on Github`` button at the top of the
 desired page in
-`spidocs.readthedocs.org <http://spidocs.readthedocs.org>`_. This will
+`spidocs.readthedocs.org <http://fxihub.github.io/hummingbird/docs>`_. This will
 take you to the Github page corresponding to the source of the page.
 Click on the ``Edit`` button, due the changes you want, and finally
 commit.
@@ -108,5 +108,5 @@ open in your browser.
 
 If you're happy with the result you can now simply commit the changes
 and push. Your changes should be automatically pushed to
-`http://spidocs.readthedocs.org/ <http://spidocs.readthedocs.org/>`_ by
+`http://fxihub.github.io/hummingbird/docs <http://fxihub.github.io/hummingbird/docs/>`_ by
 Github.

@@ -72,7 +72,11 @@ def main():
         else:
             from pycallgraph import PyCallGraph
             from pycallgraph.output import GraphvizOutput
-            with PyCallGraph(output=GraphvizOutput()):
+            import ipc.mpi
+            import os
+            graphviz = GraphvizOutput()
+            graphviz.output_file = 'pycallgraph_%d.png' % (ipc.mpi.rank)
+            with PyCallGraph(output=graphviz):
                 worker.start()
     elif(args.interface is not False):
         import interface
