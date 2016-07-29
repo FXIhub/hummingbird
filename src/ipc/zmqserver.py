@@ -14,7 +14,7 @@ import hashlib
 import ipc.mpi
 import backend.worker
 import logging
-from utils.cmdline_args import options
+from utils.cmdline_args import argparser as _argparser
 
 eventLimit = 125
 
@@ -25,7 +25,7 @@ class ZmqServer(object):
         self._subscribed = set()
         self.reloadmaster = False
         
-        self._batch_mode = bool(options().batch_mode)
+        self._batch_mode = bool(_argparser.parse_args().batch_mode)
         if self._batch_mode:
             return
 

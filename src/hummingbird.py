@@ -5,55 +5,27 @@
 # -------------------------------------------------------------------------
 """The main hummingbird file."""
 import sys
-import argparse
 import logging
 import socket
+import imp
+
+from utils.cmdline_args import argparser
+# Leave this for backwards compatibility with old configuration files
+parse_cmdline_args = argparser.parse_args
 
 PORT_RANGE = (0, 65535)
 
-def parse_cmdline_args():
-    """Parses command line arguments."""
-    parser = argparse.ArgumentParser(description='Hummingbird - '
-                                     'Monitoring and Analysing FXI experiments.')
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-i", "--interface",
-                       help="start the control and display interface",
-                       action="store_true")
-    group.add_argument('-b', '--backend', metavar='conf.py',
-                       type=str, help="start the backend with "
-                       "given configuration file", nargs='?', const=True)
-    group.add_argument('-r', '--reload', help='reloads the backend',
-                       action='store_true')
-    parser.add_argument('-m', '--batch-mode', help='running only backend without any interactive front end',
-                       action='store_true')
-    parser.add_argument("-p", "--port",
-                        type=int, default=13131, help="overwrites the port, defaults to 13131")
-    parser.add_argument("-v", "--verbose", help="increase output verbosity",
-                        action="store_true")
-    parser.add_argument("-d", "--debug", help="output debug messages",
-                        action="store_true")
-    parser.add_argument("--profile", help="generate and output profiling information",
-                        action="store_true")
-    parser.add_argument("--no-restore", help="no restoring of Qsettings",
-                        action="store_false")
-
-    # LCLS-specific arguments
-    try:
-        import backend.lcls
-        parser = backend.lcls.add_cmdline_args(parser)
-    except ImportError:
-        pass
-        
-    # Print help
-    if(len(sys.argv) == 1):
-        parser.print_help()
-    return parser.parse_args()
-
 def main():
     """The entry point of the program"""
-    import utils.cmdline_args
-    args = parse_cmdline_args()
-    utils.cmdline_args._options = args
+
+    if(len(sys.argv) == 1):
+        argparser.print_help()
+
+    if "-b" in sys.argv and (sys.argv.index("-b")+1 < len(sys.argv)):
+        config_file = sys.argv[sys.argv.index("-b")+1]
+        imp.load_source('__config_file', config_file)
+        
+    args = argparser.parse_args()
     
     level = logging.WARNING
     if args.verbose:
