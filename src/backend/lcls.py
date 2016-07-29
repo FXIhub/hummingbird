@@ -35,7 +35,15 @@ def add_cmdline_args(parser):
     group.add_argument('--hitscore-thr', metavar='hitscore_thr', nargs='?',
                        help="Hitscore threshold",
                        type=int)
-
+    # Output directory for offline analysis
+    group.add_argument('--out-dir', metavar='out_dir', nargs='?',
+                       help="Output directory",
+                       type=str)
+    # Reduce output from offline analysis
+    group.add_argument('--reduced-output',
+                       help="Write only very few data to output file",
+                       action='store_true')
+    
     return argparser
     
 class LCLSTranslator(object):

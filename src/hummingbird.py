@@ -24,6 +24,8 @@ def parse_cmdline_args():
                        "given configuration file", nargs='?', const=True)
     group.add_argument('-r', '--reload', help='reloads the backend',
                        action='store_true')
+    parser.add_argument('-m', '--batch-mode', help='running only backend without any interactive front end',
+                       action='store_true')
     parser.add_argument("-p", "--port",
                         type=int, default=13131, help="overwrites the port, defaults to 13131")
     parser.add_argument("-v", "--verbose", help="increase output verbosity",
@@ -49,7 +51,10 @@ def parse_cmdline_args():
 
 def main():
     """The entry point of the program"""
+    import utils.cmdline_args
     args = parse_cmdline_args()
+    utils.cmdline_args._options = args
+    
     level = logging.WARNING
     if args.verbose:
         level = logging.INFO
