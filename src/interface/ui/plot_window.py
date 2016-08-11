@@ -320,8 +320,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 y = y[sorted_x]
                 if self._settings_diag.showTrendScalar.isChecked():
                     wl = int(self._settings_diag.windowLength.text())
-                    y = utils.array.runningMean(y, wl)
-                    x = numpy.asarray(x[-max(y.size,1):])
+                    y = utils.array.runningMean(y, min(y.size-1,wl))
+                    x = x[-y.size:]
             elif(source.data_type[title] == 'tuple') or (source.data_type[title] == 'triple'):
                 x = pd.y[:,0]
             elif(source.data_type[title] == 'vector'):
