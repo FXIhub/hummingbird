@@ -5,12 +5,17 @@
 # -------------------------------------------------------------------------
 """The main hummingbird file."""
 import sys
-import argparse
 import logging
 import socket
+import imp
+
+from utils.cmdline_args import argparser
+# Leave this for backwards compatibility with old configuration files
+parse_cmdline_args = argparser.parse_args
 
 PORT_RANGE = (0, 65535)
 
+<<<<<<< HEAD
 def parse_cmdline_args():
     """Parses command line arguments."""
     parser = argparse.ArgumentParser(description='Hummingbird - '
@@ -36,22 +41,20 @@ def parse_cmdline_args():
                         action="store_true")
     parser.add_argument("--no-restore", help="no restoring of Qsettings",
                         action="store_false")
-
-    # LCLS-specific arguments
-    try:
-        import backend.lcls
-        parser = backend.lcls.add_cmdline_args(parser)
-    except ImportError:
-        pass
-        
-    # Print help
-    if(len(sys.argv) == 1):
-        parser.print_help()
-    return parser.parse_args()
-
+=======
 def main():
     """The entry point of the program"""
-    args = parse_cmdline_args()
+>>>>>>> e6dd1a59dac5d539d67f834e800726f2cc29efe0
+
+    if(len(sys.argv) == 1):
+        argparser.print_help()
+
+    if "-b" in sys.argv and (sys.argv.index("-b")+1 < len(sys.argv)):
+        config_file = sys.argv[sys.argv.index("-b")+1]
+        imp.load_source('__config_file', config_file)
+        
+    args = argparser.parse_args()
+    
     level = logging.WARNING
     if args.verbose:
         level = logging.INFO
@@ -77,7 +80,11 @@ def main():
         else:
             from pycallgraph import PyCallGraph
             from pycallgraph.output import GraphvizOutput
-            with PyCallGraph(output=GraphvizOutput()):
+            import ipc.mpi
+            import os
+            graphviz = GraphvizOutput()
+            graphviz.output_file = 'pycallgraph_%d.png' % (ipc.mpi.rank)
+            with PyCallGraph(output=graphviz):
                 worker.start()
     elif(args.interface is not False):
         import interface

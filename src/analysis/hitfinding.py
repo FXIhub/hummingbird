@@ -43,7 +43,7 @@ def hitrate(evt, hit, history=100, unit='percent', outkey="hitrate"):
     Kwargs:
         :history(int):  Buffer length, default = 100
         :outkey(str):   Data key of resulting :func:`~backend.Record` object, default is "hitrate" 
-        :unit(str):     Unit of hitrate, 'fraction' or 'percent', default is 'fraction'
+        :unit(str):     Unit of hitrate, 'fraction' or 'percent', default is 'percent'
 
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se),
@@ -115,7 +115,7 @@ def countTof(evt, record, signalThreshold=1, minWindow=0, maxWindow=-1, hitscore
     hit = hitscore > hitscoreThreshold
     v = evt["analysis"]
     add_record(v, "analysis", outkey + "isHit", hit) 
-    add_record(v, "analysis", outley + "hitscore", hitscore)
+    add_record(v, "analysis", outkey + "hitscore", hitscore)
     
 def countHitscore(evt, hitscore, hitscoreThreshold=200, outkey="predef: "):
     """A simple hitfinder that performs a limit test against an already defined hitscore 

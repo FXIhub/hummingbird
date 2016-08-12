@@ -8,6 +8,7 @@ import numpy
 import numbers
 import logging
 import time
+import sys
 
 try:
     # Try to import MPI and create a group containing all the slaves
@@ -204,7 +205,7 @@ def master_loop():
         if cmd not in reducedata:
             reducedata[cmd] = {}
         reducedata[cmd][source] = incomingdata
-
+        
         if getback:
             cnt = 0
             for data in reducedata[cmd]:

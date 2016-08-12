@@ -16,27 +16,36 @@ from backend import Worker
 import ipc
 from hummingbird import parse_cmdline_args
 
-def add_cmdline_args(parser):
-    global argparser
-    argparser = parser
-    group = argparser.add_argument_group('LCLS', 'Options for the LCLS event translator')
+_argparser = None
+def add_cmdline_args():
+    global _argparser
+    from utils.cmdline_args import argparser
+    _argparser = argparser
+    group = _argparser.add_argument_group('LCLS', 'Options for the LCLS event translator')
     group.add_argument('--lcls-run-number', metavar='lcls_run_number', nargs='?',
-                       help="run number",
-                       type=int)
+                        help="run number",
+                        type=int)
     group.add_argument('--lcls-number-of-frames', metavar='lcls_number_of_frames', nargs='?',
-                       help="number of frames to be processed",
-                       type=int)
+                        help="number of frames to be processed",
+                        type=int)
     
     # ADUthreshold for offline analysis
-    group.add_argument('--ADUthreshold', metavar='ADUthreshold', nargs='?',
-                       help="ADU threshold",
-                       type=int)
+    #group.add_argument('--ADUthreshold', metavar='ADUthreshold', nargs='?',
+    #                    help="ADU threshold",
+    #                    type=int)
     # Hitscore threshold for offline analysis
-    group.add_argument('--hitscore-thr', metavar='hitscore_thr', nargs='?',
-                       help="Hitscore threshold",
-                       type=int)
-
-    return argparser
+    #group.add_argument('--hitscore-thr', metavar='hitscore_thr', nargs='?',
+    #                    help="Hitscore threshold",
+    #                    type=int)
+    # Output directory for offline analysis
+    #group.add_argument('--out-dir', metavar='out_dir', nargs='?',
+    #                    help="Output directory",
+    #                    type=str)
+    # Reduce output from offline analysis
+    #group.add_argument('--reduced-output',
+    #                    help="Write only very few data to output file",
+    #                    action='store_true')
+    
     
 class LCLSTranslator(object):
     """Translate between LCLS events and Hummingbird ones"""
@@ -72,7 +81,7 @@ class LCLSTranslator(object):
             raise ValueError("You need to set the '[LCLS][DataSource]'"
                              " in the configuration")
         
-        cmdline_args = parse_cmdline_args()
+        cmdline_args = _argparser.parse_args()
         self.N = cmdline_args.lcls_number_of_frames          
         if cmdline_args.lcls_run_number is not None:
             dsrc += ":run=%i" % cmdline_args.lcls_run_number
