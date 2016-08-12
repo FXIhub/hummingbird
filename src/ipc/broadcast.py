@@ -85,7 +85,10 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
         ipc.zmq().send(title, [ipc.uuid, 'new_data', title, data_y,
                                event_id, kwds])
         logging.debug("Sending data on source '%s'" % title)
+    if data_conf[title]["data_type"] == "scalar":
+        ipc.influx.write(title, data_y, event_id, kwds)
         
+
 def set_current_event(_evt):
     """Updates the current event, such that it can
     be accessed easily in analysis code"""
