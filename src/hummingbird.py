@@ -39,6 +39,9 @@ def main():
         exit(0)
 
     if(args.backend is not None):
+        if (args.influxdb is not None):
+            from ipc import influx
+            influx.init(args.influxdb)
         from backend import Worker
         if(args.backend != True):
             worker = Worker(args.backend, args.port)

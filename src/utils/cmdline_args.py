@@ -17,6 +17,8 @@ argparser.add_argument('-m', '--batch-mode', help='running only backend without 
                        action='store_true')
 argparser.add_argument("-p", "--port",
                        type=int, default=13131, help="overwrites the port, defaults to 13131")
+argparser.add_argument("-I", "--influxdb", const="influxdb://localhost/hummingbird",
+                        type=str, help="spool all scalar data to the specified InfluxDB instance", nargs = "?")
 argparser.add_argument("-v", "--verbose", help="increase output verbosity",
                        action="store_true")
 argparser.add_argument("-d", "--debug", help="output debug messages",
