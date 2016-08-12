@@ -28,16 +28,13 @@ def influxWorker():
         # i.e. grab all events there are and then send them
         block = True
         try:
-            print "Looping"
             while True:
                 data.append(queue.get(block))
                 block = False 
         except Queue.Empty:
             pass
 
-        print "Writing stuff"
         client.write_points(data)
-        print "Wrote stuff"
         # Explicit sleep to encourage multi-event writes and (hopefully) always keep the
         # InfluxDB backend respsonsive for visualization queries
         time.sleep(0.01) 
