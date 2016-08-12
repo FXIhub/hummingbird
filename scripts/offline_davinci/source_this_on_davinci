@@ -22,6 +22,6 @@ export PYTHONPATH=/home/hantke/local_h5py_parallel_psana/lib/python2.7/site-pack
 export PATH=/home/hantke/local_h5py_parallel_psana/bin/:$PATH
 # SPIMAGE
 export LD_LIBRARY_PATH=/home/hantke/local_libspimage_psana/lib64:$LD_LIBRARY_PATH
-export PYTHONPATH=/home/hantke/local_libspimage_psana/lib/python2.7/site-packages/:$PYTHONPATH
+export PYTHONPATH=/home/hantke/local_libspimage_psana/lib/python2.7/site-packages/:/home/cnettel/.local/lib/python2.7/site-packages/:$PYTHONPATH
 # H5WRITER DEVEL
 export PYTHONPATH=/home/hantke/src/h5writer:$PYTHONPATH
