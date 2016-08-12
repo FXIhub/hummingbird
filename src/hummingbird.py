@@ -15,36 +15,8 @@ parse_cmdline_args = argparser.parse_args
 
 PORT_RANGE = (0, 65535)
 
-<<<<<<< HEAD
-def parse_cmdline_args():
-    """Parses command line arguments."""
-    parser = argparse.ArgumentParser(description='Hummingbird - '
-                                     'Monitoring and Analysing FXI experiments.')
-    group = parser.add_mutually_exclusive_group()
-    group.add_argument("-i", "--interface",
-                       help="start the control and display interface",
-                       action="store_true")
-    group.add_argument('-b', '--backend', metavar='conf.py',
-                       type=str, help="start the backend with "
-                       "given configuration file", nargs='?', const=True)
-    group.add_argument('-r', '--reload', help='reloads the backend',
-                       action='store_true')
-    parser.add_argument("-p", "--port",
-                        type=int, default=13131, help="overwrites the port, defaults to 13131")
-    parser.add_argument("-I", "--influxdb", const="influxdb://localhost/hummingbird",
-                        type=str, help="spool all scalar data to the specified InfluxDB instance", nargs = "?")
-    parser.add_argument("-v", "--verbose", help="increase output verbosity",
-                        action="store_true")
-    parser.add_argument("-d", "--debug", help="output debug messages",
-                        action="store_true")
-    parser.add_argument("--profile", help="generate and output profiling information",
-                        action="store_true")
-    parser.add_argument("--no-restore", help="no restoring of Qsettings",
-                        action="store_false")
-=======
 def main():
     """The entry point of the program"""
->>>>>>> e6dd1a59dac5d539d67f834e800726f2cc29efe0
 
     if(len(sys.argv) == 1):
         argparser.print_help()
