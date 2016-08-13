@@ -2,6 +2,7 @@ import datetime
 import Queue
 import threading
 import time
+import traceback
 from pytz import timezone
 
 client = None
@@ -34,10 +35,13 @@ def influxWorker():
         except Queue.Empty:
             pass
 
-        client.write_points(data)
+        try:
+            client.write_points(data)
+        except:
+            traceback.print_exc()
         # Explicit sleep to encourage multi-event writes and (hopefully) always keep the
         # InfluxDB backend respsonsive for visualization queries
-        time.sleep(0.01) 
+        time.sleep(0.05) 
 
 def write(title, data_y, eventId, kwds):
     if client is None:
