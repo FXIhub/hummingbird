@@ -147,7 +147,7 @@ class RingBuffer(object):
         
     @staticmethod
     def restore_state(state):
-        data = state['data']
+        data = numpy.array(state['data'])
         index = state['index']
         length = state['len']
         maxlen = state['maxlen']

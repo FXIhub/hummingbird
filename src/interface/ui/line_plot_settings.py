@@ -73,7 +73,6 @@ class LinePlotSettings(QtGui.QDialog, Ui_linePlotSettings):
         self.bg_ymin.setText(settings["bg_ymin"])
         self.bg_ymax.setText(settings["bg_ymax"])
         self.bg_angle.setText(settings["bg_angle"])
-        print settings["bg_filename"]
         if settings["bg_filename"] is not None:
             self._read_bg_file()
         self.histogram.setChecked(settings["histogram"])
