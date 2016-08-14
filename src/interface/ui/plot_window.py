@@ -80,6 +80,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self._histograms = {}        
         self.updateFonts()
 
+        self.plot.scene().sigMouseMoved.connect(self._onMouseMoved)
+
     def on_view_legend_box(self):
         """Show/hide legend box"""
         action = self.sender()
@@ -492,5 +494,14 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         ax.setTickFont(f)
         ax = self.plot.getAxis('bottom')
         ax.setTickFont(f)
+
+    def _onMouseMoved(self, pos):
+        view = self.plot
+        xy = view.mapToView(pos)
+        x = xy.x()
+        y = xy.y()
+        self.xLabel.setText("%f" % (x))
+        self.yLabel.setText("%f" % (y))
+
         
 from interface.ui import LinePlotSettings
