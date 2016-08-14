@@ -123,7 +123,7 @@ class PlotData(object):
         if 'x' in state:
             self._x = RingBuffer.restore_state(state['x'])
             self._y = RingBuffer.restore_state(state['y'])
-            self._l = RingBuffer.restore_state(state['l'])
+            self._l = RingBufferStr.restore_state(state['l'])
             self.restored = True
         self._title = state['title']
         self._maxlen = state['maxlen']
