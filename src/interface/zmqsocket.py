@@ -66,11 +66,16 @@ class ZmqSocket(QtCore.QObject):
         """Connect socket to endpoint, possible using an ssh tunnel
         The tunnel argument specifies the hostname of the ssh server to
         tunnel through.
+        Note that this still succeeds even if there's no ZMQ server on
+        the other end as the connection is asynchronous. For more details
+        check the zmq_connect(3) documentation.
         """
         if(tunnel):
             from zmq import ssh
+            # If there's no ssh server listening we're gonna
+            # get stuck here for a long time as there's no timeout
             ssh.tunnel_connection(self._socket, addr, tunnel)
-        else:
+        else:            
             self._socket.connect(addr)
 
     def activity(self):

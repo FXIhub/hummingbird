@@ -91,6 +91,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         """Initializes the recorder"""
         if not settings.contains("outputPath"):
             settings.setValue("outputPath", ".")
+        if not settings.contains("plotFontSize"):
+            settings.setValue("plotFontSize", "13")
         self._recorder = H5Recorder(settings.value("outputPath"), 100)
 
     def _restore_data_windows(self, settings, data_sources):
@@ -227,6 +229,10 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         if(diag.exec_()):
             v = diag.outputPath.text()
             self.settings.setValue("outputPath", v)
+            size = diag.fontSize.value()
+            self.settings.setValue("plotFontSize", size)
+            for dw in self._data_windows:
+                dw.updateFonts()
             self._recorder.outpath = v
 
     def _recorder_toggled(self, turn_on):

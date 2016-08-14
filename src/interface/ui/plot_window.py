@@ -77,8 +77,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.hline_color = (0,204,0)
         self.vline_color = (204,0,0)
         self._settings_diag = LinePlotSettings(self)
-        self._histograms = {}
-        
+        self._histograms = {}        
+        self.updateFonts()
+
     def on_view_legend_box(self):
         """Show/hide legend box"""
         action = self.sender()
@@ -478,5 +479,18 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             B.setRect(rect)
             VB.addItem(B, ignoreBounds=True)
 
+
+    def updateFonts(self):
+        f = self.title.font()
+        size = int(self.settings.value("plotFontSize"))
+        f.setPointSize(size)
+        self.title.setFont(f)
+
+        f = QtGui.QFont()
+        f.setPointSize(size)
+        ax = self.plot.getAxis('left')
+        ax.setTickFont(f)
+        ax = self.plot.getAxis('bottom')
+        ax.setTickFont(f)
         
 from interface.ui import LinePlotSettings
