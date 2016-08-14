@@ -93,6 +93,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionY_axis.setChecked(False)
         self.plot.getView().getAxis('bottom').setVisible(False)
         self.actionX_axis.setChecked(False)
+
+        self.plot.getView().scene().sigMouseMoved.connect(self._onMouseMoved)
         
     def get_time_and_msg(self, index=None):
         """Returns the time/msg of the given index, or the time/msg of the last data point"""
@@ -535,7 +537,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
             self.setWindowTitle(pd.title)
             dt, msg = self.get_time_and_msg()
-            self.infoLabel.setText(msg)
+            if msg is not None and msg != '':
+                self.infoLabel.setText(msg)
             # Round to miliseconds
             self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
             self.dateLabel.setText(str(dt.date()))
@@ -674,3 +677,20 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         ax.setTickFont(f)
         ax = self.plot.getView().getAxis('bottom')
         ax.setTickFont(f)            
+
+    def _onMouseMoved(self, pos):
+        view = self.plot.getView()
+        xy = view.mapToView(pos)
+        T = self.plot.imageItem.transform()
+        xy = T.map(xy)
+        # For some strange reason the x and y need to be swapped
+        y = int(xy.x())
+        x = int(xy.y())
+        if x < 0 or y < 0:
+            return
+        try:
+            value = self.plot.image[self.plot.currentIndex, y, x]
+        except:
+            self.infoLabel.setText(None)
+            return
+        self.infoLabel.setText("(%d,%d) = %f" % (x, y, value))
