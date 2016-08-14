@@ -126,7 +126,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         if(settings.contains("dataSources") and
            settings.value("dataSources") is not None):
             for ds in settings.value("dataSources"):
-                ds = DataSource(self, ds[0], ds[1], ds[2])
+                ds = DataSource(self, ds[0], ds[1], ds[2], ds[3])
                 ds.restore_state(pd_settings)
                 loaded_sources.append(ds)
                 logging.debug("Loaded data source '%s' from settings", ds.name())
@@ -288,7 +288,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         # Save data sources
         ds_settings = []
         for ds in self._data_sources:
-            ds_settings.append([ds.hostname, ds.port, ds.ssh_tunnel])
+            ds_settings.append([ds.hostname, ds.port, ds.ssh_tunnel, ds.conf])
         s.setValue("dataSources", ds_settings)
         self.plotdata_widget.save_state(s)
         s.setValue("plotData", self.plotdata_widget.save_plotdata())
