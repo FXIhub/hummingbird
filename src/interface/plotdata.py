@@ -103,13 +103,14 @@ class PlotData(object):
             return self._y.nbytes + self._x.nbytes + self._y.nbytes
         return 0
 
-    def save_state(self):
+    def save_state(self, save_data=False):
         """Return a serialized representation of the PlotData for saving to disk"""
         pds = {}
         pds['data_source'] = [self._parent.hostname, self._parent.port, self._parent.ssh_tunnel]
-        pds['x'] = self.x.save_state()
-        pds['y'] = self.y.save_state()
-        pds['l'] = self.l.save_state()
+        if(save_data):
+            pds['x'] = self.x.save_state()
+            pds['y'] = self.y.save_state()
+            pds['l'] = self.l.save_state()
         pds['title'] = self.title
         pds['group'] = self.group
         pds['maxlen'] = self.maxlen
@@ -119,11 +120,13 @@ class PlotData(object):
     def restore_state(self, state, parent):
         """Restore a previous stored state"""
         self.parent = parent
-        self._x = RingBuffer.restore_state(state['x'])
-        self._y = RingBuffer.restore_state(state['y'])
-        self._l = RingBuffer.restore_state(state['l'])
+        if 'x' in state:
+            self._x = RingBuffer.restore_state(state['x'])
+            self._y = RingBuffer.restore_state(state['y'])
+            self._l = RingBuffer.restore_state(state['l'])
+            self.restored = True
         self._title = state['title']
         self._maxlen = state['maxlen']
+        print self._maxlen
         self.recordhistory = state['recordhistory']
-        self.restored = True
 
