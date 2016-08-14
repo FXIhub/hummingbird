@@ -85,6 +85,14 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.running_hist_initialised = False
 
         self.actionReset_cache.triggered.connect(self.on_reset_cache)
+
+        self.updateFonts()
+
+        # By default do not show x and y axis on images
+        self.plot.getView().getAxis('left').setVisible(False)
+        self.actionY_axis.setChecked(False)
+        self.plot.getView().getAxis('bottom').setVisible(False)
+        self.actionX_axis.setChecked(False)
         
     def get_time_and_msg(self, index=None):
         """Returns the time/msg of the given index, or the time/msg of the last data point"""
@@ -654,5 +662,15 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             self.settingsWidget.ui.histogram_show.setChecked(visible)
             self.actionHistogram.setChecked(visible)
     
+    def updateFonts(self):
+        f = self.title.font()
+        size = int(self.settings.value("plotFontSize"))
+        f.setPointSize(size)
+        self.title.setFont(f)
         
-            
+        f = QtGui.QFont()
+        f.setPointSize(size)
+        ax = self.plot.getView().getAxis('left')
+        ax.setTickFont(f)
+        ax = self.plot.getView().getAxis('bottom')
+        ax.setTickFont(f)            
