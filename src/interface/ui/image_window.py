@@ -95,6 +95,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionX_axis.setChecked(False)
 
         self.plot.getView().scene().sigMouseMoved.connect(self._onMouseMoved)
+        self.plot.getView().scene().sigMouseHover.connect(self._onMouseHover)
         
     def get_time_and_msg(self, index=None):
         """Returns the time/msg of the given index, or the time/msg of the last data point"""
@@ -694,3 +695,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             self.infoLabel.setText(None)
             return
         self.infoLabel.setText("(%d,%d) = %f" % (x, y, value))
+
+    def _onMouseHover(self, items):
+        if(len(items) < 2):
+            self.infoLabel.setText(None)
+        
