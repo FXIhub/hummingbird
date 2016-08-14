@@ -87,6 +87,12 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionReset_cache.triggered.connect(self.on_reset_cache)
 
         self.updateFonts()
+
+        # By default do not show x and y axis on images
+        self.plot.getView().getAxis('left').setVisible(False)
+        self.actionY_axis.setChecked(False)
+        self.plot.getView().getAxis('bottom').setVisible(False)
+        self.actionX_axis.setChecked(False)
         
     def get_time_and_msg(self, index=None):
         """Returns the time/msg of the given index, or the time/msg of the last data point"""
