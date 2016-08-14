@@ -65,7 +65,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self._init_recorder(s)
         loaded_sources = []
         try:
-            loaded_sources = self._init_data_sources(s)
+            if do_restore:
+                loaded_sources = self._init_data_sources(s)
         except (TypeError, KeyError):
             # raise
             #raise
