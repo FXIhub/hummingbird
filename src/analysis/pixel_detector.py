@@ -509,8 +509,10 @@ def rotate90(evt, data_rec, k=1, outkey='rotated'):
     data_rotated = np.rot90(data_rec.data,k)
     return add_record(evt["analysis"], "analysis", outkey, data_rotated)
     
-def moveHalf(evt, record, vertical=0, horizontal=0, outkey='half-moved'):
+def moveHalf(evt, record, vertical=0, horizontal=0, outkey='half-moved', transpose=True):
     data = record.data
+    if transpose:
+        data = np.tranpose(data)
     ny,nx = data.shape
     data_moved = np.zeros((ny + abs(vertical), nx + horizontal), dtype=data.dtype)
     if horizontal < 0: horizontal = 0
@@ -520,4 +522,6 @@ def moveHalf(evt, record, vertical=0, horizontal=0, outkey='half-moved'):
     else:
         data_moved[:-vertical,:nx/2] = data[:,:nx/2]
         data_moved[vertical:,nx/2+horizontal:] = data[:,nx/2:]
+    if transpose:
+        data_moved = np.transpose(data_moved)
     return add_record(evt["analysis"], "analysis", outkey, data_moved)  
