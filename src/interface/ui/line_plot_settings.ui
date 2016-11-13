@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>377</width>
+    <width>388</width>
     <height>838</height>
    </rect>
   </property>
@@ -241,6 +241,25 @@
       <string>Histogram</string>
      </property>
      <layout class="QGridLayout" name="gridLayout">
+      <item row="3" column="5">
+       <widget class="QLineEdit" name="histMax">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+          <horstretch>1</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>100</string>
+        </property>
+        <property name="dragEnabled">
+         <bool>false</bool>
+        </property>
+       </widget>
+      </item>
       <item row="3" column="4">
        <widget class="QLabel" name="label_4">
         <property name="sizePolicy">
@@ -320,23 +339,18 @@
         </property>
        </widget>
       </item>
-      <item row="3" column="5">
-       <widget class="QLineEdit" name="histMax">
-        <property name="enabled">
-         <bool>false</bool>
-        </property>
-        <property name="sizePolicy">
-         <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-          <horstretch>1</horstretch>
-          <verstretch>0</verstretch>
-         </sizepolicy>
-        </property>
-        <property name="text">
-         <string>100</string>
-        </property>
-        <property name="dragEnabled">
-         <bool>false</bool>
-        </property>
+      <item row="0" column="2">
+       <widget class="QComboBox" name="histMode">
+        <item>
+         <property name="text">
+          <string>count</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>mean</string>
+         </property>
+        </item>
        </widget>
       </item>
      </layout>

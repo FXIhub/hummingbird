@@ -38,6 +38,7 @@ class LinePlotSettings(QtGui.QDialog, Ui_linePlotSettings):
         settings["histBins"] = self.histBins.text()
         settings["histMin"] = self.histMin.text()
         settings["histMax"] = self.histMax.text()
+        settings["histMode"] = self.histMode.currentText()
         #settings["x_label"] = self.x_label.text()
         #settings["y_label"] = self.y_label.text()
         #settings["x_auto"] = self.x_auto.isChecked()
@@ -72,7 +73,6 @@ class LinePlotSettings(QtGui.QDialog, Ui_linePlotSettings):
         self.bg_ymin.setText(settings["bg_ymin"])
         self.bg_ymax.setText(settings["bg_ymax"])
         self.bg_angle.setText(settings["bg_angle"])
-        print settings["bg_filename"]
         if settings["bg_filename"] is not None:
             self._read_bg_file()
         self.histogram.setChecked(settings["histogram"])
@@ -80,6 +80,7 @@ class LinePlotSettings(QtGui.QDialog, Ui_linePlotSettings):
         self.histBins.setText(settings["histBins"])
         self.histMin.setText(settings["histMin"])
         self.histMax.setText(settings["histMax"])
+        self.histMode.setCurrentIndex(self.histMode.findText(settings["histMode"]))
         #self.x_label.setText(settings["x_label"])
         #self.y_label.setText(settings["y_label"])
         #self.x_auto.setChecked(settings["x_auto"])

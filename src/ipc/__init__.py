@@ -3,6 +3,7 @@ as the MPI communication between different backend processes."""
 from ipc.zmqserver import ZmqServer
 import socket
 import mpi
+import influx
 
 _server = None
 hostname = socket.gethostname()

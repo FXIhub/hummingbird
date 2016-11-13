@@ -16,17 +16,36 @@ from backend import Worker
 import ipc
 from hummingbird import parse_cmdline_args
 
-def add_cmdline_args(parser):
-    global argparser
-    argparser = parser
-    group = argparser.add_argument_group('LCLS', 'Options for the LCLS event translator')
+_argparser = None
+def add_cmdline_args():
+    global _argparser
+    from utils.cmdline_args import argparser
+    _argparser = argparser
+    group = _argparser.add_argument_group('LCLS', 'Options for the LCLS event translator')
     group.add_argument('--lcls-run-number', metavar='lcls_run_number', nargs='?',
-                       help="run number",
-                       type=int)
+                        help="run number",
+                        type=int)
     group.add_argument('--lcls-number-of-frames', metavar='lcls_number_of_frames', nargs='?',
-                       help="number of frames to be processed",
-                       type=int)
-    return argparser
+                        help="number of frames to be processed",
+                        type=int)
+    
+    # ADUthreshold for offline analysis
+    #group.add_argument('--ADUthreshold', metavar='ADUthreshold', nargs='?',
+    #                    help="ADU threshold",
+    #                    type=int)
+    # Hitscore threshold for offline analysis
+    #group.add_argument('--hitscore-thr', metavar='hitscore_thr', nargs='?',
+    #                    help="Hitscore threshold",
+    #                    type=int)
+    # Output directory for offline analysis
+    #group.add_argument('--out-dir', metavar='out_dir', nargs='?',
+    #                    help="Output directory",
+    #                    type=str)
+    # Reduce output from offline analysis
+    #group.add_argument('--reduced-output',
+    #                    help="Write only very few data to output file",
+    #                    action='store_true')
+    
     
 class LCLSTranslator(object):
     """Translate between LCLS events and Hummingbird ones"""
@@ -62,7 +81,7 @@ class LCLSTranslator(object):
             raise ValueError("You need to set the '[LCLS][DataSource]'"
                              " in the configuration")
         
-        cmdline_args = parse_cmdline_args()
+        cmdline_args = _argparser.parse_args()
         self.N = cmdline_args.lcls_number_of_frames          
         if cmdline_args.lcls_run_number is not None:
             dsrc += ":run=%i" % cmdline_args.lcls_run_number
@@ -87,7 +106,7 @@ class LCLSTranslator(object):
             if dsrc[-len(':idx'):] != ':idx':
                 dsrc += ':idx'
             if 'index_offset' in state:
-                self.i = state['index_offset'] / ipc.mpi.nr_workers()
+                self.i = state['index_offset'] / ipc.mpi.nr_event_readers()
             else:
                 self.i = 0
             self.data_source = psana.DataSource(dsrc)
@@ -95,13 +114,13 @@ class LCLSTranslator(object):
             self.timestamps = self.run.times()
             if self.N is not None:
                 self.timestamps = self.timestamps[:self.N]
-            self.timestamps = self.timestamps[ipc.mpi.slave_rank()::ipc.mpi.nr_workers()]
+            self.timestamps = self.timestamps[ipc.mpi.event_reader_rank()::ipc.mpi.nr_event_readers()]
         else:
             self.times = None
             self.fiducials = None
             self.i = 0
             if not dsrc.startswith('shmem='):
-                self.event_slice = slice(ipc.mpi.slave_rank(), None, ipc.mpi.nr_workers())
+                self.event_slice = slice(ipc.mpi.event_reader_rank(), None, ipc.mpi.nr_event_readers())
             self.data_source = psana.DataSource(dsrc)
             self.run = None
             
@@ -126,7 +145,7 @@ class LCLSTranslator(object):
         self._n2c[psana.CsPad.DataV2] = 'photonPixelDetectors'
         self._n2c[psana.CsPad2x2.ElementV1] = 'photonPixelDetectors'
         # CXI (OffAxis Cam)
-        self._n2c[psana.Camera.FrameV1] = 'photonPixelDetectors'
+        #self._n2c[psana.Camera.FrameV1] = 'photonPixelDetectors'
         # AMO (pnCCD)
         self._n2c[psana.PNCCD.FullFrameV1] = 'photonPixelDetectors'
         self._n2c[psana.PNCCD.FramesV1] = 'photonPixelDetectors'
@@ -161,20 +180,32 @@ class LCLSTranslator(object):
         # AMO (pnCCD)
         self._s2c['DetInfo(Camp.0:pnCCD.1)'] = 'pnccdBack'
         self._s2c['DetInfo(Camp.0:pnCCD.0)'] = 'pnccdFront'
-        # --
+        # ToF detector
+        self._s2c['DetInfo(AmoEndstation.0:Acqiris.0)'] = 'Acqiris 0'
+        self._s2c['DetInfo(AmoEndstation.0:Acqiris.1)'] = 'Acqiris 1'
+        self._s2c['DetInfo(AmoEndstation.0:Acqiris.2)'] = 'Acqiris 2'
+        # AMO (Acqiris)
+        self._s2c['DetInfo(AmoETOF.0:Acqiris.0)'] = 'Acqiris 0'
+        self._s2c['DetInfo(AmoETOF.0:Acqiris.1)'] = 'Acqiris 1'
+        self._s2c['DetInfo(AmoITOF.0:Acqiris.0)'] = 'Acqiris 2'
+        self._s2c['DetInfo(AmoITOF.0:Acqiris.1)'] = 'Acqiris 3'
+
+        # MCP Camera
+        self._s2c['DetInfo(AmoEndstation.0:Opal1000.1)'] = 'OPAL1'
+        # CXI (Acqiris)
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.0)'] = 'Acqiris 0'
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.1)'] = 'Acqiris 1'
 
+
     def next_event(self):
-        """Grabs the next event and returns the translated version"""
+        """Grabs the next event and returns the translated version"""           
         if self.timestamps:            
             try:
                 evt = self.run.event(self.timestamps[self.i])
             except (IndexError, StopIteration) as e:
-                logging.warning('End of Run.')
-                if 'end_of_run' in dir(Worker.conf):
-                    Worker.conf.end_of_run()
-                ipc.mpi.slave_done()
+                #if 'end_of_run' in dir(Worker.conf):
+                #    Worker.conf.end_of_run()
+                #ipc.mpi.slave_done()
                 return None
             self.i += 1
         elif self.times is not None:
@@ -187,6 +218,9 @@ class LCLSTranslator(object):
                     print "Unable to find event listed in index file"                    
             # We got to the end without a valid event, time to call it a day
             if evt is None:
+                #if 'end_of_run' in dir(Worker.conf):
+                #    Worker.conf.end_of_run()
+                #ipc.mpi.slave_done()
                 return None
         else:
             try:
@@ -198,10 +232,9 @@ class LCLSTranslator(object):
                 evt = self.data_source.events().next()
                 self.i += 1
             except StopIteration:
-                logging.warning('End of Run.')
-                if 'end_of_run' in dir(Worker.conf):
-                    Worker.conf.end_of_run()
-                ipc.mpi.slave_done()
+                #if 'end_of_run' in dir(Worker.conf):
+                #    Worker.conf.end_of_run()
+                #ipc.mpi.slave_done()
                 return None
         return EventTranslator(evt, self)
 
@@ -228,11 +261,14 @@ class LCLSTranslator(object):
 
     def translate(self, evt, key):
         """Returns a dict of Records that match a given humminbird key"""
+        values = {}
         if(key in self._c2n):
             return self.translate_core(evt, key)
         elif(key == 'parameters'):
             return self._tr_epics()
         elif(key == 'analysis'):
+            return {}
+        elif(key == 'stream'):
             return {}
         else:
             # check if the key matches any of the existing keys in the event
@@ -359,9 +395,15 @@ class LCLSTranslator(object):
         #    data = obj.data8()
         #    print data.shape
         data = obj.data16()
-        
+
+        # off Axis cam at CXI
+        #if data.shape == (1024,1024):
+        #    add_record(values, 'camera', 'offAxis', data, ureg.ADU)
+  
+        # MCP (PNCCD replacement) at AMO (June 2016)
         if data.shape == (1024,1024):
-            add_record(values, 'camera', 'offAxis', data, ureg.ADU)
+            add_record(values, 'camera', 'mcp', data, ureg.ADU)
+
         if data.shape == (1752,2336):
             add_record(values, 'camera', 'onAxis', data, ureg.ADU)
 

@@ -12,13 +12,13 @@ def averagePulseEnergy(evt, records, outkey="averagePulseEnergy"):
 
     Args:
         :evt:      The event variable
-        :records:  A dictionary of pulse energy ``Records``
+        :records:  A dictionary of pulse energy :func:`~Record` objects
 
     Kwargs:
-        :outkey(str):  Data key of resulting ``Record``, default is 'averagePulseEnergy'
+        :outkey(str):  Data key of resulting :func:`~backend.Record`, default is 'averagePulseEnergy'
 
     :Authors:
-        Filipe Maia
+        Filipe Maia,
         Benedikt J. Daurer
     """
     pulseEnergy = []
@@ -28,12 +28,32 @@ def averagePulseEnergy(evt, records, outkey="averagePulseEnergy"):
     if pulseEnergy:
         add_record(evt["analysis"], "analysis", outkey, np.mean(pulseEnergy), ureg.mJ)
 
+def averagePhotonEnergy(evt, records, outkey="averagePhotonEnergy"):
+    """Averages across given photon energies and adds it to evt["analysis"][outkey].
+
+    Args:
+        :evt:      The event variable
+        :records:  A dictionary of photon energy :func:`~backend.Record` objects
+
+    Kwargs:
+        :outkey(str):  Data key of resulting :func:`~backend.Record`, default is 'averagePhotonEnergy'
+
+    :Authors:
+        Benedikt J. Daurer
+    """
+    photonEnergy = []
+    for pE in records.values():
+        if (pE.unit == ureg.eV):
+            photonEnergy.append(pE.data)
+    if photonEnergy:
+        add_record(evt["analysis"], "analysis", outkey, np.mean(photonEnergy), ureg.eV)
+        
 def printPulseEnergy(pulseEnergies):
-    """Expects a dictionary of pulse energy ``Records`` and prints pulse energies to screen."""
+    """Expects a dictionary of pulse energy :func:`~backend.Record` objects and prints pulse energies to screen."""
     for k,v in pulseEnergies.iteritems():
         print "%s = %s" % (k, (v.data*v.unit))
 
 def printPhotonEnergy(photonEnergies):
-    """Expects a dictionary of photon energy ``Records`` and prints photon energies to screen."""
+    """Expects a dictionary of photon energy :func:`~backend.Record` objects and prints photon energies to screen."""
     for k,v in photonEnergies.iteritems():
         print "%s = %s" % (k, v.data*v.unit)

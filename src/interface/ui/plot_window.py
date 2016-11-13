@@ -11,6 +11,7 @@ from interface.Qt import QtCore, QtGui
 from interface.colorbar import ColorBar
 import datetime
 import utils.array
+import os
 
 class Histogram(object):
     def __init__(self, hmin, hmax, bins):
@@ -80,8 +81,11 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.hline_color = (0,204,0)
         self.vline_color = (204,0,0)
         self._settings_diag = LinePlotSettings(self)
-        self._histograms = {}
-        
+        self._histograms = {}        
+        self.updateFonts()
+
+        self.plot.scene().sigMouseMoved.connect(self._onMouseMoved)
+
     def on_view_legend_box(self):
         """Show/hide legend box"""
         action = self.sender()
@@ -201,6 +205,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
         # Init background if defined in a data source
         if self._settings_diag.bg is None:
+            alert_flag = False
             for source, title in self.source_and_titles():
                 conf = source.conf[title]
                 if "bg_filename" in conf:
@@ -211,6 +216,24 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     self._settings_diag._configure_bg(**conf_bg)
                     # Use only first if there are many
                     break
+
+        alert_flag = False
+        for source, title in self.source_and_titles():
+            conf = source.conf[title]
+            if "alert" in conf and self.alert and conf['alert']:
+                alert_flag = True
+
+        if alert_flag:
+            os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+            if not self.alertBlinkTimer.isActive():
+                self.alertBlinkTimer.start()
+        else:
+            if self.alertBlinkTimer.isActive():
+                self.alertBlinkTimer.stop()
+                self.setStyleSheet("")
+
+
+
         # Load background if configured
         self._update_bg()
             
@@ -304,8 +327,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 y = y[sorted_x]
                 if self._settings_diag.showTrendScalar.isChecked():
                     wl = int(self._settings_diag.windowLength.text())
-                    y = utils.array.runningMean(y, wl)
-                    x = x[-max(len(y),1):]
+                    y = utils.array.runningMean(y, min(y.size-1,wl))
+                    x = x[-y.size:]
             elif(source.data_type[title] == 'tuple') or (source.data_type[title] == 'triple'):
                 x = pd.y[:,0]
             elif(source.data_type[title] == 'vector'):
@@ -322,6 +345,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     x = numpy.linspace(xmin,xmax, y.shape[-1])
             if(self._settings_diag.histogram.isChecked()):
                 bins = int(self._settings_diag.histBins.text())
+                histMode = self._settings_diag.histMode.currentText()
                 if (self._settings_diag.histAutorange.isChecked()):
                     hmin, hmax = y.min(), y.max()
                     self._settings_diag.histMin.setText("%.2f"%hmin)
@@ -329,7 +353,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 else:
                     hmin = float(self._settings_diag.histMin.text())
                     hmax = float(self._settings_diag.histMax.text())
-                y,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
+                if histMode == 'count':
+                    y,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
+                elif histMode == 'mean':
+                    num,x = numpy.histogram(y, range=(hmin, hmax), bins=bins, weights=x)
+                    den,x = numpy.histogram(y, range=(hmin, hmax), bins=bins)
+                    y = num/(den+1e-20)
                 x = (x[:-1]+x[1:])/2.0
                 histoangle = 90
                 self._configure_axis(source, title, hist=True)
@@ -455,6 +484,28 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             rect = QtCore.QRectF(xmin, ymin, width, height)
             B.setRect(rect)
             VB.addItem(B, ignoreBounds=True)
+
+
+    def updateFonts(self):
+        f = self.title.font()
+        size = int(self.settings.value("plotFontSize"))
+        f.setPointSize(size)
+        self.title.setFont(f)
+
+        f = QtGui.QFont()
+        f.setPointSize(size)
+        ax = self.plot.getAxis('left')
+        ax.setTickFont(f)
+        ax = self.plot.getAxis('bottom')
+        ax.setTickFont(f)
+
+    def _onMouseMoved(self, pos):
+        view = self.plot
+        xy = view.mapToView(pos)
+        x = xy.x()
+        y = xy.y()
+        self.xLabel.setText("%f" % (x))
+        self.yLabel.setText("%f" % (y))
 
         
 from interface.ui import LinePlotSettings

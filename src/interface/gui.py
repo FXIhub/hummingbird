@@ -65,7 +65,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self._init_recorder(s)
         loaded_sources = []
         try:
-            loaded_sources = self._init_data_sources(s)
+            if do_restore:
+                loaded_sources = self._init_data_sources(s)
         except (TypeError, KeyError):
             # raise
             #raise
@@ -91,6 +92,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         """Initializes the recorder"""
         if not settings.contains("outputPath"):
             settings.setValue("outputPath", ".")
+        if not settings.contains("plotFontSize"):
+            settings.setValue("plotFontSize", "13")
         self._recorder = H5Recorder(settings.value("outputPath"), 100)
 
     def _restore_data_windows(self, settings, data_sources):
@@ -126,7 +129,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         if(settings.contains("dataSources") and
            settings.value("dataSources") is not None):
             for ds in settings.value("dataSources"):
-                ds = DataSource(self, ds[0], ds[1], ds[2])
+                ds = DataSource(self, ds[0], ds[1], ds[2], ds[3])
                 ds.restore_state(pd_settings)
                 loaded_sources.append(ds)
                 logging.debug("Loaded data source '%s' from settings", ds.name())
@@ -227,6 +230,10 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         if(diag.exec_()):
             v = diag.outputPath.text()
             self.settings.setValue("outputPath", v)
+            size = diag.fontSize.value()
+            self.settings.setValue("plotFontSize", size)
+            for dw in self._data_windows:
+                dw.updateFonts()
             self._recorder.outpath = v
 
     def _recorder_toggled(self, turn_on):
@@ -288,7 +295,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         # Save data sources
         ds_settings = []
         for ds in self._data_sources:
-            ds_settings.append([ds.hostname, ds.port, ds.ssh_tunnel])
+            ds_settings.append([ds.hostname, ds.port, ds.ssh_tunnel, ds.conf])
         s.setValue("dataSources", ds_settings)
         self.plotdata_widget.save_state(s)
         s.setValue("plotData", self.plotdata_widget.save_plotdata())

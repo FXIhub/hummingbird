@@ -40,7 +40,7 @@ Hummingbird is meant to be an open project, developed by users of Flash X-ray Im
 
 How to cite
 -----------
-Daurer, B. J., Hantke, M. F., Nettelblad, C. & Maia, F. R. N. C. (2016). J. Appl. Cryst. 49, |hum_doi|.
+Daurer, B. J., Hantke, M. F., Nettelblad, C. & Maia, F. R. N. C. (2016). J. Appl. Cryst. **49**, 1042-1047 |hum_doi|.
 
 .. |hum_doi| raw:: html
 

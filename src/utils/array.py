@@ -114,6 +114,6 @@ def runningMean(x, N):
     http://stackoverflow.com/questions/13728392/moving-average-or-running-mean
     """
     if x.shape[0] < N:
-        return sum(x)
+        return numpy.array([x.mean()])
     cumsum = numpy.cumsum(numpy.insert(x, 0, 0))
     return (cumsum[N:] - cumsum[:-N]) / float(N)

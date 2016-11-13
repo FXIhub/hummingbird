@@ -27,7 +27,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.infoLabel.setText('')
         self.acceptable_data_types = ['image', 'vector', 'triple', 'running_hist']
         self.exclusive_source = True
-        self.alert = False
         self.meanmap = None
         self.last_x = None
         self.last_y = None
@@ -72,9 +71,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
         self.settingsWidget.ui.colormap_max.setValidator(QtGui.QDoubleValidator())
 
-
-        self.set_sounds_and_volume()
-        self.actionSound_on_off.triggered.connect(self.toggle_alert)
                 
         self.plot.getHistogramWidget().region.sigRegionChangeFinished.connect(self.set_colormap_range)
         self.actionPlotSettings.triggered.connect(self.toggle_settings)
@@ -89,34 +85,18 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.running_hist_initialised = False
 
         self.actionReset_cache.triggered.connect(self.on_reset_cache)
-        
-    def set_sounds_and_volume(self):
-        self.soundsGroup = QtGui.QActionGroup(self.menuSounds)
-        self.soundsGroup.setExclusive(True)
-        self.actionBeep.setActionGroup(self.soundsGroup)
-        self.actionBeep.triggered.connect(self.toggle_sounds)
-        self.actionClick.setActionGroup(self.soundsGroup)
-        self.actionClick.triggered.connect(self.toggle_sounds)
-        self.actionPunch.setActionGroup(self.soundsGroup)
-        self.actionPunch.triggered.connect(self.toggle_sounds)
-        self.actionWhack.setActionGroup(self.soundsGroup)
-        self.actionWhack.triggered.connect(self.toggle_sounds)
-        self.actionSharp.setActionGroup(self.soundsGroup)
-        self.actionSharp.triggered.connect(self.toggle_sounds)
-        self.actionGlass.setActionGroup(self.soundsGroup)
-        self.actionGlass.triggered.connect(self.toggle_sounds)
-        self.sound = 'beep'
-        
-        self.volumeGroup = QtGui.QActionGroup(self.menuVolume)
-        self.volumeGroup.setExclusive(True)
-        self.actionHigh.setActionGroup(self.volumeGroup)
-        self.actionHigh.triggered.connect(self.toggle_volume)
-        self.actionMedium.setActionGroup(self.volumeGroup)
-        self.actionMedium.triggered.connect(self.toggle_volume)
-        self.actionLow.setActionGroup(self.volumeGroup)
-        self.actionLow.triggered.connect(self.toggle_volume)
-        self.volume = 1
 
+        self.updateFonts()
+
+        # By default do not show x and y axis on images
+        self.plot.getView().getAxis('left').setVisible(False)
+        self.actionY_axis.setChecked(False)
+        self.plot.getView().getAxis('bottom').setVisible(False)
+        self.actionX_axis.setChecked(False)
+
+        self.plot.getView().scene().sigMouseMoved.connect(self._onMouseMoved)
+        self.plot.getView().scene().sigMouseHover.connect(self._onMouseHover)
+        
     def get_time_and_msg(self, index=None):
         """Returns the time/msg of the given index, or the time/msg of the last data point"""
         if index is None:
@@ -413,10 +393,14 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 continue
             
             conf = source.conf[title]
-            if "alert" in conf and self.alert:
-                alert = conf['alert']
-                if alert:
-                    os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+            if "alert" in conf and self.alert and conf['alert']:
+                os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+                if not self.alertBlinkTimer.isActive():
+                    self.alertBlinkTimer.start()
+            else:
+                if self.alertBlinkTimer.isActive():
+                    self.alertBlinkTimer.stop()
+                    self.setStyleSheet("");
             
             if(self.settingsWidget.ui.ignore_source.isChecked() is False):
                 if 'vmin' in conf and conf['vmin'] is not None:
@@ -554,7 +538,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
             self.setWindowTitle(pd.title)
             dt, msg = self.get_time_and_msg()
-            self.infoLabel.setText(msg)
+            if msg is not None and msg != '':
+                self.infoLabel.setText(msg)
             # Round to miliseconds
             self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
             self.dateLabel.setText(str(dt.date()))
@@ -680,21 +665,38 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             self.plot.getHistogramWidget().setVisible(visible)
             self.settingsWidget.ui.histogram_show.setChecked(visible)
             self.actionHistogram.setChecked(visible)
-
-    def toggle_alert(self, activated):
-        self.alert = activated
-
-    def toggle_sounds(self):
-        self.sound = str(self.soundsGroup.checkedAction().text())
-
-    def toggle_volume(self):
-        volume = str(self.volumeGroup.checkedAction().text())
-        if volume == "High":
-            self.volume = 10
-        elif volume == "Medium":
-            self.volume = 1
-        elif volume == "Low":
-            self.volume = 0.1
     
+    def updateFonts(self):
+        f = self.title.font()
+        size = int(self.settings.value("plotFontSize"))
+        f.setPointSize(size)
+        self.title.setFont(f)
         
-            
+        f = QtGui.QFont()
+        f.setPointSize(size)
+        ax = self.plot.getView().getAxis('left')
+        ax.setTickFont(f)
+        ax = self.plot.getView().getAxis('bottom')
+        ax.setTickFont(f)            
+
+    def _onMouseMoved(self, pos):
+        view = self.plot.getView()
+        xy = view.mapToView(pos)
+        T = self.plot.imageItem.transform()
+        xy = T.map(xy)
+        # For some strange reason the x and y need to be swapped
+        y = int(xy.x())
+        x = int(xy.y())
+        if x < 0 or y < 0:
+            return
+        try:
+            value = self.plot.image[self.plot.currentIndex, y, x]
+        except:
+            self.infoLabel.setText(None)
+            return
+        self.infoLabel.setText("(%d,%d) = %f" % (x, y, value))
+
+    def _onMouseHover(self, items):
+        if(len(items) < 2):
+            self.infoLabel.setText(None)
+        

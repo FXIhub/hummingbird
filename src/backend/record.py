@@ -14,16 +14,27 @@ def add_record(values, group, name, data, unit=None):
     return values[name]
     
 class Record(object):
-    """Generic storage class for a name/data pair extracted from an event"""
+    """
+    Generic storage class for a name/data pair extracted from an event
+
+    Accept both values and functions for data. In the latter case the
+    first time data is accessed evaluate the function and return its result.
+    """
     def __init__(self, name, data, unit=None):
         self.name  = name
         self.data  = data
         self.unit  = unit
-        #print "group: ", name.split('/')[0]
-        #print "name: ", name.split('/')[1]
-        # try:
-        #     self.group = name.split('/')[0]
-        #     self.key   = name.split('/')[1]
-        # except IndexError:
-        #     self.group = None
-        #     self.key = None
+
+    @property
+    def data(self):
+        # If self._data is a function first retrieve
+        # the result of the function and use that as the value.
+        # This allows lazy evaluation records such
+        # that unused records are not unnecessarily costly.
+        if hasattr(self._data, '__call__'):
+            self._data = self._data()
+        return self._data
+
+    @data.setter
+    def data(self, value):
+        self._data = value

@@ -16,7 +16,7 @@ import ipc.mpi
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 # LOGGING
-utils.cxiwriter.logger.setLevel("INFO")
+utils.cxiwriter.logger.setLevel("WARNING")
 
 # CMDLINE ARGS
 from hummingbird import parse_cmdline_args
@@ -32,7 +32,9 @@ state = {
         'PsanaConf': '%s/psana.cfg' % this_dir,
     },
     'indexing': True,
+    'reduce_nr_event_readers' : 1 if ipc.mpi.nr_workers() > 1 else 0
 }
+
 davinci_experiment_dir = '/scratch/fhgfs/LCLS/amo/amo86615'
 if os.path.isdir(davinci_experiment_dir):
     state['LCLS']['DataSource'] += ':dir=%s/xtc/' % (davinci_experiment_dir)
@@ -48,13 +50,14 @@ i_hit   = 0
 back_type = "image"
 back_key  = "pnccdBack[%s]" % back_type
 
-# OPEN FILE FOR WRITING
-outdir = "."
-#user = os.environ["USER"]
-#outdir = "/scratch/fhgfs/%s" % user
-W = utils.cxiwriter.CXIWriter("%s/r%04i.cxi" % (outdir,run_nr), chunksize=100)
-
 t_start = time.time()
+W = None
+
+def beginning_of_run():
+    # OPEN FILE FOR WRITING
+    global W
+    w_dir = '/scratch/fhgfs/hantke/'
+    W = utils.cxiwriter.CXIWriter(w_dir + "/r%04d.cxi" % run_nr, chunksize=10, compression=None)
     
 def onEvent(evt):
 
@@ -68,16 +71,16 @@ def onEvent(evt):
     aduThreshold = 30*16
     hitscoreThreshold = 700
     analysis.hitfinding.countLitPixels(evt, evt[back_type][back_key], aduThreshold=aduThreshold, hitscoreThreshold=hitscoreThreshold)
-   
-    hit = evt["analysis"]["isHit"].data
-    hitscore = evt["analysis"]["hitscore"].data
+    
+    hit = evt["analysis"]["litpixel: isHit"].data
+    hitscore = evt["analysis"]["litpixel: hitscore"].data
 
     hitratio = 100.*i_hit/float(i_frame+1)
 
     index_str = "%06i" % (i_frame*ipc.mpi.nr_workers()+1)
     if N_frames > 0:
         index_str += "/%06i" % N_frames
-    print "(%03i)\t%s\t%.1f %% hits\t%s\tscore=%i" % (ipc.mpi.slave_rank(), index_str, hitratio, "HIT" if hit else "", hitscore)
+    #print "(%03i)\t%s\t%.1f %% hits\t%s\tscore=%i" % (ipc.mpi.worker_index(), index_str, hitratio, "HIT" if hit else "", hitscore)
 
     if hit:
 
@@ -93,7 +96,8 @@ def onEvent(evt):
 
 def end_of_run():
     W.close()
-    dt = time.time()-t_start
-    N = (i_frame+1)
-    r = N/dt
-    print "Finished after %.1f seconds processing of %i frames (%.1f Hz / worker)" % (dt, N, r)
+    if ipc.mpi.is_event_reader():
+        dt = time.time()-t_start
+        rw = i_frame/dt
+        rt = i_frame*ipc.mpi.nr_event_readers()/dt
+        print "Finished after %.1f seconds processing of %i frames (%.1f Hz total, %.1f Hz / worker)" % (dt, i_frame, rt, rw)

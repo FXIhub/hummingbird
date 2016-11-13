@@ -15,7 +15,7 @@ class DataSource(QtCore.QObject):
     plotdata_added = QtCore.Signal(PlotData)
     subscribed = QtCore.Signal(str)
     unsubscribed = QtCore.Signal(str)
-    def __init__(self, parent, hostname, port, ssh_tunnel=None):
+    def __init__(self, parent, hostname, port, ssh_tunnel=None, conf={}):
         QtCore.QObject.__init__(self, parent)
         self._hostname = hostname
         self._port = port
@@ -26,7 +26,7 @@ class DataSource(QtCore.QObject):
         self._recorded_titles = {}
         self._recorder = None
         self._data_socket = ZmqSocket(SUB, self)
-        self.conf = {}
+        self.conf = conf
         self._group_structure = {None: []}
         try:
             self._connect()

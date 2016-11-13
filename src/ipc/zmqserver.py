@@ -14,11 +14,21 @@ import hashlib
 import ipc.mpi
 import backend.worker
 import logging
+from utils.cmdline_args import argparser as _argparser
+
+eventLimit = 125
 
 class ZmqServer(object):
     """Implements the server that broadcasts the results from the backend.
     Analysis users do not need to deal with it."""
     def __init__(self, port):
+        self._subscribed = set()
+        self.reloadmaster = False
+        
+        self._batch_mode = bool(_argparser.parse_args().batch_mode)
+        if self._batch_mode:
+            return
+
         self._state = backend.worker.Worker.state
         self._zmq_key = bytes('hummingbird')
         self._context = zmq.Context()
@@ -33,10 +43,10 @@ class ZmqServer(object):
 
         self._data_socket = self._context.socket(zmq.PUB)
         ## Does not match intent according to http://stackoverflow.com/questions/23800442/why-wont-zmq-drop-messages
-        self._broker_sub_socket.setsockopt(zmq.RCVHWM, 125)
-        self._broker_pub_socket.setsockopt(zmq.SNDHWM, 125)
+        self._broker_sub_socket.setsockopt(zmq.RCVHWM, eventLimit)
+        self._broker_pub_socket.setsockopt(zmq.SNDHWM, eventLimit)
         self._broker_pub_socket.setsockopt(zmq.SNDTIMEO, 0)
-        self._data_socket.setsockopt(zmq.SNDHWM, 125)
+        self._data_socket.setsockopt(zmq.SNDHWM, eventLimit)
         self._data_socket.setsockopt(zmq.SNDTIMEO, 0)
         self._ctrl_socket.bind("tcp://*:%d" % (self._ctrl_port))
         self._broker_pub_socket.bind("tcp://*:%d" % (self._broker_pub_port))
@@ -59,13 +69,10 @@ class ZmqServer(object):
         self._xsub_stream = zmq.eventloop.zmqstream.ZMQStream(self._broker_sub_socket)
         self._xsub_stream.on_recv_stream(self._forward_xsub)
 
-        self._subscribed = set()
-
         ipc.uuid = ipc.hostname+':'+str(self._broker_pub_port)
         t = threading.Thread(target=self._ioloop)
         # Make sure the program exists even when the thread exists
         t.daemon = True
-        self.reloadmaster = False
         t.start()
 
 
@@ -83,6 +90,8 @@ class ZmqServer(object):
 
     def send(self, title, data):
         """Send a list of data items to the broadcast named title"""
+        if self._batch_mode:
+            return
         array_list = []
         for i in range(len(data)):
             if(isinstance(data[i], numpy.ndarray)):

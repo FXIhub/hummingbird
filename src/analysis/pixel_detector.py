@@ -17,6 +17,29 @@ def printStatistics(detectors):
                                                                 min(v), max(v),
                                                                 std(v))
 
+
+def pnccdGain(evt, record, gainmode):
+    """Returns gain (Number of ADUs per photon) based on photon energy record and gain mode.
+    
+    Args:
+        :evt:    The event variable
+        :record: A photon energy ``Record`` given in eV
+        :gainmode: The gain mode of PNCCD (3,4,5,6) or 0 for no gain
+    """
+    maximum_gain = 1250  # at photon energy of 1keV
+    if gainmode == 6:   # 1/1
+        gain = maximum_gain
+    elif gainmode == 5 :# 1/4
+        gain = maximum_gain/4
+    elif gainmode == 4: # 1/16
+        gain = maximum_gain/16
+    elif gainmode == 3: # 1/64
+        gain = maximum_gain/64
+    gain *= (record.data / 1000.) # Rescale gain given a photon energy in eV
+    if gainmode == 0:
+        gain = 1.
+    add_record(evt['analysis'], 'analysis', 'gain', gain)
+
 def getSubsetAsics(evt, type, key, subset, output):
     """Adds a one-dimensional stack of an arbitrary subset of asics
     to ``evt["analysis"][output]``.
@@ -281,19 +304,97 @@ def commonModeCSPAD2x2(evt, type, key, mask=None):
         dataCorrected[:,data.shape[1]/2:] -= np.median(rData[rMask])    
     add_record(evt["analysis"], "analysis", "cm_corrected - " + key, dataCorrected)
 
-def commonModePNCCD(evt, type, key, outkey=None, transpose=False):
+
+def commonModeLines(evt, record, outkey=None, direction='vertical'):
+    """Common mode correction subtracting the median along lines.
+
+    Args:
+       :evt:      The event variable
+       :record:   A pixel detector ``Record```
+       
+    Kwargs:
+      :outkey:    The event key for the corrected detecor image, default is "corrected"
+      :direction: The direction of the lines across which median is taken, default is vertical  
+    """
+    if outkey is None:
+        outkey = "corrected"
+    data = record.data
+    dataCorrected = np.copy(data)
+    if direction is 'vertical':
+        dataCorrected -= np.transpose(np.median(data,axis=0).repeat(data.shape[0]).reshape(data.shape))
+    elif direction is 'horizontal':
+        dataCorrected -= np.median(data,axis=1).repeat(data.shape[1]).reshape(data.shape)
+    add_record(evt["analysis"], "analysis", outkey, dataCorrected)
+
+
+def _cmc(img, msk=None, axis=1, signal_threshold=None, min_nr_pixels_per_median=1):
+
+    # Valid input?
+    if axis not in [0,1]:
+        logging.error("axis=%s is invalid input." % str(axis))
+        return
+
+    # Transpose if necessary
+    if axis == 0:
+        imgt = img.transpose()
+        if msk is not None:
+            mskt = msk.transpose()
+        else:
+            mskt = None
+        tmpimg = np.copy(imgt)
+        tmpmsk = mskt
+    else:
+        tmpimg = np.copy(img)
+        tmpmsk = msk
+
+    excl_calc = np.zeros(dtype='bool', shape=tmpimg.shape)
+    excl_corr = np.zeros(dtype='bool', shape=tmpimg.shape)
+    # Exclude pixels from median calculation
+    if signal_threshold is not None:
+        # Pixels that shall be excluded for median calculation
+        excl_calc = (tmpimg-np.median(tmpimg) > signal_threshold)
+    if msk is not None:
+        excl_calc |= (tmpmsk==False)
+    if min_nr_pixels_per_median >= 1:
+        # Pixels that shall not be cmc corrected
+        excl_corr = ((tmpimg.shape[1]-excl_calc.sum(axis=1)) <= min_nr_pixels_per_median).repeat(tmpimg.shape[1]).reshape(tmpimg.shape)
+        # For avoiding warning when calculating median with no values
+        if excl_corr.any():
+            excl_calc[excl_corr] = False
+    np.putmask(tmpimg, excl_calc, np.nan)
+
+    # Calculate medians
+    cm = np.nanmedian(tmpimg, axis=1).repeat(tmpimg.shape[1]).reshape(tmpimg.shape)
+
+    # Exclude pixels from correction
+    if msk is not None:
+        excl_corr |= (tmpmsk==False)
+    excl_corr |= np.isnan(cm)
+    np.putmask(cm, excl_corr, 0.)
+    
+    # Subtract common mode
+    if axis == 0:
+        imgt -= cm
+    else:
+        img -= cm
+    
+def commonModePNCCD(evt, type, key, outkey=None, transpose=False, signal_threshold=None, mask=None, min_nr_pixels_per_median=1):
     """Common mode correction for PNCCDs.
 
     For each row its median value is subtracted (left and right half of detector are treated separately).
     Adds a record ``evt["analysis"][outkey]``.
     
     Args:
-      :evt:         The event variable
-      :type(str):   The event type (e.g. photonPixelDetectors)
-      :key(str):    The event key (e.g. CCD)
+      :evt:                     The event variable
+      :type(str):               The event type (e.g. photonPixelDetectors)
+      :key(str):                The event key (e.g. CCD)
 
     Kwargs:
-      :outkey(str): The event key for the corrected image, default is "corrected - " + key
+      :outkey(str):             The event key for the corrected image, default is "corrected - " + key
+      :transpose(bool):         Apply procedure on transposed image
+      :signal_threshold(float): Apply procedure by using only pixels below given value
+      :mask:                    You may provide a boolean mask with values that shall be excluded from common mode correction
+      :min_nr_pixels_per_median(int): Common mode correction will be skipped for pixel lines that do not contain as much as this number of values
     
     :Authors:
         Max F. Hantke (hantke@xray.bmc.uu.se)
@@ -302,17 +403,66 @@ def commonModePNCCD(evt, type, key, outkey=None, transpose=False):
     if outkey is None:
         outkey = "corrected - " + key
     data = evt[type][key].data
-    if transpose:
-        data = data.transpose()
+
     dataCorrected = np.copy(data)
-    lData = data[:,:data.shape[1]/2]
-    rData = data[:,data.shape[1]/2:]
-    dataCorrected[:,:data.shape[1]/2] -= np.median(lData,axis=1).repeat(lData.shape[1]).reshape(lData.shape)
-    dataCorrected[:,data.shape[1]/2:] -= np.median(rData,axis=1).repeat(rData.shape[1]).reshape(rData.shape)
-    if transpose:
-        dataCorrected = dataCorrect.transpose()
+    lData = dataCorrected[:,:data.shape[1]/2]
+    rData = dataCorrected[:,data.shape[1]/2:]
+    if mask is not None:
+        lMask = mask[:,:data.shape[1]/2]
+        rMask = mask[:,data.shape[1]/2:]
+    else:
+        lMask = None
+        rMask = None
+    _cmc(lData, msk=lMask, axis=1 if not transpose else 0, signal_threshold=signal_threshold, min_nr_pixels_per_median=min_nr_pixels_per_median)
+    _cmc(rData, msk=rMask, axis=1 if not transpose else 0, signal_threshold=signal_threshold, min_nr_pixels_per_median=min_nr_pixels_per_median)
+    
     add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 
+def commonModePNCCD2(evt, type, key, outkey=None, signal_threshold=None, mask=None, min_nr_pixels_per_median=1):
+    """Common mode correction for PNCCDs.
+
+    For each row its median value is subtracted (left and right half of detector are treated separately).
+    Adds a record ``evt["analysis"][outkey]``.
+    
+    Args:
+      :evt:                     The event variable
+      :type(str):               The event type (e.g. photonPixelDetectors)
+      :key(str):                The event key (e.g. CCD)
+
+    Kwargs:
+      :outkey(str):             The event key for the corrected image, default is "corrected - " + key
+      :transpose(bool):         Apply procedure on transposed image
+      :signal_threshold(float): Apply procedure by using only pixels below given value
+      :mask:                    You may provide a boolean mask with values that shall be excluded from common mode correction
+      :min_nr_pixels_per_median(int): Common mode correction will be skipped for pixel lines that do not contain as much as this number of values
+    
+    :Authors:
+        Max F. Hantke (hantke@xray.bmc.uu.se)
+        Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
+    """
+    if outkey is None:
+        outkey = "corrected - " + key
+    data = evt[type][key].data
+
+    dataCorrected = np.copy(data)
+    quads = [dataCorrected[:data.shape[0]/2,:data.shape[1]/2],
+             dataCorrected[data.shape[0]/2:,:data.shape[1]/2],
+             dataCorrected[:data.shape[0]/2,data.shape[1]/2:],
+             dataCorrected[data.shape[0]/2:,data.shape[1]/2:]]
+    if mask is not None:
+        mquads = [mask[:data.shape[0]/2,:data.shape[1]/2],
+                  mask[data.shape[0]/2:,:data.shape[1]/2],
+                  mask[:data.shape[0]/2,data.shape[1]/2:],
+                  mask[data.shape[0]/2:,data.shape[1]/2:]]
+    else:
+        mquads = [None, None, None, None]
+    for quad,mquad in zip(quads,mquads):
+        _cmc(quad, msk=mquad, axis=0, signal_threshold=signal_threshold, min_nr_pixels_per_median=min_nr_pixels_per_median)
+        _cmc(quad, msk=mquad, axis=1, signal_threshold=signal_threshold, min_nr_pixels_per_median=min_nr_pixels_per_median)
+    
+    add_record(evt["analysis"], "analysis", outkey, dataCorrected)
+
+    
 def subtractImage(evt, type, key, image, outkey=None):
     """Subtract an image.
 
@@ -336,7 +486,7 @@ def subtractImage(evt, type, key, image, outkey=None):
     dataCorrected = data - image
     add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 
-def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
+def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None, outkey='cropped'):
     
     data = data_rec.data
     name = data_rec.name
@@ -353,11 +503,28 @@ def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None):
     if h is None:
         h = Ny
     data_cropped = data[cy-h/2:cy+h/2, cx-w/2:cx+w/2]
-    add_record(evt["analysis"], "analysis", "cropped/centered", data_cropped)
+    add_record(evt["analysis"], "analysis", outkey, data_cropped)
 
-def rotate90(evt, data_rec, k=1, outkey=None):
-    if outkey is None:
-        outkey = 'rotated'
+def rotate90(evt, data_rec, k=1, outkey='rotated'):
     data_rotated = np.rot90(data_rec.data,k)
     return add_record(evt["analysis"], "analysis", outkey, data_rotated)
     
+def moveHalf(evt, record, vertical=0, horizontal=0, outkey='half-moved', transpose=True):
+    data = record.data
+    if transpose:
+        data = np.transpose(data)
+    ny,nx = data.shape
+    data_moved = np.zeros((ny + abs(vertical), nx + horizontal), dtype=data.dtype)
+    if horizontal < 0: horizontal = 0
+    if vertical < 0:
+        data_moved[-vertical:,:nx/2] = data[:,:nx/2]
+        data_moved[:vertical,nx/2+horizontal:] = data[:,nx/2:]
+    elif vertical > 0:
+        data_moved[:-vertical,:nx/2] = data[:,:nx/2]
+        data_moved[vertical:,nx/2+horizontal:] = data[:,nx/2:]
+    else:
+        data_moved[:,:nx/2] = data[:,:nx/2]
+        data_moved[:,nx/2+horizontal:] = data[:,nx/2:]
+    if transpose:
+        data_moved = np.transpose(data_moved)
+    return add_record(evt["analysis"], "analysis", outkey, data_moved)  

@@ -196,11 +196,9 @@ class PlotDataTable(QtGui.QWidget):
                 continue
             # Check if this row is marked for saving
             checkbox = self.table.cellWidget(row, 3).findChild(QtGui.QCheckBox)
-            if(not checkbox.isChecked()):
-                continue                
             item = self.table.item(row, 1)
             plotdata = item.data(QtCore.Qt.UserRole)
-            pd_settings.append(plotdata.save_state())
+            pd_settings.append(plotdata.save_state(save_data=checkbox.isChecked()))
         return pd_settings
 
     def restore_state(self, settings):
