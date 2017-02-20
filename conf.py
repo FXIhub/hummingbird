@@ -22,6 +22,7 @@ state['FLASH/DataGlob'] = '/var/acqu/bl1camp/Chapman_2016/CCD_Data/*.frms6'
 state['FLASH/CalibGlob'] = '/var/acqu/bl1camp/Chapman_2016/CCD_Calib/*.darkcal.h5'
 state['FLASH/MotorFolder'] = 'motors/stage-server/'
 state['FLASH/DAQFolder'] = '/var/acqu/bl1camp/Chapman_2016/DAQ/'
+#state['FLASH/DAQFolder'] = '/gpfs/cfel/cxi/data/2016/FLASH-2016-Chapman-May/raw/pnccd/data'
 #state['do_offline'] = True
 #state['FLASH/ProcessingRate'] = 1
 
