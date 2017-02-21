@@ -2,12 +2,12 @@
 
 while true
 do
-	for f in /var/acqu/bl1camp/Chapman_2016/CCD_Calib/*.darkcal
+	for f in /asap3/flash/gpfs/bl1/2017/data/11001733/raw/pnccd/calib/*.darkcal
 	do 
 		if [ ! -e ${f}.h5 ]
 		then 
 			echo Converting $f
-			python src/backend/convert_darkcal.py $f -o ${f}.h5
+			python src/backend/convert_darkcal.py $f -o /asap3/flash/gpfs/bl1/2017/data/11001733/processed/calib/$(basename f).h5
 		fi
 	done
 	sleep 10

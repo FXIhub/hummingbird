@@ -12,7 +12,7 @@ from . import ureg
 import numpy
 import ipc
 import backend.convert_frms6 as convert
-import backend.holger_motors as holger_motors
+import backend.tomas_motors as motors
 import glob
 import sys
 import os
@@ -35,7 +35,7 @@ class FLASHTranslator(object):
         self.fnum = None
         self.reader = None
         self.get_dark()
-        self.motors = holger_motors.MotorPositions(state['FLASH/MotorFolder'])
+        self.motors = motors.MotorPositions(state['FLASH/MotorFolder'])
         if 'do_offline' in state:
             self.do_offline = state['do_offline']
         else:
@@ -95,7 +95,7 @@ class FLASHTranslator(object):
             # Translate pnCCD
             add_record(values, key, 'pnCCD', evt['pnCCD'], ureg.ADU)
         elif key == 'motorPositions':
-            #val = self.motors.get(self.reader.frame_headers[-1].tv_sec + self.time_offset)
+            #val = motors.get(self.reader.frame_headers[-1].tv_sec + self.time_offset)
             val = self.motors.get(self.get_bunch_time())
             if val is None:
                 raise RuntimeError('%s not found in event' % key)
