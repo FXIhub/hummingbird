@@ -114,13 +114,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.hline_color = (0,204,0)
         self.vline_color = (204,0,0)
         self._settings_diag = LinePlotSettings(self)
-
-        self._histograms = {}        
+        self._histograms = {}
+        self._normalized_histograms = {}
         self.updateFonts()
 
         self.plot.scene().sigMouseMoved.connect(self._onMouseMoved)
-        self._normalized_histograms = {}        
-        
+
     def on_view_legend_box(self):
         """Show/hide legend box"""
         action = self.sender()
