@@ -176,19 +176,19 @@ class FLASHTranslator(object):
         else:
             return False
 
-    # def get_bunch_time(self):
-    #     tmp_time = time.localtime(self.reader.frame_headers[-1].tv_sec+self.time_offset)
-    #     filename = self.state['FLASH/DAQFolder']+'/daq-%.4d-%.2d-%.2d-%.2d.txt' % (tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, tmp_time.tm_hour)
-    #     if filename != self.daq_fname:
-    #         self.daq_fname = filename
-    #         with open(filename, 'r') as f:
-    #             lines = list(set(f.readlines()))
-    #         self.daq_lines = [l.split() for l in lines]
-    #         self.bunch_ids = numpy.array([int(l[1]) for l in self.daq_lines])
-    #         print 'DAQ file:', filename, 'max id = %d, min id = %d' % (self.bunch_ids.max(), self.bunch_ids.min())
-    #     locations = numpy.where(self.bunch_ids == self.reader.frame_headers[-1].external_id)[0]
-    #     if len(locations) < 1:
-    #         return self.reader.frame_headers[-1].tv_sec+self.time_offset
-    #     else:
-    #         return int(self.daq_lines[locations[0]][0])
+    def get_bunch_time(self):
+        tmp_time = time.localtime(self.reader.frame_headers[-1].tv_sec+self.time_offset)
+        filename = self.state['FLASH/DAQFolder']+'/daq-%.4d-%.2d-%.2d-%.2d.txt' % (tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, tmp_time.tm_hour)
+        if filename != self.daq_fname:
+            self.daq_fname = filename
+            with open(filename, 'r') as f:
+                lines = list(set(f.readlines()))
+            self.daq_lines = [l.split() for l in lines]
+            self.bunch_ids = numpy.array([int(l[1]) for l in self.daq_lines])
+            print 'DAQ file:', filename, 'max id = %d, min id = %d' % (self.bunch_ids.max(), self.bunch_ids.min())
+        locations = numpy.where(self.bunch_ids == self.reader.frame_headers[-1].external_id)[0]
+        if len(locations) < 1:
+            return self.reader.frame_headers[-1].tv_sec+self.time_offset
+        else:
+            return int(self.daq_lines[locations[0]][0])
          
