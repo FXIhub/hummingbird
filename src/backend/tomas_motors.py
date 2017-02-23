@@ -41,7 +41,7 @@ class MotorPositions(object):
 
     def _parse_line(self, line):
         line_data = line.split()
-        data_dict = dict(zip(line_data[1::2], line_data[2::2]))
+        data_dict = dict(zip(line_data[1::2], [float(p) for p in line_data[2::2]]))
         # expected_keys = ["InjectorX", "InjectorY", "InjectorZ"]
         # for this_expected_key in expected_keys:
         #     if this_expected_key not in data_dict:
