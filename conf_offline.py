@@ -9,6 +9,14 @@ from backend.record import add_record
 import numpy as np
 import time
 import ipc
+import h5writer
+import utils.cxiwriter
+import os
+import sys
+from random import randint
+
+do_write=True
+
 
 scanInjector = True
 scanXmin = 0
@@ -36,6 +44,23 @@ state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/d
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/fake_old_positions.data'
 state['do_offline'] = True
 #state['FLASH/ProcessingRate'] = 1
+
+run_num=120
+w_dir = "/data/beamline/current/scratch_bl/gijs/%.3d" % run_num
+
+try:
+    os.makedirs(w_dir)
+except OSError:
+    pass
+
+def beginning_of_run():
+    global W
+    W = utils.cxiwriter.CXIWriter(w_dir + "/r%04d.h5" % run_num, chunksize=1)
+
+def end_of_run():
+    W.close(barrier=True)
+    if ipc.mpi.is_main_event_reader():
+        print "Clean exit"
 
 def calculate_epoch_times(evt, time_sec, time_usec):
     add_record(evt['ID'], 'ID', 'time', time_sec.data + 1.e-6*time_usec.data)
@@ -92,3 +117,9 @@ def onEvent(evt):
         #                              group='Metric')
     if hit:
         plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (Hits)", group='Images')
+
+    if do_write:
+        D = {}
+        D['back']  = evt["photonPixelDetectors"]["pnCCD"].data
+
+        W.write_slice(D)
