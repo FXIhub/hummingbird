@@ -11,6 +11,7 @@ class MotorPositions(object):
 
     def get(self, timestamp):
         #timestamp += 18590000
+        #print("timestamp = {0}".format(time.strftime("%H:%M:%S", time.localtime(float(timestamp)))))
         self.timestamp = timestamp
         filename = self._filename
         if os.path.getsize(self._filename) > self._filesize:

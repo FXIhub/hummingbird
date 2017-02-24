@@ -12,10 +12,10 @@ import ipc
 
 scanInjector = True
 scanXmin = 0
-scanXmax = 100
+scanXmax = 10
 scanXbins = 20
 scanZmin = 0
-scanZmax = 100
+scanZmax = 10
 scanZbins = 20
 
 outputEveryImage = False
@@ -23,17 +23,17 @@ outputEveryImage = False
 # Quick config parameters
 # hitScoreThreshold = 9000
 # aduThreshold = 200
-hitScoreThreshold = 2000
+hitScoreThreshold = 5000
 aduThreshold = 200
 
 # Specify the facility
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
-state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-01/holography*.frms6"
+state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-01/holography_G001_20170223_0009_*.frms6"
 state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-01/*.darkcal.h5"
 state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq/"
-state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/fake_old_positions.data'
+state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['do_offline'] = True
 #state['FLASH/ProcessingRate'] = 1
 
@@ -58,11 +58,12 @@ def onEvent(evt):
     # Do basic hitfinding using lit pixels
     analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["pnCCD"], 
                                        aduThreshold=aduThreshold, 
-                                       hitscoreThreshold=hitScoreThreshold)
+                                       hitscoreThreshold=hitScoreThreshold,
+                                       hitscoreMax=400000 )
 
     hit = bool(evt["analysis"]["litpixel: isHit"].data)
     plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"],
-                              label='Nr. of lit pixels', hline=100, group='Metric')
+                              label='Nr. of lit pixels', hline=hitScoreThreshold, group='Metric')
     analysis.hitfinding.hitrate(evt, hit, history=5000)
 
     if scanInjector:
@@ -75,7 +76,7 @@ def onEvent(evt):
         plotting.correlation.plotScatter(evt["motorPositions"]["InjectorZ"], evt['analysis']['litpixel: hitscore'], 
                                          name='InjectorZ vs Hitscore', xlabel='InjectorZ', ylabel='Hit Score',
                                          group='Scan')
-
+        print("InjectorX = {0}".format(evt["motorPositions"]["InjectorX"].data))
         
     if outputEveryImage:
         plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (All)", group='Images')

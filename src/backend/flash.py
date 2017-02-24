@@ -26,7 +26,7 @@ class FLASHTranslator(object):
         self.keys = set()
         self.keys.add('analysis')
         self._last_event_time = -1
-        self.time_offset = 606
+        self.time_offset = 208
         self.current_fname = None
         self.daq_fname = None
         self.current_dark = None
@@ -45,7 +45,7 @@ class FLASHTranslator(object):
 
     def next_event(self):
         """Generates and returns the next event"""
-        evt = {}        
+        evt = {}
         
         self.new_file_check()
         
@@ -59,11 +59,16 @@ class FLASHTranslator(object):
             if(t < target_t):
                 time.sleep(target_t - t)
         self._last_event_time = time.time()
-        
-        self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
-        if len(self.reader.frames) > 0:
+
+        if self.reader is not None:
+            self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
+        if self.reader is not None and len(self.reader.frames) > 0:
             evt['pnCCD'] = self.reader.frames[0]
             self.keys.add('photonPixelDetectors')
+        # self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
+        # if len(self.reader.frames) > 0:
+        #     evt['pnCCD'] = self.reader.frames[0]
+        #     self.keys.add('photonPixelDetectors')
         else:
             if ipc.mpi.slave_rank() == 0:
                 sys.stderr.write('Waiting for file list to update\n')
@@ -147,6 +152,8 @@ class FLASHTranslator(object):
             self.get_dark()
             
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
+            print("create reader!")
+            print("Using dark: {0}".format(self.current_dark))
             self.num = 0
             self.current_fname = latest_fname
             return True
@@ -178,6 +185,7 @@ class FLASHTranslator(object):
 
     def get_bunch_time(self):
         tmp_time = time.localtime(self.reader.frame_headers[-1].tv_sec+self.time_offset)
+        #self.reader.frame_headers[-1].dump()
         filename = self.state['FLASH/DAQFolder']+'/daq-%.4d-%.2d-%.2d-%.2d.txt' % (tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, tmp_time.tm_hour)
         if filename != self.daq_fname:
             self.daq_fname = filename
