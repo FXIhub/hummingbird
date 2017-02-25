@@ -9,8 +9,8 @@ from backend.record import add_record
 import numpy as np
 import time
 import ipc
-import h5writer
-import utils.cxiwriter
+#import h5writer
+#import utils.cxiwriter
 import os
 import sys
 from random import randint
@@ -41,26 +41,27 @@ state['Facility'] = 'FLASH'
 state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-01/holography_G001_20170223_0009_*.frms6"
 state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-01/*.darkcal.h5"
 state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq/"
+state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-01/exp2/"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['do_offline'] = True
 #state['FLASH/ProcessingRate'] = 1
 
-run_num=120
-w_dir = "/data/beamline/current/scratch_bl/gijs/%.3d" % run_num
+# run_num=120
+# w_dir = "/data/beamline/current/scratch_bl/gijs/%.3d" % run_num
 
-try:
-    os.makedirs(w_dir)
-except OSError:
-    pass
+# try:
+#     os.makedirs(w_dir)
+# except OSError:
+#     pass
 
-def beginning_of_run():
-    global W
-    W = utils.cxiwriter.CXIWriter(w_dir + "/r%04d.h5" % run_num, chunksize=1)
+# def beginning_of_run():
+#     global W
+#     W = utils.cxiwriter.CXIWriter(w_dir + "/r%04d.h5" % run_num, chunksize=1)
 
-def end_of_run():
-    W.close(barrier=True)
-    if ipc.mpi.is_main_event_reader():
-        print "Clean exit"
+# def end_of_run():
+#     W.close(barrier=True)
+#     if ipc.mpi.is_main_event_reader():
+#         print "Clean exit"
 
 def calculate_epoch_times(evt, time_sec, time_usec):
     add_record(evt['ID'], 'ID', 'time', time_sec.data + 1.e-6*time_usec.data)
@@ -79,6 +80,17 @@ def onEvent(evt):
     # calculate_epoch_times(evt, evt["ID"]["tv_sec"], evt["ID"]["tv_usec"])
     # plotting.line.plotHistory(evt['ID']['timeAgo'], label='Event Time (s)', group='ID')
     # plotting.line.plotHistory(evt['ID']['tv_sec'], label='Epoch Time (s)', group='ID')
+
+    try:
+        tof = evt["DAQ"]["TOF"]
+        #tof = evt["TOF"]
+        print tof.data
+    except RuntimeError:
+        #print("No TOF data found")
+        tof = None
+
+    if tof is not None:
+        plotting.line.plotTrace(tof, label='TOF Trace', group="TOF", history=10000)
 
     # Do basic hitfinding using lit pixels
     analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["pnCCD"], 
@@ -101,7 +113,6 @@ def onEvent(evt):
         plotting.correlation.plotScatter(evt["motorPositions"]["InjectorZ"], evt['analysis']['litpixel: hitscore'], 
                                          name='InjectorZ vs Hitscore', xlabel='InjectorZ', ylabel='Hit Score',
                                          group='Scan')
-        print("InjectorX = {0}".format(evt["motorPositions"]["InjectorX"].data))
         
     if outputEveryImage:
         plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (All)", group='Images')
@@ -119,8 +130,8 @@ def onEvent(evt):
     if hit:
         plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (Hits)", group='Images')
 
-    if do_write:
-        D = {}
-        D['back']  = evt["photonPixelDetectors"]["pnCCD"].data
+    # if do_write:
+    #     D = {}
+    #     D['back']  = evt["photonPixelDetectors"]["pnCCD"].data
 
-        W.write_slice(D)
+    #     W.write_slice(D)

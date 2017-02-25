@@ -13,6 +13,7 @@ import numpy
 import ipc
 import backend.convert_frms6 as convert
 import backend.tomas_motors as motors
+import read_daq_offline
 import glob
 import sys
 import os
@@ -36,6 +37,7 @@ class FLASHTranslator(object):
         self.reader = None
         self.get_dark()
         self.motors = motors.MotorPositions(state['FLASH/MotorFolder'])
+        self.daq = read_daq_offline.DAQReader(state['FLASH/DAQBaseDir'])
         if 'do_offline' in state:
             self.do_offline = state['do_offline']
         else:
@@ -65,6 +67,7 @@ class FLASHTranslator(object):
         if self.reader is not None and len(self.reader.frames) > 0:
             evt['pnCCD'] = self.reader.frames[0]
             self.keys.add('photonPixelDetectors')
+            event_id = self.reader.frame_headers[0].external_id
         # self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
         # if len(self.reader.frames) > 0:
         #     evt['pnCCD'] = self.reader.frames[0]
@@ -79,9 +82,17 @@ class FLASHTranslator(object):
                 
                 if len(self.reader.frames) > 0:
                     evt['pnCCD'] = self.reader.frames[0]
+                    event_id = self.reader.frame_headers[0].external_id
                     self.keys.add('photonPixelDetectors')
                     break
-        
+        #event_id += 3583434 - 2586939
+        # Done finding pnCCD file. Now check if there is a TOF trace (only if we are offline)
+        if self.do_offline:
+            tof_trace = self.daq.get_tof(event_id)
+            if tof_trace is not None:
+                evt["TOF"] = tof_trace
+                self.keys.add("DAQ")
+            
         self.num += 1
         return EventTranslator(evt, self)
 
@@ -112,6 +123,11 @@ class FLASHTranslator(object):
             add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec, ureg.s)
             add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec, ureg.s)
             add_record(values, key, 'bunch_sec', self.get_bunch_time(), ureg.s)
+        elif key == "DAQ":
+            if "TOF" in evt:
+                add_record(values, key, "TOF", evt["TOF"], ureg.s)
+            else:
+                raise RuntimeError("{0} not found in event".format(key))
         elif not key == 'analysis':
             raise RuntimeError('%s not found in event' % key)
         
@@ -152,7 +168,6 @@ class FLASHTranslator(object):
             self.get_dark()
             
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
-            print("create reader!")
             print("Using dark: {0}".format(self.current_dark))
             self.num = 0
             self.current_fname = latest_fname

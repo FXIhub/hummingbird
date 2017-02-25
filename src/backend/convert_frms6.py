@@ -109,6 +109,7 @@ class Frms6_reader():
         while True:
             self.frame_headers.append(Frms6_frame_header(length=self.file_header.fh_length))
             ret = self.frame_headers[-1].parse(self.fname, curr_pos)
+
             if ret != 0:
                 print 'Frame header parsing failed:', ret
                 self.frame_headers = self.frame_headers[:-1]
