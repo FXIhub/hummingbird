@@ -45,7 +45,9 @@ class Histogram(object):
         self._last_add_index = current_index
 
     def reset(self):
+        print("Reset histogram!")
         self._histogram[:] = 0
+        self._last_add_index = 0
 
     @property
     def values_x(self):
@@ -404,11 +406,20 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self._configure_axis(source, title, hist=True)
             elif(source.data_type[title] == "histogram"):
                 ringbuffer = pd.y
+                # Clear histogram if asked for
+                if pd.clear_histogram:
+                    self._histograms[title].reset()
+                    pd.clear_histogram = False
                 self._histograms[title].add_values_from_ringbuffer(ringbuffer)
                 x = self._histograms[title].values_x
                 y = self._histograms[title].values_y
             elif(source.data_type[title] == "normalized_histogram"):
                 ringbuffer = pd.y
+                # Clear histogram if asked for
+                print("clear_histograms = {0}".format(pd.clear_histograms))
+                if pd.clear_histograms:
+                    self._histograms[title].reset()
+                    pd.clear_histograms = False
                 self._normalized_histograms[title].add_values_from_ringbuffer(ringbuffer)
                 x = self._normalized_histograms[title].values_x
                 y = self._normalized_histograms[title].values_y
