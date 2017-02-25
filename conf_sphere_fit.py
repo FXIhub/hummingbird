@@ -1,6 +1,7 @@
 # Import analysis/plotting modules
 import analysis.event
 import analysis.hitfinding
+import analysis.pixel_detector
 import plotting.image
 import plotting.line
 import plotting.correlation
@@ -19,15 +20,16 @@ scanZmax = 100
 scanZbins = 220/2
 
 outputEveryImage = False
-do_sizing=False
+do_sizing = False
+move_half = True
 
 #Detector params
-
 detector_distance = 220e-03
 gap_top=2.8e-03
 gap_bottom=3.1e-03
 gap_total=gap_top+gap_bottom
-
+ny=1024
+nx=1024
 
 
 pixel_size=7.5e-05
@@ -48,6 +50,16 @@ state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_posi
 state['do_offline'] = True
 #state['FLASH/ProcessingRate'] = 1
 
+#Mask
+#Mask out center
+mask_center=np.ones((ny, nx), dtype=np.bool)
+radius=30
+cx=0
+cy=0
+xx,yy=np.meshgrid(np.arange(nx), np.arange(ny))
+rr=(xx-nx/2)**2+(yy-ny/2)**2 >= (radius**2)
+mask_center &= rr
+
 def calculate_epoch_times(evt, time_sec, time_usec):
     add_record(evt['ID'], 'ID', 'time', time_sec.data + 1.e-6*time_usec.data)
     #add_record(evt['ID'], 'ID', 'timeAgo', time.time() - (time_sec.data + 1.e-6*time_usec.data))
@@ -65,9 +77,16 @@ def onEvent(evt):
     # calculate_epoch_times(evt, evt["ID"]["tv_sec"], evt["ID"]["tv_usec"])
     # plotting.line.plotHistory(evt['ID']['timeAgo'], label='Event Time (s)', group='ID')
     # plotting.line.plotHistory(evt['ID']['tv_sec'], label='Epoch Time (s)', group='ID')
-
+    detector_type = "photonPixelDetectors"
+    detector_key  = "pnCCD"
+    if move_half:
+        detector = evt[detector_type][detector_key]
+        detector = analysis.pixel_detector.moveHalf(evt, detector, horizontal=gap_total/pixel_size, outkey='data_half-moved')
+        mask_center_s = analysis.pixel_detector.moveHalf(evt, add_record(evt["analysis"], "analysis", "mask", mask_center), horizontal=gap_total/pixel_size, outkey='mask_half-moved').data
+        detector_type = "analysis"
+        detector_key  = "data_half-moved"
     # Do basic hitfinding using lit pixels
-    analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["pnCCD"], 
+    analysis.hitfinding.countLitPixels(evt, evt[detector_type][detector_key], 
                                        aduThreshold=aduThreshold, 
                                        hitscoreThreshold=hitScoreThreshold)
 
@@ -89,13 +108,7 @@ def onEvent(evt):
         plotting.line.plotHistory(evt["motorPositions"]["InjectorX"], label="Cluster delay", group="Scan")
         plotting.line.plotHistory(evt["motorPositions"]["InjectorZ"], label="Nothing", group="Scan")
         # print("InjectorX = {0}".format(evt["motorPositions"]["InjectorX"].data))
-    detector_type = "photonPixelDetectors"
-    detector_key  = "pnCCD"
-    if move_half:
-        detector = evt['photonPixelDetectors']['pnCCD']
-        detector = analysis.pixel_detector.moveHalf(evt, detector, vertical=gap_total/pixel_size, outkey='data_half-moved')
-        detector_type = "analysis"
-        detector_key  = "data_half-moved"
+
 
     if outputEveryImage:
         plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (All)", group='Images')
@@ -111,17 +124,8 @@ def onEvent(evt):
         #                              ylabel='nozzle_y (mm)',
         #                              group='Metric')
     if hit:
-        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Hits)", group='Images')
+        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Hits)", group='Images', mask=mask_center_s)
         if do_sizing:
-            # Mask out a circle in the center
-            mask_front_circle = numpy.ones((ny_front, nx_front), dtype=numpy.bool)
-            radius = 100
-            cx = 0
-            cy = 0
-            xx,yy = numpy.meshgrid(numpy.arange(nx_front), numpy.arange(ny_front))
-            rr = (xx-nx_front/2-cx)**2 + (yy-ny_front/2-cy)**2 >= (radius**2)
-            mask_front_circle &= rr
-
             # Sizing
             # ------
             binning = 4
@@ -135,19 +139,13 @@ def onEvent(evt):
                 'blur'     : 4,
             }
             pixelsize_native = 75E-6 
-            modelParams = {
-                #'wavelength': 2.480, # in nm, 500 eV
-                'wavelength': 5.2 #1.550, # in nm, 800 eV
-                'pixelsize': pixelsize_native/1E-6*binning,
-                #'distance': 380., # in mm
-                'distance': 130., #230., #121., # in mm
-                'material': 'sucrose',
-}
-            sizingParams = {
-                'd0':200., # in nm
-                'i0':1., # in mJ/um2
-                'brute_evals':10,
-            }
+            modelParams = {'wavelength': 5.2, 
+                           'pixelsize': 7.5e-05,
+                           'distance': 220., 
+                           'material': 'sucrose'}
+            sizingParams = {'d0':200., # in nm
+                            'i0':1., # in mJ/um2
+                            'brute_evals':10}
             
             # Physical constants
             h = 6.62606957e-34 #[Js]
