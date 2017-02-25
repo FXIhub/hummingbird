@@ -19,6 +19,7 @@ class PlotData(object):
         self.restored = False
         self.ishistory = (title[:7] == 'History')
         self.recordhistory = False
+        self.clear_histogram = False
         if title in parent.conf:
             if('history_length' in parent.conf[title]):
                 self._maxlen = parent.conf[title]['history_length']
@@ -73,6 +74,7 @@ class PlotData(object):
             self._x.clear()
         if(self._l is not None):
             self._l.clear()
+        self.clear_histogram = True
 
     @property
     def title(self):
