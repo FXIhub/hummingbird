@@ -1,11 +1,13 @@
 # Import analysis/plotting modules
 import analysis.event
 import analysis.hitfinding
+import analysis.pixel_detector
 import plotting.image
 import plotting.line
 import plotting.correlation
 import plotting.histogram
 import utils.cxiwriter
+import utils.reader
 import ipc
 from backend.record import add_record
 import numpy as np
@@ -39,6 +41,19 @@ scanZbins = 20
 # Send every image
 outputEveryImage = False
 
+# Geometry
+move_half = True
+
+# Detector params
+detector_distance = 220e-03
+gap_top=2.8e-03
+gap_bottom=3.1e-03
+gap_total=gap_top+gap_bottom
+ny=1024
+nx=1024
+pixel_size=7.5e-05
+center_shift=int((gap_top-gap_bottom)/pixel_size)
+
 # Quick config parameters
 if args.hitscore_threshold:
     hitScoreThreshold = args.hitscore_threshold
@@ -62,6 +77,18 @@ state['do_offline'] = True
 state['reduce_nr_event_readers'] = 1
 #state['FLASH/ProcessingRate'] = 1
 
+# Mask
+Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v1.h5", "/data")
+mask = Mask.boolean_mask
+mask_center=np.ones((ny, nx), dtype=np.bool)
+radius=30
+cx=0
+cy=0
+xx,yy=np.meshgrid(np.arange(nx), np.arange(ny))
+rr=(xx-nx/2)**2+(yy-ny/2)**2 >= (radius**2)
+mask_center &= rr
+mask_center &= mask
+
 # Output directory
 w_dir = base_path + "processed/hummingbird/"
 
@@ -75,23 +102,9 @@ def beginning_of_run():
     global W
     W = utils.cxiwriter.CXIWriter(w_dir + "/r%04d_ol%d.h5" %(args.run_nr, level), chunksize=10)
 
-def calculate_epoch_times(evt, time_sec, time_usec):
-    add_record(evt['ID'], 'ID', 'time', time_sec.data + 1.e-6*time_usec.data)
-    #add_record(evt['ID'], 'ID', 'timeAgo', time.time() - (time_sec.data + 1.e-6*time_usec.data))
-    # Calculating timeAgo with 606 second offset due to miscalibration of pnCCD server clock
-    #add_record(evt['ID'], 'ID', 'timeAgo', -606. + time.time() - (time_sec.data + 1.e-6*time_usec.data))
-    add_record(evt['ID'], 'ID', 'timeAgo', 0. + time.time() - (time_sec.data + 1.e-6*time_usec.data))
-
-# Counter
-counter = -1
-
 # This function is called for every single event
 # following the given recipe of analysis
 def onEvent(evt):
-
-    # Increment the counter
-    global counter
-    counter += 1
 
     # Processing rate [Hz]
     analysis.event.printProcessingRate()
@@ -113,11 +126,26 @@ def onEvent(evt):
     if tof is not None:
         plotting.line.plotTrace(tof, label='TOF Trace', group="TOF", history=10000)
 
+    # PNCCD
+    detector_type = "photonPixelDetectors"
+    detector_key  = "pnCCD"
+    detector = evt[detector_type][detector_key]
+
+    if move_half:
+        detector_s = analysis.pixel_detector.moveHalf(evt, detector, horizontal=int(gap_total/pixel_size), outkey='data_half-moved')
+        mask_center_s = analysis.pixel_detector.moveHalf(evt, add_record(evt["analysis"], "analysis", "mask", mask_center), 
+                                                         horizontal=int(gap_total/pixel_size), outkey='mask_half-moved').data
+        detector_type = "analysis"
+        detector_key  = "data_half-moved"
+        detector = evt[detector_type][detector_key]
+    else:
+        mask_center_s = mask_center
+
     # Do basic hitfinding using lit pixels
-    analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["pnCCD"], 
+    analysis.hitfinding.countLitPixels(evt, detector,
                                        aduThreshold=aduThreshold, 
                                        hitscoreThreshold=hitScoreThreshold,
-                                       hitscoreMax=400000 )
+                                       mask=mask_center_s)
 
     hit = bool(evt["analysis"]["litpixel: isHit"].data)
     plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"],

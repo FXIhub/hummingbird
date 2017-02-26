@@ -92,7 +92,7 @@ class Frms6_reader():
         self.file_header.parse(self.fname)
         self.nx = self.file_header.the_width
         self.ny = self.file_header.the_max_height
-        print 'nx ny =', self.nx, self.ny
+        #print 'nx ny =', self.nx, self.ny
         if offset is None:
             self.offset = self.arg_reshape(np.zeros((self.nx, self.ny)))
         else:
@@ -122,7 +122,7 @@ class Frms6_reader():
             curr_pos += self.file_header.fh_length + 2*self.nx*self.ny
             
             if raw_frame.size < self.nx*self.ny:
-                print 'Frame size = %d < %d' % (raw_frame.size, self.nx*self.ny)
+                #print 'Frame size = %d < %d' % (raw_frame.size, self.nx*self.ny)
                 self.frame_headers = self.frame_headers[:-1]
                 break
             self.frames.append(self.arg_reshape(raw_frame)-self.offset)
