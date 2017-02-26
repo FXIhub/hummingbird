@@ -72,9 +72,18 @@ class FLASHTranslator(object):
         else:
             if ipc.mpi.slave_rank() == 0:
                 sys.stderr.write('Waiting for file list to update\n')
+                if self.do_offline:
+                        print 'closing'
+                        return None
             while True:
+                nn = 0
                 while not self.new_file_check(force=True):
-                    time.sleep(0.1)
+                    
+                    time.sleep(.1)
+                    #print 'waiting for new file...'
+                    if self.do_offline:
+                        print 'closing'
+                        return None
                 self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
                 
                 if len(self.reader.frames) > 0:
@@ -152,8 +161,8 @@ class FLASHTranslator(object):
             self.get_dark()
             
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
-            print("create reader!")
-            print("Using dark: {0}".format(self.current_dark))
+            #print("create reader!")
+            #print("Using dark: {0}".format(self.current_dark))
             self.num = 0
             self.current_fname = latest_fname
             return True
