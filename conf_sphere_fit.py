@@ -2,6 +2,7 @@
 import analysis.event
 import analysis.hitfinding
 import analysis.pixel_detector
+import analysis.sizing
 import plotting.image
 import plotting.line
 import plotting.correlation
@@ -33,7 +34,7 @@ ny=1024
 nx=1024
 pixel_size=7.5e-05
 
-center_shift=(gap_top-gap_bottom)/pixel_size
+center_shift=int((gap_top-gap_bottom)/pixel_size)
 
 # Quick config parameters
 # hitScoreThreshold = 9000
@@ -69,14 +70,14 @@ mask_center &= rr
 binning = 4
 
 centerParams = {'x0'       : (512 - (nx-1)/2.)/binning,
-                'y0'       : (512 + center_shift - (ny-1)/2.)/binning,
-                'maxshift' : int(numpy.ceil(10./binning)),
+                'y0'       : (512 + center_shift -(ny-1)/2.)/binning,
+                'maxshift' : int(np.ceil(10./binning)),
                 'threshold': 1,
                 'blur'     : 4}
 
-modelParams = {'wavelength': 5.2, 
-               'pixelsize': pixel_size/binning,
-               'distance': 220., 
+modelParams = {'wavelength': 5.2, #in nm
+               'pixelsize': 75*binning, #um
+               'distance': 220., #mm
                'material': 'sucrose'}
 
 sizingParams = {'d0':20., # in nm
@@ -97,14 +98,6 @@ fit_error_threshold = 2.6E-3#4.0e-3
 photon_error_threshold = 3000
 diameter_min = 5  #[nm]
 diameter_max = 50 #[nm]
-
-# Patterson
-# ---------
-patterson_threshold = 5.
-patterson_floor_cut = 50.
-patterson_mask_smooth = 5.
-patterson_diameter = 60. #4 * expected_diameter * 1E-9 / res
-multiple_score_threshold = 200.
 
 def calculate_epoch_times(evt, time_sec, time_usec):
     add_record(evt['ID'], 'ID', 'time', time_sec.data + 1.e-6*time_usec.data)
@@ -172,90 +165,82 @@ def onEvent(evt):
     if hit:
         plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Hits)", group='Images', mask=mask_center_s)
         if do_sizing:
+            # Crop to 1024 x 1024
+            Nx,Ny=np.shape(evt[detector_type][detector_key].data)
+            diff_y=Ny-1024
+            cropped_img=evt[detector_type][detector_key].data[:,diff_y/2:-(diff_y/2)]
+            add_record(evt["analysis"], "analysis", "data-cropped", cropped_img)
+            detector_key = "data-cropped"
+            cropped_mask=mask_center_s[:,diff_y/2:-(diff_y/2)]
+            add_record(evt["analysis"], "analysis", "mask-cropped", cropped_mask)
+            mask_center_fit_s = evt['analysis']['mask-cropped'].data
+            
+            # Binning
+            analysis.pixel_detector.bin(evt, detector_type, detector_key, binning, mask_center_fit_s)
+            mask_binned = evt["analysis"]["binned mask - " + detector_key].data
+            detector_type_b = "analysis"
+            detector_key_b = "binned image - " + detector_key
+            
+            # CENTER DETERMINATION
+            analysis.sizing.findCenter(evt, detector_type_b, detector_key_b, mask=mask_binned, **centerParams)
+            # RADIAL AVERAGE
+            analysis.pixel_detector.radial(evt, detector_type_b, detector_key_b, mask=mask_binned, cx=evt["analysis"]["cx"].data, cy=evt["analysis"]["cy"].data)          
+            # FIT SPHERE MODEL
+            analysis.sizing.fitSphereRadial(evt, "analysis", "radial distance - " + detector_key_b, "radial average - " + detector_key_b, **dict(modelParams, **sizingParams))
+            # DIFFRACTION PATTERN FROM FIT
+            analysis.sizing.sphereModel(evt, "analysis", "offCenterX", "offCenterY", "diameter", "intensity", (ny/binning,nx/binning), poisson=False, **modelParams)
+            # RADIAL AVERAGE FIT
+            analysis.pixel_detector.radial(evt, "analysis", "fit", mask=mask_binned, cx=evt["analysis"]["cx"].data, cy=evt["analysis"]["cy"].data)
+            # ERRORS
+            #analysis.sizing.photon_error(evt, detector_type_b, detector_key_b, "analysis", "fit", adu_per_photon=144.)
+            #analysis.sizing.absolute_error(evt, detector_type_b, detector_key_b, "analysis", "fit", "absolute error")
+            msg = "diameter: %.2f nm \nIntensity: %.4f mJ/um2\nFit Error: %.2e" %(evt["analysis"]["diameter"].data, evt["analysis"]["intensity"].data, evt["analysis"]["fit error"].data)
+            # Selection of good fits
+            small_fit_error    = evt['analysis']['fit error'].data    < fit_error_threshold
+            #small_photon_error = evt['analysis']['photon error'].data < photon_error_threshold
+            correctsized_hit = small_fit_error #and small_photon_error
 
-  # Crop to 1024 x 1024
-        analysis.pixel_detector.cropAndCenter(evt, evt[detector_type][detector_key], w=1024, h=1024, outkey='data-cropped')
-        detector_key = "data-cropped"
-        analysis.pixel_detector.cropAndCenter(evt, add_record(evt["analysis"], "analysis", "mask", mask_center_s), w=1024, h=1024, outkey='mask-cropped')
-        mask_center_fit_s = evt['analysis']['mask-cropped'].data
-
-        # Binning
-        analysis.pixel_detector.bin(evt, detector_type, detector_key, binning, mask_center_fit_s)
-        mask_binned = evt["analysis"]["binned mask - " + detector_key].data
-        detector_type_b = "analysis"
-        detector_key_b = "binned image - " + detector_key
-        
-        # CENTER DETERMINATION
-        analysis.sizing.findCenter(evt, detector_type_b, detector_key_b, mask=mask_binned, **centerParams)
-        # RADIAL AVERAGE
-        analysis.pixel_detector.radial(evt, detector_type_b, detector_key_b, mask=mask_binned, cx=evt["analysis"]["cx"].data, cy=evt["analysis"]["cy"].data)          
-        # FIT SPHERE MODEL
-        analysis.sizing.fitSphereRadial(evt, "analysis", "radial distance - " + detector_key_b, "radial average - " + front_key_b, **dict(modelParams, **sizingParams))
-        # DIFFRACTION PATTERN FROM FIT
-        analysis.sizing.sphereModel(evt, "analysis", "offCenterX", "offCenterY", "diameter", "intensity", (ny_front/binning,nx_front/binning), poisson=False, **modelParams)
-        # RADIAL AVERAGE FIT
-        analysis.pixel_detector.radial(evt, "analysis", "fit", mask=mask_binned, cx=evt["analysis"]["cx"].data, cy=evt["analysis"]["cy"].data)
-        # ERRORS
-        analysis.sizing.photon_error(evt, detector_type_b, detector_key_b, "analysis", "fit", 144.)
-        analysis.sizing.absolute_error(evt, detector_type_b, detector_key_b, "analysis", "fit", "absolute error")
-        msg = "diameter: %.2f nm \nIntensity: %.4f mJ/um2\nError: %.2e; %.2e; %.2e" %(evt["analysis"]["diameter"].data, evt["analysis"]["intensity"].data, evt["analysis"]["photon error"].data, evt["analysis"]["absolute error"].data.sum(), evt["analysis"]["fit error"].data)
-        # Selection of good fits
-        small_fit_error    = evt['analysis']['fit error'].data    < fit_error_threshold
-        small_photon_error = evt['analysis']['photon error'].data < photon_error_threshold
-        correctsized_hit = small_fit_error and small_photon_error
-
-        # Select only events in a certain diameter window
-        diameter = evt['analysis']['diameter'].data
-        correctsized_hit &= ((diameter > diameter_min) & (diameter < diameter_max))
-
-        # Plot errors
-        plotting.line.plotHistory(evt["analysis"]["fit error"], history=1000, hline=fit_error_threshold, group='Sizing')
-        plotting.line.plotHistory(evt["analysis"]["photon error"], history=1000, hline=photon_error_threshold, group='Sizing')
-        #plotting.line.plotHistory(evt["analysis"]["absolute error"], history=1000, group='Sizing')
-        #time.sleep(0.05)
-        if do_showhybrid:
-            # HYBRID PATTERN
-            hybrid = evt["analysis"]["fit"].data.copy()
-            hybrid[:,512/binning:] = evt[detector_type_b][detector_key_b].data[:,512/binning:]
-            add_record(evt["analysis"], "analysis", "Hybrid pattern", hybrid)
+            # Select only events in a certain diameter window
+            diameter = evt['analysis']['diameter'].data
+            print diameter
+            plotting.histogram.plotHistogram(evt["analysis"]["diameter"], bins=100, name="Histogram: Particle size", group="Sizing", hmin=20, hmax=100, buffer_length=1000)
+            #correctsized_hit &= ((diameter > diameter_min) & (diameter < diameter_max))
+            
+            # Plot errors
+            plotting.line.plotHistory(evt["analysis"]["fit error"], history=1000, hline=fit_error_threshold, group='Sizing')
+            #plotting.line.plotHistory(evt["analysis"]["photon error"], history=1000, hline=photon_error_threshold, group='Sizing')
+            #plotting.line.plotHistory(evt["analysis"]["absolute error"], history=1000, group='Sizing')
+            #time.sleep(0.05)
+            if do_showhybrid:
+                # HYBRID PATTERN
+                hybrid = evt["analysis"]["fit"].data.copy()
+                hybrid[:,512/binning:] = evt[detector_type_b][detector_key_b].data[:,512/binning:]
+                add_record(evt["analysis"], "analysis", "Hybrid pattern", hybrid)
+                
+                plotting.image.plotImage(evt["analysis"]["Hybrid pattern"], 
+                                         name="Hybrid pattern ", msg=msg, group='Sizing')
+                
+                plotting.image.plotImage(evt["analysis"]["Hybrid pattern"], 
+                                         name="Hybrid pattern / log", 
+                                         vmax=1e4, log=True, 
+                                         msg=msg, group='Sizing')
+                        
 
             if correctsized_hit:
-                plotting.image.plotImage(evt["analysis"]["Hybrid pattern"], 
-                                         name="Hybrid pattern (good)", vmin=evt['analysis']['gain'].data, 
-                                         msg=msg, group='Sizing')
-
-                plotting.image.plotImage(evt["analysis"]["Hybrid pattern"], 
-                                         name="Hybrid pattern (good) / log", vmin=evt['analysis']['gain'].data, vmax=1e4, log=True, 
-                                         msg=msg, group='Sizing')
-            else:
-                plotting.image.plotImage(evt["analysis"]["Hybrid pattern"], mask=mask_front_b, 
-                                         name="Hybrid pattern (bad)", vmin=evt['analysis']['gain'].data, vmax=1e4, log=True,
-                                         msg=msg, group='Sizing')
-
-        if correctsized_hit:
-            # Plot Correct sized hits
-            plotting.image.plotImage(evt[detector_type][detector_key], group='Sizing', 
-                                 msg=msg, name="pnCCD front (correct hit)")#, mask=mask_front_s)
-
-            # Plot Intensity
-            plotting.line.plotHistory(evt["analysis"]["intensity"], history=10000, 
-                                      name ='Intensity (from sizing)', group='Results')
-            # Plot size (in nm)
-            plotting.line.plotHistory(evt["analysis"]["diameter"], history=10000, 
-                                      name = 'Size in nm (from sizing)', group='Results')
-            # Normalizing intensity to pulse energy (assuming 1mJ on average)
-            #intensity_normalized = (evt['analysis']['intensity'].data / evt['analysis']['averagePulseEnergy'].data) * 1.0
-            #add_record(evt['analysis'], 'analysis', 'intensity_normalized', intensity_normalized)
-
-            # Plot Intensity (normalized)
-            plotting.line.plotHistory(evt['analysis']['intensity'], history=10000, 
-                                      name = 'Intensity normalized (from sizing)', group='Results')
-
-            # Center position
-            plotting.correlation.plotMeanMap(evt["analysis"]["cx"], evt["analysis"]["cy"],
-                                             intensity_normalized, group='Results',
-                                             name='Wavefront (center vs. intensity)', 
-                                             xmin=-10, xmax=10, xbins=21,
-                                             ymin=-10, ymax=10, ybins=21,
-                                             xlabel='Center position in x', ylabel='Center position in y')
+                # Plot Correct sized hits
+                plotting.image.plotImage(evt[detector_type][detector_key], group='Sizing', msg=msg, name="pnCCD front (correct hit)")#, mask=mask_front_s)
+                
+                # Plot Intensity
+                plotting.line.plotHistory(evt["analysis"]["intensity"], history=10000, name ='Intensity (from sizing)', group='Results')
+                # Plot size (in nm)
+                plotting.line.plotHistory(evt["analysis"]["diameter"], history=10000, name = 'Size in nm (from sizing)', group='Results')
+                # Normalizing intensity to pulse energy (assuming 1mJ on average)
+                #intensity_normalized = (evt['analysis']['intensity'].data / evt['analysis']['averagePulseEnergy'].data) * 1.0
+                #add_record(evt['analysis'], 'analysis', 'intensity_normalized', intensity_normalized)
+                
+                # Plot Intensity (normalized)
+                plotting.line.plotHistory(evt['analysis']['intensity'], history=10000, name = 'Intensity normalized (from sizing)', group='Results')
+                
+                # Center position
+                #plotting.correlation.plotMeanMap(evt["analysis"]["cx"], evt["analysis"]["cy"], intensity_normalized, group='Results',name='Wavefront (center vs. intensity)', xmin=-10, xmax=10, xbins=21, ymin=-10, ymax=10, ybins=21, xlabel='Center position in x', ylabel='Center position in y')
 
