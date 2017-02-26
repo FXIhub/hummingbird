@@ -1,3 +1,4 @@
+
 # --------------------------------------------------------------------------------------
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
@@ -98,6 +99,7 @@ class Worker(object):
             self.event_loop()
         elif ipc.mpi.is_master():
             print 'Starting master loop ...'
+            print 'loop2'
             self.event_loop()            
         if 'end_of_run' in dir(Worker.conf) and not ipc.mpi.is_master():
             print 'End of run (worker %i/%i) ...' % (ipc.mpi.worker_index()+1, ipc.mpi.nr_workers())
