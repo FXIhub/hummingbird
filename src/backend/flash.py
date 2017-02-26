@@ -75,9 +75,18 @@ class FLASHTranslator(object):
         else:
             if ipc.mpi.slave_rank() == 0:
                 sys.stderr.write('Waiting for file list to update\n')
+                if self.do_offline:
+                        print 'closing'
+                        return None
             while True:
+                nn = 0
                 while not self.new_file_check(force=True):
-                    time.sleep(0.1)
+                    
+                    time.sleep(.1)
+                    #print 'waiting for new file...'
+                    if self.do_offline:
+                        print 'closing'
+                        return None
                 self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
                 
                 if len(self.reader.frames) > 0:
