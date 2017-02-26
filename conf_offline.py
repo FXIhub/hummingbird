@@ -5,62 +5,69 @@ import plotting.image
 import plotting.line
 import plotting.correlation
 import plotting.histogram
+import utils.cxiwriter
+import ipc
 from backend.record import add_record
 import numpy as np
-import time
-import ipc
-import h5writer
-import utils.cxiwriter
-import os
-import sys
-from random import randint
+import time, os, sys
 
+# Commandline arguments
+from utils.cmdline_args import argparser, add_config_file_argument
+#add_config_file_argument('--out-dir', metavar='out_dir', nargs='?',
+#                         help='Output directory', required=True,
+#                         type=str)
+add_config_file_argument('--hitscore-threshold', metavar='INT',
+                         help='Hitscore threshold', type=int)
+add_config_file_argument('--run-nr', metavar='INT',
+                         help='Run number', type=int, required=True)
+add_config_file_argument('--dark-nr', metavar='INT',
+                         help='Run number of dark', type=int, required=True)
+args = argparser.parse_args()
+
+# Save data to file
 do_write=True
 
-
-scanInjector = True
-scanXmin = 0
-scanXmax = 10
+# Send plots when doing injector scans
+scanInjector = False
+scanXmin  = 0
+scanXmax  = 10
 scanXbins = 20
-scanZmin = 0
-scanZmax = 10
+scanZmin  = 0
+scanZmax  = 10
 scanZbins = 20
 
+# Send every image
 outputEveryImage = False
 
 # Quick config parameters
-# hitScoreThreshold = 9000
-# aduThreshold = 200
-hitScoreThreshold = 5000
+if args.hitscore_threshold:
+    hitScoreThreshold = args.hitscore_threshold
+else:
+    hitScoreThreshold = 5000
 aduThreshold = 200
+
+# Path to rawdata
+base_path = '/asap3/flash/gpfs/bl1/2017/data/11001733/' 
 
 # Specify the facility
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
-state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-01/holography_G001_20170223_0009_*.frms6"
-state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-01/*.darkcal.h5"
-state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq/"
+
+state['FLASH/DataGlob']    = base_path + "raw/pnccd/block-*/holography_*_2017*_%04d_*.frms6" %args.run_nr
+state['FLASH/CalibGlob']   = base_path + "processed/calib/block-*/calib_*_%04d.darkcal.h5"   %args.dark_nr
+state['FLASH/DAQFolder']   = base_path + "processed/daq/"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['do_offline'] = True
+state['reduce_nr_event_readers'] = 1
 #state['FLASH/ProcessingRate'] = 1
 
-run_num=120
-w_dir = "/data/beamline/current/scratch_bl/gijs/%.3d" % run_num
-
-try:
-    os.makedirs(w_dir)
-except OSError:
-    pass
+# Output directory
+w_dir = base_path + "processed/hummingbird/"
 
 def beginning_of_run():
     global W
-    W = utils.cxiwriter.CXIWriter(w_dir + "/r%04d.h5" % run_num, chunksize=1)
-
-def end_of_run():
-    W.close(barrier=True)
-    if ipc.mpi.is_main_event_reader():
-        print "Clean exit"
+    W = utils.cxiwriter.CXIWriter(w_dir + "/r%04d.h5" %args.run_nr, chunksize=10)
 
 def calculate_epoch_times(evt, time_sec, time_usec):
     add_record(evt['ID'], 'ID', 'time', time_sec.data + 1.e-6*time_usec.data)
@@ -69,11 +76,19 @@ def calculate_epoch_times(evt, time_sec, time_usec):
     #add_record(evt['ID'], 'ID', 'timeAgo', -606. + time.time() - (time_sec.data + 1.e-6*time_usec.data))
     add_record(evt['ID'], 'ID', 'timeAgo', 0. + time.time() - (time_sec.data + 1.e-6*time_usec.data))
 
+# Counter
+counter = -1
+
 # This function is called for every single event
 # following the given recipe of analysis
 def onEvent(evt):
+
+    # Increment the counter
+    global counter
+    counter += 1
+
     # Processing rate [Hz]
-    #analysis.event.printProcessingRate()
+    analysis.event.printProcessingRate()
 
     # Calculate time and add to PlotHistory
     # calculate_epoch_times(evt, evt["ID"]["tv_sec"], evt["ID"]["tv_usec"])
@@ -122,5 +137,11 @@ def onEvent(evt):
     if do_write:
         D = {}
         D['back']  = evt["photonPixelDetectors"]["pnCCD"].data
-
         W.write_slice(D)
+        #print "Writing to file, %d" %counter
+
+def end_of_run():
+    #W.close(barrier=True)
+    W.close()
+    if ipc.mpi.is_main_event_reader():
+        print "Clean exit"

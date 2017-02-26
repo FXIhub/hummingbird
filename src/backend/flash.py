@@ -72,20 +72,14 @@ class FLASHTranslator(object):
         else:
             if ipc.mpi.slave_rank() == 0:
                 sys.stderr.write('Waiting for file list to update\n')
-                if self.do_offline:
-                        print 'closing'
-                        return None
             while True:
-                nn = 0
                 while not self.new_file_check(force=True):
-                    
                     time.sleep(.1)
                     #print 'waiting for new file...'
                     if self.do_offline:
-                        print 'closing'
+                        print 'Rank %d is closing' % ipc.mpi.rank
                         return None
                 self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
-                
                 if len(self.reader.frames) > 0:
                     evt['pnCCD'] = self.reader.frames[0]
                     self.keys.add('photonPixelDetectors')
@@ -146,6 +140,9 @@ class FLASHTranslator(object):
             else:
                 if force and self.fnum < len(flist) - 1:
                     self.fnum += 1
+                if self.fnum == len(flist):
+                    print "No more files to process", force, self.fnum
+                    return False
             latest_fname = flist[self.fnum]
             file_size = os.path.getsize(latest_fname)
         else:
