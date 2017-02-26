@@ -10,7 +10,7 @@ import numpy as np
 import time
 import ipc
 
-scanInjector = False
+scanInjector = True
 scanXmin = 88
 scanXmax = 100
 scanXbins = 220/2
@@ -30,10 +30,11 @@ aduThreshold = 200
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
-state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-01/holography*0023*.frms6"
+state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-01/holography*001*.frms6"
 state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-01/*.darkcal.h5"
 state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq/"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
+state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-01/exp2/"
 state['do_offline'] = False
 #state['FLASH/ProcessingRate'] = 1
 
@@ -97,3 +98,4 @@ def onEvent(evt):
         plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (Hits)", group='Images')
 
     #time.sleep(0.05)
+    #time.sleep(0.01)

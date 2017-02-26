@@ -53,10 +53,10 @@ base_path = '/asap3/flash/gpfs/bl1/2017/data/11001733/'
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
-
 state['FLASH/DataGlob']    = base_path + "raw/pnccd/block-*/holography_*_2017*_%04d_*.frms6" %args.run_nr
 state['FLASH/CalibGlob']   = base_path + "processed/calib/block-*/calib_*_%04d.darkcal.h5"   %args.dark_nr
 state['FLASH/DAQFolder']   = base_path + "processed/daq/"
+state['FLASH/DAQBaseDir']  = base_path + "raw/hdf/block-01/exp2/"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['do_offline'] = True
 state['reduce_nr_event_readers'] = 1
@@ -95,6 +95,17 @@ def onEvent(evt):
     # plotting.line.plotHistory(evt['ID']['timeAgo'], label='Event Time (s)', group='ID')
     # plotting.line.plotHistory(evt['ID']['tv_sec'], label='Epoch Time (s)', group='ID')
 
+    try:
+        tof = evt["DAQ"]["TOF"]
+        #tof = evt["TOF"]
+        print tof.data
+    except RuntimeError:
+        #print("No TOF data found")
+        tof = None
+
+    if tof is not None:
+        plotting.line.plotTrace(tof, label='TOF Trace', group="TOF", history=10000)
+
     # Do basic hitfinding using lit pixels
     analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["pnCCD"], 
                                        aduThreshold=aduThreshold, 
@@ -116,7 +127,6 @@ def onEvent(evt):
         plotting.correlation.plotScatter(evt["motorPositions"]["InjectorZ"], evt['analysis']['litpixel: hitscore'], 
                                          name='InjectorZ vs Hitscore', xlabel='InjectorZ', ylabel='Hit Score',
                                          group='Scan')
-        print("InjectorX = {0}".format(evt["motorPositions"]["InjectorX"].data))
         
     if outputEveryImage:
         plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (All)", group='Images')
@@ -138,7 +148,6 @@ def onEvent(evt):
         D = {}
         D['back']  = evt["photonPixelDetectors"]["pnCCD"].data
         W.write_slice(D)
-        #print "Writing to file, %d" %counter
 
 def end_of_run():
     #W.close(barrier=True)
