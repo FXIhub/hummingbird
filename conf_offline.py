@@ -13,15 +13,15 @@ import time, os, sys
 
 # Commandline arguments
 from utils.cmdline_args import argparser, add_config_file_argument
-#add_config_file_argument('--out-dir', metavar='out_dir', nargs='?',
-#                         help='Output directory', required=True,
-#                         type=str)
 add_config_file_argument('--hitscore-threshold', metavar='INT',
                          help='Hitscore threshold', type=int)
 add_config_file_argument('--run-nr', metavar='INT',
                          help='Run number', type=int, required=True)
 add_config_file_argument('--dark-nr', metavar='INT',
                          help='Run number of dark', type=int, required=True)
+add_config_file_argument('--output-level', type=int, 
+                         help='Output level (1: small data for all events, 2: tof data for hits, 3: pnccd data for hits',
+                         default=3)
 args = argparser.parse_args()
 
 # Save data to file
@@ -65,9 +65,15 @@ state['reduce_nr_event_readers'] = 1
 # Output directory
 w_dir = base_path + "processed/hummingbird/"
 
+# Output levels
+level = args.output_level
+save_anything = level > 0
+save_tof = level >= 2                                                                                                      
+save_pnccd = level >= 3 
+
 def beginning_of_run():
     global W
-    W = utils.cxiwriter.CXIWriter(w_dir + "/r%04d.h5" %args.run_nr, chunksize=10)
+    W = utils.cxiwriter.CXIWriter(w_dir + "/r%04d_ol%d.h5" %(args.run_nr, level), chunksize=10)
 
 def calculate_epoch_times(evt, time_sec, time_usec):
     add_record(evt['ID'], 'ID', 'time', time_sec.data + 1.e-6*time_usec.data)
@@ -90,18 +96,19 @@ def onEvent(evt):
     # Processing rate [Hz]
     analysis.event.printProcessingRate()
 
-    # Calculate time and add to PlotHistory
-    # calculate_epoch_times(evt, evt["ID"]["tv_sec"], evt["ID"]["tv_usec"])
-    # plotting.line.plotHistory(evt['ID']['timeAgo'], label='Event Time (s)', group='ID')
-    # plotting.line.plotHistory(evt['ID']['tv_sec'], label='Epoch Time (s)', group='ID')
-
+    # Read ToF traces
     try:
         tof = evt["DAQ"]["TOF"]
-        #tof = evt["TOF"]
-        print tof.data
     except RuntimeError:
-        #print("No TOF data found")
         tof = None
+
+    # Read FEL parameters
+    try:
+        wavelength_nm = evt['FEL']['wavelength'].data
+        gmd = evt['FEL']['gmd'].data
+    except RuntimeError:
+        wavelength_nm = np.nan
+        gmd = np.nan
 
     if tof is not None:
         plotting.line.plotTrace(tof, label='TOF Trace', group="TOF", history=10000)
@@ -130,24 +137,51 @@ def onEvent(evt):
         
     if outputEveryImage:
         plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (All)", group='Images')
-
     if ipc.mpi.is_main_worker():
         plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]', group='Metric', history=10000)
-        # plotting.correlation.plotMeanMap(evt['motorPositions']['nozzle_x'], evt['motorPositions']['nozzle_y'],
-        #                              #evt['analysis']['litpixel: hitscore'].data / 1e5, 
-        #                              evt['analysis']['hitrate'].data, 
-        #                              xmin=0.68, xmax=0.72, ymin=4.20, ymax=4.23,
-        #                              name='Hitscore mean map vs nozzle_xy',
-        #                              xlabel='nozzle_x (mm)', 
-        #                              ylabel='nozzle_y (mm)',
-        #                              group='Metric')
     if hit:
         plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (Hits)", group='Images')
 
     if do_write:
-        D = {}
-        D['back']  = evt["photonPixelDetectors"]["pnCCD"].data
-        W.write_slice(D)
+        if hit and save_anything:
+            D = {}
+            D['entry_1'] = {}
+            if save_pnccd:
+                D['entry_1']['detector_1'] = {}
+            if save_tof:
+                D['entry_1']['detector_2'] = {}
+            D['entry_1']['event'] = {}
+            D['entry_1']['injector'] = {}
+            D['entry_1']['FEL'] = {}
+            D['entry_1']['result_1'] = {}
+
+            # PNCCD
+            if save_pnccd:
+                D['entry_1']['detector_1']['data'] = numpy.asarray(evt["photonPixelDetectors"]["pnCCD"].data, dtype='float16')
+                # TODO: Save mask and gain
+        
+            # TOF
+            if save_tof and tof:
+                D['entry_1/']['detector_2'] = tof
+            
+            # FEL PARAMETERS
+            D['entry_1']['FEL']['gmd'] = gmd
+            D['entry_1']['FEL']['wavelength_nm'] = wavelength_nm
+
+            # HIT PARAMETERS
+            D['entry_1']['result_1']['hitscore_litpixel'] = evt['analysis']['litpixel: hitscore'].data
+            D['entry_1']['result_1']['hitscore_litpixel_threshold'] = hitScoreThreshold
+        
+            # EVENT IDENTIFIERS
+            D['entry_1']['event']['bunch_id']   = evt['ID']['BunchID'].data
+            D['entry_1']['event']['tv_sec']     = evt['ID']['tv_sec'].data
+            D['entry_1']['event']['tv_usec']    = evt['ID']['tv_usec'].data
+            D['entry_1']['event']['dataset_id'] = evt['ID']['DataSetID'].data
+            D['entry_1']['event']['bunch_sec']  = evt['ID']['bunch_sec'].data 
+        
+            # TODO: INJECTOR
+            # TODO: FEL
+            W.write_slice(D)
 
 def end_of_run():
     #W.close(barrier=True)

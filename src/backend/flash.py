@@ -115,7 +115,7 @@ class FLASHTranslator(object):
             add_record(values, key, 'pnCCD', evt['pnCCD'], ureg.ADU)
         elif key == 'motorPositions':
             #val = motors.get(self.reader.frame_headers[-1].tv_sec + self.time_offset)
-            val = self.motors.get(self.get_bunch_time())
+            val = self.motors.get(self.get_bunch_time()[0])
             if val is None:
                 raise RuntimeError('%s not found in event' % key)
             for motorname,motorpos in val.iteritems():
@@ -125,12 +125,23 @@ class FLASHTranslator(object):
             add_record(values, key, 'BunchID', self.reader.frame_headers[-1].external_id)
             add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec, ureg.s)
             add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec, ureg.s)
-            add_record(values, key, 'bunch_sec', self.get_bunch_time(), ureg.s)
+            add_record(values, key, 'bunch_sec', self.get_bunch_time()[0], ureg.s)
         elif key == "DAQ":
             if "TOF" in evt:
                 add_record(values, key, "TOF", evt["TOF"], ureg.s)
             else:
                 raise RuntimeError("{0} not found in event".format(key))
+        elif key == "FEL":
+            wl = self.get_wavelength(self.get_bunch_time()[1])
+            if wl is not None:
+                add_record(values, key, "wavelength", wl, ureg.nm)
+            else:
+                raise RuntimeError("%s not found in event" %key)
+            gmd = self.get_gmd(self.get_bunch_time()[1])
+            if gmd is not None:
+                add_record(values, key, "gmd", gmd, ureg.mJ)
+            else:
+                raise RuntimeError("%s not found in event" %key)
         elif not key == 'analysis':
             raise RuntimeError('%s not found in event' % key)
         
@@ -174,7 +185,7 @@ class FLASHTranslator(object):
             self.get_dark()
             
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
-            print("Using dark: {0}".format(self.current_dark))
+            #print("Using dark: {0}".format(self.current_dark))
             self.num = 0
             self.current_fname = latest_fname
             return True
@@ -214,10 +225,24 @@ class FLASHTranslator(object):
                 lines = list(set(f.readlines()))
             self.daq_lines = [l.split() for l in lines]
             self.bunch_ids = numpy.array([int(l[1]) for l in self.daq_lines])
+            self.wavelengths = numpy.array([float(l[2]) for l in self.daq_lines])
+            self.gmds = numpy.array([float(l[3]) for l in self.daq_lines])
             print 'DAQ file:', filename, 'max id = %d, min id = %d' % (self.bunch_ids.max(), self.bunch_ids.min())
         locations = numpy.where(self.bunch_ids == self.reader.frame_headers[-1].external_id)[0]
         if len(locations) < 1:
-            return self.reader.frame_headers[-1].tv_sec+self.time_offset
+            return self.reader.frame_headers[-1].tv_sec+self.time_offset, None
         else:
-            return int(self.daq_lines[locations[0]][0])
+            return int(self.daq_lines[locations[0]][0]), locations[0]
+
+    def get_wavelength(self, daq_index):
+        if daq_index is not None:
+            return self.wavelengths[daq_index]
+        
+    def get_gmd(self, daq_index):
+        if daq_index is not None:
+            return self.gmds[daq_index]
+        
+        
+
+        
          
