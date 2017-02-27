@@ -2,6 +2,7 @@
 import analysis.event
 import analysis.hitfinding
 import analysis.pixel_detector
+import analysis.patterson
 import plotting.image
 import plotting.line
 import plotting.correlation
@@ -22,29 +23,20 @@ import params
 from utils.cmdline_args import argparser, add_config_file_argument
 add_config_file_argument('--hitscore-threshold', metavar='INT',
                          help='Hitscore threshold', type=int)
+add_config_file_argument('--multiscore-threshold', metavar='INT',
+                         help='Multiscore threshold', type=int)
 add_config_file_argument('--run-nr', metavar='INT',
                          help='Run number', type=int, required=True)
 add_config_file_argument('--dark-nr', metavar='INT',
                          help='Run number of dark', type=int)
 add_config_file_argument('--output-level', type=int, 
-                         help='Output level (1: small data for all events, 2: tof data for hits, 3: pnccd data for hits',
+                         help='Output level (1: small data for all events, 2: tof data for hits, \
+                               3: pnccd data for hits, 4: all data for multiple hits)',
                          default=3)
 args = argparser.parse_args()
 
 # Save data to file
 do_write=True
-
-# Send plots when doing injector scans
-scanInjector = False
-scanXmin  = 0
-scanXmax  = 10
-scanXbins = 20
-scanZmin  = 0
-scanZmax  = 10
-scanZbins = 20
-
-# Send every image
-outputEveryImage = False
 
 # Geometry
 move_half = True
@@ -62,12 +54,18 @@ nx=1024
 pixel_size=7.5e-05
 center_shift=int((gap_top-gap_bottom)/pixel_size)
 
-# Quick config parameters
+# Hitscore threshold
 if args.hitscore_threshold:
     hitScoreThreshold = args.hitscore_threshold
 else:
     hitScoreThreshold = p['hitscoreThreshold']
 aduThreshold = 200
+
+# Multiscore threshold
+if args.multiscore_threshold:
+    multiScoreThreshold = args.multiscore_threshold
+else:
+    multiscoreThreshold = p['multiscoreThreshold']
 
 # Dark file
 if args.dark_nr:
@@ -103,11 +101,18 @@ rr=(xx-nx/2)**2+(yy-ny/2)**2 >= (radius**2)
 mask_center &= rr
 mask_center &= mask
 
+# Patterson
+patterson_threshold = 5.
+patterson_floor_cut = 50.
+patterson_mask_smooth = 5.
+patterson_diameter = 60.
+
 # Output levels
 level = args.output_level
 save_anything = level > 0
 save_tof = level >= 2                                                                                                      
 save_pnccd = level >= 3 
+save_multiple = level >= 4
 
 # Output directory
 w_dir = base_path + "processed/hummingbird/"
@@ -140,9 +145,6 @@ def onEvent(evt):
         wavelength_nm = np.nan
         gmd = np.nan
 
-    if tof is not None:
-        plotting.line.plotTrace(tof, label='TOF Trace', group="TOF", history=10000)
-
     # PNCCD
     detector_type = "photonPixelDetectors"
     detector_key  = "pnCCD"
@@ -163,30 +165,20 @@ def onEvent(evt):
                                        aduThreshold=aduThreshold, 
                                        hitscoreThreshold=hitScoreThreshold,
                                        mask=mask_center_s)
-
     hit = bool(evt["analysis"]["litpixel: isHit"].data)
-    plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"],
-                              label='Nr. of lit pixels', hline=hitScoreThreshold, group='Metric')
-    analysis.hitfinding.hitrate(evt, hit, history=5000)
 
-    if scanInjector:
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorX"], float(1 if hit else 0), hmin=scanXmin, hmax=scanXmax, bins=scanXbins, name="Histogram: InjectorX x Hitrate", group="Scan", buffer_length=1000)
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorZ"], float(1 if hit else 0), hmin=scanZmin, hmax=scanZmax, bins=scanZbins, name="Histogram: InjectorZ x Hitrate", group="Scan", buffer_length=1000)
+    # Find multiple hits based on patterson function
+    if hit and save_multiple:
+        analysis.patterson.patterson(evt, "analysis", "data_half-moved", mask_center_s, 
+                                     floor_cut=patterson_floor_cut,
+                                     mask_smooth=patterson_mask_smooth,
+                                     threshold=patterson_threshold,
+                                     diameter_pix=patterson_diameter,
+                                     crop=512, full_output=True)
+        print evt['analysis'].keys()
+        hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
 
-        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorX"], evt['analysis']['litpixel: hitscore'], 
-                                         name='InjectorX vs Hitscore', xlabel='InjectorX', ylabel='Hit Score',
-                                         group='Scan')
-        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorZ"], evt['analysis']['litpixel: hitscore'], 
-                                         name='InjectorZ vs Hitscore', xlabel='InjectorZ', ylabel='Hit Score',
-                                         group='Scan')
-        
-    if outputEveryImage:
-        plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (All)", group='Images')
-    if ipc.mpi.is_main_worker():
-        plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]', group='Metric', history=10000)
-    if hit:
-        plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (Hits)", group='Images')
-
+    # Write to file
     if do_write:
         if hit and save_anything:
             D = {}
@@ -210,7 +202,11 @@ def onEvent(evt):
                     D_solo["entry_1"] = {}
                     D_solo["entry_1"]["detector_1"] = {}
                     D_solo["entry_1"]["detector_1"]["mask"]= bitmask
-        
+            
+            # PATTERSON
+            if save_multiple:
+                D['entry_1']['detector_1']['patterson'] = np.asarray(evt['analysis']['patterson'].data, dtype='float16') 
+
             # TOF
             if save_tof and tof:
                 D['entry_1/']['detector_2']['data'] = tof
@@ -222,6 +218,8 @@ def onEvent(evt):
             # HIT PARAMETERS
             D['entry_1']['result_1']['hitscore_litpixel'] = evt['analysis']['litpixel: hitscore'].data
             D['entry_1']['result_1']['hitscore_litpixel_threshold'] = hitScoreThreshold
+            #D['entry_1']['result_1']['multiscore_patterson'] = evt['analysis']['multiple score'].data
+            #D['entry_1']['result_1']['multiscore_patterson_threshold'] = multiScoreThreshold
         
             # EVENT IDENTIFIERS
             D['entry_1']['event']['bunch_id']   = evt['ID']['BunchID'].data
@@ -246,6 +244,8 @@ def end_of_run():
             if save_pnccd:
                 f['entry_1/data_1'] = h5py.SoftLink('/entry_1/detector_1')
                 f['entry_1/detector_1/data'].attrs['axes'] = ['experiment_identifier:y:x']
+            if save_multiple:
+                f['entry_1/detector_1/patterson'].attrs['axes'] = ['experiment_identifier:y:x']
             if save_tof:
                 f['entry_1/data_2'] = h5py.SoftLink('/entry_1/detector_2')
                 #f['entry_1/detector_2/data'].attrs['axes'] = ['experiment_identifier:x']

@@ -226,7 +226,10 @@ class FLASHTranslator(object):
             self.daq_lines = [l.split() for l in lines]
             self.bunch_ids = numpy.array([int(l[1]) for l in self.daq_lines])
             self.wavelengths = numpy.array([float(l[2]) for l in self.daq_lines])
-            self.gmds = numpy.array([float(l[3]) for l in self.daq_lines])
+            try:
+                self.gmds = numpy.array([float(l[3]) for l in self.daq_lines])
+            except ValueError:
+                self.gmds = None
             #print 'DAQ file:', filename, 'max id = %d, min id = %d' % (self.bunch_ids.max(), self.bunch_ids.min())
         locations = numpy.where(self.bunch_ids == self.reader.frame_headers[-1].external_id)[0]
         if len(locations) < 1:
@@ -240,7 +243,8 @@ class FLASHTranslator(object):
         
     def get_gmd(self, daq_index):
         if daq_index is not None:
-            return self.gmds[daq_index]
+            if self.gmds is not None:
+                return self.gmds[daq_index]
         
         
 
