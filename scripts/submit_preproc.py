@@ -77,6 +77,8 @@ if __name__ == "__main__":
             s += "#SBATCH --partition=%s\n" % args.sbatch_partition
         else:
             s += "#SBATCH --partition=all\n"
+        s += "#SBATCH --reservation=beamline\n"
+        s += "#SBATCH --time=2:00:00\n"
         s += "#SBATCH --output=%s\n" % logfile
         cmd = "cd %s\n" % expdir
         cmd += "source %s; " % env
@@ -84,6 +86,8 @@ if __name__ == "__main__":
         cmd += "./hummingbird.py -b conf_offline.py --run-nr %i " % (run)
         if args.hitscore_threshold is not None:
             cmd += " --hitscore-threshold %i" % args.hitscore_threshold
+        if args.number_of_frames is not None:
+            cmd += " --nr-frames %i" %args.number_of_frames
         cmd += " --output-level %i" % args.output_level
         s += cmd + "\n"
         with open(slurm, "w") as f:
