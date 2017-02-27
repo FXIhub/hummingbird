@@ -28,6 +28,9 @@ RunNr;RunType;HitscoreThreshold;MultiscoreThreshold;DarkNr
 33;dark;-1;-1;33
 34;cluster;25000;-1;29
 35;void;-1;-1;29
+39;background;-1;-1;33
+40;background;-1;-1;33
+41;background;-1;-1;33
 42;void;-1;-1;29
 43;cluster;15000;-1;33
 44;;;;
