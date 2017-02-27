@@ -2,6 +2,7 @@
 import analysis.event
 import analysis.hitfinding
 import analysis.pixel_detector
+import analysis.patterson
 import plotting.image
 import plotting.line
 import plotting.correlation
@@ -112,6 +113,12 @@ rr=(xx-nx/2)**2+(yy-ny/2)**2 >= (radius**2)
 mask_center &= rr
 mask_center &= mask
 
+# Patterson
+patterson_threshold = 5.
+patterson_floor_cut = 50.
+patterson_mask_smooth = 5.
+patterson_diameter = 60.
+
 # Output levels
 level = args.output_level
 save_anything = level > 0
@@ -172,6 +179,17 @@ def onEvent(evt):
                                        mask=mask_center_s)
     hit = bool(evt["analysis"]["litpixel: isHit"].data)
 
+    # Find multiple hits based on patterson function
+    if hit and save_multiple:
+        analysis.patterson.patterson(evt, "analysis", "data_half-moved", mask_center_s, 
+                                     floor_cut=patterson_floor_cut,
+                                     mask_smooth=patterson_mask_smooth,
+                                     threshold=patterson_threshold,
+                                     diameter_pix=patterson_diameter,
+                                     crop=512, full_output=True)
+        print evt['analysis'].keys()
+        hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
+
     # Write to file
     if do_write:
         if hit and save_anything:
@@ -196,7 +214,11 @@ def onEvent(evt):
                     D_solo["entry_1"] = {}
                     D_solo["entry_1"]["detector_1"] = {}
                     D_solo["entry_1"]["detector_1"]["mask"]= bitmask
-        
+            
+            # PATTERSON
+            if save_multiple:
+                D['entry_1']['detector_1']['patterson'] = np.asarray(evt['analysis']['patterson'].data, dtype='float16') 
+
             # TOF
             if save_tof and tof:
                 D['entry_1/']['detector_2']['data'] = tof
@@ -208,6 +230,8 @@ def onEvent(evt):
             # HIT PARAMETERS
             D['entry_1']['result_1']['hitscore_litpixel'] = evt['analysis']['litpixel: hitscore'].data
             D['entry_1']['result_1']['hitscore_litpixel_threshold'] = hitScoreThreshold
+            #D['entry_1']['result_1']['multiscore_patterson'] = evt['analysis']['multiple score'].data
+            #D['entry_1']['result_1']['multiscore_patterson_threshold'] = multiScoreThreshold
         
             # EVENT IDENTIFIERS
             D['entry_1']['event']['bunch_id']   = evt['ID']['BunchID'].data
@@ -232,6 +256,8 @@ def end_of_run():
             if save_pnccd:
                 f['entry_1/data_1'] = h5py.SoftLink('/entry_1/detector_1')
                 f['entry_1/detector_1/data'].attrs['axes'] = ['experiment_identifier:y:x']
+            if save_multiple:
+                f['entry_1/detector_1/patterson'].attrs['axes'] = ['experiment_identifier:y:x']
             if save_tof:
                 f['entry_1/data_2'] = h5py.SoftLink('/entry_1/detector_2')
                 #f['entry_1/detector_2/data'].attrs['axes'] = ['experiment_identifier:x']
