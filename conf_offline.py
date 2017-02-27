@@ -22,12 +22,15 @@ import params
 from utils.cmdline_args import argparser, add_config_file_argument
 add_config_file_argument('--hitscore-threshold', metavar='INT',
                          help='Hitscore threshold', type=int)
+add_config_file_argument('--multiscore-threshold', metavar='INT',
+                         help='Multiscore threshold', type=int)
 add_config_file_argument('--run-nr', metavar='INT',
                          help='Run number', type=int, required=True)
 add_config_file_argument('--dark-nr', metavar='INT',
                          help='Run number of dark', type=int)
 add_config_file_argument('--output-level', type=int, 
-                         help='Output level (1: small data for all events, 2: tof data for hits, 3: pnccd data for hits',
+                         help='Output level (1: small data for all events, 2: tof data for hits, \
+                               3: pnccd data for hits, 4: all data for multiple hits)',
                          default=3)
 args = argparser.parse_args()
 
@@ -62,12 +65,18 @@ nx=1024
 pixel_size=7.5e-05
 center_shift=int((gap_top-gap_bottom)/pixel_size)
 
-# Quick config parameters
+# Hitscore threshold
 if args.hitscore_threshold:
     hitScoreThreshold = args.hitscore_threshold
 else:
     hitScoreThreshold = p['hitscoreThreshold']
 aduThreshold = 200
+
+# Multiscore threshold
+if args.multiscore_threshold:
+    multiScoreThreshold = args.multiscore_threshold
+else:
+    multiscoreThreshold = p['multiscoreThreshold']
 
 # Dark file
 if args.dark_nr:
@@ -108,6 +117,7 @@ level = args.output_level
 save_anything = level > 0
 save_tof = level >= 2                                                                                                      
 save_pnccd = level >= 3 
+save_multiple = level >= 4
 
 # Output directory
 w_dir = base_path + "processed/hummingbird/"
@@ -140,9 +150,6 @@ def onEvent(evt):
         wavelength_nm = np.nan
         gmd = np.nan
 
-    if tof is not None:
-        plotting.line.plotTrace(tof, label='TOF Trace', group="TOF", history=10000)
-
     # PNCCD
     detector_type = "photonPixelDetectors"
     detector_key  = "pnCCD"
@@ -163,30 +170,9 @@ def onEvent(evt):
                                        aduThreshold=aduThreshold, 
                                        hitscoreThreshold=hitScoreThreshold,
                                        mask=mask_center_s)
-
     hit = bool(evt["analysis"]["litpixel: isHit"].data)
-    plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"],
-                              label='Nr. of lit pixels', hline=hitScoreThreshold, group='Metric')
-    analysis.hitfinding.hitrate(evt, hit, history=5000)
 
-    if scanInjector:
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorX"], float(1 if hit else 0), hmin=scanXmin, hmax=scanXmax, bins=scanXbins, name="Histogram: InjectorX x Hitrate", group="Scan", buffer_length=1000)
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorZ"], float(1 if hit else 0), hmin=scanZmin, hmax=scanZmax, bins=scanZbins, name="Histogram: InjectorZ x Hitrate", group="Scan", buffer_length=1000)
-
-        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorX"], evt['analysis']['litpixel: hitscore'], 
-                                         name='InjectorX vs Hitscore', xlabel='InjectorX', ylabel='Hit Score',
-                                         group='Scan')
-        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorZ"], evt['analysis']['litpixel: hitscore'], 
-                                         name='InjectorZ vs Hitscore', xlabel='InjectorZ', ylabel='Hit Score',
-                                         group='Scan')
-        
-    if outputEveryImage:
-        plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (All)", group='Images')
-    if ipc.mpi.is_main_worker():
-        plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]', group='Metric', history=10000)
-    if hit:
-        plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (Hits)", group='Images')
-
+    # Write to file
     if do_write:
         if hit and save_anything:
             D = {}
