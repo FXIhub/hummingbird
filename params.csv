@@ -23,10 +23,8 @@ RunNr;RunType;HitscoreThreshold;DarkNr
 26;background;-1;24
 27;dark;-1;27
 28;background;-1;27
-29;;;
-30;;;
-31;;;
-32;;;
+31;dark;-1;31
+32;dark;-1;32
 33;;;
 34;;;
 35;;;
