@@ -38,18 +38,6 @@ args = argparser.parse_args()
 # Save data to file
 do_write=True
 
-# Send plots when doing injector scans
-scanInjector = False
-scanXmin  = 0
-scanXmax  = 10
-scanXbins = 20
-scanZmin  = 0
-scanZmax  = 10
-scanZbins = 20
-
-# Send every image
-outputEveryImage = False
-
 # Geometry
 move_half = True
 
