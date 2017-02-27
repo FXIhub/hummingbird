@@ -75,7 +75,10 @@ class FLASHTranslator(object):
         if self.reader is not None and len(self.reader.frames) > 0:
             evt['pnCCD'] = self.reader.frames[0]
             self.keys.add('photonPixelDetectors')
-            event_id = self.reader.frame_headers[0].external_id
+            try:
+                event_id = self.reader.frame_headers[0].external_id
+            except AttributeError:
+                event_id = None
         # self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
         # if len(self.reader.frames) > 0:
         #     evt['pnCCD'] = self.reader.frames[0]
@@ -93,12 +96,16 @@ class FLASHTranslator(object):
                 self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
                 if len(self.reader.frames) > 0:
                     evt['pnCCD'] = self.reader.frames[0]
-                    event_id = self.reader.frame_headers[0].external_id
+                    try:
+                        event_id = self.reader.frame_headers[0].external_id
+                    except AttributeError:
+                        event_id = None
                     self.keys.add('photonPixelDetectors')
                     break
         #event_id += 3583434 - 2586939
+        #event_id += 1
         # Done finding pnCCD file. Now check if there is a TOF trace (only if we are offline)
-        if self.do_offline:
+        if self.do_offline and event_id is not None:
             tof_trace = self.daq.get_tof(event_id)
             if tof_trace is not None:
                 evt["TOF"] = tof_trace
