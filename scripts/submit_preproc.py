@@ -5,12 +5,16 @@ import datetime
 import csv
 import subprocess
 
+expdir = os.path.dirname(os.path.realpath(__file__)) + '/../'
+sys.path.append(expdir)
+from params import run_numbers
+
 def parse_cmdline_args():
     parser = argparse.ArgumentParser(description='Hummingbird pre-processing submission script for slurm (Holography)')
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-r', '--run-number', metavar='run_number', 
                        help="run number, can also be a series of runs, for example: 1,3,5-10,20,22", type=str)
-    group.add_argument('-t', '--run-type', metavar='STR',
+    group.add_argument('-s', '--run-type', metavar='STR',
                        help='Run type, can be dark, background, cluster, holography', type=str)
     parser.add_argument('-n', '--number-of-frames', metavar='number_of_frames',
                         help="number of frames to be processed (optional)", type=int)
@@ -44,8 +48,8 @@ if __name__ == "__main__":
     else:
         env = args.env
 
-    if args.run_type is None:
-        runs = params.run_numbers(expdir + './params.csv', args.run_type)
+    if args.run_type is not None:
+        runs = run_numbers(expdir + 'params.csv', args.run_type)
     else:
         tmp = args.run_number
         runs = []
@@ -68,12 +72,16 @@ if __name__ == "__main__":
         s += "#SBATCH --cpus-per-task=1\n"
         if args.sbatch_exclude is not None:
             s += "#SBATCH --exclude=%s\n" % args.sbatch_exclude
+        s += "#SBATCH --exclude=max-p4-002\n"
         if args.sbatch_partition is not None:
             s += "#SBATCH --partition=%s\n" % args.sbatch_partition
+        else:
+            s += "#SBATCH --partition=all\n"
         s += "#SBATCH --output=%s\n" % logfile
-        cmd = "source %s; " % env
+        cmd = "cd %s\n" % expdir
+        cmd += "source %s; " % env
         cmd += "mpirun -n %i -wd %s " % (args.number_of_processes, expdir)
-        cmd += "hummingbird.py -b conf_offline.py --run-number %i --batch-mode" % (run)
+        cmd += "./hummingbird.py -b conf_offline.py --run-nr %i " % (run)
         if args.hitscore_threshold is not None:
             cmd += " --hitscore-threshold %i" % args.hitscore_threshold
         cmd += " --output-level %i" % args.output_level
@@ -81,5 +89,4 @@ if __name__ == "__main__":
         with open(slurm, "w") as f:
             f.writelines(s)           
         cmd = "sbatch %s" % slurm
-        print cmd
-        #os.system(cmd)
+        os.system(cmd)

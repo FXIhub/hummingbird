@@ -99,7 +99,6 @@ class Worker(object):
             self.event_loop()
         elif ipc.mpi.is_master():
             print 'Starting master loop ...'
-            print 'loop2'
             self.event_loop()            
         if 'end_of_run' in dir(Worker.conf) and not ipc.mpi.is_master():
             print 'End of run (worker %i/%i) ...' % (ipc.mpi.worker_index()+1, ipc.mpi.nr_workers())
