@@ -1,14 +1,16 @@
 #!/usr/bin/env python
 import h5py, sys
 import numpy as np
+import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 
 runnr = int(sys.argv[1])
-filename = '../data/r%04d_ol3.h5' %runnr
+filename = '../../data/hummingbird/r%04d_ol3.h5' %runnr
 
 with h5py.File(filename, 'r') as f:
-    data = f['entry_1/data_1/data'][:]
+    data = f['entry_1/data_1/data'][:1000]
     mask = (f['entry_1/data_1/mask'][:] != 512)
 
 nframes = data.shape[0]
