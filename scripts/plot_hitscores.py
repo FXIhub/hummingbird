@@ -14,5 +14,5 @@ with h5py.File(filename, 'r') as f:
 fig = plt.figure()
 ax  = fig.add_subplot(111)
 ax.plot(hitscore, 'k.')
-ax.axhline(int(sys.argv[2]))
+#ax.axhline(int(sys.argv[2]))
 fig.savefig('../plots/r%04d_hitscore.png' %runnr, dpi=100, bbox_inches='tight')
