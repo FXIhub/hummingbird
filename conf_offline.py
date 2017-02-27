@@ -13,6 +13,10 @@ from backend.record import add_record
 import numpy as np
 import time, os, sys
 
+this_dir = os.path.dirname(os.path.realpath(__file__))                                                                             
+sys.path.append(this_dir)
+import params
+
 # Commandline arguments
 from utils.cmdline_args import argparser, add_config_file_argument
 add_config_file_argument('--hitscore-threshold', metavar='INT',
@@ -20,7 +24,7 @@ add_config_file_argument('--hitscore-threshold', metavar='INT',
 add_config_file_argument('--run-nr', metavar='INT',
                          help='Run number', type=int, required=True)
 add_config_file_argument('--dark-nr', metavar='INT',
-                         help='Run number of dark', type=int, required=True)
+                         help='Run number of dark', type=int)
 add_config_file_argument('--output-level', type=int, 
                          help='Output level (1: small data for all events, 2: tof data for hits, 3: pnccd data for hits',
                          default=3)
@@ -44,6 +48,9 @@ outputEveryImage = False
 # Geometry
 move_half = True
 
+# Read in parameters from a csv file
+p = params.read_params('params.csv', args.run_nr)
+
 # Detector params
 detector_distance = 220e-03
 gap_top=2.8e-03
@@ -58,8 +65,14 @@ center_shift=int((gap_top-gap_bottom)/pixel_size)
 if args.hitscore_threshold:
     hitScoreThreshold = args.hitscore_threshold
 else:
-    hitScoreThreshold = 5000
+    hitScoreThreshold = p['hitscoreThreshold']
 aduThreshold = 200
+
+# Dark file
+if args.dark_nr:
+    darkfile_nr = args.dark_nr
+else:
+    darkfile_nr = p['darkNr']
 
 # Path to rawdata
 base_path = '/asap3/flash/gpfs/bl1/2017/data/11001733/' 
@@ -69,7 +82,7 @@ state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
 state['FLASH/DataGlob']    = base_path + "raw/pnccd/block-*/holography_*_2017*_%04d_*.frms6" %args.run_nr
-state['FLASH/CalibGlob']   = base_path + "processed/calib/block-*/calib_*_%04d.darkcal.h5"   %args.dark_nr
+state['FLASH/CalibGlob']   = base_path + "processed/calib/block-*/calib_*_%04d.darkcal.h5"   %darkfile_nr
 state['FLASH/DAQFolder']   = base_path + "processed/daq/"
 state['FLASH/DAQBaseDir']  = base_path + "raw/hdf/block-01/exp2/"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
