@@ -13,14 +13,16 @@ import time
 import ipc
 import utils.reader
 import re
+import os
+import utils.cxiwriter
 
-scanInjector = True
-scanXmin = -20
-scanXmax = 20
-scanXbins = 20
-scanZmin = 5
-scanZmax = 25
-scanZbins = 100
+scanInjector = False
+scanXmin = -250
+scanXmax = 250
+scanXbins = 500
+scanZmin = 88
+scanZmax = 100
+scanZbins = 220/2
 scanYmin = 94
 scanYmax = 97
 scanYbins = 20
@@ -42,37 +44,41 @@ pixel_size=7.5e-05
 center_shift=int((gap_top-gap_bottom)/pixel_size)
 
 # Quick config parameters
-hitScoreThreshold = 15000
+hitScoreThreshold = 13000
 aduThreshold = 200
 strong_hit_threshold = 60000
 
-repeat_file_run_start = 86
+repeat_file_run_start = 80
 def file_filter(filename):
-    m = re.search("/data/beamline/current/raw/pnccd/block-02/holography_.+_.+_([0-9]{4})_.+.frms6", filename)
+    m = re.search("holography_.+_.+_([0-9]{4})_.+.frms6", filename)
     if not m:
         return False
     else:
         run = int(m.groups()[0])
         #if run >= repeat_file_run_start:
-        if run >= 102 and run < 10000:
+        if run >= 88 and run <= 91:
             return True
         else:
             return False
+
+#experiment_folder = "/data/beamline/current"
+experiment_folder = "/asap3/flash/gpfs/bl1/2017/data/11001733"
 
 # Specify the facility
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
-#state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-02/holography_*_*_0058_*.frms6"
-state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-02/holography_*_*_*_*.frms6"
-state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-02/*.darkcal.h5"
+state['FLASH/DataGlob'] = os.path.join(experiment_folder, "raw/pnccd/block-02/holography_*_*_*_*.frms6")
+#state['FLASH/DataGlob'] = os.path.join(experiment_folder, "raw/pnccd/block-02/holography_*_*_*_*.frms6")
+state['FLASH/CalibGlob'] = os.path.join(experiment_folder, "processed/calib/block-02/*.darkcal.h5")
 state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
-state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-02/exp2/"
-state['do_offline'] = False
+state['FLASH/DAQBaseDir'] = os.path.join(experiment_folder, "raw/hdf/block-02")
+state['do_offline'] = True
 
-state['repeat_file'] = True
+state['repeat_file'] = False
 state['file_filter'] = file_filter
+#state['file_filter'] = None
 #state['FLASH/ProcessingRate'] = 1
 
 
@@ -133,12 +139,28 @@ def calculate_epoch_times(evt, time_sec, time_usec):
     #add_record(evt['ID'], 'ID', 'timeAgo', -606. + time.time() - (time_sec.data + 1.e-6*time_usec.data))
     add_record(evt['ID'], 'ID', 'timeAgo', 0. + time.time() - (time_sec.data + 1.e-6*time_usec.data))
 
+
+def beginning_of_run():
+    global W
+    W = utils.cxiwriter.CXIWriter("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/tof_88_91.h5", chunksize=10)
+
 # This function is called for every single event
 # following the given recipe of analysis
 def onEvent(evt):
     # Processing rate [Hz]
     #analysis.event.printProcessingRate()
 
+    try:
+        has_tof = True
+        evt["DAQ"]["TOF"]
+        print "We have TOF data!"
+    except RuntimeError:
+        has_tof = False
+        #print "No TOF"
+
+    # if not has_tof:
+    #     return
+    
     # Calculate time and add to PlotHistory
     # calculate_epoch_times(evt, evt["ID"]["tv_sec"], evt["ID"]["tv_usec"])
     # plotting.line.plotHistory(evt['ID']['timeAgo'], label='Event Time (s)', group='ID')
@@ -159,11 +181,32 @@ def onEvent(evt):
     hit = bool(evt["analysis"]["litpixel: isHit"].data)
     strong_hit=evt["analysis"]["litpixel: hitscore"].data>strong_hit_threshold
     plotting.line.plotHistory(add_record(evt["analysis"],"analysis","total ADUs", evt[detector_type][detector_key].data.sum()),
-                              label='Total ADU', hline=hitScoreThreshold, group='Metric', history=1000)
+                              label='Total ADU', hline=hitScoreThreshold, group='Metric')
     
     plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"],
                               label='Nr. of lit pixels', hline=hitScoreThreshold, group='Metric')
     analysis.hitfinding.hitrate(evt, hit, history=50)
+
+
+    if hit and has_tof:
+        print evt["DAQ"]["TOF"].data
+        print evt["motorPositions"]["InjectorZ"].data
+        plotting.line.plotTrace(evt["DAQ"]["TOF"], label='TOF', history=100, tracelen=20000, name="TOF", group="TOF")
+        plotting.line.plotHistory(evt["motorPositions"]["InjectorZ"], label="InjectorZ (with TOF)", group="TOF")
+        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Hits with TOF)", group='TOF', mask=mask_center_s)
+
+        D = {}
+        D['TOF'] = evt['DAQ']['TOF'].data
+        D['pnCCD'] = evt[detector_type][detector_key].data
+        D['InjectorZ'] = evt["motorPositions"]["InjectorZ"].data
+
+        W.write_slice(D)
+
+
+    else:
+        pass
+        # evt["motorPositions"]["InjectorZ"].data = 0.
+        # plotting.line.plotHistory(evt["motorPositions"]["InjectorZ"], label="InjectorZ (with TOF)", group="TOF")
 
     if scanInjector:
         plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorX"], float(1 if hit else 0), hmin=scanXmin, hmax=scanXmax, bins=scanXbins, name="Histogram: InjectorX x Hitrate", group="Scan", buffer_length=1000)
@@ -217,6 +260,7 @@ def onEvent(evt):
         #                              group='Metric')
     if hit:
         plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Hits)", group='Images', mask=mask_center_s)
+
         if do_sizing:
             # Crop to 1024 x 1024
             Nx,Ny=np.shape(evt[detector_type][detector_key].data)
@@ -298,3 +342,5 @@ def onEvent(evt):
                 # Center position
                 #plotting.correlation.plotMeanMap(evt["analysis"]["cx"], evt["analysis"]["cy"], intensity_normalized, group='Results',name='Wavefront (center vs. intensity)', xmin=-10, xmax=10, xbins=21, ymin=-10, ymax=10, ybins=21, xlabel='Center position in x', ylabel='Center position in y')
 
+def end_of_run():
+    W.close()

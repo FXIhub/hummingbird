@@ -3,23 +3,35 @@ import h5py
 import time
 import os
 
+from camp.pah.beamtimedaqaccess import BeamtimeDaqAccess
+import camp.pah.h5filedataaccess
+
 
 class DAQReader(object):
     def __init__(self, experiment_dir):
         self._dir = experiment_dir
         #self._runnr = runnr
+        #print experiment_dir
+        self._daq = BeamtimeDaqAccess.create(experiment_dir)
 
     def get_tof(self, event_id):
-        all_files = os.listdir(self._dir)
+        # #all_files = os.listdir(self._dir)
+        # all_files = [os.path.join(self._dir, "FLASH1_EXP_stream_2_run16156_file1_20170227T152729.1.h5")]
         
-        for this_file in all_files:
-            with h5py.File(os.path.join(self._dir, this_file), "r") as file_handle:
-                file_event_ids = file_handle["Experiment/BL1/ADQ412 GHz ADC/CH00/TD.event"]
-                if event_id in file_event_ids:
-                    index = list(file_event_ids).index(event_id)
-                    tof_data = file_handle["Experiment/BL1/ADQ412 GHz ADC/CH00/TD"][index, :]
-                    return tof_data
-        return None
+        # for this_file in all_files:
+        #     with h5py.File(os.path.join(self._dir, this_file), "r") as file_handle:
+        #         file_event_ids = file_handle["Experiment/BL1/ADQ412 GHz ADC/CH00/TD.event"]
+        #         if event_id in file_event_ids:
+        #             index = list(file_event_ids).index(event_id)
+        #             tof_data = file_handle["Experiment/BL1/ADQ412 GHz ADC/CH00/TD"][index, :]
+        #             return tof_data
+        # return None
+        try:
+            #print event_id
+            tof = self._daq.valuesOfInterval("/Experiment/BL1/ADQ412 GHz ADC/CH00/TD", (event_id, event_id+1))
+            return tof[0, :]
+        except camp.pah.h5filedataaccess.NoDaqDataException:
+            return None
 
 if __name__ == "__main__":
     reader = DAQReader("/data/beamline/current/raw/hdf/block-01/exp2/")
