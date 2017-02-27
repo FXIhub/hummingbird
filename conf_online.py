@@ -12,8 +12,9 @@ import numpy as np
 import time
 import ipc
 import utils.reader
+import re
 
-scanInjector = False
+scanInjector = True
 scanXmin = 88
 scanXmax = 100
 scanXbins = 220/2
@@ -21,15 +22,15 @@ scanZmin = 88
 scanZmax = 100
 scanZbins = 220/2
 
-outputEveryImage = False
-do_sizing = True
-do_showhybrid = True
+outputEveryImage = True
+do_sizing = False
+do_showhybrid = False
 move_half = True
 
 #Detector params
 detector_distance = 220e-03
-gap_top=2.8e-03
-gap_bottom=3.1e-03
+gap_top=0.8e-03
+gap_bottom=3.0e-03
 gap_total=gap_top+gap_bottom
 ny=1024
 nx=1024
@@ -40,27 +41,43 @@ center_shift=int((gap_top-gap_bottom)/pixel_size)
 # Quick config parameters
 # hitScoreThreshold = 9000
 # aduThreshold = 200
-hitScoreThreshold = 25000
+hitScoreThreshold = 7000
 aduThreshold = 200
 strong_hit_threshold = 60000
+
+def file_filter(filename):
+    m = re.search("/data/beamline/current/raw/pnccd/block-02/holography_.+_.+_([0-9]{4})_.+.frms6", filename)
+    if not m:
+        return False
+    else:
+        run = int(m.groups()[0])
+        if run >= 58:
+            return True
+        else:
+            return False
 
 # Specify the facility
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
-state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-01/holography*0021*.frms6"
-state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-01/*.darkcal.h5"
-state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq/"
+#state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-02/holography_*_*_0058_*.frms6"
+state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-02/holography_*_*_*_*.frms6"
+state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-02/*.darkcal.h5"
+state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
-state['do_offline'] = True
+state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-02/exp2/"
+state['repeat_file'] = True
+state['do_offline'] = False
+state['file_filter'] = file_filter
 #state['FLASH/ProcessingRate'] = 1
 
 
 
 #Mask
-#Mask out center
 Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v1.h5", "/data")
 mask = Mask.boolean_mask
+
+#Mask out center
 mask_center=np.ones((ny, nx), dtype=np.bool)
 radius=30
 cx=0
@@ -70,7 +87,7 @@ rr=(xx-nx/2)**2+(yy-ny/2)**2 >= (radius**2)
 mask_center &= rr
 mask_center &= mask
 
-# Sizing
+# Sizing parameters
 # ------
 binning = 4
 
@@ -80,7 +97,7 @@ centerParams = {'x0'       : (512 - (nx-1)/2.)/binning,
                 'threshold': 1,
                 'blur'     : 4}
 
-modelParams = {'wavelength': 5.2, #in nm
+modelParams = {'wavelength': 5.3, #in nm
                'pixelsize': 75*binning, #um
                'distance': 220., #mm
                'material': 'sucrose'}
@@ -136,6 +153,9 @@ def onEvent(evt):
 
     hit = bool(evt["analysis"]["litpixel: isHit"].data)
     strong_hit=evt["analysis"]["litpixel: hitscore"].data>strong_hit_threshold
+    plotting.line.plotHistory(add_record(evt["analysis"],"analysis","total ADUs", evt[detector_type][detector_key].data.sum()),
+                              label='Total ADU', hline=hitScoreThreshold, group='Metric')
+    
     plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"],
                               label='Nr. of lit pixels', hline=hitScoreThreshold, group='Metric')
     analysis.hitfinding.hitrate(evt, hit, history=50)
@@ -156,7 +176,7 @@ def onEvent(evt):
 
 
     if outputEveryImage:
-        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (All)", group='Images')
+        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (All)", group='Images', mask=mask_center_s)
 
     if ipc.mpi.is_main_worker():
         plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]', group='Metric', history=10000)
@@ -232,11 +252,11 @@ def onEvent(evt):
                                          msg=msg, group='Sizing')
                         
 
-            if correctsized_hit and strong_hit:
+            if correctsized_hit:
                 # Plot Correct sized hits
-                print 'strong hit!'
                 plotting.image.plotImage(evt[detector_type][detector_key], group='Sizing', msg=msg, name="pnCCD front (correct hit)", mask=mask_center_fit_s)
-                
+                if strong_hit:
+                    plotting.image.plotImage(evt[detector_type][detector_key], group='Sizing', msg=msg, name="pnCCD front (correct and strong hit)", mask=mask_center_fit_s)
                 # Plot Intensity
                 plotting.line.plotHistory(evt["analysis"]["intensity"], history=10000, name ='Intensity (from sizing)', group='Results')
                 # Plot size (in nm)
