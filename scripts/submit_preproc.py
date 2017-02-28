@@ -110,13 +110,10 @@ if __name__ == "__main__":
             cmd += " --skip-tof"
         cmd += " --output-level %i" % args.output_level
         s += cmd + "\n"
-        print s
         with open(slurm, "w") as f:
             f.writelines(s)
-        os.system("cat %s" % slurm)
         if not args.run_locally:
             cmd = "sbatch %s" % slurm
         else:
-            print "run locally"
             cmd = "/bin/bash %s" % slurm
         os.system(cmd)
