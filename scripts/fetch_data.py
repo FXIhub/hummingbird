@@ -3,7 +3,7 @@ import sys, os, time
 
 start_cmd = 'ssh -N -L 2222:desy-ps-cpu:22 daurerbe@bastion.desy.de &'
 run_cmd_plots = 'rsync -auve "ssh -p 2222" daurerbe@localhost:/home/daurerbe/holography/plots/ ../plots/'
-run_cmd_data  = 'rsync -auve "ssh -p 2222" daurerbe@localhost:/home/daurerbe/data/hummingbird/*_ol[1,3].h5 ../data/'
+run_cmd_data  = 'rsync -auve "ssh -p 2222" daurerbe@localhost:/home/daurerbe/data/hummingbird_multiple/r0131_ol5.h5 ../data/'
 
 if 'start' in sys.argv:
     os.system(start_cmd)
