@@ -13,7 +13,6 @@ import numpy as np
 import time
 import ipc
 import utils.reader
-import re
 
 scanInjector = True
 scanXmin = -37
@@ -49,36 +48,19 @@ aduThreshold = 200
 strong_hit_threshold = 10000
 multiScoreThreshold = 2000
 
-repeat_file_run_start = 86
-def file_filter(filename):
-    m = re.search("/data/beamline/current/raw/pnccd/block-03/holography_.+_.+_([0-9]{4})_.+.frms6", filename)
-    if not m:
-        return False
-    else:
-        run = int(m.groups()[0])
-        #if run >= repeat_file_run_start:
-        if run >= 134 and run < 10000:
-            return True
-        else:
-            return False
-
 # Specify the facility
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
-#state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-02/holography_*_*_0111*.frms6"
+state['FLASH/DataRe'] = "/data/beamline/current/raw/pnccd/block-03/holography_.+_.+_([0-9]{4})_.+.frms6"
 state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-03/holography_*_*_*_*.frms6"
 state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-03/*.darkcal.h5"
 state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-03/exp2/"
 state['do_offline'] = False
-
-state['repeat_file'] = True
-state['file_filter'] = file_filter
+state['online_start_from_run'] = 138
 #state['FLASH/ProcessingRate'] = 1
-
-
 
 #Mask
 Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v1.h5", "/data")

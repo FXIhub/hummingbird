@@ -48,19 +48,6 @@ hitScoreThreshold = 13000
 aduThreshold = 200
 strong_hit_threshold = 60000
 
-repeat_file_run_start = 80
-def file_filter(filename):
-    m = re.search("holography_.+_.+_([0-9]{4})_.+.frms6", filename)
-    if not m:
-        return False
-    else:
-        run = int(m.groups()[0])
-        #if run >= repeat_file_run_start:
-        if run >= 88 and run <= 91:
-            return True
-        else:
-            return False
-
 #experiment_folder = "/data/beamline/current"
 experiment_folder = "/asap3/flash/gpfs/bl1/2017/data/11001733"
 
@@ -69,16 +56,14 @@ state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
 state['FLASH/DataGlob'] = os.path.join(experiment_folder, "raw/pnccd/block-02/holography_*_*_*_*.frms6")
+state['FLASH/DataRe'] = os.path.join(experiment_folder, "raw/pnccd/block-02/holography_.+_.+_([0-9]{4})_.+.frms6")
 #state['FLASH/DataGlob'] = os.path.join(experiment_folder, "raw/pnccd/block-02/holography_*_*_*_*.frms6")
 state['FLASH/CalibGlob'] = os.path.join(experiment_folder, "processed/calib/block-02/*.darkcal.h5")
 state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['FLASH/DAQBaseDir'] = os.path.join(experiment_folder, "raw/hdf/block-02")
 state['do_offline'] = True
-
-state['repeat_file'] = False
-state['file_filter'] = file_filter
-#state['file_filter'] = None
+state['online_start_from_run'] = False
 #state['FLASH/ProcessingRate'] = 1
 
 

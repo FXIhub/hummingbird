@@ -18,6 +18,7 @@ import glob
 import sys
 import os
 import h5py
+import re
 
 class FLASHTranslator(object):
     """Creates Hummingbird events for testing purposes"""
@@ -45,16 +46,14 @@ class FLASHTranslator(object):
             self.do_offline = state['do_offline']
         else:
             self.do_offline = False
-        if "repeat_file" in state:
-            self._repeat_file = state["repeat_file"]
+        if "online_start_from_run" in state:
+            self._online_start_from_run = state["online_start_from_run"]
         else:
-            self._repeat_file = False
+            self._online_start_from_run = False
         if self.do_offline and ipc.mpi.slave_rank() == 0:
             print 'Running offline i.e. on all files in glob'
-        if not self.do_offline and self._repeat_file:
-            print 'Running online and repeat_file i.e. online but starting with all files in glob'
-        
-            
+        if not self.do_offline and self._online_start_from_run:
+            print 'Running online and starting with all files from run', self._online_start_from_run
 
     def next_event(self):
         """Generates and returns the next event"""
@@ -179,12 +178,23 @@ class FLASHTranslator(object):
         """Returns an alternative id, which is jsut a copy of the usual id here"""
         return event_id
 
+    def file_filter(self, filename, runnr):
+        m = re.search(self.state['FLASH/DataRe'], filename)
+        if not m:
+            return False
+        else:
+            run = int(m.groups()[0])
+            if run >= runnr: # and run < 10000:
+                return True
+            else:
+                return False
+
     def new_file_check(self, force=False):
         flist = glob.glob(self.state['FLASH/DataGlob'])
-        if self.state["file_filter"]:
-            flist = [f for f in flist if self.state["file_filter"](f)]
+        if self._online_start_from_run:
+            flist = [f for f in flist if self.file_filter(f,self._online_start_from_run)]
         flist.sort()
-        if self.do_offline or self._repeat_file:
+        if self.do_offline or self._online_start_from_run:
             if self.fnum is None:
                 self.fnum = 0
                 self.flist = flist

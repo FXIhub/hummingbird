@@ -94,7 +94,7 @@ state['FLASH/DAQFolder']   = base_path + "processed/daq/"
 state['FLASH/DAQBaseDir']  = base_path + "raw/hdf/block-02/exp2/"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['do_offline'] = True
-state['file_filter'] = False
+state['online_start_from_run'] = False
 state['reduce_nr_event_readers'] = 1
 #state['FLASH/ProcessingRate'] = 1
 
