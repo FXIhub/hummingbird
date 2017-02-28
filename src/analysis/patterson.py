@@ -6,7 +6,7 @@ import numpy
 import utils.io
 from backend.record import add_record
 
-def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop=None, full_output=False, **params):
+def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop=None, full_output=False, xgap_pix=None, ygap_pix=None, **params):
     """TODO: missing docstring
 
     .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
@@ -47,8 +47,14 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
             Y -= P.shape[0]/2
             Rsq = X**2+Y**2
             M *= Rsq > diameter_pix**2
-            if full_output:
-                add_record(v, "analysis", "patterson multiples", M, unit='')
+        if xgap_pix is not None:
+            cy = M.shape[0]/2 
+            M[cy-xgap_pix/2:cy+xgap_pix/2,:] = False
+        if ygap_pix is not None:
+            cx = M.shape[0]/2 
+            M[:,cx-ygap_pix/2:cx+ygap_pix/2] = False
+        if full_output:
+            add_record(v, "analysis", "patterson multiples", M, unit='')
         multiple_score = M.sum()
         add_record(v, "analysis", "multiple score", multiple_score, unit='')
     
