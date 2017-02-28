@@ -13,11 +13,12 @@ import numpy
 import ipc
 import backend.convert_frms6 as convert
 import backend.tomas_motors as motors
-import read_daq_offline
+#import read_daq_offline
 import glob
 import sys
 import os
 import h5py
+import re
 
 class FLASHTranslator(object):
     """Creates Hummingbird events for testing purposes"""
@@ -26,6 +27,7 @@ class FLASHTranslator(object):
         self.state = state
         self.keys = set()
         self.keys.add('analysis')
+        self.keys.add('DAQ')
         self._last_event_time = -1
         self.time_offset = 208
         self.current_fname = None
@@ -35,15 +37,23 @@ class FLASHTranslator(object):
         self.num = None
         self.fnum = None
         self.reader = None
+        self._current_event_id = None
         self.get_dark()
         self.motors = motors.MotorPositions(state['FLASH/MotorFolder'])
-        self.daq = read_daq_offline.DAQReader(state['FLASH/DAQBaseDir'])
+        #self.daq = read_daq_offline.DAQReader(state['FLASH/DAQBaseDir'])
+        self.daq = None
         if 'do_offline' in state:
             self.do_offline = state['do_offline']
         else:
             self.do_offline = False
+        if "online_start_from_run" in state:
+            self._online_start_from_run = state["online_start_from_run"]
+        else:
+            self._online_start_from_run = False
         if self.do_offline and ipc.mpi.slave_rank() == 0:
             print 'Running offline i.e. on all files in glob'
+        if not self.do_offline and self._online_start_from_run:
+            print 'Running online and starting with all files from run', self._online_start_from_run
 
     def next_event(self):
         """Generates and returns the next event"""
@@ -67,7 +77,10 @@ class FLASHTranslator(object):
         if self.reader is not None and len(self.reader.frames) > 0:
             evt['pnCCD'] = self.reader.frames[0]
             self.keys.add('photonPixelDetectors')
-            event_id = self.reader.frame_headers[0].external_id
+            try:
+                self._current_event_id = self.reader.frame_headers[0].external_id
+            except AttributeError:
+                self._current_event_id = None
         # self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
         # if len(self.reader.frames) > 0:
         #     evt['pnCCD'] = self.reader.frames[0]
@@ -85,16 +98,15 @@ class FLASHTranslator(object):
                 self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
                 if len(self.reader.frames) > 0:
                     evt['pnCCD'] = self.reader.frames[0]
-                    event_id = self.reader.frame_headers[0].external_id
+                    try:
+                        self._current_event_id = self.reader.frame_headers[0].external_id
+                    except AttributeError:
+                        self._current_event_id = None
                     self.keys.add('photonPixelDetectors')
                     break
         #event_id += 3583434 - 2586939
+        #event_id += 1
         # Done finding pnCCD file. Now check if there is a TOF trace (only if we are offline)
-        if self.do_offline:
-            tof_trace = self.daq.get_tof(event_id)
-            if tof_trace is not None:
-                evt["TOF"] = tof_trace
-                self.keys.add("DAQ")
             
         self.num += 1
         return EventTranslator(evt, self)
@@ -127,8 +139,15 @@ class FLASHTranslator(object):
             add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec, ureg.s)
             add_record(values, key, 'bunch_sec', self.get_bunch_time()[0], ureg.s)
         elif key == "DAQ":
-            if "TOF" in evt:
-                add_record(values, key, "TOF", evt["TOF"], ureg.s)
+            if self.daq is None:
+                import read_daq_offline
+                self.daq = read_daq_offline.DAQReader(self.state['FLASH/DAQBaseDir'])
+            if self._current_event_id is not None:
+                tof_trace = self.daq.get_tof(self._current_event_id)
+                if tof_trace is not None:
+                    evt["TOF"] = tof_trace
+                    #self.keys.add("DAQ")
+                    add_record(values, key, "TOF", evt["TOF"], ureg.s)
             else:
                 raise RuntimeError("{0} not found in event".format(key))
         elif key == "FEL":
@@ -147,19 +166,35 @@ class FLASHTranslator(object):
         
         return values
 
-    def event_id(self, _):
+    def event_id(self, evt):
         """Returns an id which should be unique for each
         shot and increase monotonically"""
-        return float(time.time())
+        tv_sec  = self.translate(evt, 'ID')['tv_sec'].data
+        tv_usec = self.translate(evt, 'ID')['tv_usec'].data
+        tv_sec_usec = tv_sec + 1e-6*tv_usec
+        return tv_sec_usec
 
     def event_id2(self, _):
         """Returns an alternative id, which is jsut a copy of the usual id here"""
         return event_id
 
+    def file_filter(self, filename, runnr):
+        m = re.search(self.state['FLASH/DataRe'], filename)
+        if not m:
+            return False
+        else:
+            run = int(m.groups()[0])
+            if run >= runnr: # and run < 10000:
+                return True
+            else:
+                return False
+
     def new_file_check(self, force=False):
         flist = glob.glob(self.state['FLASH/DataGlob'])
+        if self._online_start_from_run:
+            flist = [f for f in flist if self.file_filter(f,self._online_start_from_run)]
         flist.sort()
-        if self.do_offline:
+        if self.do_offline or self._online_start_from_run:
             if self.fnum is None:
                 self.fnum = 0
                 self.flist = flist
@@ -216,7 +251,11 @@ class FLASHTranslator(object):
             return False
 
     def get_bunch_time(self):
-        tmp_time = time.localtime(self.reader.frame_headers[-1].tv_sec+self.time_offset)
+        try:
+            tmp_tvsec = self.reader.frame_headers[-1].tv_sec
+        except AttributeError:
+            tmp_tvsec = 0
+        tmp_time = time.localtime(tmp_tvsec+self.time_offset)
         #self.reader.frame_headers[-1].dump()
         filename = self.state['FLASH/DAQFolder']+'/daq-%.4d-%.2d-%.2d-%.2d.txt' % (tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, tmp_time.tm_hour)
         if filename != self.daq_fname:
