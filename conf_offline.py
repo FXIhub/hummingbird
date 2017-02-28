@@ -19,6 +19,12 @@ this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(this_dir)
 import params
 
+# Path to rawdata
+base_path = '/asap3/flash/gpfs/bl1/2017/data/11001733/' 
+
+#import h5writer
+#h5writer.logger.setLevel("DEBUG")
+
 # Commandline arguments
 from utils.cmdline_args import argparser, add_config_file_argument
 add_config_file_argument('--hitscore-threshold', metavar='INT',
@@ -77,9 +83,6 @@ if args.dark_nr:
     darkfile_nr = args.dark_nr
 else:
     darkfile_nr = p['darkNr']
-
-# Path to rawdata
-base_path = '/asap3/flash/gpfs/bl1/2017/data/11001733/' 
 
 # Specify the facility
 state = {}
@@ -188,6 +191,7 @@ def onEvent(evt):
                                        hitscoreThreshold=hitScoreThreshold,
                                        mask=mask_center_s)
     hit = bool(evt["analysis"]["litpixel: isHit"].data)
+    hitscore = evt['analysis']['litpixel: hitscore'].data
 
     # Find multiple hits based on patterson function
     if hit and save_multiple:
@@ -197,8 +201,8 @@ def onEvent(evt):
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
                                      crop=512, full_output=True)
-        print evt['analysis'].keys()
-        hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
+        #print evt['analysis'].keys()
+        multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
 
     # Write to file
     if do_write:
@@ -271,16 +275,20 @@ def end_of_run():
         if 'entry_1' not in D_solo:
             D_solo["entry_1"] = {}
         W.write_solo(D_solo)
-    #W.close(barrier=True)
-    W.close()
+    W.close(barrier=True)
+    #W.close()
     if ipc.mpi.is_main_event_reader():
         with h5py.File(filename_tmp, 'a') as f:
-            if save_pnccd:
+            if save_pnccd and '/entry_1/detector_1' in f:
                 f['entry_1/data_1'] = h5py.SoftLink('/entry_1/detector_1')
                 f['entry_1/detector_1/data'].attrs['axes'] = ['experiment_identifier:y:x']
-            if save_multiple:
+                n_frames = (len(f['/entry_1/data_1/data']))
+            else:
+                n_frames = 0
+            print "Counting in total %i frames." % n_frames
+            if save_multiple and 'entry_1/detector_1/patterson' in f:
                 f['entry_1/detector_1/patterson'].attrs['axes'] = ['experiment_identifier:y:x']
-            if save_tof:
+            if save_tof and '/entry_1/detector_2' in f:
                 f['entry_1/data_2'] = h5py.SoftLink('/entry_1/detector_2')
                 #f['entry_1/detector_2/data'].attrs['axes'] = ['experiment_identifier:x']
             print "Successfully created soft links and attributes"
