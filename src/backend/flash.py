@@ -167,10 +167,13 @@ class FLASHTranslator(object):
         
         return values
 
-    def event_id(self, _):
+    def event_id(self, evt):
         """Returns an id which should be unique for each
         shot and increase monotonically"""
-        return float(time.time())
+        tv_sec  = self.translate(evt, 'ID')['tv_sec'].data
+        tv_usec = self.translate(evt, 'ID')['tv_usec'].data
+        tv_sec_usec = tv_sec + 1e-6*tv_usec
+        return tv_sec_usec
 
     def event_id2(self, _):
         """Returns an alternative id, which is jsut a copy of the usual id here"""
@@ -238,7 +241,11 @@ class FLASHTranslator(object):
             return False
 
     def get_bunch_time(self):
-        tmp_time = time.localtime(self.reader.frame_headers[-1].tv_sec+self.time_offset)
+        try:
+            tmp_tvsec = self.reader.frame_headers[-1].tv_sec
+        except AttributeError:
+            tmp_tvsec = 0
+        tmp_time = time.localtime(tmp_tvsec+self.time_offset)
         #self.reader.frame_headers[-1].dump()
         filename = self.state['FLASH/DAQFolder']+'/daq-%.4d-%.2d-%.2d-%.2d.txt' % (tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, tmp_time.tm_hour)
         if filename != self.daq_fname:
