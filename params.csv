@@ -1,3 +1,4 @@
+
 RunNr;RunType;HitscoreThreshold;MultiscoreThreshold;DarkNr
 1;void;-1;-1;12
 2;void;-1;-1;12
@@ -104,7 +105,7 @@ RunNr;RunType;HitscoreThreshold;MultiscoreThreshold;DarkNr
 112;;;;
 113;;;;
 114;;;;
-115;;;;
+115;sample;-1;-1;94
 116;;;;
 117;;;;
 118;;;;
