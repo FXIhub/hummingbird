@@ -69,6 +69,8 @@ if __name__ == "__main__":
 
     for run in runs:
         if args.outdir is None:
+            # Path to rawdata
+            base_path = '/asap3/flash/gpfs/bl1/2017/data/11001733/' 
             l_dir = base_path + "processed/hummingbird/log"
         else:
             l_dir = args.outdir + "/log"
