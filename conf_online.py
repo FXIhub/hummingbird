@@ -3,6 +3,7 @@ import analysis.event
 import analysis.hitfinding
 import analysis.pixel_detector
 import analysis.sizing
+import analysis.patterson
 import plotting.image
 import plotting.line
 import plotting.correlation
@@ -15,9 +16,9 @@ import utils.reader
 import re
 
 scanInjector = True
-scanXmin = -20
-scanXmax = 20
-scanXbins = 20
+scanXmin = -37
+scanXmax = 10
+scanXbins = 10
 scanZmin = 5
 scanZmax = 25
 scanZbins = 100
@@ -28,10 +29,11 @@ scanYbins = 20
 outputEveryImage = True
 do_sizing = False
 do_showhybrid = False
+do_patterson = True
 move_half = True
 
 #Detector params
-detector_distance = 220e-03
+detector_distance = 150e-03
 gap_top=0.8e-03
 gap_bottom=3.0e-03
 gap_total=gap_top+gap_bottom
@@ -42,9 +44,10 @@ pixel_size=7.5e-05
 center_shift=int((gap_top-gap_bottom)/pixel_size)
 
 # Quick config parameters
-hitScoreThreshold = 15000
+hitScoreThreshold = 10000
 aduThreshold = 200
-strong_hit_threshold = 60000
+strong_hit_threshold = 10000
+multiScoreThreshold = 2000
 
 repeat_file_run_start = 86
 def file_filter(filename):
@@ -54,7 +57,7 @@ def file_filter(filename):
     else:
         run = int(m.groups()[0])
         #if run >= repeat_file_run_start:
-        if run >= 102 and run < 10000:
+        if run >= 119 and run < 10000:
             return True
         else:
             return False
@@ -63,7 +66,7 @@ def file_filter(filename):
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
-#state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-02/holography_*_*_0058_*.frms6"
+#state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-02/holography_*_*_0111*.frms6"
 state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-02/holography_*_*_*_*.frms6"
 state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-02/*.darkcal.h5"
 state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq"
@@ -71,7 +74,7 @@ state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_posi
 state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-02/exp2/"
 state['do_offline'] = False
 
-state['repeat_file'] = True
+state['repeat_file'] = False
 state['file_filter'] = file_filter
 #state['FLASH/ProcessingRate'] = 1
 
@@ -91,6 +94,12 @@ xx,yy=np.meshgrid(np.arange(nx), np.arange(ny))
 rr=(xx-nx/2)**2+(yy-ny/2)**2 >= (radius**2)
 mask_center &= rr
 mask_center &= mask
+
+# Patterson
+patterson_threshold = 5.
+patterson_floor_cut = 10.
+patterson_mask_smooth = 1.
+patterson_diameter = 80.
 
 # Sizing parameters
 # ------
@@ -298,3 +307,25 @@ def onEvent(evt):
                 # Center position
                 #plotting.correlation.plotMeanMap(evt["analysis"]["cx"], evt["analysis"]["cy"], intensity_normalized, group='Results',name='Wavefront (center vs. intensity)', xmin=-10, xmax=10, xbins=21, ymin=-10, ymax=10, ybins=21, xlabel='Center position in x', ylabel='Center position in y')
 
+
+    if hit and do_patterson:
+        analysis.patterson.patterson(evt, detector_type, detector_key, mask_center_s, 
+                                     floor_cut=patterson_floor_cut,
+                                     mask_smooth=patterson_mask_smooth,
+                                     threshold=patterson_threshold,
+                                     diameter_pix=patterson_diameter,
+                                     crop=512, full_output=True)
+        #print evt['analysis'].keys()
+        plotting.line.plotHistory(evt["analysis"]["multiple score"], history=1000, name='Multiscore', group='Holography') 
+        multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
+        analysis.hitfinding.hitrate(evt, multiple_hit, history=50, outkey='multiple_hitrate')
+        if ipc.mpi.is_main_worker():
+            plotting.line.plotHistory(evt["analysis"]["multiple_hitrate"], label='Multiple Hit rate [%]', group='Metric', history=10000)
+
+        if multiple_hit:
+            plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (multiple hits)")
+            plotting.image.plotImage(evt[detector_type][detector_key], group="Holography", name="Multiple hits (image)", mask=mask_center_s)
+
+        else:
+            plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (non-multiple hits)")  
+            
