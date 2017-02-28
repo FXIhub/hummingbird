@@ -13,7 +13,7 @@ import numpy
 import ipc
 import backend.convert_frms6 as convert
 import backend.tomas_motors as motors
-import read_daq_offline
+#import read_daq_offline
 import glob
 import sys
 import os
@@ -26,6 +26,7 @@ class FLASHTranslator(object):
         self.state = state
         self.keys = set()
         self.keys.add('analysis')
+        self.keys.add('DAQ')
         self._last_event_time = -1
         self.time_offset = 208
         self.current_fname = None
@@ -35,9 +36,11 @@ class FLASHTranslator(object):
         self.num = None
         self.fnum = None
         self.reader = None
+        self._current_event_id = None
         self.get_dark()
         self.motors = motors.MotorPositions(state['FLASH/MotorFolder'])
-        self.daq = read_daq_offline.DAQReader(state['FLASH/DAQBaseDir'])
+        #self.daq = read_daq_offline.DAQReader(state['FLASH/DAQBaseDir'])
+        self.daq = None
         if 'do_offline' in state:
             self.do_offline = state['do_offline']
         else:
@@ -76,9 +79,9 @@ class FLASHTranslator(object):
             evt['pnCCD'] = self.reader.frames[0]
             self.keys.add('photonPixelDetectors')
             try:
-                event_id = self.reader.frame_headers[0].external_id
+                self._current_event_id = self.reader.frame_headers[0].external_id
             except AttributeError:
-                event_id = None
+                self._current_event_id = None
         # self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
         # if len(self.reader.frames) > 0:
         #     evt['pnCCD'] = self.reader.frames[0]
@@ -97,19 +100,14 @@ class FLASHTranslator(object):
                 if len(self.reader.frames) > 0:
                     evt['pnCCD'] = self.reader.frames[0]
                     try:
-                        event_id = self.reader.frame_headers[0].external_id
+                        self._current_event_id = self.reader.frame_headers[0].external_id
                     except AttributeError:
-                        event_id = None
+                        self._current_event_id = None
                     self.keys.add('photonPixelDetectors')
                     break
         #event_id += 3583434 - 2586939
         #event_id += 1
         # Done finding pnCCD file. Now check if there is a TOF trace (only if we are offline)
-        if self.do_offline and event_id is not None:
-            tof_trace = self.daq.get_tof(event_id)
-            if tof_trace is not None:
-                evt["TOF"] = tof_trace
-                self.keys.add("DAQ")
             
         self.num += 1
         return EventTranslator(evt, self)
@@ -142,8 +140,15 @@ class FLASHTranslator(object):
             add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec, ureg.s)
             add_record(values, key, 'bunch_sec', self.get_bunch_time()[0], ureg.s)
         elif key == "DAQ":
-            if "TOF" in evt:
-                add_record(values, key, "TOF", evt["TOF"], ureg.s)
+            if self.daq is None:
+                import read_daq_offline
+                self.daq = read_daq_offline.DAQReader(self.state['FLASH/DAQBaseDir'])
+            if self._current_event_id is not None:
+                tof_trace = self.daq.get_tof(self._current_event_id)
+                if tof_trace is not None:
+                    evt["TOF"] = tof_trace
+                    #self.keys.add("DAQ")
+                    add_record(values, key, "TOF", evt["TOF"], ureg.s)
             else:
                 raise RuntimeError("{0} not found in event".format(key))
         elif key == "FEL":
