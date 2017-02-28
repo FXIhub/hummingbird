@@ -33,8 +33,11 @@ add_config_file_argument('--output-level', type=int,
                          help='Output level (1: small data for all events, 2: tof data for hits, \
                                3: pnccd data for hits, 4: all data for multiple hits)',
                          default=3)
+add_config_file_argument('--outdir', metavar='STR',
+                         help='output directory different from default (optional)', type=str)
 add_config_file_argument('--nr-frames', type=int, 
                          help='Number of frames', default=None)
+add_config_file_argument('--skip-tof', action='store_true')
 args = argparser.parse_args()
 
 # Save data to file
@@ -57,14 +60,14 @@ pixel_size=7.5e-05
 center_shift=int((gap_top-gap_bottom)/pixel_size)
 
 # Hitscore threshold
-if args.hitscore_threshold:
+if args.hitscore_threshold is not None:
     hitScoreThreshold = args.hitscore_threshold
 else:
     hitScoreThreshold = p['hitscoreThreshold']
 aduThreshold = 200
 
 # Multiscore threshold
-if args.multiscore_threshold:
+if args.multiscore_threshold is not None:
     multiScoreThreshold = args.multiscore_threshold
 else:
     multiscoreThreshold = p['multiscoreThreshold']
@@ -113,12 +116,15 @@ patterson_diameter = 60.
 # Output levels
 level = args.output_level
 save_anything = level > 0
-save_tof = level >= 2                                                                                                      
-save_pnccd = level >= 3 
+save_tof = level >= 2 and not args.skip_tof                                                                                                      
+save_pnccd = level >= 3
 save_multiple = level >= 4
 
 # Output directory
-w_dir = base_path + "processed/hummingbird/"
+if args.outdir is None:
+    w_dir = base_path + "processed/hummingbird/"
+else:
+    w_dir = args.outdir
 filename_tmp  = w_dir + "/.r%04d_ol%d.h5" %(args.run_nr, level)
 filename_done = w_dir + "/r%04d_ol%d.h5" %(args.run_nr, level)
 D_solo = {}
@@ -234,8 +240,9 @@ def onEvent(evt):
             # HIT PARAMETERS
             D['entry_1']['result_1']['hitscore_litpixel'] = evt['analysis']['litpixel: hitscore'].data
             D['entry_1']['result_1']['hitscore_litpixel_threshold'] = hitScoreThreshold
-            #D['entry_1']['result_1']['multiscore_patterson'] = evt['analysis']['multiple score'].data
-            #D['entry_1']['result_1']['multiscore_patterson_threshold'] = multiScoreThreshold
+            if save_multiple:
+                D['entry_1']['result_1']['multiscore_patterson'] = evt['analysis']['multiple score'].data
+                D['entry_1']['result_1']['multiscore_patterson_threshold'] = multiScoreThreshold
         
             # EVENT IDENTIFIERS
             D['entry_1']['event']['bunch_id']   = evt['ID']['BunchID'].data
