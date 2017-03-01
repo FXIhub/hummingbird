@@ -79,17 +79,8 @@ class FLASHTranslator(object):
             self.keys.add('photonPixelDetectors')
             try:
                 self._current_event_id = self.reader.frame_headers[0].external_id
-                self._current_event_id = self.reader.frame_headers[-1].external_id
             except AttributeError:
                 self._current_event_id = None
-                return None
-            try: 
-                self.reader.frame_headers[-1].tv_sec
-                if self.reader.frame_headers[-1].tv_sec == 0:
-                    return None
-            except:
-                return None
-            
         # self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
         # if len(self.reader.frames) > 0:
         #     evt['pnCCD'] = self.reader.frames[0]
@@ -144,10 +135,7 @@ class FLASHTranslator(object):
         elif key == 'ID':
             add_record(values, key, 'DataSetID', self.reader.file_header.dataSetID.rstrip('\0'))
             # Sometimes BunchID is missing
-            try:
-                add_record(values, key, 'BunchID', self.reader.frame_headers[-1].external_id)
-            except AttributeError:
-                raise RuntimeError('BunchID not found in event')
+            add_record(values, key, 'BunchID', self.reader.frame_headers[-1].external_id)
             add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec, ureg.s)
             add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec, ureg.s)
             add_record(values, key, 'bunch_sec', self.get_bunch_time()[0], ureg.s)
