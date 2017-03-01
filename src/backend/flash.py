@@ -134,6 +134,7 @@ class FLASHTranslator(object):
                 add_record(values, key, motorname, motorpos, ureg.mm)
         elif key == 'ID':
             add_record(values, key, 'DataSetID', self.reader.file_header.dataSetID.rstrip('\0'))
+            # Sometimes BunchID is missing
             add_record(values, key, 'BunchID', self.reader.frame_headers[-1].external_id)
             add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec, ureg.s)
             add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec, ureg.s)
@@ -173,6 +174,7 @@ class FLASHTranslator(object):
         tv_usec = self.translate(evt, 'ID')['tv_usec'].data
         tv_sec_usec = tv_sec + 1e-6*tv_usec# + float(self.time_offset)
         return tv_sec_usec
+        #return time.time()
 
     def event_id2(self, _):
         """Returns an alternative id, which is jsut a copy of the usual id here"""
@@ -198,7 +200,8 @@ class FLASHTranslator(object):
             if self.fnum is None:
                 self.fnum = 0
                 self.flist = flist
-                print 'Found %d files'% len(flist)
+                if ipc.mpi.is_main_event_reader():
+                    print 'Found %d files'% len(flist)
             else:
                 if force and self.fnum < len(flist) - 1:
                     self.fnum += 1

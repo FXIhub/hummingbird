@@ -12,15 +12,19 @@ from backend.record import add_record
 import numpy as np
 import time
 import ipc
-import utils.reader
-import os
+import os, sys
 
+this_dir = os.path.dirname(os.path.realpath(__file__))
+sys.path.append(this_dir)
+from conf import *
+
+# Injector scans
 scanInjector = True
-scanXmin = -37
+scanXmin = -10
 scanXmax = 10
-scanXbins = 10
-scanZmin = 5
-scanZmax = 25
+scanXbins = 21
+scanZmin = 12
+scanZmax = 14
 scanZbins = 100
 scanYmin = 94
 scanYmax = 97
@@ -32,31 +36,16 @@ do_showhybrid = False
 do_patterson = True
 move_half = True
 
-#Detector params
-detector_distance = 150e-03
-gap_top=0.8e-03
-gap_bottom=3.0e-03
-gap_total=gap_top+gap_bottom
-ny=1024
-nx=1024
-pixel_size=7.5e-05
-
-center_shift=int((gap_top-gap_bottom)/pixel_size)
-
 # Quick config parameters
-hitScoreThreshold = 10000
+hitScoreThreshold = 2800
 aduThreshold = 200
 strong_hit_threshold = 10000
 multiScoreThreshold = 2000
-
-base_dir = "/asap3/flash/gpfs/bl1/2017/data/11001733/"
-#base_dir = "/data/beamline"
 
 # Specify the facility
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
-
 state['FLASH/DataRe'] = "/data/beamline/current/raw/pnccd/block-03/holography_.+_.+_([0-9]{4})_.+.frms6"
 state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-03/holography_*_*_*_*.frms6"
 state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-03/*.darkcal.h5"
@@ -66,67 +55,6 @@ state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-03/exp2/"
 state['do_offline'] = False
 state['online_start_from_run'] = False
 #state['FLASH/ProcessingRate'] = 1
-
-#Mask
-Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v3.h5", "/data")
-mask = Mask.boolean_mask
-
-#Mask out center
-mask_center=np.ones((ny, nx), dtype=np.bool)
-radius=30
-#radius=70
-cx=0
-cy=0
-xx,yy=np.meshgrid(np.arange(nx), np.arange(ny))
-rr=(xx-nx/2)**2+(yy-ny/2)**2 >= (radius**2)
-mask_center &= rr
-mask_center &= mask
-
-# Patterson
-patterson_threshold = 3.
-patterson_params = {
-    "floor_cut" : 50.,
-    "mask_smooth" : 5.,
-    "darkfield_x" : 130,
-    "darkfield_y" : 130,
-    "darkfield_sigma" : 30.,
-    "darkfield_N" : 4,
-}
-patterson_diameter = 50.
-
-# Sizing parameters
-# ------
-binning = 4
-
-centerParams = {'x0'       : (512 - (nx-1)/2.)/binning,
-                'y0'       : (512 + center_shift -(ny-1)/2.)/binning,
-                'maxshift' : int(np.ceil(10./binning)),
-                'threshold': 1,
-                'blur'     : 4}
-
-modelParams = {'wavelength': 5.3, #in nm
-               'pixelsize': 75*binning, #um
-               'distance': 220., #mm
-               'material': 'sucrose'}
-
-sizingParams = {'d0':20., # in nm
-                'i0':1., # in mJ/um2
-                'brute_evals':10}
-
-# Physical constants
-h = 6.62606957e-34 #[Js]
-c = 299792458 #[m/s]
-hc = h*c  #[Jm]
-eV_to_J = 1.602e-19 #[J/eV]
-
-#res = modelParams["distance"] * 1E-3* modelParams["wavelength"] * 1E-9 / ( pixelsize_native * nx_front )
-#expected_diameter = 150
-
-# Thresholds for good sizing fits
-fit_error_threshold = 2.6E-3#4.0e-3
-photon_error_threshold = 3000
-diameter_min = 40  #[nm]
-diameter_max = 90 #[nm]
 
 def calculate_epoch_times(evt, time_sec, time_usec):
     add_record(evt['ID'], 'ID', 'time', time_sec.data + 1.e-6*time_usec.data)
@@ -308,14 +236,16 @@ def onEvent(evt):
                                      crop=512, full_output=True, **patterson_params)
         plotting.line.plotHistory(evt["analysis"]["multiple score"], history=1000, name='Multiscore', group='Holography') 
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
-        analysis.hitfinding.hitrate(evt, multiple_hit, history=50, outkey='multiple_hitrate')
-        if ipc.mpi.is_main_worker():
-            plotting.line.plotHistory(evt["analysis"]["multiple_hitrate"], label='Multiple Hit rate [%]', group='Metric', history=10000)
-
         if multiple_hit:
             plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (multiple hits)")
             plotting.image.plotImage(evt[detector_type][detector_key], group="Holography", name="Multiple hits (image)", mask=mask_center_s)
 
         else:
             plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (non-multiple hits)")  
-            
+    
+    if not hit and do_patterson:
+        multiple_hit = False
+    if do_patterson:
+        analysis.hitfinding.hitrate(evt, multiple_hit, history=50, outkey='multiple_hitrate')
+        if ipc.mpi.is_main_worker():
+            plotting.line.plotHistory(evt["analysis"]["multiple_hitrate"], label='Multiple Hit rate [%]', group='Metric', history=10000)
