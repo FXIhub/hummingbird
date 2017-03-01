@@ -78,10 +78,16 @@ mask_center &= rr
 mask_center &= mask
 
 # Patterson
-patterson_threshold = 5.
-patterson_floor_cut = 10.
-patterson_mask_smooth = 1.
-patterson_diameter = 80.
+patterson_threshold = 3.
+patterson_params = {
+    "floor_cut" : 50.,
+    "mask_smooth" : 5.,
+    "darkfield_x" : 130,
+    "darkfield_y" : 130,
+    "darkfield_sigma" : 30.,
+    "darkfield_N" : 4,
+}
+patterson_diameter = 50.
 
 # Sizing parameters
 # ------
@@ -292,12 +298,9 @@ def onEvent(evt):
 
     if hit and do_patterson:
         analysis.patterson.patterson(evt, detector_type, detector_key, mask_center_s, 
-                                     floor_cut=patterson_floor_cut,
-                                     mask_smooth=patterson_mask_smooth,
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
-                                     crop=512, full_output=True)
-        #print evt['analysis'].keys()
+                                     crop=512, full_output=True, **patterson_params)
         plotting.line.plotHistory(evt["analysis"]["multiple score"], history=1000, name='Multiscore', group='Holography') 
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
         analysis.hitfinding.hitrate(evt, multiple_hit, history=50, outkey='multiple_hitrate')
