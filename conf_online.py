@@ -16,9 +16,9 @@ import utils.reader
 import os
 
 scanInjector = True
-scanXmin = -37
+scanXmin = -10
 scanXmax = 10
-scanXbins = 10
+scanXbins = 21
 scanZmin = 5
 scanZmax = 25
 scanZbins = 100
@@ -44,13 +44,13 @@ pixel_size=7.5e-05
 center_shift=int((gap_top-gap_bottom)/pixel_size)
 
 # Quick config parameters
-hitScoreThreshold = 10000
+hitScoreThreshold = 2800
 aduThreshold = 200
 strong_hit_threshold = 10000
 multiScoreThreshold = 2000
 
-base_dir = "/asap3/flash/gpfs/bl1/2017/data/11001733/"
-#base_dir = "/data/beamline"
+#base_dir = "/asap3/flash/gpfs/bl1/2017/data/11001733/"
+base_dir = "/data/beamline"
 
 # Specify the facility
 state = {}

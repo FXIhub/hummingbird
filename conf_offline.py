@@ -47,7 +47,7 @@ add_config_file_argument('--skip-tof', action='store_true')
 args = argparser.parse_args()
 
 # Save data to file
-do_write=False
+do_write=True
 
 # Geometry
 move_half = True
@@ -165,12 +165,14 @@ def onEvent(evt):
 
     # Read ToF traces
 
-    try:
-        tof = evt["DAQ"]["TOF"]
-    except RuntimeError:
-        tof = None
-    except KeyError:
-        tof = None
+    if save_tof:
+        try:
+            tof = evt["DAQ"]["TOF"]
+        except RuntimeError:
+            print "Runtime error"
+            tof = None
+        except KeyError:
+            tof = None
 
     # Read FEL parameters
     try:
