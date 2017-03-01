@@ -13,6 +13,7 @@ import numpy as np
 import time
 import ipc
 import utils.reader
+import os
 
 scanInjector = True
 scanXmin = -37
@@ -48,10 +49,14 @@ aduThreshold = 200
 strong_hit_threshold = 10000
 multiScoreThreshold = 2000
 
+base_dir = "/asap3/flash/gpfs/bl1/2017/data/11001733/"
+#base_dir = "/data/beamline"
+
 # Specify the facility
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
+
 state['FLASH/DataRe'] = "/data/beamline/current/raw/pnccd/block-03/holography_.+_.+_([0-9]{4})_.+.frms6"
 state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-03/holography_*_*_*_*.frms6"
 state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-03/*.darkcal.h5"
