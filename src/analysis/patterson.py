@@ -37,7 +37,7 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
     else:
         P = abs(out)
     
-    add_record(v, "analysis", "patterson", abs(P), unit='')
+    add_record(v, "analysis", "patterson", P, unit='')
 
     if threshold is not None:
         M = P > threshold
