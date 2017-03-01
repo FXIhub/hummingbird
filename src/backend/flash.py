@@ -174,6 +174,7 @@ class FLASHTranslator(object):
         tv_usec = self.translate(evt, 'ID')['tv_usec'].data
         tv_sec_usec = tv_sec + 1e-6*tv_usec# + float(self.time_offset)
         return tv_sec_usec
+        #return time.time()
 
     def event_id2(self, _):
         """Returns an alternative id, which is jsut a copy of the usual id here"""
