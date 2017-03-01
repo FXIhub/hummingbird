@@ -59,11 +59,11 @@ state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/d
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-03/exp2/"
 state['do_offline'] = False
-state['online_start_from_run'] = 138
+state['online_start_from_run'] = False
 #state['FLASH/ProcessingRate'] = 1
 
 #Mask
-Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v1.h5", "/data")
+Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v3.h5", "/data")
 mask = Mask.boolean_mask
 
 #Mask out center
