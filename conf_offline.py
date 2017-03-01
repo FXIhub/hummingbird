@@ -135,12 +135,14 @@ def onEvent(evt):
 
     # Read ToF traces
 
-    try:
-        tof = evt["DAQ"]["TOF"]
-    except RuntimeError:
-        tof = None
-    except KeyError:
-        tof = None
+    if save_tof:
+        try:
+            tof = evt["DAQ"]["TOF"]
+        except RuntimeError:
+            print "Runtime error"
+            tof = None
+        except KeyError:
+            tof = None
 
     # Read FEL parameters
     try:

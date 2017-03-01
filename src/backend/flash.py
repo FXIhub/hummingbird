@@ -79,8 +79,17 @@ class FLASHTranslator(object):
             self.keys.add('photonPixelDetectors')
             try:
                 self._current_event_id = self.reader.frame_headers[0].external_id
+                self._current_event_id = self.reader.frame_headers[-1].external_id
             except AttributeError:
                 self._current_event_id = None
+                return None
+            try: 
+                self.reader.frame_headers[-1].tv_sec
+                if self.reader.frame_headers[-1].tv_sec == 0:
+                    return None
+            except:
+                return None
+            
         # self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
         # if len(self.reader.frames) > 0:
         #     evt['pnCCD'] = self.reader.frames[0]

@@ -12,12 +12,23 @@ from backend.record import add_record
 import numpy as np
 import time
 import ipc
-import os
+import os, sys
 
-this_dir = os.path.dirname(os.path.realpath(__file__))                                                                             
+this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(this_dir)
-
 from conf import *
+
+# Injector scans
+scanInjector = True
+scanXmin = -10
+scanXmax = 10
+scanXbins = 21
+scanZmin = 5
+scanZmax = 25
+scanZbins = 100
+scanYmin = 94
+scanYmax = 97
+scanYbins = 20
 
 outputEveryImage = True
 do_sizing = False
@@ -26,7 +37,7 @@ do_patterson = True
 move_half = True
 
 # Quick config parameters
-hitScoreThreshold = 10000
+hitScoreThreshold = 2800
 aduThreshold = 200
 strong_hit_threshold = 10000
 multiScoreThreshold = 2000
