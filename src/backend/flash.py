@@ -134,7 +134,11 @@ class FLASHTranslator(object):
                 add_record(values, key, motorname, motorpos, ureg.mm)
         elif key == 'ID':
             add_record(values, key, 'DataSetID', self.reader.file_header.dataSetID.rstrip('\0'))
-            add_record(values, key, 'BunchID', self.reader.frame_headers[-1].external_id)
+            # Sometimes BunchID is missing
+            try:
+                add_record(values, key, 'BunchID', self.reader.frame_headers[-1].external_id)
+            except AttributeError:
+                raise RuntimeError('BunchID not found in event')
             add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec, ureg.s)
             add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec, ureg.s)
             add_record(values, key, 'bunch_sec', self.get_bunch_time()[0], ureg.s)
