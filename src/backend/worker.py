@@ -132,6 +132,9 @@ class Worker(object):
                         except (RuntimeError) as e:
                             logging.warning("Some problem with %s (library used for translation), probably due to reloading the backend. (%s)" % (self.translator.library,e))
                             raise KeyboardInterrupt
+                        except AttributeError:
+                            logging.warning("Attribute error during event translation. Skipping event.")
+                            continue                            
                         ipc.set_current_event(evt)
                         try:
                             Worker.conf.onEvent(evt)
