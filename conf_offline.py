@@ -76,7 +76,7 @@ aduThreshold = 200
 if args.multiscore_threshold is not None:
     multiScoreThreshold = args.multiscore_threshold
 else:
-    multiscoreThreshold = p['multiscoreThreshold']
+    multiScoreThreshold = p['multiscoreThreshold']
 
 # Dark file
 if args.dark_nr:
