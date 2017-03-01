@@ -36,7 +36,7 @@ add_config_file_argument('--run-nr', metavar='INT',
 add_config_file_argument('--dark-nr', metavar='INT',
                          help='Run number of dark', type=int)
 add_config_file_argument('--output-level', type=int, 
-                         help='Output level (1: small data for all events, 2: tof data for hits, \
+                         help='Output level (0: dry run, 1: small data for all events, 2: tof data for hits, \
                                3: pnccd data for hits, 4: all data for multiple hits)',
                          default=3)
 add_config_file_argument('--outdir', metavar='STR',
@@ -47,7 +47,7 @@ add_config_file_argument('--skip-tof', action='store_true')
 args = argparser.parse_args()
 
 # Save data to file
-do_write=True
+do_write = args.output_level > 0
 
 # Geometry
 move_half = True
@@ -76,7 +76,7 @@ aduThreshold = 200
 if args.multiscore_threshold is not None:
     multiScoreThreshold = args.multiscore_threshold
 else:
-    multiscoreThreshold = p['multiscoreThreshold']
+    multiScoreThreshold = p['multiscoreThreshold']
 
 # Dark file
 if args.dark_nr:
@@ -94,12 +94,12 @@ state['FLASH/DAQFolder']   = base_path + "processed/daq/"
 state['FLASH/DAQBaseDir']  = base_path + "raw/hdf/block-02/exp2/"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['do_offline'] = True
-state['file_filter'] = False
+state['online_start_from_run'] = False
 state['reduce_nr_event_readers'] = 1
 #state['FLASH/ProcessingRate'] = 1
 
 # Mask
-Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v1.h5", "/data")
+Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v3.h5", "/data")
 mask = Mask.boolean_mask
 mask_center=np.ones((ny, nx), dtype=np.bool)
 radius=30
@@ -111,10 +111,16 @@ mask_center &= rr
 mask_center &= mask
 
 # Patterson
-patterson_threshold = 5.
-patterson_floor_cut = 50.
-patterson_mask_smooth = 5.
-patterson_diameter = 60.
+patterson_threshold = 3.
+patterson_params = {
+    "floor_cut" : 50.,
+    "mask_smooth" : 5.,
+    "darkfield_x" : 130,
+    "darkfield_y" : 130,
+    "darkfield_sigma" : 30.,
+    "darkfield_N" : 4,
+}
+patterson_diameter = 50.
 
 # Output levels
 level = args.output_level
@@ -136,8 +142,9 @@ D_solo = {}
 counter = -1
 
 def beginning_of_run():
-    global W
-    W = utils.cxiwriter.CXIWriter(filename_tmp, chunksize=10)
+    if do_write:
+        global W
+        W = utils.cxiwriter.CXIWriter(filename_tmp, chunksize=10)
 
 # This function is called for every single event
 # following the given recipe of analysis
@@ -157,9 +164,12 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
 
     # Read ToF traces
+
     try:
         tof = evt["DAQ"]["TOF"]
     except RuntimeError:
+        tof = None
+    except KeyError:
         tof = None
 
     # Read FEL parameters
@@ -196,11 +206,9 @@ def onEvent(evt):
     # Find multiple hits based on patterson function
     if hit and save_multiple:
         analysis.patterson.patterson(evt, "analysis", "data_half-moved", mask_center_s, 
-                                     floor_cut=patterson_floor_cut,
-                                     mask_smooth=patterson_mask_smooth,
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
-                                     crop=512, full_output=True)
+                                     crop=512, full_output=True, **patterson_params)
         #print evt['analysis'].keys()
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
 
@@ -271,29 +279,29 @@ def onEvent(evt):
             W.write_slice(D)
 
 def end_of_run():
-    if ipc.mpi.is_main_event_reader():
-        if 'entry_1' not in D_solo:
-            D_solo["entry_1"] = {}
-        W.write_solo(D_solo)
-    W.close(barrier=True)
-    #W.close()
-    if ipc.mpi.is_main_event_reader():
-        with h5py.File(filename_tmp, 'a') as f:
-            if save_pnccd and '/entry_1/detector_1' in f:
-                f['entry_1/data_1'] = h5py.SoftLink('/entry_1/detector_1')
-                f['entry_1/detector_1/data'].attrs['axes'] = ['experiment_identifier:y:x']
-                n_frames = (len(f['/entry_1/data_1/data']))
-            else:
-                n_frames = 0
-            print "Counting in total %i frames." % n_frames
-            if save_multiple and 'entry_1/detector_1/patterson' in f:
-                f['entry_1/detector_1/patterson'].attrs['axes'] = ['experiment_identifier:y:x']
-            if save_tof and '/entry_1/detector_2' in f:
-                f['entry_1/data_2'] = h5py.SoftLink('/entry_1/detector_2')
-                #f['entry_1/detector_2/data'].attrs['axes'] = ['experiment_identifier:x']
-            print "Successfully created soft links and attributes"
-        os.system('mv %s %s' %(filename_tmp, filename_done))
-        os.system('chmod 770 %s' %(filename_done))
-        print "Moved temporary file %s to %s" %(filename_tmp, filename_done)
-        print "Clean exit"
-
+    if do_write:
+        if ipc.mpi.is_main_event_reader():
+            if 'entry_1' not in D_solo:
+                D_solo["entry_1"] = {}
+            W.write_solo(D_solo)
+        W.close(barrier=True)
+        #W.close()
+        if ipc.mpi.is_main_event_reader():
+            with h5py.File(filename_tmp, 'a') as f:
+                if save_pnccd and '/entry_1/detector_1' in f:
+                    f['entry_1/data_1'] = h5py.SoftLink('/entry_1/detector_1')
+                    f['entry_1/detector_1/data'].attrs['axes'] = ['experiment_identifier:y:x']
+                    n_frames = (len(f['/entry_1/data_1/data']))
+                else:
+                    n_frames = 0
+                print "Counting in total %i frames." % n_frames
+                if save_multiple and 'entry_1/detector_1/patterson' in f:
+                    f['entry_1/detector_1/patterson'].attrs['axes'] = ['experiment_identifier:y:x']
+                if save_tof and '/entry_1/detector_2' in f:
+                    f['entry_1/data_2'] = h5py.SoftLink('/entry_1/detector_2')
+                    #f['entry_1/detector_2/data'].attrs['axes'] = ['experiment_identifier:x']
+                print "Successfully created soft links and attributes"
+            os.system('mv %s %s' %(filename_tmp, filename_done))
+            os.system('chmod 770 %s' %(filename_done))
+            print "Moved temporary file %s to %s" %(filename_tmp, filename_done)
+            print "Clean exit"
