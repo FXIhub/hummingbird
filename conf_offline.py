@@ -8,22 +8,11 @@ import plotting.line
 import plotting.correlation
 import plotting.histogram
 import utils.cxiwriter
-import utils.reader
 import ipc
 from backend.record import add_record
 import numpy as np
 import time, os, sys
 import h5py
-
-this_dir = os.path.dirname(os.path.realpath(__file__))                                                                             
-sys.path.append(this_dir)
-import params
-
-# Path to rawdata
-base_path = '/asap3/flash/gpfs/bl1/2017/data/11001733/' 
-
-#import h5writer
-#h5writer.logger.setLevel("DEBUG")
 
 # Commandline arguments
 from utils.cmdline_args import argparser, add_config_file_argument
@@ -36,7 +25,7 @@ add_config_file_argument('--run-nr', metavar='INT',
 add_config_file_argument('--dark-nr', metavar='INT',
                          help='Run number of dark', type=int)
 add_config_file_argument('--output-level', type=int, 
-                         help='Output level (1: small data for all events, 2: tof data for hits, \
+                         help='Output level (0: dry run, 1: small data for all events, 2: tof data for hits, \
                                3: pnccd data for hits, 4: all data for multiple hits)',
                          default=3)
 add_config_file_argument('--outdir', metavar='STR',
@@ -46,24 +35,24 @@ add_config_file_argument('--nr-frames', type=int,
 add_config_file_argument('--skip-tof', action='store_true')
 args = argparser.parse_args()
 
-# Save data to file
-do_write=False
+this_dir = os.path.dirname(os.path.realpath(__file__))                                                                             
+sys.path.append(this_dir)
 
-# Geometry
-move_half = True
+from conf import *
 
 # Read in parameters from a csv file
+import params
 p = params.read_params('params.csv', args.run_nr)
+gap_top = p['pnccdGapTopMM'] * 1E-3
+gap_bottom = p['pnccdGapBottomMM'] * 1E-3
+gap_total = gap_top + gap_bottom
+center_shift = int((gap_top-gap_bottom)/pixel_size)
 
-# Detector params
-detector_distance = 220e-03
-gap_top=2.8e-03
-gap_bottom=3.1e-03
-gap_total=gap_top+gap_bottom
-ny=1024
-nx=1024
-pixel_size=7.5e-05
-center_shift=int((gap_top-gap_bottom)/pixel_size)
+# Dark file
+if args.dark_nr:
+    darkfile_nr = args.dark_nr
+else:
+    darkfile_nr = p['darkNr']
 
 # Hitscore threshold
 if args.hitscore_threshold is not None:
@@ -76,14 +65,13 @@ aduThreshold = 200
 if args.multiscore_threshold is not None:
     multiScoreThreshold = args.multiscore_threshold
 else:
-    multiscoreThreshold = p['multiscoreThreshold']
+    multiScoreThreshold = p['multiscoreThreshold']
 
-# Dark file
-if args.dark_nr:
-    darkfile_nr = args.dark_nr
-else:
-    darkfile_nr = p['darkNr']
-
+if ipc.mpi.is_main_event_reader():
+    print "hitscore threshold: %i" % hitScoreThreshold
+    print "multiscore threshold: %i" % multiScoreThreshold
+    time.sleep(2)
+    
 # Specify the facility
 state = {}
 state['Facility'] = 'FLASH'
@@ -97,30 +85,12 @@ state['do_offline'] = True
 state['online_start_from_run'] = False
 state['reduce_nr_event_readers'] = 1
 #state['FLASH/ProcessingRate'] = 1
+    
+# Geometry
+move_half = True
 
-# Mask
-Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v3.h5", "/data")
-mask = Mask.boolean_mask
-mask_center=np.ones((ny, nx), dtype=np.bool)
-radius=30
-cx=0
-cy=0
-xx,yy=np.meshgrid(np.arange(nx), np.arange(ny))
-rr=(xx-nx/2)**2+(yy-ny/2)**2 >= (radius**2)
-mask_center &= rr
-mask_center &= mask
-
-# Patterson
-patterson_threshold = 3.
-patterson_params = {
-    "floor_cut" : 50.,
-    "mask_smooth" : 5.,
-    "darkfield_x" : 130,
-    "darkfield_y" : 130,
-    "darkfield_sigma" : 30.,
-    "darkfield_N" : 4,
-}
-patterson_diameter = 50.
+# Save data to file
+do_write = args.output_level > 0
 
 # Output levels
 level = args.output_level
@@ -165,12 +135,14 @@ def onEvent(evt):
 
     # Read ToF traces
 
-    try:
-        tof = evt["DAQ"]["TOF"]
-    except RuntimeError:
-        tof = None
-    except KeyError:
-        tof = None
+    if save_tof:
+        try:
+            tof = evt["DAQ"]["TOF"]
+        except RuntimeError:
+            print "Runtime error"
+            tof = None
+        except KeyError:
+            tof = None
 
     # Read FEL parameters
     try:
@@ -180,11 +152,9 @@ def onEvent(evt):
         wavelength_nm = np.nan
         gmd = np.nan
 
-    # PNCCD
-    detector_type = "photonPixelDetectors"
-    detector_key  = "pnCCD"
+    detector_type = detector_type_raw
+    detector_key = detector_key_raw
     detector = evt[detector_type][detector_key]
-
     if move_half:
         detector_s = analysis.pixel_detector.moveHalf(evt, detector, horizontal=int(gap_total/pixel_size), outkey='data_half-moved')
         mask_center_s = analysis.pixel_detector.moveHalf(evt, add_record(evt["analysis"], "analysis", "mask", mask_center), 
@@ -208,13 +178,15 @@ def onEvent(evt):
         analysis.patterson.patterson(evt, "analysis", "data_half-moved", mask_center_s, 
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
+                                     xgap_pix=patterson_xgap_pix, ygap_pix=patterson_ygap_pix,
+                                     frame_pix=patterson_frame_pix,
                                      crop=512, full_output=True, **patterson_params)
         #print evt['analysis'].keys()
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
 
     # Write to file
     if do_write:
-        if hit and save_anything:
+        if hit and save_anything and (not save_multiple or multiple_hit):
             D = {}
             D['entry_1'] = {}
             if save_pnccd:
@@ -239,7 +211,8 @@ def onEvent(evt):
             
             # PATTERSON
             if save_multiple:
-                D['entry_1']['detector_1']['patterson'] = np.asarray(evt['analysis']['patterson'].data, dtype='float16') 
+                D['entry_1']['detector_1']['patterson'] = np.asarray(evt['analysis']['patterson'].data, dtype='float16')
+                D['entry_1']['detector_1']['patterson_mask'] = np.asarray(evt['analysis']['patterson multiples'].data, dtype='bool') 
 
             # TOF
             if save_tof and tof:
