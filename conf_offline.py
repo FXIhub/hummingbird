@@ -47,7 +47,7 @@ add_config_file_argument('--skip-tof', action='store_true')
 args = argparser.parse_args()
 
 # Save data to file
-do_write=True
+do_write=False
 
 # Geometry
 move_half = True
@@ -142,8 +142,9 @@ D_solo = {}
 counter = -1
 
 def beginning_of_run():
-    global W
-    W = utils.cxiwriter.CXIWriter(filename_tmp, chunksize=10)
+    if do_write:
+        global W
+        W = utils.cxiwriter.CXIWriter(filename_tmp, chunksize=10)
 
 # This function is called for every single event
 # following the given recipe of analysis
@@ -163,6 +164,7 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
 
     # Read ToF traces
+
     try:
         tof = evt["DAQ"]["TOF"]
     except RuntimeError:
@@ -277,29 +279,29 @@ def onEvent(evt):
             W.write_slice(D)
 
 def end_of_run():
-    if ipc.mpi.is_main_event_reader():
-        if 'entry_1' not in D_solo:
-            D_solo["entry_1"] = {}
-        W.write_solo(D_solo)
-    W.close(barrier=True)
-    #W.close()
-    if ipc.mpi.is_main_event_reader():
-        with h5py.File(filename_tmp, 'a') as f:
-            if save_pnccd and '/entry_1/detector_1' in f:
-                f['entry_1/data_1'] = h5py.SoftLink('/entry_1/detector_1')
-                f['entry_1/detector_1/data'].attrs['axes'] = ['experiment_identifier:y:x']
-                n_frames = (len(f['/entry_1/data_1/data']))
-            else:
-                n_frames = 0
-            print "Counting in total %i frames." % n_frames
-            if save_multiple and 'entry_1/detector_1/patterson' in f:
-                f['entry_1/detector_1/patterson'].attrs['axes'] = ['experiment_identifier:y:x']
-            if save_tof and '/entry_1/detector_2' in f:
-                f['entry_1/data_2'] = h5py.SoftLink('/entry_1/detector_2')
-                #f['entry_1/detector_2/data'].attrs['axes'] = ['experiment_identifier:x']
-            print "Successfully created soft links and attributes"
-        os.system('mv %s %s' %(filename_tmp, filename_done))
-        os.system('chmod 770 %s' %(filename_done))
-        print "Moved temporary file %s to %s" %(filename_tmp, filename_done)
-        print "Clean exit"
-
+    if do_write:
+        if ipc.mpi.is_main_event_reader():
+            if 'entry_1' not in D_solo:
+                D_solo["entry_1"] = {}
+            W.write_solo(D_solo)
+        W.close(barrier=True)
+        #W.close()
+        if ipc.mpi.is_main_event_reader():
+            with h5py.File(filename_tmp, 'a') as f:
+                if save_pnccd and '/entry_1/detector_1' in f:
+                    f['entry_1/data_1'] = h5py.SoftLink('/entry_1/detector_1')
+                    f['entry_1/detector_1/data'].attrs['axes'] = ['experiment_identifier:y:x']
+                    n_frames = (len(f['/entry_1/data_1/data']))
+                else:
+                    n_frames = 0
+                print "Counting in total %i frames." % n_frames
+                if save_multiple and 'entry_1/detector_1/patterson' in f:
+                    f['entry_1/detector_1/patterson'].attrs['axes'] = ['experiment_identifier:y:x']
+                if save_tof and '/entry_1/detector_2' in f:
+                    f['entry_1/data_2'] = h5py.SoftLink('/entry_1/detector_2')
+                    #f['entry_1/detector_2/data'].attrs['axes'] = ['experiment_identifier:x']
+                print "Successfully created soft links and attributes"
+            os.system('mv %s %s' %(filename_tmp, filename_done))
+            os.system('chmod 770 %s' %(filename_done))
+            print "Moved temporary file %s to %s" %(filename_tmp, filename_done)
+            print "Clean exit"

@@ -13,6 +13,7 @@ import numpy as np
 import time
 import ipc
 import utils.reader
+import os
 
 scanInjector = True
 scanXmin = -37
@@ -48,10 +49,14 @@ aduThreshold = 200
 strong_hit_threshold = 10000
 multiScoreThreshold = 2000
 
+base_dir = "/asap3/flash/gpfs/bl1/2017/data/11001733/"
+#base_dir = "/data/beamline"
+
 # Specify the facility
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
+
 state['FLASH/DataRe'] = "/data/beamline/current/raw/pnccd/block-03/holography_.+_.+_([0-9]{4})_.+.frms6"
 state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-03/holography_*_*_*_*.frms6"
 state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-03/*.darkcal.h5"
@@ -59,11 +64,11 @@ state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/d
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-03/exp2/"
 state['do_offline'] = False
-state['online_start_from_run'] = 138
+state['online_start_from_run'] = False
 #state['FLASH/ProcessingRate'] = 1
 
 #Mask
-Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v1.h5", "/data")
+Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v3.h5", "/data")
 mask = Mask.boolean_mask
 
 #Mask out center
@@ -78,10 +83,16 @@ mask_center &= rr
 mask_center &= mask
 
 # Patterson
-patterson_threshold = 5.
-patterson_floor_cut = 10.
-patterson_mask_smooth = 1.
-patterson_diameter = 80.
+patterson_threshold = 3.
+patterson_params = {
+    "floor_cut" : 50.,
+    "mask_smooth" : 5.,
+    "darkfield_x" : 130,
+    "darkfield_y" : 130,
+    "darkfield_sigma" : 30.,
+    "darkfield_N" : 4,
+}
+patterson_diameter = 50.
 
 # Sizing parameters
 # ------
@@ -292,12 +303,9 @@ def onEvent(evt):
 
     if hit and do_patterson:
         analysis.patterson.patterson(evt, detector_type, detector_key, mask_center_s, 
-                                     floor_cut=patterson_floor_cut,
-                                     mask_smooth=patterson_mask_smooth,
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
-                                     crop=512, full_output=True)
-        #print evt['analysis'].keys()
+                                     crop=512, full_output=True, **patterson_params)
         plotting.line.plotHistory(evt["analysis"]["multiple score"], history=1000, name='Multiscore', group='Holography') 
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
         analysis.hitfinding.hitrate(evt, multiple_hit, history=50, outkey='multiple_hitrate')
