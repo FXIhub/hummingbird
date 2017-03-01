@@ -99,7 +99,7 @@ state['reduce_nr_event_readers'] = 1
 #state['FLASH/ProcessingRate'] = 1
 
 # Mask
-Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v1.h5", "/data")
+Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v3.h5", "/data")
 mask = Mask.boolean_mask
 mask_center=np.ones((ny, nx), dtype=np.bool)
 radius=30
@@ -111,10 +111,16 @@ mask_center &= rr
 mask_center &= mask
 
 # Patterson
-patterson_threshold = 5.
-patterson_floor_cut = 50.
-patterson_mask_smooth = 5.
-patterson_diameter = 60.
+patterson_threshold = 3.
+patterson_params = {
+    "floor_cut" : 50.,
+    "mask_smooth" : 5.,
+    "darkfield_x" : 130,
+    "darkfield_y" : 130,
+    "darkfield_sigma" : 30.,
+    "darkfield_N" : 4,
+}
+patterson_diameter = 50.
 
 # Output levels
 level = args.output_level
@@ -161,6 +167,8 @@ def onEvent(evt):
         tof = evt["DAQ"]["TOF"]
     except RuntimeError:
         tof = None
+    except KeyError:
+        tof = None
 
     # Read FEL parameters
     try:
@@ -196,11 +204,9 @@ def onEvent(evt):
     # Find multiple hits based on patterson function
     if hit and save_multiple:
         analysis.patterson.patterson(evt, "analysis", "data_half-moved", mask_center_s, 
-                                     floor_cut=patterson_floor_cut,
-                                     mask_smooth=patterson_mask_smooth,
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
-                                     crop=512, full_output=True)
+                                     crop=512, full_output=True, **patterson_params)
         #print evt['analysis'].keys()
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
 
