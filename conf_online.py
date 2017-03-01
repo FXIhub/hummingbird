@@ -236,14 +236,16 @@ def onEvent(evt):
                                      crop=512, full_output=True, **patterson_params)
         plotting.line.plotHistory(evt["analysis"]["multiple score"], history=1000, name='Multiscore', group='Holography') 
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
-        analysis.hitfinding.hitrate(evt, multiple_hit, history=50, outkey='multiple_hitrate')
-        if ipc.mpi.is_main_worker():
-            plotting.line.plotHistory(evt["analysis"]["multiple_hitrate"], label='Multiple Hit rate [%]', group='Metric', history=10000)
-
         if multiple_hit:
             plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (multiple hits)")
             plotting.image.plotImage(evt[detector_type][detector_key], group="Holography", name="Multiple hits (image)", mask=mask_center_s)
 
         else:
             plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (non-multiple hits)")  
-            
+    
+    if not hit and do_patterson:
+        multiple_hit = False
+    if do_patterson:
+        analysis.hitfinding.hitrate(evt, multiple_hit, history=50, outkey='multiple_hitrate')
+        if ipc.mpi.is_main_worker():
+            plotting.line.plotHistory(evt["analysis"]["multiple_hitrate"], label='Multiple Hit rate [%]', group='Metric', history=10000)
