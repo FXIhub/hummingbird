@@ -198,7 +198,8 @@ class FLASHTranslator(object):
             if self.fnum is None:
                 self.fnum = 0
                 self.flist = flist
-                print 'Found %d files'% len(flist)
+                if ipc.mpi.is_main_event_reader():
+                    print 'Found %d files'% len(flist)
             else:
                 if force and self.fnum < len(flist) - 1:
                     self.fnum += 1
