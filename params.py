@@ -13,6 +13,8 @@ def read_params(filename, run_nr):
                 params['hitscoreThreshold'] = np.int(row["HitscoreThreshold"])
                 params['multiscoreThreshold'] = np.int(row["MultiscoreThreshold"])
                 params['darkNr'] = np.int(row["DarkNr"])
+                params['pnccdGapTopMM'] = np.float(row['pnccdGapTopMM'])
+                params['pnccdGapBottomMM'] = np.float(row['pnccdGapBottomMM'])
     return params
 
 def run_numbers(filename, runtype):
