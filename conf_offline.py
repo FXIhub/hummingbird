@@ -120,7 +120,10 @@ patterson_params = {
     "darkfield_sigma" : 30.,
     "darkfield_N" : 4,
 }
-patterson_diameter = 50.
+patterson_diameter = 150.
+patterson_xgap_pix = 10
+patterson_ygap_pix = 10
+patterson_frame_pix = 10
 
 # Output levels
 level = args.output_level
@@ -208,13 +211,15 @@ def onEvent(evt):
         analysis.patterson.patterson(evt, "analysis", "data_half-moved", mask_center_s, 
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
+                                     xgap_pix=patterson_xgap_pix, ygap_pix=patterson_ygap_pix,
+                                     frame_pix=patterson_frame_pix,
                                      crop=512, full_output=True, **patterson_params)
         #print evt['analysis'].keys()
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
 
     # Write to file
     if do_write:
-        if hit and save_anything:
+        if hit and save_anything and (not save_multiple or multiple_hit):
             D = {}
             D['entry_1'] = {}
             if save_pnccd:
@@ -239,7 +244,8 @@ def onEvent(evt):
             
             # PATTERSON
             if save_multiple:
-                D['entry_1']['detector_1']['patterson'] = np.asarray(evt['analysis']['patterson'].data, dtype='float16') 
+                D['entry_1']['detector_1']['patterson'] = np.asarray(evt['analysis']['patterson'].data, dtype='float16')
+                D['entry_1']['detector_1']['patterson_mask'] = np.asarray(evt['analysis']['patterson multiples'].data, dtype='bool') 
 
             # TOF
             if save_tof and tof:
