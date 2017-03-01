@@ -36,7 +36,7 @@ add_config_file_argument('--run-nr', metavar='INT',
 add_config_file_argument('--dark-nr', metavar='INT',
                          help='Run number of dark', type=int)
 add_config_file_argument('--output-level', type=int, 
-                         help='Output level (1: small data for all events, 2: tof data for hits, \
+                         help='Output level (0: dry run, 1: small data for all events, 2: tof data for hits, \
                                3: pnccd data for hits, 4: all data for multiple hits)',
                          default=3)
 add_config_file_argument('--outdir', metavar='STR',
@@ -47,7 +47,7 @@ add_config_file_argument('--skip-tof', action='store_true')
 args = argparser.parse_args()
 
 # Save data to file
-do_write=False
+do_write = args.output_level > 0
 
 # Geometry
 move_half = True
