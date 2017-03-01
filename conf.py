@@ -79,15 +79,3 @@ fit_error_threshold = 2.6E-3#4.0e-3
 photon_error_threshold = 3000
 diameter_min = 40  #[nm]
 diameter_max = 90 #[nm]
-
-# Injector scans
-scanInjector = True
-scanXmin = -37
-scanXmax = 10
-scanXbins = 10
-scanZmin = 5
-scanZmax = 25
-scanZbins = 100
-scanYmin = 94
-scanYmax = 97
-scanYbins = 20
