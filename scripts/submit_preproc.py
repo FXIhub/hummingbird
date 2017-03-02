@@ -11,11 +11,10 @@ from params import run_numbers
 
 def parse_cmdline_args():
     parser = argparse.ArgumentParser(description='Hummingbird pre-processing submission script for slurm (Holography)')
-    group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-r', '--run-number', metavar='run_number', 
+    parser.add_argument('-r', '--run-number', metavar='run_number', 
                        help="run number, can also be a series of runs, for example: 1,3,5-10,20,22", type=str)
-    group.add_argument('-s', '--run-type', metavar='run_type',
-                       help='Run type, can be dark, background, cluster, holography', type=str)
+    parser.add_argument('-s', '--run-type', metavar='run_type',
+                        help='Run type, can be dark, background, cluster, holography', type=str)
     parser.add_argument('-n', '--number-of-frames', metavar='number_of_frames',
                         help="number of frames to be processed (optional)", type=int)
     parser.add_argument('-p', '--number-of-processes', metavar='number_of_processes',
@@ -26,6 +25,8 @@ def parse_cmdline_args():
                         help="output level defines how much data per event will be stored (default=3, 0: no output (\"dry-run\"), 1: only scalar output (hitscores, GMD values, etc.), 2: scalar output and TOF data, 3: scalar output, TOF data and images)", type=int, default=3)
     parser.add_argument('-t', '--hitscore-threshold', metavar='hitscore_threshold',
                         help="Hitscore threshold [if not provided read from CSV file]", type=int)
+    parser.add_argument('-g', '--gain-lvl', metavar='gain_lvl',
+                        help="Gain level of pnCCDs [if not provided read from CSV file]", type=int)
     parser.add_argument('-m', '--multiscore-threshold', metavar='multiscore_threshold',
                         help="Hitscore threshold [if not provided read from CSV file]", type=int)
     parser.add_argument('--sbatch-exclude', metavar='sbatch_exclude', type=str,
@@ -34,6 +35,7 @@ def parse_cmdline_args():
                         help="SLURM partition that shall be used, for example regular")
     parser.add_argument('-x', '--run-locally', dest='run_locally', action='store_true')
     parser.add_argument('-k', '--skip-tof', dest='skip_tof', action='store_true')
+    parser.add_argument('-M', '--only-save-multiples', dest='only_save_multiples', action='store_true')
     parser.add_argument('-o', '--outdir', metavar='outdir',
                         help="output directory different from default (optional)", type=str)
 
@@ -46,8 +48,7 @@ if __name__ == "__main__":
     args = parse_cmdline_args()
 
     if args.number_of_processes == 2:
-        print "ERROR: The current implementation does not allow the number of processes be two. Change your configuration and try again. Abort."
-        sys.exit(1)
+        parser.error("The current implementation does not allow the number of processes be two. Change your configuration and try again. Abort.")
 
     if args.env is None:
         env = "%s/source_this_file" % expdir
@@ -55,9 +56,11 @@ if __name__ == "__main__":
     else:
         env = args.env
 
-    if args.run_type is not None:
-        runs = run_numbers(expdir + 'params.csv', args.run_type)
-    else:
+    if args.run_type is None and args.run_number is None:
+        parser.error("No run filter requested, add --run-type or/and --run-number. Abort.")
+
+    runs = None
+    if args.run_number is not None:
         tmp = args.run_number
         runs = []
         for s in tmp.split(','):
@@ -66,6 +69,16 @@ if __name__ == "__main__":
                 runs += range(int(rmin), int(rmax)+1)
             else:
                 runs += [int(s)]
+       
+    if args.run_type is not None:            
+        runs_t = []
+        tmp = args.run_type
+        for s in tmp.split(','):
+            runs_t += run_numbers(expdir + 'params.csv', s)
+        if runs is None:
+            runs = runs_t
+        else:
+            runs = [r for r in runs if r in runs_t]         
 
     for run in runs:
         if args.outdir is None:
@@ -102,6 +115,8 @@ if __name__ == "__main__":
         cmd += "./hummingbird.py -b conf_offline.py --run-nr %i " % (run)
         if args.hitscore_threshold is not None:
             cmd += " --hitscore-threshold %i" % args.hitscore_threshold
+        if args.gain_lvl is not None:
+            cmd += " --gain-lvl %i" % args.gain_lvl
         if args.multiscore_threshold is not None:
             cmd += " --multiscore-threshold %i" % args.multiscore_threshold
         if args.number_of_frames is not None:
@@ -110,6 +125,8 @@ if __name__ == "__main__":
             cmd += " --outdir %s" %args.outdir
         if args.skip_tof:
             cmd += " --skip-tof"
+        if args.only_save_multiples:
+            cmd += " --only-save-multiples"
         cmd += " --output-level %i" % args.output_level
         s += cmd + "\n"
         with open(slurm, "w") as f:
