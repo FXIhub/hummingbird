@@ -193,6 +193,8 @@ class FLASHTranslator(object):
 
     def new_file_check(self, force=False):
         flist = glob.glob(self.state['FLASH/DataGlob'])
+        if ipc.mpi.slave_rank() == 0:
+            print 'Glob in rank %d' % (ipc.mpi.slave_rank())
         if self._online_start_from_run:
             flist = [f for f in flist if self.file_filter(f,self._online_start_from_run)]
         flist.sort()
@@ -218,8 +220,8 @@ class FLASHTranslator(object):
             self.current_size = file_size
             if file_size < 1024:
                 return False
-            if ipc.mpi.slave_rank() == 0:
-                print 'Found new file', latest_fname, 'size =', self.current_size
+            # if ipc.mpi.slave_rank() == 0:
+            print 'Rank %d found new file' % (ipc.mpi.slave_rank()), latest_fname, 'size =', self.current_size
             self.get_dark()
             
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
