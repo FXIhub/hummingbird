@@ -193,11 +193,11 @@ RunNr;RunType;HitscoreThreshold;MultiscoreThreshold;DarkNr;pnccdGapTopMM;pnccdGa
 201;holography;-1;-1;194;0.8;3.0
 202;dark;-1;-1;202;0.8;3.0
 203;sample;-1;-1;202;0.8;3.0
-204;;;;
-205;;;;
-206;;;;
-207;;;;
-208;;;;
+204;dark;-1;-1;204;0.8;3.0
+205;sample;-1;-1;204;0.8;3.0
+206;sample;-1;-1;204;0.8;3.0
+207;holography;-1;-1;204;0.8;3.0
+208;holography;-1;-1;204;0.8;3.0
 209;;;;
 210;;;;
 211;;;;
