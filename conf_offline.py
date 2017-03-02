@@ -280,7 +280,6 @@ def onEvent(evt):
                 D['entry_1']['motors']['focusinggas']   = evt['motorPositions']['InjectorFocusingGas'].data
             except KeyError:
                 logging.warning("Cannot find motor data.")
-
         
             # TODO: FEL
             W.write_slice(D)
