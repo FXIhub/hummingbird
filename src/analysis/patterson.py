@@ -6,7 +6,7 @@ import numpy
 import utils.io
 from backend.record import add_record
 
-def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop=None, full_output=False, xgap_pix=None, ygap_pix=None, **params):
+def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop=None, full_output=False, xgap_pix=None, ygap_pix=None, frame_pix=None, **params):
     """TODO: missing docstring
 
     .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
@@ -37,7 +37,7 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
     else:
         P = abs(out)
     
-    add_record(v, "analysis", "patterson", abs(P), unit='')
+    add_record(v, "analysis", "patterson", P, unit='')
 
     if threshold is not None:
         M = P > threshold
@@ -46,13 +46,18 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
             X -= P.shape[1]/2
             Y -= P.shape[0]/2
             Rsq = X**2+Y**2
-            M *= Rsq > diameter_pix**2
+            M *= Rsq > (diameter_pix/2)**2
         if xgap_pix is not None:
             cy = M.shape[0]/2 
             M[cy-xgap_pix/2:cy+xgap_pix/2,:] = False
         if ygap_pix is not None:
-            cx = M.shape[0]/2 
+            cx = M.shape[1]/2 
             M[:,cx-ygap_pix/2:cx+ygap_pix/2] = False
+        if frame_pix is not None:
+            M[:frame_pix,:] = False
+            M[-frame_pix:,:] = False
+            M[:,:frame_pix] = False
+            M[:,-frame_pix:] = False
         if full_output:
             add_record(v, "analysis", "patterson multiples", M, unit='')
         multiple_score = M.sum()

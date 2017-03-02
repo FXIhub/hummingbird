@@ -1,0 +1,4 @@
+#!/bin/bash
+
+umount $HOME/flash_mnt
+ps ax | grep "ssh -f" | awk '{print $1}' | sed -n 1p | xargs kill

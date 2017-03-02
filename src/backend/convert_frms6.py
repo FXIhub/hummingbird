@@ -43,6 +43,7 @@ class Frms6_frame_header():
     def __init__(self, length=64):
         self.fmt = '4B3Id2HIL24s'
         self.length = length
+        self._time_offset = 208
         if length != 64:
             self.fmt = self.fmt[:-3]+str(length-40)+'s'
     
@@ -58,6 +59,7 @@ class Frms6_frame_header():
             self.tv_usec, self.index, self.temp, self.the_start, \
             self.the_height, self.external_id, self.bunch_id, self.fill \
             = struct.unpack(self.fmt, headstr)
+        self.tv_sec += self._time_offset
         return 0
     
     def dump(self):

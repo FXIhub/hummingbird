@@ -1,103 +1,81 @@
-# Import analysis/plotting modules
-import analysis.event
-import analysis.hitfinding
-import plotting.image
-import plotting.line
-import plotting.correlation
-import plotting.histogram
-from backend.record import add_record
 import numpy as np
-import time
-import ipc
+import utils.reader
 
-scanInjector = True
-scanXmin = 88
-scanXmax = 100
-scanXbins = 220/2
-scanZmin = 88
-scanZmax = 100
-scanZbins = 220/2
 
-outputEveryImage = False
+# Path to rawdata
+#base_path = "/data/beamline"
+base_path = '/asap3/flash/gpfs/bl1/2017/data/11001733/' 
 
-# Quick config parameters
-# hitScoreThreshold = 9000
-# aduThreshold = 200
-hitScoreThreshold = 25000
-aduThreshold = 200
 
-# Specify the facility
-state = {}
-state['Facility'] = 'FLASH'
-# Specify folders with frms6 and darkcal data
-#state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-01/holography*001*.frms6"
-state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-02/holography*001*.frms6"
-state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-01/*.darkcal.h5"
-state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq/"
-state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
-state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-01/exp2/"
-state['do_offline'] = False
-state['repeat_file'] = True
-#state['FLASH/ProcessingRate'] = 1
+# Physical constants
+h = 6.62606957e-34 #[Js]
+c = 299792458 #[m/s]
+hc = h*c  #[Jm]
+eV_to_J = 1.602e-19 #[J/eV]
 
-def calculate_epoch_times(evt, time_sec, time_usec):
-    add_record(evt['ID'], 'ID', 'time', time_sec.data + 1.e-6*time_usec.data)
-    #add_record(evt['ID'], 'ID', 'timeAgo', time.time() - (time_sec.data + 1.e-6*time_usec.data))
-    # Calculating timeAgo with 606 second offset due to miscalibration of pnCCD server clock
-    #add_record(evt['ID'], 'ID', 'timeAgo', -606. + time.time() - (time_sec.data + 1.e-6*time_usec.data))
-    add_record(evt['ID'], 'ID', 'timeAgo', 0. + time.time() - (time_sec.data + 1.e-6*time_usec.data))
+# Detector
+detector_type_raw = "photonPixelDetectors"
+detector_key_raw  = "pnCCD"
+ny=1024
+nx=1024
+pixel_size=7.5e-05
+detector_distance = 150e-03 # 200E-03 (in the early shifts, not clear from logbook when it changed)
+gap_top = 0.8e-03
+gap_bottom = 3.0e-03
+gap_total = gap_top + gap_bottom
+center_shift = int((gap_top-gap_bottom)/pixel_size)
 
-# This function is called for every single event
-# following the given recipe of analysis
-def onEvent(evt):
-    # Processing rate [Hz]
-    #analysis.event.printProcessingRate()
+# Mask
+Mask = utils.reader.MaskReader("/asap3/flash/gpfs/bl1/2017/data/11001733/processed/mask_v3.h5", "/data")
+mask = Mask.boolean_mask
+mask_center=np.ones((ny, nx), dtype=np.bool)
+radius=30
+cx=0
+cy=0
+xx,yy=np.meshgrid(np.arange(nx), np.arange(ny))
+rr=(xx-nx/2)**2+(yy-ny/2)**2 >= (radius**2)
+mask_center &= rr
+mask_center &= mask
 
-    # Calculate time and add to PlotHistory
-    # calculate_epoch_times(evt, evt["ID"]["tv_sec"], evt["ID"]["tv_usec"])
-    # plotting.line.plotHistory(evt['ID']['timeAgo'], label='Event Time (s)', group='ID')
-    # plotting.line.plotHistory(evt['ID']['tv_sec'], label='Epoch Time (s)', group='ID')
+# Patterson
+patterson_threshold = 3.
+patterson_params = {
+    "floor_cut" : 50.,
+    "mask_smooth" : 5.,
+    "darkfield_x" : 130,
+    "darkfield_y" : 130,
+    "darkfield_sigma" : 30.,
+    "darkfield_N" : 4,
+}
+patterson_diameter = 150.
+patterson_xgap_pix = 10
+patterson_ygap_pix = 10
+patterson_frame_pix = 10
 
-    # Do basic hitfinding using lit pixels
-    analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["pnCCD"], 
-                                       aduThreshold=aduThreshold, 
-                                       hitscoreThreshold=hitScoreThreshold)
+# Sizing parameters
+# ------
+binning = 4
 
-    hit = bool(evt["analysis"]["litpixel: isHit"].data)
-    plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"],
-                              label='Nr. of lit pixels', hline=hitScoreThreshold, group='Metric')
-    analysis.hitfinding.hitrate(evt, hit, history=50)
+centerParams = {'x0'       : (512 - (nx-1)/2.)/binning,
+                'y0'       : (512 + center_shift -(ny-1)/2.)/binning,
+                'maxshift' : int(np.ceil(10./binning)),
+                'threshold': 1,
+                'blur'     : 4}
 
-    if scanInjector:
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorX"], float(1 if hit else 0), hmin=scanXmin, hmax=scanXmax, bins=scanXbins, name="Histogram: InjectorX x Hitrate", group="Scan", buffer_length=1000)
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorZ"], float(1 if hit else 0), hmin=scanZmin, hmax=scanZmax, bins=scanZbins, name="Histogram: InjectorZ x Hitrate", group="Scan", buffer_length=1000)
+modelParams = {'wavelength': 5.3, #in nm
+               'pixelsize': 75*binning, #um
+               'distance': 220., #mm
+               'material': 'sucrose'}
 
-        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorX"], evt['analysis']['litpixel: hitscore'], 
-                                         name='InjectorX vs Hitscore', xlabel='InjectorX', ylabel='Hit Score',
-                                         group='Scan')
-        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorZ"], evt['analysis']['litpixel: hitscore'], 
-                                         name='InjectorZ vs Hitscore', xlabel='InjectorZ', ylabel='Hit Score',
-                                         group='Scan')
-        plotting.line.plotHistory(evt["motorPositions"]["InjectorX"], label="Cluster delay", group="Scan")
-        plotting.line.plotHistory(evt["motorPositions"]["InjectorZ"], label="Nothing", group="Scan")
-        # print("InjectorX = {0}".format(evt["motorPositions"]["InjectorX"].data))
+sizingParams = {'d0':20., # in nm
+                'i0':1., # in mJ/um2
+                'brute_evals':10}
 
-        
-    if outputEveryImage:
-        plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (All)", group='Images')
+#res = modelParams["distance"] * 1E-3* modelParams["wavelength"] * 1E-9 / ( pixelsize_native * nx_front )
+#expected_diameter = 150
 
-    if ipc.mpi.is_main_worker():
-        plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]', group='Metric', history=10000)
-        # plotting.correlation.plotMeanMap(evt['motorPositions']['nozzle_x'], evt['motorPositions']['nozzle_y'],
-        #                              #evt['analysis']['litpixel: hitscore'].data / 1e5, 
-        #                              evt['analysis']['hitrate'].data, 
-        #                              xmin=0.68, xmax=0.72, ymin=4.20, ymax=4.23,
-        #                              name='Hitscore mean map vs nozzle_xy',
-        #                              xlabel='nozzle_x (mm)', 
-        #                              ylabel='nozzle_y (mm)',
-        #                              group='Metric')
-    if hit:
-        plotting.image.plotImage(evt['photonPixelDetectors']['pnCCD'], name="pnCCD (Hits)", group='Images')
-
-    #time.sleep(0.05)
-    #time.sleep(0.01)
+# Thresholds for good sizing fits
+fit_error_threshold = 2.6E-3#4.0e-3
+photon_error_threshold = 3000
+diameter_min = 40  #[nm]
+diameter_max = 90 #[nm]
