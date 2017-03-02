@@ -33,6 +33,7 @@ add_config_file_argument('--outdir', metavar='STR',
 add_config_file_argument('--nr-frames', type=int, 
                          help='Number of frames', default=None)
 add_config_file_argument('--skip-tof', action='store_true')
+add_config_file_argument('--only-save-multiples', action='store_true')
 args = argparser.parse_args()
 
 this_dir = os.path.dirname(os.path.realpath(__file__))                                                                             
@@ -89,9 +90,6 @@ state['reduce_nr_event_readers'] = 1
 # Geometry
 move_half = True
 
-# Save data to file
-do_write = args.output_level > 0
-
 # Output levels
 level = args.output_level
 save_anything = level > 0
@@ -112,7 +110,7 @@ D_solo = {}
 counter = -1
 
 def beginning_of_run():
-    if do_write:
+    if save_anything:
         global W
         W = utils.cxiwriter.CXIWriter(filename_tmp, chunksize=10)
 
@@ -175,7 +173,7 @@ def onEvent(evt):
     hitscore = evt['analysis']['litpixel: hitscore'].data
 
     # Find multiple hits based on patterson function
-    if hit and save_multiple:
+    if hit:
         analysis.patterson.patterson(evt, "analysis", "data_half-moved", mask_center_s, 
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
@@ -186,8 +184,8 @@ def onEvent(evt):
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
 
     # Write to file
-    if do_write:
-        if hit and save_anything and (not save_multiple or multiple_hit):
+    if save_anything:
+        if hit and (not args.only_save_multiples or multiple_hit):
             D = {}
             D['entry_1'] = {}
             if save_pnccd:
@@ -226,9 +224,8 @@ def onEvent(evt):
             # HIT PARAMETERS
             D['entry_1']['result_1']['hitscore_litpixel'] = evt['analysis']['litpixel: hitscore'].data
             D['entry_1']['result_1']['hitscore_litpixel_threshold'] = hitScoreThreshold
-            if save_multiple:
-                D['entry_1']['result_1']['multiscore_patterson'] = evt['analysis']['multiple score'].data
-                D['entry_1']['result_1']['multiscore_patterson_threshold'] = multiScoreThreshold
+            D['entry_1']['result_1']['multiscore_patterson'] = evt['analysis']['multiple score'].data
+            D['entry_1']['result_1']['multiscore_patterson_threshold'] = multiScoreThreshold
         
             # EVENT IDENTIFIERS
             D['entry_1']['event']['bunch_id']   = evt['ID']['BunchID'].data
@@ -253,7 +250,7 @@ def onEvent(evt):
             W.write_slice(D)
 
 def end_of_run():
-    if do_write:
+    if save_anything:
         if ipc.mpi.is_main_event_reader():
             if 'entry_1' not in D_solo:
                 D_solo["entry_1"] = {}
