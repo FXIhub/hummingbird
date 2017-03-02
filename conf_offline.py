@@ -79,7 +79,7 @@ state['Facility'] = 'FLASH'
 state['FLASH/DataGlob']    = base_path + "raw/pnccd/block-*/holography_*_2017*_%04d_*.frms6" %args.run_nr
 state['FLASH/CalibGlob']   = base_path + "processed/calib/block-*/calib_*_%04d.darkcal.h5"   %darkfile_nr
 state['FLASH/DAQFolder']   = base_path + "processed/daq/"
-state['FLASH/DAQBaseDir']  = base_path + "raw/hdf/block-02/exp2/"
+state['FLASH/DAQBaseDir']  = base_path + "raw/hdf/block-03/"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['do_offline'] = True
 state['online_start_from_run'] = False
@@ -216,7 +216,7 @@ def onEvent(evt):
 
             # TOF
             if save_tof and tof:
-                D['entry_1']['detector_2']['data'] = tof.data
+                D['entry_1']['detector_2']['data'] = np.asarray(tof.data, dtype='float16')
             
             # FEL PARAMETERS
             D['entry_1']['FEL']['gmd'] = gmd

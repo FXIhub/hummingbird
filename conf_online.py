@@ -25,7 +25,7 @@ scanXmax = 10
 scanXbins = 21
 scanZmin = 12
 scanZmax = 14
-scanZbins = 100
+scanZbins = 50
 scanYmin = 94
 scanYmax = 97
 scanYbins = 20
@@ -40,7 +40,7 @@ move_half = True
 hitScoreThreshold = 2800
 aduThreshold = 200
 strong_hit_threshold = 10000
-multiScoreThreshold = 2000
+multiScoreThreshold = 10
 
 # Specify the facility
 state = {}
@@ -234,7 +234,8 @@ def onEvent(evt):
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
                                      crop=512, full_output=True, **patterson_params)
-        plotting.line.plotHistory(evt["analysis"]["multiple score"], history=1000, name='Multiscore', group='Holography') 
+        plotting.line.plotHistory(evt["analysis"]["multiple score"], history=1000, name='Multiscore', group='Holography', hline=multiScoreThreshold)
+        #print evt["analysis"]["multiple score"].data, multiScoreThreshold
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
         if multiple_hit:
             plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (multiple hits)")
