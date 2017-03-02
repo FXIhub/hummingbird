@@ -40,7 +40,7 @@ move_half = True
 hitScoreThreshold = 500
 aduThreshold = 100
 strong_hit_threshold = 10000
-multiScoreThreshold = 200
+multiScoreThreshold = 10
 
 # Specify the facility
 state = {}
