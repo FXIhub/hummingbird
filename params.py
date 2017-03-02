@@ -11,6 +11,7 @@ def read_params(filename, run_nr):
             if np.int16(row["RunNr"]) == run_nr:
                 params['RunType'] = str(row["RunType"])
                 params['hitscoreThreshold'] = np.int(row["HitscoreThreshold"])
+                params['pnccdGainLevel'] = np.int(row["pnccdGainLevel"])
                 params['multiscoreThreshold'] = np.int(row["MultiscoreThreshold"])
                 params['darkNr'] = np.int(row["DarkNr"])
                 params['pnccdGapTopMM'] = np.float(row['pnccdGapTopMM'])
