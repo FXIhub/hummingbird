@@ -70,7 +70,7 @@ else:
     gain_lvl = p['pnccdGainLevel']
 
 if gain_lvl == 64:
-    aduThreshold = 100
+    aduThreshold = 50
 elif gain_lvl == 16:
     aduThreshold = 100
 elif gain_lvl == 4:
