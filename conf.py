@@ -42,9 +42,9 @@ patterson_threshold = 3.
 patterson_params = {
     "floor_cut" : 50.,
     "mask_smooth" : 5.,
-    "darkfield_x" : 130,
-    "darkfield_y" : 130,
-    "darkfield_sigma" : 30.,
+    "darkfield_x" : 110,
+    "darkfield_y" : 110,
+    "darkfield_sigma" : 40.,
     "darkfield_N" : 4,
 }
 patterson_diameter = 300.
@@ -64,7 +64,7 @@ centerParams = {'x0'       : (512 - (nx-1)/2.)/binning,
 
 modelParams = {'wavelength': 5.3, #in nm
                'pixelsize': 75*binning, #um
-               'distance': 220., #mm
+               'distance': 150., #mm
                'material': 'sucrose'}
 
 sizingParams = {'d0':20., # in nm

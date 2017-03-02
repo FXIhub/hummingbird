@@ -30,16 +30,16 @@ scanYmin = 94
 scanYmax = 97
 scanYbins = 20
 
-outputEveryImage = True
+outputEveryImage = False
 do_sizing = False
 do_showhybrid = False
 do_patterson = True
 move_half = True
 
 # Quick config parameters
-hitScoreThreshold = 500
-aduThreshold = 100
-strong_hit_threshold = 10000
+hitScoreThreshold = 2500
+aduThreshold = 50
+strong_hit_threshold = 2500
 multiScoreThreshold = 10
 
 # Specify the facility
@@ -92,45 +92,60 @@ def onEvent(evt):
                               label='Total ADU', hline=hitScoreThreshold, group='Metric', history=1000)
     
     plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"],
-                              label='Nr. of lit pixels', hline=hitScoreThreshold, group='Metric')
+                              label='Nr. of lit pixels', hline=hitScoreThreshold, group='Metric',
+                              history=1000)
     analysis.hitfinding.hitrate(evt, hit, history=50)
 
+    plotting.line.plotHistory(add_record(evt["analysis"], "analysis", "is_hit", hit),
+                              label='Is hit', group='Metric',
+                              history=1000)
+
+
+    is_strong_hit = evt["analysis"]["total ADUs"].data > 1e6
+    
+    if hit and is_strong_hit:
+        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Very Strong)", group='Images', mask=mask_center_s)
+
+    
     if scanInjector:
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorX"], float(1 if hit else 0), hmin=scanXmin, hmax=scanXmax, bins=scanXbins, name="Histogram: InjectorX x Hitrate", group="Scan", buffer_length=1000)
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorZ"], float(1 if hit else 0), hmin=scanZmin, hmax=scanZmax, bins=scanZbins, name="Histogram: InjectorZ x Hitrate", group="Scan", buffer_length=1000)
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["ManualY"], float(1 if hit else 0), hmin=scanYmin, hmax=scanYmax, bins=scanYbins, name="Histogram: ManualY x Hitrate", group="Scan", buffer_length=1000)
-        #plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["ManualY"], float(1 if hit else 0), hmin=scanYmin, hmax=scanYmax, bins=scanYbins, name="Histogram: ManualY x Hitrate", group="Scan", buffer_length=1000)
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorSamplePressure"], float(1 if hit else 0), hmin=50, hmax=300, bins=50, name="Histogram: InjectorSamplePressure x Hitrate", group="Scan", buffer_length=1000)
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorNozzlePressure"], float(1 if hit else 0), hmin=50, hmax=300, bins=50, name="Histogram: InjectorNozzlePressure x Hitrate", group="Scan", buffer_length=1000)
-        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorFocusingGas"], float(1 if hit else 0), hmin=50, hmax=300, bins=50, name="Histogram: InjectorFocusingGas x Hitrate", group="Scan", buffer_length=1000)
+        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorX"], float(1 if hit else 0), hmin=scanXmin, hmax=scanXmax, bins=scanXbins, name="Histogram: InjectorX x Hitrate", group="Scan injector pos", buffer_length=1000)
+        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorZ"], float(1 if hit else 0), hmin=scanZmin, hmax=scanZmax, bins=scanZbins, name="Histogram: InjectorZ x Hitrate", group="Scan injector pos", buffer_length=1000)
+        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["ManualY"], float(1 if hit else 0), hmin=scanYmin, hmax=scanYmax, bins=scanYbins, name="Histogram: ManualY x Hitrate", group="Scan injector pos", buffer_length=1000)
+
+        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorSamplePressure"], float(1 if hit else 0), hmin=50, hmax=300, bins=50, name="Histogram: InjectorSamplePressure x Hitrate", group="Scan injector pressure", buffer_length=1000)
+        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorNozzlePressure"], float(1 if hit else 0), hmin=50, hmax=300, bins=50, name="Histogram: InjectorNozzlePressure x Hitrate", group="Scan injector pressure", buffer_length=1000)
+        plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorFocusingGas"], float(1 if hit else 0), hmin=50, hmax=300, bins=50, name="Histogram: InjectorFocusingGas x Hitrate", group="Scan injector pressure", buffer_length=1000)
         plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorPressure"], float(1 if hit else 0), hmin=50, hmax=300, bins=50, name="Histogram: InjectorPressure x Hitrate", group="Scan", buffer_length=1000)
 
 
         plotting.correlation.plotScatter(evt["motorPositions"]["InjectorX"], evt['analysis']['litpixel: hitscore'], 
                                          name='InjectorX vs Hitscore', xlabel='InjectorX', ylabel='Hit Score',
-                                         group='Scan')
+                                         group='Scan injector pos')
         plotting.correlation.plotScatter(evt["motorPositions"]["InjectorZ"], evt['analysis']['litpixel: hitscore'], 
                                          name='InjectorZ vs Hitscore', xlabel='InjectorZ', ylabel='Hit Score',
-                                         group='Scan')
+                                         group='Scan injector pos')
         plotting.correlation.plotScatter(evt["motorPositions"]["ManualY"], evt['analysis']['litpixel: hitscore'], 
                                          name='ManualY vs Hitscore', xlabel='ManualY', ylabel='Hit Score',
-                                         group='Scan')
-        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorSamplePressure"], evt['analysis']['litpixel: hitscore'], 
-                                         name='InjectorSamplePressure vs Hitscore', xlabel='InjectorSamplePressure', ylabel='Hit Score',
-                                         group='Scan')
-        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorNozzlePressure"], evt['analysis']['litpixel: hitscore'], 
-                                         name='InjectorNozzlePressure vs Hitscore', xlabel='InjectorNozzlePressure', ylabel='Hit Score',
-                                         group='Scan')
-        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorFocusingGas"], evt['analysis']['litpixel: hitscore'], 
-                                         name='InjectorFocusingGas vs Hitscore', xlabel='InjectorFocusingGas', ylabel='Hit Score',
-                                         group='Scan')
-        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorPressure"], evt['analysis']['litpixel: hitscore'], 
-                                         name='InjectorPressure vs Hitscore', xlabel='InjectorPressure', ylabel='Hit Score',
-                                         group='Scan')
-        plotting.line.plotHistory(evt["motorPositions"]["InjectorX"], label="Cluster delay", group="Scan")
-        plotting.line.plotHistory(evt["motorPositions"]["InjectorZ"], label="Nothing", group="Scan")
-        # print("InjectorX = {0}".format(evt["motorPositions"]["InjectorX"].data))
+                                         group='Scan injector pos')
 
+        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorSamplePressure"], evt['analysis']['litpixel: hitscore'], 
+                                         name='InjectorSamplePressure vs Hitscore',
+                                         xlabel='InjectorSamplePressure', ylabel='Hit Score',
+                                         group='Scan injector pressure')
+        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorNozzlePressure"], evt['analysis']['litpixel: hitscore'], 
+                                         name='InjectorNozzlePressure vs Hitscore',
+                                         xlabel='InjectorNozzlePressure', ylabel='Hit Score',
+                                         group='Scan injector pressure')
+        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorFocusingGas"], evt['analysis']['litpixel: hitscore'], 
+                                         name='InjectorFocusingGas vs Hitscore',
+                                         xlabel='InjectorFocusingGas', ylabel='Hit Score',
+                                         group='Scan injector presssure')
+        plotting.correlation.plotScatter(evt["motorPositions"]["InjectorPressure"], evt['analysis']['litpixel: hitscore'], 
+                                         name='InjectorPressure vs Hitscore',
+                                         xlabel='InjectorPressure', ylabel='Hit Score',
+                                         group='Scan injector pressure')
+        plotting.line.plotHistory(evt["motorPositions"]["InjectorX"], label="InjectorX", group="Scan injector pos")
+        plotting.line.plotHistory(evt["motorPositions"]["InjectorZ"], label="InjectorZ", group="Scan injector pos")
 
     if outputEveryImage:
         plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (All)", group='Images', mask=mask_center_s)
@@ -146,7 +161,10 @@ def onEvent(evt):
         #                              ylabel='nozzle_y (mm)',
         #                              group='Metric')
     if hit:
-        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Hits)", group='Images', mask=mask_center_s, log=True)
+        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (log Hits)", group='Images',
+                                 mask=mask_center_s, log=True)
+        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Hits)", group='Images',
+                                 mask=mask_center_s, log=False)
         if do_sizing:
             # Crop to 1024 x 1024
             Nx,Ny=np.shape(evt[detector_type][detector_key].data)

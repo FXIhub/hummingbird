@@ -13,11 +13,14 @@ from backend.record import add_record
 import numpy as np
 import time, os, sys
 import h5py
+import logging
 
 # Commandline arguments
 from utils.cmdline_args import argparser, add_config_file_argument
 add_config_file_argument('--hitscore-threshold', metavar='INT',
                          help='Hitscore threshold', type=int)
+add_config_file_argument('--gain-lvl', metavar='INT',
+                         help='Gain level of pnccds', type=int)
 add_config_file_argument('--multiscore-threshold', metavar='INT',
                          help='Multiscore threshold', type=int)
 add_config_file_argument('--run-nr', metavar='INT',
@@ -60,7 +63,24 @@ if args.hitscore_threshold is not None:
     hitScoreThreshold = args.hitscore_threshold
 else:
     hitScoreThreshold = p['hitscoreThreshold']
-aduThreshold = 200
+
+if args.gain_lvl is not None:
+    gain_lvl = args.gain_lvl
+else:
+    gain_lvl = p['pnccdGainLevel']
+
+if gain_lvl == 64:
+    aduThreshold = 50
+elif gain_lvl == 16:
+    aduThreshold = 100
+elif gain_lvl == 4:
+    aduThreshold = 200
+elif gain_lvl == 1:
+    aduThreshold = 400
+else:
+    aduThreshold = 0
+    logging.warning("Do not have tabulated value for chosen pnccd gain level %i. Setting aduThreshold to %i." % (gain_lvl, aduThreshold))
+    time.sleep(2)
 
 # Multiscore threshold
 if args.multiscore_threshold is not None:
@@ -109,6 +129,10 @@ D_solo = {}
 # Counter
 counter = -1
 
+# Htscores
+cache_length = 10000
+hitscore_cache = np.zeros(cache_length)
+
 def beginning_of_run():
     if save_anything:
         global W
@@ -130,18 +154,6 @@ def onEvent(evt):
 
     # Processing rate [Hz]
     analysis.event.printProcessingRate()
-
-    # Read ToF traces
-    if save_tof:
-        try:
-            tof = evt["DAQ"]["TOF"]
-        except RuntimeError:
-            print "Runtime error"
-            tof = None
-            return
-        except KeyError:
-            tof = None
-            return 
 
     # Read FEL parameters
     try:
@@ -171,6 +183,8 @@ def onEvent(evt):
                                        mask=mask_center_s)
     hit = bool(evt["analysis"]["litpixel: isHit"].data)
     hitscore = evt['analysis']['litpixel: hitscore'].data
+    global hitscore_cache
+    hitscore_cache[counter % cache_length] = hitscore
 
     # Find multiple hits based on patterson function
     if hit:
@@ -188,14 +202,14 @@ def onEvent(evt):
         if hit and (not args.only_save_multiples or multiple_hit):
             D = {}
             D['entry_1'] = {}
-            if save_pnccd:
-                D['entry_1']['detector_1'] = {}
-            if save_tof:
-                D['entry_1']['detector_2'] = {}
             D['entry_1']['event'] = {}
             D['entry_1']['motors'] = {}
             D['entry_1']['FEL'] = {}
             D['entry_1']['result_1'] = {}
+            if save_pnccd:
+                D['entry_1']['detector_1'] = {}
+            if save_tof:
+                D['entry_1']['detector_2'] = {}
 
             # PNCCD
             if save_pnccd:
@@ -214,38 +228,56 @@ def onEvent(evt):
                 D['entry_1']['detector_1']['patterson_mask'] = np.asarray(evt['analysis']['patterson multiples'].data, dtype='bool') 
 
             # TOF
-            if save_tof and tof:
+            if save_tof:
+                # Read ToF traces
+                try:
+                    tof = evt["DAQ"]["TOF"]
+                except RuntimeError:
+                    logging.warning("Runtime error when reading TOF data.")
+                    return
+                except KeyError:
+                    logging.warning("Key error when reading TOF data.")
+                    return
                 D['entry_1']['detector_2']['data'] = np.asarray(tof.data, dtype='float16')
             
-            # FEL PARAMETERS
-            D['entry_1']['FEL']['gmd'] = gmd
-            D['entry_1']['FEL']['wavelength_nm'] = wavelength_nm
-
             # HIT PARAMETERS
             D['entry_1']['result_1']['hitscore_litpixel'] = evt['analysis']['litpixel: hitscore'].data
             D['entry_1']['result_1']['hitscore_litpixel_threshold'] = hitScoreThreshold
             D['entry_1']['result_1']['multiscore_patterson'] = evt['analysis']['multiple score'].data
             D['entry_1']['result_1']['multiscore_patterson_threshold'] = multiScoreThreshold
+
+            try:
+                # FEL PARAMETERS
+                D['entry_1']['FEL']['gmd'] = gmd
+                D['entry_1']['FEL']['wavelength_nm'] = wavelength_nm
+            except KeyError:
+                logging.warning("Cannot find FEL data.")
+                
+            try:
+                # EVENT IDENTIFIERS
+                D['entry_1']['event']['bunch_id']   = evt['ID']['BunchID'].data
+                D['entry_1']['event']['tv_sec']     = evt['ID']['tv_sec'].data
+                D['entry_1']['event']['tv_usec']    = evt['ID']['tv_usec'].data
+                D['entry_1']['event']['dataset_id'] = evt['ID']['DataSetID'].data
+                D['entry_1']['event']['bunch_sec']  = evt['ID']['bunch_sec'].data 
+            except KeyError:
+                logging.warning("Cannot find event data.")
+
+            try:
+                # MOTORS
+                D['entry_1']['motors']['manualy']       = evt['motorPositions']['ManualY'].data
+                D['entry_1']['motors']['injectorx']     = evt['motorPositions']['InjectorX'].data
+                D['entry_1']['motors']['injectory']     = evt['motorPositions']['InjectorZ'].data
+                D['entry_1']['motors']['trigdelay']     = evt['motorPositions']['TrigDelay'].data
+                D['entry_1']['motors']['samplepress']   = evt['motorPositions']['InjectorSamplePressure'].data
+                D['entry_1']['motors']['nozzlepress']   = evt['motorPositions']['InjectorNozzlePressure'].data
+                D['entry_1']['motors']['posdownstream'] = evt['motorPositions']['PosDownstream'].data
+                D['entry_1']['motors']['posupstream']   = evt['motorPositions']['PosUpstream'].data
+                D['entry_1']['motors']['injectorpress'] = evt['motorPositions']['InjectorPressure'].data
+                D['entry_1']['motors']['focusinggas']   = evt['motorPositions']['InjectorFocusingGas'].data
+            except KeyError:
+                logging.warning("Cannot find motor data.")
         
-            # EVENT IDENTIFIERS
-            D['entry_1']['event']['bunch_id']   = evt['ID']['BunchID'].data
-            D['entry_1']['event']['tv_sec']     = evt['ID']['tv_sec'].data
-            D['entry_1']['event']['tv_usec']    = evt['ID']['tv_usec'].data
-            D['entry_1']['event']['dataset_id'] = evt['ID']['DataSetID'].data
-            D['entry_1']['event']['bunch_sec']  = evt['ID']['bunch_sec'].data 
-        
-            # MOTORS
-            D['entry_1']['motors']['manualy']       = evt['motorPositions']['ManualY'].data
-            D['entry_1']['motors']['injectorx']     = evt['motorPositions']['InjectorX'].data
-            D['entry_1']['motors']['injectory']     = evt['motorPositions']['InjectorZ'].data
-            D['entry_1']['motors']['trigdelay']     = evt['motorPositions']['TrigDelay'].data
-            D['entry_1']['motors']['samplepress']   = evt['motorPositions']['InjectorSamplePressure'].data
-            D['entry_1']['motors']['nozzlepress']   = evt['motorPositions']['InjectorNozzlePressure'].data
-            D['entry_1']['motors']['posdownstream'] = evt['motorPositions']['PosDownstream'].data
-            D['entry_1']['motors']['posupstream']   = evt['motorPositions']['PosUpstream'].data
-            D['entry_1']['motors']['injectorpress'] = evt['motorPositions']['InjectorPressure'].data
-            D['entry_1']['motors']['focusinggas']   = evt['motorPositions']['InjectorFocusingGas'].data
-            
             # TODO: FEL
             W.write_slice(D)
 
@@ -275,4 +307,7 @@ def end_of_run():
             os.system('mv %s %s' %(filename_tmp, filename_done))
             os.system('chmod 770 %s' %(filename_done))
             print "Moved temporary file %s to %s" %(filename_tmp, filename_done)
-            print "Clean exit"
+    if ipc.mpi.is_main_event_reader():
+        if counter > 0:
+            print "Run %i: Median hit score is %.1f." % (args.run_nr, np.median(hitscore_cache[:min([counter, cache_length])]))
+        print "Clean exit"
