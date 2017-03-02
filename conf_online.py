@@ -37,10 +37,10 @@ do_patterson = True
 move_half = True
 
 # Quick config parameters
-hitScoreThreshold = 2800
-aduThreshold = 200
+hitScoreThreshold = 500
+aduThreshold = 100
 strong_hit_threshold = 10000
-multiScoreThreshold = 10
+multiScoreThreshold = 200
 
 # Specify the facility
 state = {}
@@ -146,7 +146,7 @@ def onEvent(evt):
         #                              ylabel='nozzle_y (mm)',
         #                              group='Metric')
     if hit:
-        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Hits)", group='Images', mask=mask_center_s)
+        plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Hits)", group='Images', mask=mask_center_s, log=True)
         if do_sizing:
             # Crop to 1024 x 1024
             Nx,Ny=np.shape(evt[detector_type][detector_key].data)
