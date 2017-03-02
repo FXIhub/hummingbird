@@ -71,7 +71,10 @@ if __name__ == "__main__":
                 runs += [int(s)]
        
     if args.run_type is not None:            
-        runs_t = run_numbers(expdir + 'params.csv', args.run_type)
+        runs_t = []
+        tmp = args.run_type
+        for s in tmp.split(','):
+            runs_t += run_numbers(expdir + 'params.csv', s)
         if runs is None:
             runs = runs_t
         else:
