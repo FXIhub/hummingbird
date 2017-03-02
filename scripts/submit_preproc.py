@@ -34,6 +34,7 @@ def parse_cmdline_args():
                         help="SLURM partition that shall be used, for example regular")
     parser.add_argument('-x', '--run-locally', dest='run_locally', action='store_true')
     parser.add_argument('-k', '--skip-tof', dest='skip_tof', action='store_true')
+    parser.add_argument('-M', '--only-save-multiples', dest='only_save_multiples', action='store_true')
     parser.add_argument('-o', '--outdir', metavar='outdir',
                         help="output directory different from default (optional)", type=str)
 
@@ -110,6 +111,8 @@ if __name__ == "__main__":
             cmd += " --outdir %s" %args.outdir
         if args.skip_tof:
             cmd += " --skip-tof"
+        if args.only_save_multiples:
+            cmd += " --only-save-multiples"
         cmd += " --output-level %i" % args.output_level
         s += cmd + "\n"
         with open(slurm, "w") as f:

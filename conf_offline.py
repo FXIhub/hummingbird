@@ -33,6 +33,7 @@ add_config_file_argument('--outdir', metavar='STR',
 add_config_file_argument('--nr-frames', type=int, 
                          help='Number of frames', default=None)
 add_config_file_argument('--skip-tof', action='store_true')
+add_config_file_argument('--only-save-multiples', action='store_true')
 args = argparser.parse_args()
 
 this_dir = os.path.dirname(os.path.realpath(__file__))                                                                             
@@ -79,7 +80,7 @@ state['Facility'] = 'FLASH'
 state['FLASH/DataGlob']    = base_path + "raw/pnccd/block-*/holography_*_2017*_%04d_*.frms6" %args.run_nr
 state['FLASH/CalibGlob']   = base_path + "processed/calib/block-*/calib_*_%04d.darkcal.h5"   %darkfile_nr
 state['FLASH/DAQFolder']   = base_path + "processed/daq/"
-state['FLASH/DAQBaseDir']  = base_path + "raw/hdf/block-02/exp2/"
+state['FLASH/DAQBaseDir']  = base_path + "raw/hdf/block-03/"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['do_offline'] = True
 state['online_start_from_run'] = False
@@ -88,9 +89,6 @@ state['reduce_nr_event_readers'] = 1
     
 # Geometry
 move_half = True
-
-# Save data to file
-do_write = args.output_level > 0
 
 # Output levels
 level = args.output_level
@@ -112,7 +110,7 @@ D_solo = {}
 counter = -1
 
 def beginning_of_run():
-    if do_write:
+    if save_anything:
         global W
         W = utils.cxiwriter.CXIWriter(filename_tmp, chunksize=10)
 
@@ -134,15 +132,16 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
 
     # Read ToF traces
-
     if save_tof:
         try:
             tof = evt["DAQ"]["TOF"]
         except RuntimeError:
             print "Runtime error"
             tof = None
+            return
         except KeyError:
             tof = None
+            return 
 
     # Read FEL parameters
     try:
@@ -174,7 +173,7 @@ def onEvent(evt):
     hitscore = evt['analysis']['litpixel: hitscore'].data
 
     # Find multiple hits based on patterson function
-    if hit and save_multiple:
+    if hit:
         analysis.patterson.patterson(evt, "analysis", "data_half-moved", mask_center_s, 
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
@@ -185,8 +184,8 @@ def onEvent(evt):
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
 
     # Write to file
-    if do_write:
-        if hit and save_anything and (not save_multiple or multiple_hit):
+    if save_anything:
+        if hit and (not args.only_save_multiples or multiple_hit):
             D = {}
             D['entry_1'] = {}
             if save_pnccd:
@@ -216,7 +215,7 @@ def onEvent(evt):
 
             # TOF
             if save_tof and tof:
-                D['entry_1']['detector_2']['data'] = tof.data
+                D['entry_1']['detector_2']['data'] = np.asarray(tof.data, dtype='float16')
             
             # FEL PARAMETERS
             D['entry_1']['FEL']['gmd'] = gmd
@@ -225,9 +224,8 @@ def onEvent(evt):
             # HIT PARAMETERS
             D['entry_1']['result_1']['hitscore_litpixel'] = evt['analysis']['litpixel: hitscore'].data
             D['entry_1']['result_1']['hitscore_litpixel_threshold'] = hitScoreThreshold
-            if save_multiple:
-                D['entry_1']['result_1']['multiscore_patterson'] = evt['analysis']['multiple score'].data
-                D['entry_1']['result_1']['multiscore_patterson_threshold'] = multiScoreThreshold
+            D['entry_1']['result_1']['multiscore_patterson'] = evt['analysis']['multiple score'].data
+            D['entry_1']['result_1']['multiscore_patterson_threshold'] = multiScoreThreshold
         
             # EVENT IDENTIFIERS
             D['entry_1']['event']['bunch_id']   = evt['ID']['BunchID'].data
@@ -252,7 +250,7 @@ def onEvent(evt):
             W.write_slice(D)
 
 def end_of_run():
-    if do_write:
+    if save_anything:
         if ipc.mpi.is_main_event_reader():
             if 'entry_1' not in D_solo:
                 D_solo["entry_1"] = {}

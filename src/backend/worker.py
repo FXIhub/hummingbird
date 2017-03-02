@@ -138,7 +138,7 @@ class Worker(object):
                         ipc.set_current_event(evt)
                         try:
                             Worker.conf.onEvent(evt)
-                        except (KeyError, TypeError) as exc:
+                        except (KeyError, TypeError, AttributeError) as exc:
                             logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info=True)
                         except (RuntimeError) as e:
                             logging.warning("Some problem with %s (library used for translation), probably due to reloading the backend." % self.translator.library,
