@@ -156,7 +156,7 @@ RunNr;RunType;HitscoreThreshold;MultiscoreThreshold;DarkNr;pnccdGapTopMM;pnccdGa
 164;sample;3000;10;163;0.8;3.0
 165;sample;3000;10;163;0.8;3.0
 166;sample;3000;10;163;0.8;3.0
-167;dark;-1;-1;167
+167;dark;-1;-1;167;0.8;3.0
 168;sample;3000;10;167;0.8;3.0
 169;sample;3000;10;167;0.8;3.0
 170;background;-1;-1;167
@@ -198,7 +198,7 @@ RunNr;RunType;HitscoreThreshold;MultiscoreThreshold;DarkNr;pnccdGapTopMM;pnccdGa
 206;sample;-1;-1;204;0.8;3.0
 207;holography;-1;-1;204;0.8;3.0
 208;holography;-1;-1;204;0.8;3.0
-209;;;;
+209;holography;-1;-1;204;0.8;3.0
 210;;;;
 211;;;;
 212;;;;
