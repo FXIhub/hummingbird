@@ -129,6 +129,10 @@ D_solo = {}
 # Counter
 counter = -1
 
+# Htscores
+cache_length = 10000
+hitscore_cache = np.zeros(cache_length)
+
 def beginning_of_run():
     if save_anything:
         global W
@@ -191,6 +195,8 @@ def onEvent(evt):
                                        mask=mask_center_s)
     hit = bool(evt["analysis"]["litpixel: isHit"].data)
     hitscore = evt['analysis']['litpixel: hitscore'].data
+    global hitscore_cache
+    hitscore_cache[counter % cache_length] = hitscore
 
     # Find multiple hits based on patterson function
     if hit:
@@ -305,4 +311,6 @@ def end_of_run():
             os.system('mv %s %s' %(filename_tmp, filename_done))
             os.system('chmod 770 %s' %(filename_done))
             print "Moved temporary file %s to %s" %(filename_tmp, filename_done)
-            print "Clean exit"
+    if ipc.mpi.is_main_event_reader() and counter > 0:
+        print "Run %i: Median hit score is %.1f." % (args.run_nr, np.median(hitscore_cache[:min([counter, cache_length])]))
+    print "Clean exit"
