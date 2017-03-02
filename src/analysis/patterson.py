@@ -26,7 +26,7 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
         mask = module.crop(mask, crop)
         
     out = module.patterson(numpy.float64(img), mask, full_output=full_output, normalize_median=True, **params)
-
+    
     v = evt["analysis"]
     
     if full_output:
@@ -40,6 +40,9 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
     add_record(v, "analysis", "patterson", P, unit='')
 
     if threshold is not None:
+        Minf = ~numpy.isfinite(P)
+        if Minf.sum() > 0:
+            P[Minf] = 0
         M = P > threshold
         if diameter_pix is not None:
             Y,X = numpy.indices(P.shape)

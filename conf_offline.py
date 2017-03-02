@@ -13,11 +13,14 @@ from backend.record import add_record
 import numpy as np
 import time, os, sys
 import h5py
+import logging
 
 # Commandline arguments
 from utils.cmdline_args import argparser, add_config_file_argument
 add_config_file_argument('--hitscore-threshold', metavar='INT',
                          help='Hitscore threshold', type=int)
+add_config_file_argument('--gain-lvl', metavar='INT',
+                         help='Gain level of pnccds', type=int)
 add_config_file_argument('--multiscore-threshold', metavar='INT',
                          help='Multiscore threshold', type=int)
 add_config_file_argument('--run-nr', metavar='INT',
@@ -60,7 +63,24 @@ if args.hitscore_threshold is not None:
     hitScoreThreshold = args.hitscore_threshold
 else:
     hitScoreThreshold = p['hitscoreThreshold']
-aduThreshold = 200
+
+if args.gain_lvl is not None:
+    gain_lvl = args.gain_lvl
+else:
+    gain_lvl = p['pnccdGainLevel']
+
+if gain_lvl == 64:
+    aduThreshold = 50
+elif gain_lvl == 16:
+    aduThreshold = 100
+elif gain_lvl == 4:
+    aduThreshold = 200
+elif gain_lvl == 1:
+    aduThreshold = 400
+else:
+    aduThreshold = 0
+    logging.warning("Do not have tabulated value for chosen pnccd gain level %i. Setting aduThreshold to %i." % (gain_lvl, aduThreshold))
+    time.sleep(2)
 
 # Multiscore threshold
 if args.multiscore_threshold is not None:
@@ -217,35 +237,45 @@ def onEvent(evt):
             if save_tof and tof:
                 D['entry_1']['detector_2']['data'] = np.asarray(tof.data, dtype='float16')
             
-            # FEL PARAMETERS
-            D['entry_1']['FEL']['gmd'] = gmd
-            D['entry_1']['FEL']['wavelength_nm'] = wavelength_nm
-
             # HIT PARAMETERS
             D['entry_1']['result_1']['hitscore_litpixel'] = evt['analysis']['litpixel: hitscore'].data
             D['entry_1']['result_1']['hitscore_litpixel_threshold'] = hitScoreThreshold
             D['entry_1']['result_1']['multiscore_patterson'] = evt['analysis']['multiple score'].data
             D['entry_1']['result_1']['multiscore_patterson_threshold'] = multiScoreThreshold
+
+            try:
+                # FEL PARAMETERS
+                D['entry_1']['FEL']['gmd'] = gmd
+                D['entry_1']['FEL']['wavelength_nm'] = wavelength_nm
+            except KeyError:
+                logging.warning("Cannot find FEL data.")
+                
+            try:
+                # EVENT IDENTIFIERS
+                D['entry_1']['event']['bunch_id']   = evt['ID']['BunchID'].data
+                D['entry_1']['event']['tv_sec']     = evt['ID']['tv_sec'].data
+                D['entry_1']['event']['tv_usec']    = evt['ID']['tv_usec'].data
+                D['entry_1']['event']['dataset_id'] = evt['ID']['DataSetID'].data
+                D['entry_1']['event']['bunch_sec']  = evt['ID']['bunch_sec'].data 
+            except KeyError:
+                logging.warning("Cannot find event data.")
+
+            try:
+                # MOTORS
+                D['entry_1']['motors']['manualy']       = evt['motorPositions']['ManualY'].data
+                D['entry_1']['motors']['injectorx']     = evt['motorPositions']['InjectorX'].data
+                D['entry_1']['motors']['injectory']     = evt['motorPositions']['InjectorZ'].data
+                D['entry_1']['motors']['trigdelay']     = evt['motorPositions']['TrigDelay'].data
+                D['entry_1']['motors']['samplepress']   = evt['motorPositions']['InjectorSamplePressure'].data
+                D['entry_1']['motors']['nozzlepress']   = evt['motorPositions']['InjectorNozzlePressure'].data
+                D['entry_1']['motors']['posdownstream'] = evt['motorPositions']['PosDownstream'].data
+                D['entry_1']['motors']['posupstream']   = evt['motorPositions']['PosUpstream'].data
+                D['entry_1']['motors']['injectorpress'] = evt['motorPositions']['InjectorPressure'].data
+                D['entry_1']['motors']['focusinggas']   = evt['motorPositions']['InjectorFocusingGas'].data
+            except KeyError:
+                logging.warning("Cannot find motor data.")
+
         
-            # EVENT IDENTIFIERS
-            D['entry_1']['event']['bunch_id']   = evt['ID']['BunchID'].data
-            D['entry_1']['event']['tv_sec']     = evt['ID']['tv_sec'].data
-            D['entry_1']['event']['tv_usec']    = evt['ID']['tv_usec'].data
-            D['entry_1']['event']['dataset_id'] = evt['ID']['DataSetID'].data
-            D['entry_1']['event']['bunch_sec']  = evt['ID']['bunch_sec'].data 
-        
-            # MOTORS
-            D['entry_1']['motors']['manualy']       = evt['motorPositions']['ManualY'].data
-            D['entry_1']['motors']['injectorx']     = evt['motorPositions']['InjectorX'].data
-            D['entry_1']['motors']['injectory']     = evt['motorPositions']['InjectorZ'].data
-            D['entry_1']['motors']['trigdelay']     = evt['motorPositions']['TrigDelay'].data
-            D['entry_1']['motors']['samplepress']   = evt['motorPositions']['InjectorSamplePressure'].data
-            D['entry_1']['motors']['nozzlepress']   = evt['motorPositions']['InjectorNozzlePressure'].data
-            D['entry_1']['motors']['posdownstream'] = evt['motorPositions']['PosDownstream'].data
-            D['entry_1']['motors']['posupstream']   = evt['motorPositions']['PosUpstream'].data
-            D['entry_1']['motors']['injectorpress'] = evt['motorPositions']['InjectorPressure'].data
-            D['entry_1']['motors']['focusinggas']   = evt['motorPositions']['InjectorFocusingGas'].data
-            
             # TODO: FEL
             W.write_slice(D)
 
