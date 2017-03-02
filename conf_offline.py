@@ -134,15 +134,16 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
 
     # Read ToF traces
-
     if save_tof:
         try:
             tof = evt["DAQ"]["TOF"]
         except RuntimeError:
             print "Runtime error"
             tof = None
+            return
         except KeyError:
             tof = None
+            return 
 
     # Read FEL parameters
     try:
