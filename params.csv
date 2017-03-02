@@ -180,8 +180,8 @@ RunNr;RunType;HitscoreThreshold;MultiscoreThreshold;DarkNr;pnccdGapTopMM;pnccdGa
 188;;;;
 189;;;;
 190;;;;
-191;;;;
-192;;;;
+191;dark;-1;-1;191;0.8;3.0
+192;cluster;-1;-1;191;0.8;3.0
 193;;;;
 194;;;;
 195;;;;
