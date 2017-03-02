@@ -33,7 +33,7 @@ RunNr;RunType;HitscoreThreshold;pnccdGainLevel;MultiscoreThreshold;DarkNr;pnccdG
 41;background;-1;-1;-1;33;4.8;5.1
 42;void;-1;-1;-1;29;0.8;3.0
 43;cluster;15000;1;-1;33;0.8;3.0
-44;sample;-1;1;-1;33;0.8;3.0
+44;sample;2500;1;-1;33;0.8;3.0
 45;;;;
 46;;;;
 47;;;;
