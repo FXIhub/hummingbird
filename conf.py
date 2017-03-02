@@ -42,9 +42,9 @@ patterson_threshold = 3.
 patterson_params = {
     "floor_cut" : 50.,
     "mask_smooth" : 5.,
-    "darkfield_x" : 130,
-    "darkfield_y" : 130,
-    "darkfield_sigma" : 30.,
+    "darkfield_x" : 110,
+    "darkfield_y" : 110,
+    "darkfield_sigma" : 40.,
     "darkfield_N" : 4,
 }
 patterson_diameter = 300.
