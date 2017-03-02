@@ -311,6 +311,7 @@ def end_of_run():
             os.system('mv %s %s' %(filename_tmp, filename_done))
             os.system('chmod 770 %s' %(filename_done))
             print "Moved temporary file %s to %s" %(filename_tmp, filename_done)
-    if ipc.mpi.is_main_event_reader() and counter > 0:
-        print "Run %i: Median hit score is %.1f." % (args.run_nr, np.median(hitscore_cache[:min([counter, cache_length])]))
-    print "Clean exit"
+    if ipc.mpi.is_main_event_reader():
+        if counter > 0:
+            print "Run %i: Median hit score is %.1f." % (args.run_nr, np.median(hitscore_cache[:min([counter, cache_length])]))
+        print "Clean exit"
