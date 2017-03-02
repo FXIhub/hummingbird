@@ -64,7 +64,7 @@ centerParams = {'x0'       : (512 - (nx-1)/2.)/binning,
 
 modelParams = {'wavelength': 5.3, #in nm
                'pixelsize': 75*binning, #um
-               'distance': 220., #mm
+               'distance': 150., #mm
                'material': 'sucrose'}
 
 sizingParams = {'d0':20., # in nm
