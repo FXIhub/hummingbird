@@ -37,11 +37,11 @@ outputEveryImage = False
 do_sizing = False
 do_showhybrid = False
 do_patterson = True
-do_hologram = False
+do_hologram = True
 move_half = True
 
 # Quick config parameters
-hitScoreThreshold = 1000
+hitScoreThreshold = 200
 aduThreshold = 200
 strong_hit_threshold = 2500
 multiScoreThreshold = 5

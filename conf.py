@@ -47,8 +47,8 @@ patterson_params = {
     "darkfield_sigma" : 40.,
     "darkfield_N" : 4,
 }
-patterson_diameter = 300.
-patterson_xgap_pix = 60
+patterson_diameter = 250.
+patterson_xgap_pix = 50
 patterson_ygap_pix = 30
 patterson_frame_pix = 20
 
