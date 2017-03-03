@@ -193,8 +193,6 @@ class FLASHTranslator(object):
 
     def new_file_check(self, force=False):
         flist = glob.glob(self.state['FLASH/DataGlob'])
-        if ipc.mpi.slave_rank() == 0:
-            print 'Glob in rank %d' % (ipc.mpi.slave_rank())
         if self._online_start_from_run:
             flist = [f for f in flist if self.file_filter(f,self._online_start_from_run)]
         flist.sort()
@@ -216,7 +214,13 @@ class FLASHTranslator(object):
             file_size = os.path.getsize(latest_fname)
         else:
             latest_fname = max(flist, key=os.path.getmtime)
-            file_size = os.path.getsize(latest_fname)
+            # BD: I think this creates a problem, glob seems to always find new files, 
+            # but the size of the following function call seems to return 0 most of the time 
+            # (sometimes certain files never return anything except 0)
+            file_size = os.path.getsize(latest_fname) 
+            if ipc.mpi.slave_rank() == 0:
+                print 'Glob in rank %d: latest: %s/%d' % (ipc.mpi.slave_rank(), latest_fname, file_size)
+
         
         if latest_fname != self.current_fname:
             self.current_size = file_size
