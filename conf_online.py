@@ -60,7 +60,7 @@ state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/d
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-03/exp2/"
 state['do_offline'] = False
-state['online_start_from_run'] = 245
+state['online_start_from_run'] = False
 #state['FLASH/ProcessingRate'] = 1
 
 def calculate_epoch_times(evt, time_sec, time_usec):
@@ -289,7 +289,7 @@ def onEvent(evt):
             plotting.line.plotHistory(evt["analysis"]["multiple_hitrate"], label='Multiple Hit rate [%]', group='Metric', history=10000)
 
 
-            non_hitrate = 1. - (evt["analysis"]["hitrate"].data / 100.)
+            non_hitrate = max(1. - (evt["analysis"]["hitrate"].data / 100.), 0.01)
             multi_hitrate = (evt["analysis"]["multiple_hitrate"].data / 100.)
             hitrate_corrected_poisson = multi_hitrate / (0.25 * np.exp(-2.) * non_hitrate *  np.log(non_hitrate)**2)
             #print "%f/%f/%.4f" %(non_hitrate,multi_hitrate,hitrate_corrected_poisson)
