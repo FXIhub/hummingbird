@@ -287,8 +287,10 @@ def end_of_run():
             if 'entry_1' not in D_solo:
                 D_solo["entry_1"] = {}
             W.write_solo(D_solo)
-        W.close(barrier=True)
-        #W.close()
+        if ipc.mpi.size <= 2:
+            W.close()
+        else:
+            W.close(barrier=True)
         if ipc.mpi.is_main_event_reader():
             with h5py.File(filename_tmp, 'a') as f:
                 if save_pnccd and '/entry_1/detector_1' in f:
