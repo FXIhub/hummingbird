@@ -202,8 +202,10 @@ class FLASHTranslator(object):
                 self.flist = flist
                 if ipc.mpi.is_main_event_reader():
                     print 'Found %d files'% len(flist)
+                if len(flist) == 0:
+                    return False
             else:
-                if force and self.fnum < len(flist) - 1:
+                if force and ((self.fnum+1) < len(flist)):
                     self.fnum += 1
                 if self.fnum == len(flist):
                     print "No more files to process", force, self.fnum
@@ -211,15 +213,19 @@ class FLASHTranslator(object):
             latest_fname = flist[self.fnum]
             file_size = os.path.getsize(latest_fname)
         else:
-            latest_fname = max(flist, key=os.path.getmtime)
-            file_size = os.path.getsize(latest_fname)
+            #latest_fname = max(flist, key=os.path.getmtime)
+            latest_fname = sorted(flist, key=os.path.getmtime)[-2]
+            file_size = os.path.getsize(latest_fname) 
+            #if ipc.mpi.slave_rank() == 0:
+            #    print 'Glob in rank %d: latest: %s/%d' % (ipc.mpi.slave_rank(), latest_fname, file_size)
+                
         
         if latest_fname != self.current_fname:
             self.current_size = file_size
             if file_size < 1024:
                 return False
-            if ipc.mpi.slave_rank() == 0:
-                print 'Found new file', latest_fname, 'size =', self.current_size
+            # if ipc.mpi.slave_rank() == 0:
+            #print 'Rank %d found new file' % (ipc.mpi.slave_rank()), latest_fname, 'size =', self.current_size
             self.get_dark()
             
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
