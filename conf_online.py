@@ -37,7 +37,7 @@ outputEveryImage = False
 do_sizing = False
 do_showhybrid = False
 do_patterson = True
-do_hologram = True
+do_hologram = False
 move_half = True
 
 # Quick config parameters
@@ -269,8 +269,9 @@ def onEvent(evt):
             plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (multiple hits)")
             plotting.image.plotImage(evt["analysis"]["patterson multiples"], group="Holography", name="Patterson mask (multiple hits)")
             plotting.image.plotImage(evt[detector_type][detector_key], group="Holography", name="Multiple hits (image)", mask=mask_center_s)
-            analysis.refocus_hologram.refocus_hologram_evt(evt,detector_type,detector_key) 
-            plotting.image.plotImage(evt["analysis"]["focused_CC"], group="Holography", name="refocused Hologram (image)")
+            if do_hologram:
+                analysis.refocus_hologram.refocus_hologram_evt(evt,detector_type,detector_key) 
+                plotting.image.plotImage(evt["analysis"]["focused_CC"], group="Holography", name="refocused Hologram (image)")
         else:
             plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (non-multiple hits)")  
     
