@@ -26,9 +26,10 @@ def refocus_hologram_evt(evt, type, key):
         img = evt[type][key].data.copy()
         img = img[513-256:513+256,584-256:584+256]
         image_to_show, centroidsmap, centroids, focal_distance, intensity = refocus_hologram(img)
-        add_record(evt["analysis"], "analysis", "focused_CC", image_to_show)
-        add_record(evt["analysis"], "analysis", "focus distance", focal_distance[intensity.argmax()]*5E-7)
-        add_record(evt["analysis"], "analysis", "hologram_score", intensity.max() )
+        if image_to_show.sum() > 0:
+                add_record(evt["analysis"], "analysis", "focused_CC", image_to_show)
+                add_record(evt["analysis"], "analysis", "focus distance", focal_distance[intensity.argmax()]*5E-7)
+                add_record(evt["analysis"], "analysis", "hologram_score", intensity.max() )
         
 
 def rest(ar,s):
