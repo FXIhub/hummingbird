@@ -14,7 +14,7 @@ import scipy.misc as misc
 import time
 import ipc
 import os, sys
-
+import analysis.refocus_hologram
 this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(this_dir)
 #import conf
@@ -268,7 +268,7 @@ def onEvent(evt):
             plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (multiple hits)")
             plotting.image.plotImage(evt["analysis"]["patterson multiples"], group="Holography", name="Patterson mask (multiple hits)")
             plotting.image.plotImage(evt[detector_type][detector_key], group="Holography", name="Multiple hits (image)", mask=mask_center_s)
-
+            analysis.refocus_hologram.refocus_hologram_evt(evt,detector_type,detector_key) 
         else:
             plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (non-multiple hits)")  
     
