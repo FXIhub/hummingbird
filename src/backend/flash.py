@@ -193,8 +193,8 @@ class FLASHTranslator(object):
 
     def new_file_check(self, force=False):
         flist = glob.glob(self.state['FLASH/DataGlob'])
-        if ipc.mpi.slave_rank() == 0:
-            print 'Glob in rank %d' % (ipc.mpi.slave_rank())
+        #if ipc.mpi.slave_rank() == 0:
+        #    print 'Glob in rank %d' % (ipc.mpi.slave_rank())
         if self._online_start_from_run:
             flist = [f for f in flist if self.file_filter(f,self._online_start_from_run)]
         flist.sort()

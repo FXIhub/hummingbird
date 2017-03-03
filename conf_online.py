@@ -10,12 +10,15 @@ import plotting.correlation
 import plotting.histogram
 from backend.record import add_record
 import numpy as np
+import scipy.misc as misc
 import time
 import ipc
 import os, sys
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(this_dir)
+#import conf
+#reload(conf)
 from conf import *
 
 # Injector scans
@@ -37,10 +40,13 @@ do_patterson = True
 move_half = True
 
 # Quick config parameters
-hitScoreThreshold = 2500
-aduThreshold = 50
+hitScoreThreshold = 1000
+aduThreshold = 200
 strong_hit_threshold = 2500
-multiScoreThreshold = 10
+multiScoreThreshold = 5
+
+def poisson_pdf(k,l):
+    return (l**k)*np.exp(-l)/misc.factorial(k)
 
 # Specify the facility
 state = {}
@@ -53,7 +59,7 @@ state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/d
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
 state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-03/exp2/"
 state['do_offline'] = False
-state['online_start_from_run'] = False
+state['online_start_from_run'] = 245
 #state['FLASH/ProcessingRate'] = 1
 
 def calculate_epoch_times(evt, time_sec, time_usec):
@@ -251,12 +257,16 @@ def onEvent(evt):
         analysis.patterson.patterson(evt, detector_type, detector_key, mask_center_s, 
                                      threshold=patterson_threshold,
                                      diameter_pix=patterson_diameter,
+                                     xgap_pix=patterson_xgap_pix,
+                                     ygap_pix=patterson_ygap_pix,
+                                     frame_pix=patterson_frame_pix,
                                      crop=512, full_output=True, **patterson_params)
         plotting.line.plotHistory(evt["analysis"]["multiple score"], history=1000, name='Multiscore', group='Holography', hline=multiScoreThreshold)
         #print evt["analysis"]["multiple score"].data, multiScoreThreshold
         multiple_hit = evt["analysis"]["multiple score"].data > multiScoreThreshold
         if multiple_hit:
             plotting.image.plotImage(evt["analysis"]["patterson"], group="Holography", name="Patterson (multiple hits)")
+            plotting.image.plotImage(evt["analysis"]["patterson multiples"], group="Holography", name="Patterson mask (multiple hits)")
             plotting.image.plotImage(evt[detector_type][detector_key], group="Holography", name="Multiple hits (image)", mask=mask_center_s)
 
         else:
@@ -266,5 +276,19 @@ def onEvent(evt):
         multiple_hit = False
     if do_patterson:
         analysis.hitfinding.hitrate(evt, multiple_hit, history=50, outkey='multiple_hitrate')
+        
+        if scanInjector:
+            plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorX"], float(1 if multiple_hit else 0), hmin=scanXmin, hmax=scanXmax, bins=scanXbins, name="Histogram: InjectorX x Multiple hitrate", group="Scan injector pos", buffer_length=1000)
+            plotting.histogram.plotNormalizedHistogram(evt["motorPositions"]["InjectorZ"], float(1 if multiple_hit else 0), hmin=scanZmin, hmax=scanZmax, bins=scanZbins, name="Histogram: InjectorZ x Multiple hitrate", group="Scan injector pos", buffer_length=1000)
+
+
         if ipc.mpi.is_main_worker():
             plotting.line.plotHistory(evt["analysis"]["multiple_hitrate"], label='Multiple Hit rate [%]', group='Metric', history=10000)
+
+
+            non_hitrate = 1. - (evt["analysis"]["hitrate"].data / 100.)
+            multi_hitrate = (evt["analysis"]["multiple_hitrate"].data / 100.)
+            hitrate_corrected_poisson = multi_hitrate / (0.25 * np.exp(-2.) * non_hitrate *  np.log(non_hitrate)**2)
+            #print "%f/%f/%.4f" %(non_hitrate,multi_hitrate,hitrate_corrected_poisson)
+            e = add_record(evt['analysis'], "analysis", "multiple hitrate (corrected)", hitrate_corrected_poisson)
+            plotting.line.plotHistory(e, label='Multiple hitrate (poisson corrected)', group='Holography', history=10000)
