@@ -155,18 +155,6 @@ def onEvent(evt):
     # Processing rate [Hz]
     analysis.event.printProcessingRate()
 
-    # Read ToF traces
-    if save_tof:
-        try:
-            tof = evt["DAQ"]["TOF"]
-        except RuntimeError:
-            print "Runtime error"
-            tof = None
-            return
-        except KeyError:
-            tof = None
-            return 
-
     # Read FEL parameters
     try:
         wavelength_nm = evt['FEL']['wavelength'].data
@@ -214,14 +202,14 @@ def onEvent(evt):
         if hit and (not args.only_save_multiples or multiple_hit):
             D = {}
             D['entry_1'] = {}
-            if save_pnccd:
-                D['entry_1']['detector_1'] = {}
-            if save_tof:
-                D['entry_1']['detector_2'] = {}
             D['entry_1']['event'] = {}
             D['entry_1']['motors'] = {}
             D['entry_1']['FEL'] = {}
             D['entry_1']['result_1'] = {}
+            if save_pnccd:
+                D['entry_1']['detector_1'] = {}
+            if save_tof:
+                D['entry_1']['detector_2'] = {}
 
             # PNCCD
             if save_pnccd:
@@ -240,7 +228,16 @@ def onEvent(evt):
                 D['entry_1']['detector_1']['patterson_mask'] = np.asarray(evt['analysis']['patterson multiples'].data, dtype='bool') 
 
             # TOF
-            if save_tof and tof:
+            if save_tof:
+                # Read ToF traces
+                try:
+                    tof = evt["DAQ"]["TOF"]
+                except RuntimeError:
+                    logging.warning("Runtime error when reading TOF data.")
+                    return
+                except KeyError:
+                    logging.warning("Key error when reading TOF data.")
+                    return
                 D['entry_1']['detector_2']['data'] = np.asarray(tof.data, dtype='float16')
             
             # HIT PARAMETERS
@@ -290,8 +287,10 @@ def end_of_run():
             if 'entry_1' not in D_solo:
                 D_solo["entry_1"] = {}
             W.write_solo(D_solo)
-        W.close(barrier=True)
-        #W.close()
+        if ipc.mpi.size <= 2:
+            W.close()
+        else:
+            W.close(barrier=True)
         if ipc.mpi.is_main_event_reader():
             with h5py.File(filename_tmp, 'a') as f:
                 if save_pnccd and '/entry_1/detector_1' in f:

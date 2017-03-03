@@ -38,7 +38,7 @@ mask_center &= rr
 mask_center &= mask
 
 # Patterson
-patterson_threshold = 3.
+patterson_threshold = 3
 patterson_params = {
     "floor_cut" : 50.,
     "mask_smooth" : 5.,
@@ -47,10 +47,10 @@ patterson_params = {
     "darkfield_sigma" : 40.,
     "darkfield_N" : 4,
 }
-patterson_diameter = 300.
-patterson_xgap_pix = 10
-patterson_ygap_pix = 10
-patterson_frame_pix = 10
+patterson_diameter = 250.
+patterson_xgap_pix = 50
+patterson_ygap_pix = 30
+patterson_frame_pix = 20
 
 # Sizing parameters
 # ------
