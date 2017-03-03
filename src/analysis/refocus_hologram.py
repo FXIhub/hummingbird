@@ -2,21 +2,16 @@
 import sys
 import os
 #from eke import tools
-from PyQt4.QtCore import *
-from PyQt4.QtGui import *
+#from PyQt4.QtCore import *
+#from PyQt4.QtGui import *
 import h5py
 import numpy
-from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
-#from matplotlib.backends.backend_qt4agg import FigureCanvasQTAgg as FigureCanvas
-#from matplotlib.backends.backend_qt4agg import NavigationToolbar2QT as NavigationToolbar
-from matplotlib.figure import Figure
-import argparse
+
 from numpy.fft import *
 from scipy.ndimage import label, gaussian_filter,center_of_mass
 from skimage.morphology import binary_erosion as binary_erode
 from skimage.morphology import binary_dilation
-from pylab import subplots
+
 from matplotlib.colors import LogNorm
 from scipy.ndimage import sobel
 from skimage.feature import canny
@@ -121,7 +116,7 @@ def refocus_hologram(input_image,wavelength=5.3E-9,pixelsize=75E-6,detectordista
 		centroids[i-1] = center_of_mass((l==i)*abs(bar))
                 for cc in range(len(centroids[i-1])): 
                         centroids[i-1][cc] = numpy.round(centroids[i-1][cc]).astype(int)
-                print centroids[i-1]
+                
 		centroidsmap[int(centroids[i-1][0])-30:int(centroids[i-1][0])+30,int(centroids[i-1][1])-30:int(centroids[i-1][1])+30] = 1
 	    variance = numpy.zeros((limit,n))
 	    maxv = numpy.zeros((limit,n))
@@ -148,7 +143,7 @@ def refocus_hologram(input_image,wavelength=5.3E-9,pixelsize=75E-6,detectordista
 	    
 	    image_to_show = numpy.log10(abs(added_recon[int(love[sett])]))+centroidsmap*2
 										
-	    print love,rat
+	    
 	    return image_to_show, centroidsmap, centroids, rat, love
 
         
