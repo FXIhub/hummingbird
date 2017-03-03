@@ -17,10 +17,10 @@ from scipy.ndimage import sobel
 from skimage.feature import canny
 from backend.record import add_record
 
-def refocus_hologram_evt(evt, type, key):
+def refocus_hologram_evt(evt, type, key,gain=30):
         img = evt[type][key].data.copy()
         img = img[513-256:513+256,584-256:584+256]
-        image_to_show, centroidsmap, centroids, focal_distance, intensity = refocus_hologram(img)
+        image_to_show, centroidsmap, centroids, focal_distance, intensity = refocus_hologram(img,gain=gain)
         add_record(evt["analysis"], "analysis", "hologram_score", intensity.max() )
 
         if evt["analysis"]["hologram_score"]:
@@ -53,8 +53,8 @@ def rest(ar,s):
 	return l,n
 
 
-def refocus_hologram(input_image,wavelength=5.3E-9,pixelsize=75E-6,detectordistance=150E-3,limit=60,stepsize=5E-7):
-    	input_image[input_image < 400] = 0
+def refocus_hologram(input_image,wavelength=5.3E-9,pixelsize=75E-6,detectordistance=150E-3,limit=60,stepsize=5E-7,gain=30):
+    	input_image[input_image < gain] = 0
 	input_image[input_image > 10000] =0
 	
         [Xrange,Yrange] = input_image.shape
