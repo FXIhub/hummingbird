@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
 import os
-from eke import tools
+#from eke import tools
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 import h5py

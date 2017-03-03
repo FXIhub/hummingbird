@@ -37,6 +37,7 @@ outputEveryImage = False
 do_sizing = False
 do_showhybrid = False
 do_patterson = True
+do_hologram = True
 move_half = True
 
 # Quick config parameters
