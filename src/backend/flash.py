@@ -213,16 +213,12 @@ class FLASHTranslator(object):
             latest_fname = flist[self.fnum]
             file_size = os.path.getsize(latest_fname)
         else:
-            latest_fname = max(flist, key=os.path.getmtime)
-            # BD: I think this creates a problem, glob seems to always find new files, 
-            # but the size of the following function call seems to return 0 most of the time 
-            # (sometimes certain files never return anything except 0)
-            # We verified this by looking at the files, it seems that they stay at file size 0 until the writing is finished
-            # But seems to already get the filename while the file is still open
-            # Possible solution: Get the frames from the second to latest filename (instead of the latest)
+            #latest_fname = max(flist, key=os.path.getmtime)
+            latest_fname = sorted(flist, key=os.path.getmtime)[-2]
             file_size = os.path.getsize(latest_fname) 
-            if ipc.mpi.slave_rank() == 0:
-                print 'Glob in rank %d: latest: %s/%d' % (ipc.mpi.slave_rank(), latest_fname, file_size)
+            #if ipc.mpi.slave_rank() == 0:
+            #    print 'Glob in rank %d: latest: %s/%d' % (ipc.mpi.slave_rank(), latest_fname, file_size)
+                
         
         if latest_fname != self.current_fname:
             self.current_size = file_size
