@@ -23,6 +23,8 @@ from conf import *
 
 # Injector scans
 scanInjector = True
+#scanXmin = 90
+#scanXmax = 100
 scanXmin = -10
 scanXmax = 10
 scanXbins = 21
@@ -44,7 +46,7 @@ move_half = True
 # Quick config parameters
 hitScoreThreshold = 4000
 aduThreshold = 80
-strong_hit_threshold = 2500
+strong_hit_threshold = 20000
 multiScoreThreshold = 5
 
 def poisson_pdf(k,l):
@@ -109,7 +111,7 @@ def onEvent(evt):
                               history=1000)
 
 
-    is_strong_hit = evt["analysis"]["total ADUs"].data > 1e6
+    is_strong_hit = evt["analysis"]["total ADUs"].data > 10e6
     
     if hit and is_strong_hit:
         plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Very Strong)", group='Images', mask=mask_center_s)
