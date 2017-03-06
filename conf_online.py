@@ -23,6 +23,8 @@ from conf import *
 
 # Injector scans
 scanInjector = True
+#scanXmin = 90
+#scanXmax = 100
 scanXmin = -10
 scanXmax = 10
 scanXbins = 21
@@ -37,13 +39,14 @@ outputEveryImage = False
 do_sizing = False
 do_showhybrid = False
 do_patterson = True
+#do_patterson = False
 do_hologram = True
 move_half = True
 
 # Quick config parameters
-hitScoreThreshold = 200
-aduThreshold = 200
-strong_hit_threshold = 2500
+hitScoreThreshold = 4000
+aduThreshold = 80
+strong_hit_threshold = 20000
 multiScoreThreshold = 5
 
 def poisson_pdf(k,l):
@@ -53,12 +56,12 @@ def poisson_pdf(k,l):
 state = {}
 state['Facility'] = 'FLASH'
 # Specify folders with frms6 and darkcal data
-state['FLASH/DataRe'] = "/data/beamline/current/raw/pnccd/block-03/holography_.+_.+_([0-9]{4})_.+.frms6"
-state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-03/holography_*_*_*_*.frms6"
-state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-03/*.darkcal.h5"
+state['FLASH/DataRe'] = "/data/beamline/current/raw/pnccd/block-04/holography_.+_.+_([0-9]{4})_.+.frms6"
+state['FLASH/DataGlob'] = "/data/beamline/current/raw/pnccd/block-04/holography_*_*_*_*.frms6"
+state['FLASH/CalibGlob'] = "/data/beamline/current/processed/calib/block-04/*.darkcal.h5"
 state['FLASH/DAQFolder'] = "/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq"
 state['FLASH/MotorFolder'] = '/home/tekeberg/Beamtimes/Holography2017/motor_positions/motor_data.data'
-state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-03/exp2/"
+state['FLASH/DAQBaseDir'] = "/data/beamline/current/raw/hdf/block-04/exp2/"
 state['do_offline'] = False
 state['online_start_from_run'] = False
 #state['FLASH/ProcessingRate'] = 1
@@ -108,7 +111,7 @@ def onEvent(evt):
                               history=1000)
 
 
-    is_strong_hit = evt["analysis"]["total ADUs"].data > 1e6
+    is_strong_hit = evt["analysis"]["total ADUs"].data > 10e6
     
     if hit and is_strong_hit:
         plotting.image.plotImage(evt[detector_type][detector_key], name="pnCCD (Very Strong)", group='Images', mask=mask_center_s)

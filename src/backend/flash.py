@@ -224,8 +224,8 @@ class FLASHTranslator(object):
             self.current_size = file_size
             if file_size < 1024:
                 return False
-            # if ipc.mpi.slave_rank() == 0:
-            #print 'Rank %d found new file' % (ipc.mpi.slave_rank()), latest_fname, 'size =', self.current_size
+            if ipc.mpi.slave_rank() == 0:
+                print 'Rank %d found new file' % (ipc.mpi.slave_rank()), latest_fname, 'size =', self.current_size
             self.get_dark()
             
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
