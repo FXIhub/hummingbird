@@ -338,3 +338,14 @@ RunNr;RunType;HitscoreThreshold;pnccdGainLevel;MultiscoreThreshold;DarkNr;pnccdG
 426;holography;500;64;10;417;0.8;3.0
 427;holography;500;64;10;417;0.8;3.0
 428;holography;500;64;10;417;0.8;3.0
+429;dark;;64;;;;
+430;holography;500;64;10;429;0.8;3.0
+431;sample;500;64;10;429;0.8;3.0
+432;holography;500;64;10;429;0.8;3.0
+433;holography;500;64;10;429;0.8;3.0
+434;void;;64;;;;
+435;holography;500;64;10;429;0.8;3.0
+436;dark;;64;;;;
+437;holography;500;64;10;436;0.8;3.0
+438;holography;500;64;10;436;0.8;3.0
+439;background;500;64;10;436;0.8;3.0
