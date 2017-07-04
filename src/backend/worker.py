@@ -1,3 +1,4 @@
+
 # --------------------------------------------------------------------------------------
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
@@ -128,13 +129,16 @@ class Worker(object):
                             evt = self.translator.next_event()
                             if evt is None:
                                 return
-                        except (RuntimeError) as e:
+                        except RuntimeError as e:
                             logging.warning("Some problem with %s (library used for translation), probably due to reloading the backend. (%s)" % (self.translator.library,e))
                             raise KeyboardInterrupt
+                        except AttributeError as e:
+                            logging.warning("Attribute error during event translation. Skipping event. (%s)" % e)
+                            continue                            
                         ipc.set_current_event(evt)
                         try:
                             Worker.conf.onEvent(evt)
-                        except (KeyError, TypeError) as exc:
+                        except (KeyError, TypeError, AttributeError) as exc:
                             logging.warning("Missing or wrong type of data, probably due to missing event data.", exc_info=True)
                         except (RuntimeError) as e:
                             logging.warning("Some problem with %s (library used for translation), probably due to reloading the backend." % self.translator.library,
@@ -172,6 +176,9 @@ def init_translator(state):
     elif(state['Facility'].lower() == 'dummy'):
         from backend.dummy import DummyTranslator
         return DummyTranslator(state)
+    elif(state['Facility'].lower() == 'flash'):
+        from backend.flash import FLASHTranslator
+        return FLASHTranslator(state)
     else:
         raise ValueError('Facility %s not supported' % (state['Facility']))
 
