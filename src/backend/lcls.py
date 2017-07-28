@@ -341,12 +341,13 @@ class LCLSTranslator(object):
     def _tr_bld_data_ebeam(self, values, obj):
         """Translates BldDataEBeam to hummingbird photon energy"""
         photon_energy_ev = -1
-        if(isinstance(obj, psana.Bld.BldDataEBeamV6)):
+        try:
             photon_energy_ev = obj.ebeamPhotonEnergy()
-        else:
+        # Temporary fix: Try to catch proper errors or return values for old data files
+        except:
             peak_current = obj.ebeamPkCurrBC2()
             dl2_energy_gev = 0.001*obj.ebeamL3Energy()
-
+    
         # If we don't have direct access to photonEnergy
         # we need to calculate it
         if(photon_energy_ev == -1):
