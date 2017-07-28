@@ -340,17 +340,12 @@ class LCLSTranslator(object):
 
     def _tr_bld_data_ebeam(self, values, obj):
         """Translates BldDataEBeam to hummingbird photon energy"""
-        photon_energy_ev = -1
         try:
             photon_energy_ev = obj.ebeamPhotonEnergy()
-        # Temporary fix: Try to catch proper errors or return values for old data files
-        except:
+        except AttributeError:
             peak_current = obj.ebeamPkCurrBC2()
             dl2_energy_gev = 0.001*obj.ebeamL3Energy()
     
-        # If we don't have direct access to photonEnergy
-        # we need to calculate it
-        if(photon_energy_ev == -1):
             ltu_wake_loss = 0.0016293*peak_current
             # Spontaneous radiation loss per segment
             sr_loss_per_segment = 0.63*dl2_energy_gev
