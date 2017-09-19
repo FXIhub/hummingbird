@@ -205,7 +205,7 @@ class LCLSTranslator(object):
                 self._detectors[det]['type']  = det_dict['type']
                 self._detectors[det]['key']  = det_dict['key']
                 obj =  psana.Detector(det_dict['id'])
-                meth = self._detectors[det]['data_method']
+                meth = det_dict['data_method']
                 if meth == "image":
                     self._detectors[det]['data_method'] = obj.image
                 elif meth == "calib":
