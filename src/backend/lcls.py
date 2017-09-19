@@ -196,6 +196,22 @@ class LCLSTranslator(object):
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.0)'] = 'Acqiris 0'
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.1)'] = 'Acqiris 1'
 
+        # New psana call pattern
+        self._detectors = {}
+        if 'detectors' in state:
+            for det, det_dict in state['detectors'].items():
+                self._detectors[det] = {}
+                self._detectors[det]['id']  = det_dict['id']
+                self._detectors[det]['type']  = det_dict['type']
+                self._detectors[det]['key']  = det_dict['key']
+                obj =  psana.Detector(det_dict['id'])
+                meth = self._detectors[det]['data_method']
+                if meth == "image":
+                    self._detectors[det]['data_method'] = obj.image
+                elif meth == "calib":
+                    self._detectors[det]['data_method'] = obj.calib
+                else:
+                    raise RuntimeError('data_method = %s not supported' % meth))
 
     def next_event(self):
         """Grabs the next event and returns the translated version"""           
@@ -262,7 +278,9 @@ class LCLSTranslator(object):
     def translate(self, evt, key):
         """Returns a dict of Records that match a given humminbird key"""
         values = {}
-        if(key in self._c2n):
+        if(key in self._detectors):
+            return self.translate_object(evt, key)
+        elif(key in self._c2n):
             return self.translate_core(evt, key)
         elif(key == 'parameters'):
             return self._tr_epics()
@@ -285,6 +303,11 @@ class LCLSTranslator(object):
                 return values
             else:
                 print '%s not found in event' % (key)
+
+    def translate_object(self, evt, key):
+        values = {}
+        add_record(values, self._detectors[key]['type'], self._detectors[key]['key'], self._detectors[key]['data_method'](evt), ureg.ADU)
+        return values
 
     def translate_core(self, evt, key):
         """Returns a dict of Records that matchs a core humminbird key.
@@ -327,6 +350,7 @@ class LCLSTranslator(object):
                     print type(obj)
                     print k
                     raise RuntimeError('%s not yet supported' % (type(obj)))
+                
         return values
 
     def event_id(self, evt):
