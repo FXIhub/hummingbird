@@ -211,7 +211,7 @@ class LCLSTranslator(object):
                 elif meth == "calib":
                     self._detectors[det]['data_method'] = obj.calib
                 else:
-                    raise RuntimeError('data_method = %s not supported' % meth))
+                    raise RuntimeError('data_method = %s not supported' % meth)
 
     def next_event(self):
         """Grabs the next event and returns the translated version"""           
