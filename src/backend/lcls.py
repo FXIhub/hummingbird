@@ -306,8 +306,13 @@ class LCLSTranslator(object):
 
     def translate_object(self, evt, key):
         values = {}
-        data = self._detectors[key]['data_method'](evt)
-        add_record(values, self._detectors[key]['type'], self._detectors[key]['key'], data, ureg.ADU)
+        data_nda = self._detectors[key]['data_method'](evt)
+        if len(data_nda.shape) <= 2:
+            image = data_nda
+        elif len(data_nda.shape) == 3:
+            image = numpy.hstack([numpy.vstack([data_nda[0],data_nda[1][::-1,::-1]]),
+                                  numpy.vstack([data_nda[3],data_nda[2][::-1,::-1]])])
+        add_record(values, self._detectors[key]['type'], self._detectors[key]['key'], image, ureg.ADU)
         return values
 
     def translate_core(self, evt, key):
