@@ -39,6 +39,7 @@ class Worker(object):
         # Worker.backend_conf = imp.load_source('backend_conf', config_file)
         signal.signal(signal.SIGUSR1, self.raise_interruption)
         self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
+        self.translator = None
         self.load_conf()
         Worker.state['_config_file'] = config_file
         #self.state['_config_dir'] = os.path.dirname(config_file)
@@ -80,6 +81,8 @@ class Worker(object):
         except:
             print "Error reloading conf"
             return
+        if self.translator is not None:
+            self.translator.init_detectors(Worker.conf.state)
         if(Worker.state is None):
             Worker.state = Worker.conf.state
         else:
