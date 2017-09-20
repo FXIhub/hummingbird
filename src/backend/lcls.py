@@ -307,7 +307,9 @@ class LCLSTranslator(object):
     def translate_object(self, evt, key):
         values = {}
         data_nda = self._detectors[key]['data_method'](evt)
-        if len(data_nda.shape) <= 2:
+        if data_nda is None:
+            image = None
+        elif len(data_nda.shape) <= 2:
             image = data_nda
         elif len(data_nda.shape) == 3:
             image = numpy.hstack([numpy.vstack([data_nda[0],data_nda[1][::-1,::-1]]),

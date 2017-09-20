@@ -506,7 +506,7 @@ def cropAndCenter(evt, data_rec, cx=None, cy=None, w=None, h=None, outkey='cropp
         w = Nx
     if h is None:
         h = Ny
-    data_cropped = data[cy-h/2:cy+h/2, cx-w/2:cx+w/2]
+    data_cropped = data[int(round(cy-h/2)):int(round(cy+h/2)), int(round(cx-w/2)):int(round(cx+w/2))]
     add_record(evt["analysis"], "analysis", outkey, data_cropped)
 
 def rotate90(evt, data_rec, k=1, outkey='rotated'):
