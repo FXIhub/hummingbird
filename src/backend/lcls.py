@@ -306,7 +306,8 @@ class LCLSTranslator(object):
 
     def translate_object(self, evt, key):
         values = {}
-        add_record(values, self._detectors[key]['type'], self._detectors[key]['key'], self._detectors[key]['data_method'](evt), ureg.ADU)
+        data = self._detectors[key]['data_method'](evt)
+        add_record(values, self._detectors[key]['type'], self._detectors[key]['key'], data, ureg.ADU)
         return values
 
     def translate_core(self, evt, key):
