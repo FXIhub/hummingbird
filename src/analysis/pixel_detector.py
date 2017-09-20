@@ -35,9 +35,13 @@ def pnccdGain(evt, record, gainmode):
         gain = maximum_gain/16
     elif gainmode == 3: # 1/64
         gain = maximum_gain/64
-    gain *= (record.data / 1000.) # Rescale gain given a photon energy in eV
-    if gainmode == 0:
+    elif gainmode == 2: # 1/128
+        gain = maximum_gain/128
+    elif gainmode == 1: # 1/256
+        gain = maximum_gain/256
+    elif gainmode == 0:
         gain = 1.
+    gain = gain * (record.data / 1000.) # Rescale gain given a photon energy in eV
     add_record(evt['analysis'], 'analysis', 'gain', gain)
 
 def getSubsetAsics(evt, type, key, subset, output):
