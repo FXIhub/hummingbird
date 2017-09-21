@@ -47,6 +47,9 @@ def add_cmdline_args():
     #                    action='store_true')
     
     
+PNCCD_IDS = ['pnccdFront', 'pnccdBack']
+ACQ_IDS = [('ACQ%i' % i) for i in range(3)]
+
 class LCLSTranslator(object):
     """Translate between LCLS events and Hummingbird ones"""
     def __init__(self, state):
@@ -196,22 +199,68 @@ class LCLSTranslator(object):
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.0)'] = 'Acqiris 0'
         self._s2c['DetInfo(CxiEndstation.0:Acqiris.1)'] = 'Acqiris 1'
 
+        self.init_detectors(state)
+        
+        print "Detectors:" , psana.DetNames()
+
+    def init_detectors(self, state):
         # New psana call pattern
         self._detectors = {}
+        self._c2id_detectors = {}
         if 'detectors' in state:
-            for det, det_dict in state['detectors'].items():
-                self._detectors[det] = {}
-                self._detectors[det]['id']  = det_dict['id']
-                self._detectors[det]['type']  = det_dict['type']
-                self._detectors[det]['key']  = det_dict['key']
-                obj =  psana.Detector(det_dict['id'])
-                meth = det_dict['data_method']
-                if meth == "image":
-                    self._detectors[det]['data_method'] = obj.image
-                elif meth == "calib":
-                    self._detectors[det]['data_method'] = obj.calib
+            for detid, det_dict in state['detectors'].items():
+                if detid in PNCCD_IDS:
+                    self._detectors[detid] = {}
+                    self._detectors[detid]['id']  = det_dict['id']
+                    self._detectors[detid]['type']  = det_dict['type']
+                    self._detectors[detid]['key']  = det_dict['key']
+                    obj =  psana.Detector(det_dict['id'])
+                    self._detectors[detid]['obj']  = obj
+                    meth = det_dict['data_method']
+                    if meth == "image":
+                        f = lambda obj, evt: obj.image(evt)
+                    elif meth == "calib":
+                        f = lambda obj, evt: obj.calib(evt)
+                    elif meth == "raw":
+                        def f(obj, evt):
+                            #obj = self._detectors[detid]['obj']
+                            raw = numpy.array(obj.raw(evt), dtype=numpy.float32, copy=True)
+                            return raw
+                    elif meth == "calib_pc":
+                        def f(obj, evt):
+                            cdata = numpy.array(obj.raw(evt), dtype=numpy.float32, copy=True) - obj.pedestals(evt)
+                            return cdata
+                    elif meth == "calib_cmc":
+                        def f(obj, evt):
+                            #obj = self._detectors[detid]['obj']
+                            rnum = obj.runnum(evt)
+                            cdata = numpy.array(obj.raw(evt), dtype=numpy.float32, copy=True) - obj.pedestals(evt)
+                            obj.common_mode_apply(rnum, cdata, cmpars=None)
+                            return cdata
+                    elif meth == "calib_gc":
+                        def f(obj, evt):
+                            #obj = self._detectors[detid]['obj']
+                            rnum = obj.runnum(evt)
+                            cdata = numpy.array(obj.raw(evt), dtype=numpy.float32, copy=True) - obj.pedestals(evt)
+                            obj.common_mode_apply(rnum, cdata, cmpars=None)
+                            gain = obj.gain(evt)
+                            cdata *= gain
+                            return cdata
+                    else:
+                        raise RuntimeError('data_method = %s not supported' % meth)
+                    self._detectors[detid]['data_method'] = f
+                    self._c2id_detectors[det_dict['type']] = detid
+                    print "Set data method for detector id %s to %s." % (det_dict['id'], meth)
+                elif detid in ACQ_IDS:
+                    self._detectors[detid] = {}
+                    self._detectors[detid]['id']  = det_dict['id']
+                    self._detectors[detid]['type']  = det_dict['type']
+                    self._detectors[detid]['keys']  = det_dict['keys']
+                    obj =  psana.Detector(det_dict['id'])
+                    self._detectors[detid]['obj']  = obj
+                    self._c2id_detectors[det_dict['type']] = detid
                 else:
-                    raise RuntimeError('data_method = %s not supported' % meth)
+                    raise RuntimeError('Detector type = %s not implememented' %  det_dict['type'])
 
     def next_event(self):
         """Grabs the next event and returns the translated version"""           
@@ -278,7 +327,7 @@ class LCLSTranslator(object):
     def translate(self, evt, key):
         """Returns a dict of Records that match a given humminbird key"""
         values = {}
-        if(key in self._detectors):
+        if(key in self._c2id_detectors):
             return self.translate_object(evt, key)
         elif(key in self._c2n):
             return self.translate_core(evt, key)
@@ -306,15 +355,30 @@ class LCLSTranslator(object):
 
     def translate_object(self, evt, key):
         values = {}
-        data_nda = self._detectors[key]['data_method'](evt)
-        if data_nda is None:
-            image = None
-        elif len(data_nda.shape) <= 2:
-            image = data_nda
-        elif len(data_nda.shape) == 3:
-            image = numpy.hstack([numpy.vstack([data_nda[0],data_nda[1][::-1,::-1]]),
-                                  numpy.vstack([data_nda[3],data_nda[2][::-1,::-1]])])
-        add_record(values, self._detectors[key]['type'], self._detectors[key]['key'], image, ureg.ADU)
+        detid = self._c2id_detectors[key]
+        if detid in PNCCD_IDS:
+            det = self._detectors[detid]
+            obj = self._detectors[detid]['obj']
+            data_nda = det['data_method'](obj, evt)
+            if data_nda is None:
+                image = None
+            elif len(data_nda.shape) <= 2:
+                image = data_nda
+            elif len(data_nda.shape) == 3:
+                image = numpy.hstack([numpy.vstack([data_nda[0],data_nda[1][::-1,::-1]]),
+                                      numpy.vstack([data_nda[3],data_nda[2][::-1,::-1]])])
+            add_record(values, det['type'], det['key'], image, ureg.ADU)
+        elif detid in ACQ_IDS:
+            det = self._detectors[detid]
+            # waveforms are in Volts, times are in Seconds
+            obj = det['obj']
+            waveforms = obj.waveform(evt)
+            #print "waveforms", waveforms
+            #times = obj.wftime(evt)
+            for i, wf in enumerate(waveforms):
+                add_record(values, det['type'], det['keys'][i], wf, ureg.V)
+        else:
+            raise RuntimeError('%s not yet supported' % key)
         return values
 
     def translate_core(self, evt, key):
