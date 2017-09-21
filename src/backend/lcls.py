@@ -218,41 +218,37 @@ class LCLSTranslator(object):
                     self._detectors[detid]['obj']  = obj
                     meth = det_dict['data_method']
                     if meth == "image":
-                        self._detectors[detid]['data_method'] = obj.image
+                        f = lambda obj, evt: obj.image(evt)
                     elif meth == "calib":
-                        self._detectors[detid]['data_method'] = obj.calib
+                        f = lambda obj, evt: obj.calib(evt)
                     elif meth == "raw":
-                        def tmp(evt):
-                            obj = self._detectors[detid]['obj']
+                        def f(obj, evt):
+                            #obj = self._detectors[detid]['obj']
                             raw = numpy.array(obj.raw(evt), dtype=numpy.float32, copy=True)
                             return raw
-                        self._detectors[detid]['data_method'] = tmp
                     elif meth == "calib_pc":
-                        def tmp(evt):
-                            obj = self._detectors[detid]['obj']
+                        def f(obj, evt):
                             cdata = numpy.array(obj.raw(evt), dtype=numpy.float32, copy=True) - obj.pedestals(evt)
                             return cdata
-                        self._detectors[detid]['data_method'] =  tmp
                     elif meth == "calib_cmc":
-                        def tmp(evt):
-                            obj = self._detectors[detid]['obj']
+                        def f(obj, evt):
+                            #obj = self._detectors[detid]['obj']
                             rnum = obj.runnum(evt)
                             cdata = numpy.array(obj.raw(evt), dtype=numpy.float32, copy=True) - obj.pedestals(evt)
                             obj.common_mode_apply(rnum, cdata, cmpars=None)
                             return cdata
-                        self._detectors[detid]['data_method'] =  tmp
                     elif meth == "calib_gc":
-                        def tmp(evt):
-                            obj = self._detectors[detid]['obj']
+                        def f(obj, evt):
+                            #obj = self._detectors[detid]['obj']
                             rnum = obj.runnum(evt)
                             cdata = numpy.array(obj.raw(evt), dtype=numpy.float32, copy=True) - obj.pedestals(evt)
                             obj.common_mode_apply(rnum, cdata, cmpars=None)
                             gain = obj.gain(evt)
                             cdata *= gain
                             return cdata
-                        self._detectors[detid]['data_method'] =  tmp
                     else:
                         raise RuntimeError('data_method = %s not supported' % meth)
+                    self._detectors[detid]['data_method'] = f
                     self._c2id_detectors[det_dict['type']] = detid
                     print "Set data method for detector id %s to %s." % (det_dict['id'], meth)
                 elif detid in ACQ_IDS:
@@ -362,7 +358,8 @@ class LCLSTranslator(object):
         detid = self._c2id_detectors[key]
         if detid in PNCCD_IDS:
             det = self._detectors[detid]
-            data_nda = det['data_method'](evt)
+            obj = self._detectors[detid]['obj']
+            data_nda = det['data_method'](obj, evt)
             if data_nda is None:
                 image = None
             elif len(data_nda.shape) <= 2:
