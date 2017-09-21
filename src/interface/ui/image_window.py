@@ -65,7 +65,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         success, spimage = utils.io.load_spimage()
         if not success:
             # no spimage available, we need to disable the model settings
-            self.settingsWidget.ui.modelTab.setEnabled(False)
+            #self.settingsWidget.ui.modelTab.setEnabled(False)
+            pass
         else:
             self.spimage = spimage
 
