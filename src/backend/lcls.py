@@ -264,7 +264,7 @@ class LCLSTranslator(object):
                     self._detectors[detid]['obj']  = obj
                     self._c2id_detectors[det_dict['type']] = detid
                 else:
-                    raise RuntimeError('Detector type = %s not implememented' %  det_dict['type'])
+                    raise RuntimeError('Detector type = %s not implememented for ID %s' %  (det_dict['type'], detid))
 
     def next_event(self):
         """Grabs the next event and returns the translated version"""           
@@ -385,7 +385,7 @@ class LCLSTranslator(object):
         return values
 
     def translate_core(self, evt, key):
-        """Returns a dict of Records that matchs a core humminbird key.
+        """Returns a dict of Records that matchs a core Hummingbird key.
 
         Core keys include  all except: parameters, any psana create key,
         any native key."""
