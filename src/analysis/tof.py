@@ -6,7 +6,7 @@ import numpy as np
 from backend import ureg
 from backend import add_record
 
-def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_peak_pos=None, H_position=None, outkey=None):
+def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_peak_position=None, H_position=None, outkey=None):
     """ToF baseline correction and inversion
     
     Args:
@@ -37,7 +37,7 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
         diff_x = all_peak_x[1:] - all_peak_x[:-1]
         end_peak = all_peak_x[np.where(diff_x > 1)[0]]
 
-    if photon_peak_pos==None:
+    if photon_peak_position==None:
         if all_peak_x.size == 0:
             #No peaks found
             add_record(evt['analysis'], 'analysis', outkey, tof_trace_inverted-tof_peak_threshold)
@@ -51,9 +51,9 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
         else:
             photon_peak_end = end_peak[0] + 1
 
-    if photon_peak_pos!=None:
-        photon_peak_end=photon_peak_pos
-        photon_peak_start=photon_peak_pos
+    if photon_peak_position!=None:
+        photon_peak_end=photon_peak_position
+        photon_peak_start=photon_peak_position
     #Inverted and baseline corrected Tof signal
     base_line = np.median(tof_trace_inverted[:photon_peak_start])
     base_std = np.std(tof_trace_inverted[:photon_peak_start])
