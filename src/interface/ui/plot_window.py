@@ -216,7 +216,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         alert_flag = False
         for source, title in self.source_and_titles():
             conf = source.conf[title]
-            if "alert" in conf and self.alert and conf['alert']:
+            if "alert" in conf and self.actionToggleAlert.isChecked() and conf['alert']:
                 alert_flag = True
 
         if alert_flag:

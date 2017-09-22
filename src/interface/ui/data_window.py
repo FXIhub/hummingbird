@@ -35,7 +35,6 @@ class DataWindow(QtGui.QMainWindow):
         self.menuData_Sources.aboutToShow.connect(self.on_menu_show)
         self.actionSaveToPNG.triggered.connect(self.on_save_to_png)
         self.actionSaveToPNG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
-        self.actionSound_on_off.triggered.connect(self.toggle_alert)
         self.alertBlinkTimer.timeout.connect(self.blink_alert)
         self.title.installEventFilter(self);
         self.timeLabel.installEventFilter(self);
@@ -57,7 +56,7 @@ class DataWindow(QtGui.QMainWindow):
         """Show what data sources are available"""
         # Go through all the available data sources and add them
 
-        def add_menu(title, menu):
+        def add_menu(title, menu, ds):
             action = QtGui.QAction(title, self)
             action.setData([ds, title])
             action.setCheckable(True)
@@ -83,7 +82,7 @@ class DataWindow(QtGui.QMainWindow):
                     else:
                         submenu = menu.addMenu(name)
                     for item in sorted(items_of_right_type):
-                        add_menu(item, submenu)
+                        add_menu(item, submenu, ds)
 
     def set_sounds_and_volume(self):
         self.soundsGroup = QtGui.QActionGroup(self.menuSounds)
@@ -204,7 +203,7 @@ class DataWindow(QtGui.QMainWindow):
         settings['title font'] = self.title.font()
         settings['date font'] = self.dateLabel.font()
         settings['time font'] = self.timeLabel.font()
-
+        settings['alert'] = self.actionToggleAlert.isChecked()
         return settings
 
     def restore_from_state(self, settings, data_sources):
@@ -223,13 +222,11 @@ class DataWindow(QtGui.QMainWindow):
         self.title.setFont(settings['title font'])
         self.dateLabel.setFont(settings['date font'])
         self.timeLabel.setFont(settings['time font'])
+        self.actionToggleAlert.setChecked(settings['alert'])
         self.show()
         self.restored = True
         logging.debug("Loaded %s from settings", type(self).__name__)
         
-    def toggle_alert(self, activated):
-        self.alert = activated
-
     def blink_alert(self):
         if self.alertBlinking:
             self.setStyleSheet("");
