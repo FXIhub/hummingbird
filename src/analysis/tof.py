@@ -6,6 +6,27 @@ import numpy as np
 from backend import ureg
 from backend import add_record
 
+def ToFCalib(evt, type, key, photon_peak, Calib_peak, Calib_mass, Calib_q, outkey):
+    
+    """ToF Calibration, photon peak vs any peak. Array must sart at t0!
+    
+    Args:
+      :evt:                       The event variable
+      :type(str):                 The event type
+      :key(str):                  The event key
+      :photon_peak                Photon peak position (time)
+      :Calib_peak                 Calibration peak position (time)
+      :Calib_mass                 Calibration ion mass
+      :Calib_q                    Calibration ion charge
+      :outkey(str):               The event key = 'ToF - M/Q ' + outkey for the new calibrated x-axis, 
+    
+    :Authors:
+      Ida Lundholm (ida.lundholm@icm.uu.se)
+    """
+    corrected_tof=evt[type][key].data
+    new_x = (np.arange(len(corrected_tof)) / float((Calib_peak-photon_peak)/np.sqrt(Calib_mass/Calib_mass)))**2.
+    add_record(evt['analysis'], 'analysis', 'ToF - M/Q '+outkey, new_x)
+
 def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_peak_position=None, H_position=None, outkey=None):
     """ToF baseline correction and inversion
     
