@@ -35,7 +35,7 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
     all_peak_x = np.where(tof_trace_inverted>(np.median(tof_trace_inverted[:baseline_region_guess])+tof_peak_threshold))[0]
     if all_peak_x.size>1:
         diff_x = all_peak_x[1:] - all_peak_x[:-1]
-        end_peak = all_peak_x[np.where(diff_x > 1)[0]]
+        end_peak = all_peak_x[np.where(diff_x > 1)]
     else:
         add_record(evt['analysis'], 'analysis', outkey, tof_trace_inverted-tof_peak_threshold)
         return
@@ -49,7 +49,10 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
         if diff_x[0]>1:
             photon_peak_end=photon_peak_start+1
         else:
-            photon_peak_end = end_peak[0] + 1
+            if end_peak.shape>0:
+                photon_peak_end = end_peak[0] + 1
+            else:
+                photon_peak_end = photon_peak_start
 
     if photon_peak_position is not None:
         photon_peak_end=photon_peak_position
