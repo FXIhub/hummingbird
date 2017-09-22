@@ -394,7 +394,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 continue
             
             conf = source.conf[title]
-            if "alert" in conf and self.alert and conf['alert']:
+            if "alert" in conf and self.actionToggleAlert.isChecked() and conf['alert']:
                 os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
                 if not self.alertBlinkTimer.isActive():
                     self.alertBlinkTimer.start()
