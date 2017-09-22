@@ -82,7 +82,8 @@ class Worker(object):
             print "Error reloading conf"
             return
         if self.translator is not None:
-            self.translator.init_detectors(Worker.conf.state)
+            if "init_detectors" in dir(self.translator):
+                self.translator.init_detectors(Worker.conf.state)
         if(Worker.state is None):
             Worker.state = Worker.conf.state
         else:
