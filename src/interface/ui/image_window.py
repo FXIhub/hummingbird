@@ -425,12 +425,18 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 img = utils.array.runningHistogram(v, title, length, window, bins, hmin, hmax)
                 if not img.shape[0]:
                     continue
+            elif conf["data_type"] == "vector":
+                img = numpy.array(pd.y[:,1,:], copy=False)
+                bins   = img.shape[1]
+                hmin   = 0
+                hmax   = img.shape[1]
+                length = pd.maxlen
             else:
                 img = numpy.array(pd.y, copy=False)
             self._configure_axis(source, title)
             transform = self._image_transform(img, source, title)
             
-            if conf["data_type"] == "running_hist":
+            if (conf["data_type"] == "running_hist") or (conf["data_type"]=="vector"):
                 translate_transform = QtGui.QTransform().translate(0, hmin)
                 scale_transform = QtGui.QTransform().scale(3.*float(hmax-hmin)/float(length), float(hmax-hmin)/float(bins))
                 transform = scale_transform*translate_transform
