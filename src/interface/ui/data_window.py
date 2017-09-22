@@ -21,7 +21,6 @@ class DataWindow(QtGui.QMainWindow):
         self._parent = parent
         # If True this DataWindow was restored from saved settings
         self.restored = False
-        self.alert = False
         self.alertBlinking = False
         self.set_sounds_and_volume()
 
