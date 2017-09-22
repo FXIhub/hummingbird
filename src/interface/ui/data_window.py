@@ -37,7 +37,10 @@ class DataWindow(QtGui.QMainWindow):
         self.actionSaveToPNG.setShortcut(QtGui.QKeySequence("Ctrl+P"))
         self.actionSound_on_off.triggered.connect(self.toggle_alert)
         self.alertBlinkTimer.timeout.connect(self.blink_alert)
-
+        self.title.installEventFilter(self);
+        self.timeLabel.installEventFilter(self);
+        self.dateLabel.installEventFilter(self);
+        
     def _finish_layout(self):
         """This is called after the derived classes finish settings up so
         that the lower common section of the window can be setup. Kinda ugly."""
@@ -197,6 +200,9 @@ class DataWindow(QtGui.QMainWindow):
         settings['windowState'] = self.saveState()
         settings['enabled_sources'] = enabled_sources
         settings['window title'] = str(self.title.text())
+        settings['title font'] = self.title.font()
+        settings['date font'] = self.dateLabel.font()
+        settings['time font'] = self.timeLabel.font()
 
         return settings
 
@@ -213,6 +219,9 @@ class DataWindow(QtGui.QMainWindow):
         self.restoreGeometry(settings['geometry'])
         self.restoreState(settings['windowState'])
         self.title.setText(settings['window title'])
+        self.title.setFont(settings['title font'])
+        self.dateLabel.setFont(settings['date font'])
+        self.timeLabel.setFont(settings['time font'])
         self.show()
         self.restored = True
         logging.debug("Loaded %s from settings", type(self).__name__)
@@ -238,3 +247,27 @@ class DataWindow(QtGui.QMainWindow):
             self.volume = 1
         elif volume == "Low":
             self.volume = 0.1
+
+            
+    def eventFilter(self, obj, event):
+        if obj == self.title:
+            if event.type() == QtCore.QEvent.MouseButtonDblClick:
+                print obj.font()
+                font, ok = QtGui.QFontDialog.getFont(obj.font())
+                if ok:
+                    obj.setFont(font)
+                return True
+        if obj == self.footerHBox:
+            print 'here'
+            qlabels = obj.findChildren(QtGui.QLabel)
+            print qlabels
+
+        if obj == self.timeLabel or obj == self.dateLabel:
+            if event.type() == QtCore.QEvent.MouseButtonDblClick:
+                font, ok = QtGui.QFontDialog.getFont(obj.font())
+                if ok:
+                    obj.setFont(font)
+                return True
+                
+        return False
+
