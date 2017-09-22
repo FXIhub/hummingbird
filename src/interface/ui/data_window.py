@@ -73,7 +73,8 @@ class DataWindow(QtGui.QMainWindow):
         for ds in self._parent.data_sources:
             menu = self.menuData_Sources.addMenu(ds.name())
             if ds.titles is not None:
-                for name, item_list  in ds.group_structure.iteritems():
+                for name in sorted(ds.group_structure.keys()):
+                    item_list = ds.group_structure[name]
                     items_of_right_type = [item for item in item_list if ds.data_type[item] in self.acceptable_data_types]
                     if len(items_of_right_type) == 0:
                         continue
@@ -81,7 +82,7 @@ class DataWindow(QtGui.QMainWindow):
                         submenu = menu
                     else:
                         submenu = menu.addMenu(name)
-                    for item in items_of_right_type:
+                    for item in sorted(items_of_right_type):
                         add_menu(item, submenu)
 
     def set_sounds_and_volume(self):
