@@ -36,22 +36,22 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
     if all_peak_x.size>1:
         diff_x = all_peak_x[1:] - all_peak_x[:-1]
         end_peak = all_peak_x[np.where(diff_x > 1)[0]]
+    else:
+        add_record(evt['analysis'], 'analysis', outkey, tof_trace_inverted-tof_peak_threshold)
+        return
 
-    if photon_peak_position==None:
-        if all_peak_x.size == 0:
-            #No peaks found
-            add_record(evt['analysis'], 'analysis', outkey, tof_trace_inverted-tof_peak_threshold)
+    if photon_peak_position is None:
         if all_peak_x.size >= 1:
             #print all_peak_x
             photon_peak_start = all_peak_x[0]
-        if all_peak_x.size == 1:
+        elif all_peak_x.size == 1:
             photon_peak_end=photon_peak_start+1
         if diff_x[0]>1:
             photon_peak_end=photon_peak_start+1
         else:
             photon_peak_end = end_peak[0] + 1
 
-    if photon_peak_position!=None:
+    if photon_peak_position is not None:
         photon_peak_end=photon_peak_position
         photon_peak_start=photon_peak_position
     #Inverted and baseline corrected Tof signal
@@ -61,7 +61,7 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
     corrected_tof = (tof_trace_inverted-base_line)[photon_peak_end:]
     add_record(evt['analysis'], 'analysis', outkey, corrected_tof)
     
-    if H_position==None:
+    if H_position is None:
         if (np.sum(diff_x)!=len(diff_x)):
             #Convert to M/Q
             if end_peak.size>1:
@@ -70,7 +70,7 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
                 Hpeak_end=len(corrected_tof)
         Hpeak = np.argmax(corrected_tof[:Hpeak_end])
         new_x = (np.arange(len(corrected_tof)) / float(Hpeak))**2.
-        print new_x
+        #print new_x
         add_record(evt['analysis'], 'analysis', 'ToF - M/Q', new_x)
         
     elif H_position!=None:
