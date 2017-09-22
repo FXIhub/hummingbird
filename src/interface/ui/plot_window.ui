@@ -332,7 +332,7 @@
      </widget>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <layout class="QHBoxLayout" name="footerHBox">
       <item>
        <layout class="QVBoxLayout" name="verticalLayout_3">
         <item>
@@ -897,7 +897,7 @@
      <addaction name="actionMedium"/>
      <addaction name="actionLow"/>
     </widget>
-    <addaction name="actionSound_on_off"/>
+    <addaction name="actionToggleAlert"/>
     <addaction name="menuSounds"/>
     <addaction name="menuVolume"/>
    </widget>
@@ -967,12 +967,12 @@
     <string>Sound on/off</string>
    </property>
   </action>
-  <action name="actionSound_on_off">
+  <action name="actionToggleAlert">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Sound on/off</string>
+    <string>Toggle Alert</string>
    </property>
   </action>
   <action name="actionBeep">
