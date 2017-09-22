@@ -258,11 +258,6 @@ class DataWindow(QtGui.QMainWindow):
                 if ok:
                     obj.setFont(font)
                 return True
-        if obj == self.footerHBox:
-            print 'here'
-            qlabels = obj.findChildren(QtGui.QLabel)
-            print qlabels
-
         if obj == self.timeLabel or obj == self.dateLabel:
             if event.type() == QtCore.QEvent.MouseButtonDblClick:
                 font, ok = QtGui.QFontDialog.getFont(obj.font())
