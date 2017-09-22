@@ -6,7 +6,7 @@ import numpy as np
 from backend import ureg
 from backend import add_record
 
-def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, outkey=None):
+def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_peak_pos=None, H_position=None, outkey=None):
     """ToF baseline correction and inversion
     
     Args:
@@ -14,6 +14,8 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, outkey=No
       :type(str):                 The event type
       :key(str):                  The event key
       :baseline_region_guess(int) Initial guess for the pre photon peak region used for base line calculation
+      :auto_Photon                Find photon peak automatically
+      :auto_H                     Find hydrogen peak automatically
       :number_of_std              Number of standard deviations above the median for b 
 
     Kwargs:
@@ -30,43 +32,51 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, outkey=No
     tof_trace_inverted = tof_trace * -1
     #Find photon peak
     tof_peak_threshold = np.std(tof_trace_inverted[:baseline_region_guess])*number_of_std
-    
     all_peak_x = np.where(tof_trace_inverted>(np.median(tof_trace_inverted[:baseline_region_guess])+tof_peak_threshold))[0]
-    if all_peak_x.size == 0:
-        #No peaks found
-        add_record(evt['analysis'], 'analysis', outkey, tof_trace_inverted-tof_peak_threshold)
-    
-    if all_peak_x.size>=1:
-        #print all_peak_x 
-        photon_peak_start = all_peak_x[0]
-        if all_peak_x.size==1:
+    if all_peak_x.size>1:
+        diff_x = all_peak_x[1:] - all_peak_x[:-1]
+        end_peak = all_peak_x[np.where(diff_x > 1)[0]]
+
+    if photon_peak_pos==None:
+        if all_peak_x.size == 0:
+            #No peaks found
+            add_record(evt['analysis'], 'analysis', outkey, tof_trace_inverted-tof_peak_threshold)
+        if all_peak_x.size >= 1:
+            #print all_peak_x
+            photon_peak_start = all_peak_x[0]
+        if all_peak_x.size == 1:
+            photon_peak_end=photon_peak_start+1
+        if diff_x[0]>1:
             photon_peak_end=photon_peak_start+1
         else:
-            diff_x = all_peak_x[1:] - all_peak_x[:-1]
-            end_peak = all_peak_x[np.where(diff_x > 1)[0]]
-            if diff_x[0]>1:
-                photon_peak_end=photon_peak_start+1
+            photon_peak_end = end_peak[0] + 1
+
+    if photon_peak_pos!=None:
+        photon_peak_end=photon_peak_pos
+        photon_peak_start=photon_peak_pos
+    #Inverted and baseline corrected Tof signal
+    base_line = np.median(tof_trace_inverted[:photon_peak_start])
+    base_std = np.std(tof_trace_inverted[:photon_peak_start])
+    
+    corrected_tof = (tof_trace_inverted-base_line)[photon_peak_end:]
+    add_record(evt['analysis'], 'analysis', outkey, corrected_tof)
+    
+    if H_position==None:
+        if (np.sum(diff_x)!=len(diff_x)):
+            #Convert to M/Q
+            if end_peak.size>1:
+                Hpeak_end=end_peak[1]
             else:
-                photon_peak_end = end_peak[0] + 1
+                Hpeak_end=len(corrected_tof)
+        Hpeak = np.argmax(corrected_tof[:Hpeak_end])
+        new_x = (np.arange(len(corrected_tof)) / float(Hpeak))**2.
+        print new_x
+        add_record(evt['analysis'], 'analysis', 'ToF - M/Q', new_x)
         
-    	#Inverted and baseline corrected Tof signal
-        base_line = np.median(tof_trace_inverted[:photon_peak_start])
-        base_std = np.std(tof_trace_inverted[:photon_peak_start])
-    	
-        corrected_tof = (tof_trace_inverted-base_line)[photon_peak_end:]
-        add_record(evt['analysis'], 'analysis', outkey, corrected_tof)
-        try:
-            if (np.sum(diff_x)!=len(diff_x)):
-                #Convert to M/Q
-                if end_peak.size>1:
-                    Hpeak_end=end_peak[1]
-                else:
-                    Hpeak_end=len(corrected_tof)
-                Hpeak = np.argmax(corrected_tof[:Hpeak_end])
-                new_x = (np.arange(len(corrected_tof)) / float(Hpeak))**2.  
-                add_record(evt['analysis'], 'analysis', 'ToF - M/Q', new_x)
-        except:
-            None
+    elif H_position!=None:
+        new_x = (np.arange(len(corrected_tof)) / float(H_position-photon_peak_end))**2.  
+        add_record(evt['analysis'], 'analysis', 'ToF - M/Q', new_x)
+        
 
 def ToFPeakAnalysis(evt, type, key, X0, X1, outkey=None):
     """ToF peak integration and position finder
