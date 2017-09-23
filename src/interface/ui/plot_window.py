@@ -368,7 +368,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             self.plot.setLogMode(x=self._settings_diag.logx.isChecked(),
                                  y=self._settings_diag.logy.isChecked())
 
-            plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
+            if self._settings_diag.showMainLine.isChecked():
+                plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
 
             if 'hline' in conf and conf['hline'] is not None:
