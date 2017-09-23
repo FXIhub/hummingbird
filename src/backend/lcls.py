@@ -49,7 +49,7 @@ def add_cmdline_args():
     
     
 PNCCD_IDS = ['pnccdFront', 'pnccdBack']
-ACQ_IDS = [('ACQ%i' % i) for i in range(3)]
+ACQ_IDS = [('ACQ%i' % i) for i in range(1,4+1)]
 
 class LCLSTranslator(object):
     """Translate between LCLS events and Hummingbird ones"""
