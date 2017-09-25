@@ -100,7 +100,7 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
     else:
         new_x = (np.arange(len(corrected_tof)) / float(H_position-photon_peak_end))**2.  
         add_record(evt['analysis'], 'analysis', 'ToF - M/Q', new_x)
-        
+    print "tof:" evt['analysis']['ToF - M/Q'].data
 
 def ToFPeakAnalysis(evt, type, key, X0, X1, outkey=None):
     """ToF peak integration and position finder
