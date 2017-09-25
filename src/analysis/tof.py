@@ -97,7 +97,7 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
         #print new_x
         add_record(evt['analysis'], 'analysis', 'ToF - M/Q', new_x)
         
-    elif H_position!=None:
+    else:
         new_x = (np.arange(len(corrected_tof)) / float(H_position-photon_peak_end))**2.  
         add_record(evt['analysis'], 'analysis', 'ToF - M/Q', new_x)
         
