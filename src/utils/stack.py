@@ -49,6 +49,9 @@ class Stack:
         self.last_max    = None
         self._reduced     = False
 
+    def empty(self):
+        return (self._currentIndex == 0)
+
     def filled(self):
         return self._currentIndex >= self._maxLen
     
