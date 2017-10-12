@@ -59,6 +59,7 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
         end_peak = all_peak_x[np.where(diff_x > 1)]
     else:
         add_record(evt['analysis'], 'analysis', outkey, tof_trace_inverted-(np.median(tof_trace_inverted[:baseline_region_guess])+tof_peak_threshold))
+        add_record(evt['analysis'], 'analysis', 'ToF - M/Q', np.arange(tof_trace_inverted.shape[0]))
         return
 
     if photon_peak_position is None:
@@ -97,10 +98,9 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
         #print new_x
         add_record(evt['analysis'], 'analysis', 'ToF - M/Q', new_x)
         
-    elif H_position!=None:
+    else:
         new_x = (np.arange(len(corrected_tof)) / float(H_position-photon_peak_end))**2.  
         add_record(evt['analysis'], 'analysis', 'ToF - M/Q', new_x)
-        
 
 def ToFPeakAnalysis(evt, type, key, X0, X1, outkey=None):
     """ToF peak integration and position finder

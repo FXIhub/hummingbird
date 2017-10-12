@@ -50,8 +50,8 @@ class Stack:
         self._reduced     = False
 
     def empty(self):
-        return self._currentIndex == 0
-    
+        return (self._currentIndex == 0)
+
     def filled(self):
         return self._currentIndex >= self._maxLen
     
