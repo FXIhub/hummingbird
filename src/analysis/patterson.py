@@ -6,7 +6,7 @@ import numpy
 import utils.io
 from backend.record import add_record
 
-def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop=None, full_output=False, **params):
+def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop=None, full_output=False, xgap_pix=None, ygap_pix=None, frame_pix=None, **params):
     """TODO: missing docstring
 
     .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
@@ -25,8 +25,8 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
         img = module.crop(img, crop)
         mask = module.crop(mask, crop)
         
-    out = module.patterson(numpy.float64(img), mask, full_output=full_output, normalize_median=True, **params)
-
+    out = module.patterson(numpy.float64(img), mask, full_output=full_output, normalize_median=False, **params)
+    
     v = evt["analysis"]
     
     if full_output:
@@ -36,19 +36,37 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
         add_record(v, "analysis", "patterson intensities", info["intensities_times_kernel"], unit='')
     else:
         P = abs(out)
+
+    m = numpy.median(P)
+    if not numpy.isclose(m, 0.):
+        P = P / m
     
-    add_record(v, "analysis", "patterson", abs(P), unit='')
+    add_record(v, "analysis", "patterson", P, unit='')
 
     if threshold is not None:
+        Minf = ~numpy.isfinite(P)
+        if Minf.sum() > 0:
+            P[Minf] = 0
         M = P > threshold
         if diameter_pix is not None:
             Y,X = numpy.indices(P.shape)
             X -= P.shape[1]/2
             Y -= P.shape[0]/2
             Rsq = X**2+Y**2
-            M *= Rsq > diameter_pix**2
-            if full_output:
-                add_record(v, "analysis", "patterson multiples", M, unit='')
+            M *= Rsq > (diameter_pix/2)**2
+        if xgap_pix is not None:
+            cy = M.shape[0]/2 
+            M[cy-xgap_pix/2:cy+xgap_pix/2,:] = False
+        if ygap_pix is not None:
+            cx = M.shape[1]/2 
+            M[:,cx-ygap_pix/2:cx+ygap_pix/2] = False
+        if frame_pix is not None:
+            M[:frame_pix,:] = False
+            M[-frame_pix:,:] = False
+            M[:,:frame_pix] = False
+            M[:,-frame_pix:] = False
+        if full_output:
+            add_record(v, "analysis", "patterson multiples", M, unit='')
         multiple_score = M.sum()
         add_record(v, "analysis", "multiple score", multiple_score, unit='')
     

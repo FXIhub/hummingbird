@@ -209,7 +209,7 @@
      <widget class="ImageWindowSettings" name="settingsWidget" native="true"/>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_4">
+     <layout class="QHBoxLayout" name="footerHBox">
       <item>
        <widget class="QLabel" name="infoLabel">
         <property name="sizePolicy">
@@ -535,7 +535,7 @@
      <addaction name="actionMedium"/>
      <addaction name="actionLow"/>
     </widget>
-    <addaction name="actionSound_on_off"/>
+    <addaction name="actionToggleAlert"/>
     <addaction name="menuSounds"/>
     <addaction name="menuVolume"/>
    </widget>
@@ -601,12 +601,15 @@
     <string>Alert</string>
    </property>
   </action>
-  <action name="actionSound_on_off">
+  <action name="actionToggleAlert">
    <property name="checkable">
     <bool>true</bool>
    </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Sound on/off</string>
+    <string>Toggle Alert</string>
    </property>
   </action>
   <action name="actionBeep">
