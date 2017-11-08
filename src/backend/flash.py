@@ -75,6 +75,8 @@ class FLASHTranslator(object):
         if self.reader is not None:
             self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
         if self.reader is not None and len(self.reader.frames) > 0:
+            # Observe: the following transformation has been used for pnCCD images at FLASH experiments and is currently no where implemented in the code,
+            # if anything it should go into here: np.fliplr(np.flipud(image.T*mask.T))
             evt['pnCCD'] = self.reader.frames[0]
             self.keys.add('photonPixelDetectors')
             try:
