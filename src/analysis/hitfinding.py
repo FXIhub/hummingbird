@@ -190,7 +190,7 @@ def photon_count_frame(evt,front_type_s,front_key_s,aduThreshold,outkey=""):
     photon_frame = (evt[front_type_s][front_key_s].data/aduThreshold).round()
     photon_frame[photon_frame<=0] = 0
     v = evt["analysis"]
-    add_record(v, "analysis", outkey+"photon_count", photon_frame)    
+    add_record(v, "analysis", outkey+"photon_count", photon_frame)
 
 def lambda_values(evt,pulse_energy,sum_over_bkg_frames,fit_bkg,sample_params,outkey=""):
     frame_expected_phc = np.dot(sample_params,np.array([pulse_energy**3,pulse_energy**2,pulse_energy,1]))

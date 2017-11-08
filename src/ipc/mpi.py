@@ -68,6 +68,10 @@ def is_main_slave():
     """Returns True if the process has MPI rank == 1."""
     return rank == 1
 
+def is_main_worker():
+    """Returns True if the process is the main slave or there is only one process."""
+    return is_main_slave() or size == 1
+
 # WORKERS
 
 def is_worker():

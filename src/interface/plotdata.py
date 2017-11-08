@@ -19,6 +19,7 @@ class PlotData(object):
         self.restored = False
         self.ishistory = (title[:7] == 'History')
         self.recordhistory = False
+        self.clear_histogram = False
         if title in parent.conf:
             if('history_length' in parent.conf[title]):
                 self._maxlen = parent.conf[title]['history_length']
@@ -40,6 +41,20 @@ class PlotData(object):
         self._x.append(x)
         self._l.append(l)
 
+    def sum_over(self, y, x, l):
+        if self._y is None:
+            self._y = RingBuffer(1)
+            self._x = RingBuffer(1)
+            self._l = RingBufferStr(1)
+            self._x.append(x)
+            self._y.append(y.astype('f8'))
+            self._l.append(l)
+            self._num = 1.
+            self._y._data[0] = y
+        else:
+            self._num += 1.
+            self._y._data[0] = self._y._data[0] * (self._num-1)/self._num + y/self._num
+
     def resize(self, new_maxlen):
         """Change the capacity of the buffers"""
         if(self._y is not None):
@@ -54,10 +69,12 @@ class PlotData(object):
         """Clear the buffers"""
         if(self._y is not None):
             self._y.clear()
+            self._y = None
         if(self._x is not None):
             self._x.clear()
         if(self._l is not None):
             self._l.clear()
+        self.clear_histogram = True
 
     @property
     def title(self):
