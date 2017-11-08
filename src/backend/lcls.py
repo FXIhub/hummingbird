@@ -339,7 +339,7 @@ class LCLSTranslator(object):
         return self.translate(evt, 'eventID')['Timestamp'].timestamp2
 
     def _tr_bld_data_ebeam(self, values, obj):
-        """Translates BldDataEBeam to hummingbird photon energy"""
+        """Translates BldDataEBeam to hummingbird photon energy and other beam properties"""
         try:
             photon_energy_ev = obj.ebeamPhotonEnergy()
         except AttributeError:
@@ -359,8 +359,21 @@ class LCLSTranslator(object):
                               0.0005*energy_loss_per_segment)
             # Calculate the resonant photon energy of the first active segment
             photon_energy_ev = 44.42*energy_profile*energy_profile
-
         add_record(values, 'photonEnergies', 'photonEnergy', photon_energy_ev, ureg.eV)
+
+        try:
+            ebeam_ang_x  = obj.ebeamLTUAngX()
+            ebeam_ang_y  = obj.ebeamLTUAngY()
+            ebeam_pos_x  = obj.ebeamLTUPosX()
+            ebeam_pos_y  = obj.ebeamLTUPosY()
+            ebeam_charge = obj.ebeamCharge()
+            add_record(values, 'photonEnergies', 'angX', ebeam_ang_x)
+            add_record(values, 'photonEnergies', 'angY', ebeam_ang_y)
+            add_record(values, 'photonEnergies', 'posX', ebeam_pos_x)
+            add_record(values, 'photonEnergies', 'posY', ebeam_pos_y)
+            add_record(values, 'photonEnergies', 'charge', ebeam_charge)
+        except AttributeError:
+            print "Couldn't translate electron beam properties from BldDataEBeam"
 
     def _tr_bld_data_fee_gas_det_energy(self, values, obj):
         """Translates gas monitor detector to hummingbird pulse energy"""
