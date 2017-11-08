@@ -256,7 +256,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         alert_flag = False
         for source, title in self.source_and_titles():
             conf = source.conf[title]
-            if "alert" in conf and self.alert and conf['alert']:
+            if "alert" in conf and self.actionToggleAlert.isChecked() and conf['alert']:
                 alert_flag = True
 
         if alert_flag:
@@ -428,8 +428,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             self.plot.setLogMode(x=self._settings_diag.logx.isChecked(),
                                  y=self._settings_diag.logy.isChecked())
 
-            plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
+            if self._settings_diag.showMainLine.isChecked():
+                plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
                                  symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
+                self.legend.addItem(plt, pd.title)
 
             if 'hline' in conf and conf['hline'] is not None:
                 self.plot.getPlotItem().removeItem(self.hline)
@@ -447,8 +449,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             xmaxs.append(x.max())
             ymins.append(y.min())
             ymaxs.append(y.max())
-
-            self.legend.addItem(plt, pd.title)
+            
             color_index += 1
             
             if (source.data_type[title] == 'vector') and (self._settings_diag.showTrendVector.isChecked()):

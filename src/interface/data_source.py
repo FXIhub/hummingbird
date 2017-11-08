@@ -237,6 +237,7 @@ class DataSource(QtCore.QObject):
                 pd.restore_state(pds, self)
                 self._plotdata[k] = pd            
                 self.plotdata_added.emit(self._plotdata[k])
+                self.add_item_to_group_structure(k, group)
 
     @property
     def group_structure(self):

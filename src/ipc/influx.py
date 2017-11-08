@@ -15,7 +15,7 @@ def init(dsn):
     global thread
     global queue
     print "Initing InfluxDB"
-    client = InfluxDBClient.from_DSN(dsn)
+    client = InfluxDBClient.from_dsn(dsn)
     print dsn
     print "Inited InfluxDB"
     queue = Queue.Queue(10000)

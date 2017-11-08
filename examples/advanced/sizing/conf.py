@@ -1,7 +1,8 @@
 import os
 import time
+import ipc.mpi
 import utils.reader
-import simulation.simple
+import simulation.condor
 import analysis.event
 import analysis.pixel_detector
 import analysis.hitfinding
@@ -10,14 +11,14 @@ import plotting.line
 import plotting.image
 from backend import ureg
 
-sim = simulation.simple.Simulation("examples/sizing/virus.conf")
-sim.hitrate = 0.1
+sim = simulation.condor.Simulation("examples/advanced/sizing/virus.conf")
+sim.hitrate = 1.
 
 state = {
     'Facility': 'Dummy',
 
     'Dummy': {
-        'Repetition Rate' : 1,
+        'Repetition Rate' : 10,
         'Simulation': sim,
         'Data Sources': {
             'CCD': {
@@ -64,11 +65,14 @@ histogramCCD = {
     'label': "Nr of photons",
     'history': 50}
 
+# Downsamplig
+downsampling = 8
+
 # Model parameters for sphere
 # ---------------------------
 modelParams = {
     'wavelength':0.12398,
-    'pixelsize':110,
+    'pixelsize':110*downsampling,
     'distance':2160,
     'adu_per_photon':1,
     'quantum_efficiency':1.,
@@ -82,10 +86,11 @@ sizingParams = {
     'mask_radius':100,
     'downsampling':1,
     'brute_evals':10,
-    'photon_counting':True}
+    'photon_counting':False}
+
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
-mask = utils.reader.MaskReader(this_dir + "/mask.h5","/data/data").boolean_mask
+mask = utils.reader.MaskReader(this_dir + "/mask_pnccd.h5","/data/data").boolean_mask
     
 def onEvent(evt):
 
@@ -93,46 +98,55 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
 
     # Detector statistics
-    analysis.pixel_detector.printStatistics(evt["photonPixelDetectors"])
+    #analysis.pixel_detector.printStatistics(evt["photonPixelDetectors"])
 
     # Count Nr. of Photons
-    analysis.pixel_detector.totalNrPhotons(evt,"photonPixelDetectors", "CCD")
-    plotting.line.plotHistory(evt["analysis"]["nrPhotons - CCD"], label='Nr of photons / frame', history=50)
+    analysis.pixel_detector.totalNrPhotons(evt,evt["photonPixelDetectors"]["CCD"])
+    plotting.line.plotHistory(evt["analysis"]["nrPhotons"], label='Nr of photons / frame', history=50)
 
     # Simple hitfinding (Count Nr. of lit pixels)
-    analysis.hitfinding.countLitPixels(evt, "photonPixelDetectors", "CCD", aduThreshold=0.5, hitscoreThreshold=10)
+    analysis.hitfinding.countLitPixels(evt, evt["photonPixelDetectors"]["CCD"], aduThreshold=0.5, hitscoreThreshold=10)
 
     # Compute the hitrate
-    analysis.hitfinding.hitrate(evt, evt["analysis"]["isHit - CCD"], history=500)
+    analysis.hitfinding.hitrate(evt, evt["analysis"]["litpixel: isHit"], history=500)
     
     # Plot the hitscore
-    plotting.line.plotHistory(evt["analysis"]["hitscore - CCD"], label='Nr. of lit pixels', runningHistogram=Trues)
+    plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"], label='Nr. of lit pixels', runningHistogram=False)
 
     # Plot the hitrate
-    plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
+    if ipc.mpi.is_main_slave():
+        plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
     
     # Perform sizing on hits
-    if evt["analysis"]["isHit - CCD"]:
+    if evt["analysis"]["litpixel: isHit"]:
 
-        print "It's a hit"
-
+        # Downsampling
         t0 = time.time()
-        # Find the center of diffraction
-        analysis.sizing.findCenter(evt, "photonPixelDetectors", "CCD", mask=mask, maxshift=20, threshold=0.5, blur=4)
+        analysis.pixel_detector.bin(evt, "photonPixelDetectors", "CCD", downsampling, mask)
+        mask_binned = evt["analysis"]["binned mask - CCD"].data
+        t_downsampling = time.time()-t0
+
+        # Find the center of diffraction        
+        t0 = time.time()
+        analysis.sizing.findCenter(evt, "analysis", "binned image - CCD", mask=mask_binned, maxshift=20, threshold=0.5, blur=4)
         t_center = time.time()-t0
         
         # Fitting sphere model to get size and intensity
         t0 = time.time()
-        analysis.sizing.fitSphere(evt, "photonPixelDetectors", "CCD", mask=mask, **dict(modelParams, **sizingParams))
+        analysis.sizing.fitSphere(evt, "analysis", "binned image - CCD", mask=mask_binned, **dict(modelParams, **sizingParams))
         t_size = time.time()-t0
 
         # Fitting model
         t0 = time.time()
-        analysis.sizing.sphereModel(evt, "analysis", "offCenterX", "offCenterY", "diameter", "intensity", (sim.ny,sim.nx), poisson=True, **modelParams)
+        analysis.sizing.sphereModel(evt, "analysis", "offCenterX", "offCenterY", "diameter", "intensity",
+                                    (sim._ny//downsampling,sim._nx//downsampling), poisson=True, **modelParams)
         t_full = time.time()-t0
 
-        t_all = t_center + t_size + t_full
-        print "Time: %e sec (center / size / full : %.2f%% / %.2f%% / %.2f%%)" % (t_all, 100.*t_center/t_all, 100.*t_size/t_all, 100.*t_full/t_all)
+        t_all = t_downsampling + t_center + t_size + t_full
+        print "Time: %g sec (downsampling / center / size / full : %.2f%% %.2f%% / %.2f%% / %.2f%%)" % (t_all, 100.*t_downsampling/t_all,
+                                                                                                        100.*t_center/t_all,
+                                                                                                        100.*t_size/t_all,
+                                                                                                        100.*t_full/t_all)
         
         plotting.line.plotHistory(evt["analysis"]["offCenterX"])
         plotting.line.plotHistory(evt["analysis"]["offCenterY"])
@@ -151,11 +165,11 @@ def onEvent(evt):
         I0 = evt["analysis"]["intensity"].data
         I1 = evt["parameters"]["intensity"].data
         msg_glo = "diameter = %.2f nm, \nintensity = %.2f mJ/um2" % (s0, I0)
-        msg_fit = "Fit result: \ndiameter = %.2f nm (%.2f nm), \nintensity = %.2f mJ/um2 (%.2f mJ/um2)" % (s0, s1-s0, I0, I1-I0)
+        msg_fit = "Fit result: \ndiameter = %.2f nm (%.2f nm), \nintensity = %.2f mJ/um2 (%.2f mJ/um2)" % (s0, s1, I0, I1-I0)
 
         # Plot the glorious shots
-        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], msg=msg_glo, log=True, mask=mask)
+        plotting.image.plotImage(evt["analysis"]["binned image - CCD"], msg=msg_glo, log=True, mask=mask_binned)
         
         # Plot the fitted model
-        plotting.image.plotImage(evt["analysis"]["fit"], msg=msg_fit, log=True, mask=mask)
+        plotting.image.plotImage(evt["analysis"]["fit"], msg=msg_fit, log=True, mask=mask_binned)
         
