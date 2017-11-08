@@ -14,6 +14,7 @@ docs/.build/
 .#*
 .fuse_hidden*
 *~
+*#*
 
 # TIFF files
 *.tiff

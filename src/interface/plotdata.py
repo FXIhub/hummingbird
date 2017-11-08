@@ -127,6 +127,5 @@ class PlotData(object):
             self.restored = True
         self._title = state['title']
         self._maxlen = state['maxlen']
-        print self._maxlen
         self.recordhistory = state['recordhistory']
 
