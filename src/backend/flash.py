@@ -11,8 +11,8 @@ from backend import Worker
 from . import ureg
 import numpy
 import ipc
-import backend.convert_frms6 as convert
-import backend.tomas_motors as motors
+import backend.flash_utils.convert_frms6 as convert
+import backend.flash_utils.tomas_motors as motors
 #import read_daq_offline
 import glob
 import sys
