@@ -147,7 +147,7 @@ def plotMeanMapDynamic(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, y
 correlations = {}
 xArray = []
 yArray = []
-def plotCorrelation(X, Y, history=100, name=None, group=None):
+def plotCorrelation(X, Y, history=10000, name=None, group=None):
     """Plotting the correlation of two parameters X and Y over time.
     (Using a buffer in the backend).
     
@@ -247,7 +247,7 @@ def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, xla
     ipc.new_data(name, np.array([x, y, z]), msg=msg)
 
     
-def plotScatter(X,Y, name=None, history=100, xlabel=None, ylabel=None, group=None):
+def plotScatter(X,Y, name=None, history=10000, xlabel=None, ylabel=None, group=None):
     """Plotting the scatter of two parameters X and Y.
     (No buffer in the backend).
 
@@ -270,7 +270,7 @@ def plotScatter(X,Y, name=None, history=100, xlabel=None, ylabel=None, group=Non
         _existingPlots[name] = True
     ipc.new_data(name, np.array([X.data, Y.data]))
 
-def plotScatterBg(X,Y, name=None, history=100, xlabel=None, ylabel=None, bg_filename=None, bg_xmin=0., bg_xmax=1., bg_ymin=0., bg_ymax=0., bg_angle=0., group=None):
+def plotScatterBg(X,Y, name=None, history=10000, xlabel=None, ylabel=None, bg_filename=None, bg_xmin=0., bg_xmax=1., bg_ymin=0., bg_ymax=0., bg_angle=0., group=None):
     """Plotting the scatter of two parameters X and Y.
     """
     if name is None:
@@ -288,7 +288,7 @@ def plotScatterBg(X,Y, name=None, history=100, xlabel=None, ylabel=None, bg_file
     ipc.new_data(name, np.array([X.data, Y.data]))
     
 
-def plotScatterColor(X,Y,Z, name=None, history=100, xlabel=None, ylabel=None, zlabel=None, vmin=None, vmax=None, group=None):
+def plotScatterColor(X,Y,Z, name=None, history=10000, xlabel=None, ylabel=None, zlabel=None, vmin=None, vmax=None, group=None):
     """Plotting the scatter of two parameters X and Y and use Z for color.
     (No buffer in the backend).
 

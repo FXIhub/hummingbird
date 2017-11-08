@@ -27,6 +27,7 @@ class PlotDataTable(QtGui.QWidget):
         self.table.itemSelectionChanged.connect(self._on_selection_changed)
 
         self._groups = {None: [[], None]}
+        self._sources = {}
         
         vbox.addWidget(self.table)
         hbox = QtGui.QHBoxLayout()
@@ -92,24 +93,29 @@ class PlotDataTable(QtGui.QWidget):
         self.table.insertRow(row)
         item = QtGui.QTableWidgetItem(source.name())
         item.setData(QtCore.Qt.UserRole, source)
+        item.setFlags(QtCore.Qt.NoItemFlags) #not editable
         self.table.setItem(row, 0, item)
         item = QtGui.QTableWidgetItem(plotdata.title)
         item.setData(QtCore.Qt.UserRole, plotdata)
+        item.setFlags(QtCore.Qt.NoItemFlags) #not editable
         self.table.setItem(row, 1, item)
         bar = QtGui.QProgressBar()        
         self.table.setItem(row, 2, QtGui.QTableWidgetItem())
         self.table.setCellWidget(row, 2, self._center_widget(bar))
+        item.setFlags(QtCore.Qt.NoItemFlags) #not editable
         checkbox = QtGui.QCheckBox()
         checkbox.setChecked(plotdata.restored)
         self.table.setItem(row, 3, QtGui.QTableWidgetItem())
         self.table.setCellWidget(row, 3, self._center_widget(checkbox))
+        item.setFlags(QtCore.Qt.ItemIsUserCheckable)
         checkbox = QtGui.QCheckBox()
         checkbox.setEnabled(plotdata.ishistory)
         checkbox.setChecked(plotdata.recordhistory)
         self.table.setItem(row, 4, QtGui.QTableWidgetItem())
         self.table.setCellWidget(row, 4, self._center_widget(checkbox))
+        item.setFlags(QtCore.Qt.ItemIsUserCheckable)
 
-        # Mark existing subscriptions     
+        # Mark existing subscriptions
         if(plotdata.title in source.subscribed_titles):
             self._set_subscription(source, plotdata.title, True)
 
@@ -118,6 +124,7 @@ class PlotDataTable(QtGui.QWidget):
             row = self.table.rowCount()
         self.table.insertRow(row)
         named_item = QtGui.QTableWidgetItem(name)
+        named_item.setFlags(QtCore.Qt.NoItemFlags) #not editable
         header_font = QtGui.QFont()
         header_font.setBold(True)
         named_item.setFont(header_font)
@@ -125,12 +132,16 @@ class PlotDataTable(QtGui.QWidget):
         self.table.setItem(row, 1, named_item)
         separator_text = ""
         item = QtGui.QTableWidgetItem(separator_text)
+        item.setFlags(QtCore.Qt.NoItemFlags) #not editable
         self.table.setItem(row, 0, item)
         item = QtGui.QTableWidgetItem(separator_text)
+        item.setFlags(QtCore.Qt.NoItemFlags) #not editable
         self.table.setItem(row, 2, item)
         item = QtGui.QTableWidgetItem(separator_text)
+        item.setFlags(QtCore.Qt.NoItemFlags) #not editable
         self.table.setItem(row, 3, item)
         item = QtGui.QTableWidgetItem(separator_text)
+        item.setFlags(QtCore.Qt.NoItemFlags) #not editable
         self.table.setItem(row, 4, item)
         return named_item
 

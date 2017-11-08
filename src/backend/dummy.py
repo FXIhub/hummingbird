@@ -92,6 +92,12 @@ class DummyTranslator(object):
             raise RuntimeError('%s not found in event' % (key))
         return values
 
+    def init_detectors(self, state):
+        """
+        A dummy placeholder for the initialization of detector objects, this is the place to switch between different reading modes (e.g. calibrated or raw)
+        """
+        pass
+    
     def event_id(self, _):
         """Returns an id which should be unique for each
         shot and increase monotonically"""
