@@ -27,7 +27,6 @@ class PlotDataTable(QtGui.QWidget):
         self.table.itemSelectionChanged.connect(self._on_selection_changed)
 
         self._groups = {None: [[], None]}
-        #self._sources = {}
         
         vbox.addWidget(self.table)
         hbox = QtGui.QHBoxLayout()
@@ -52,7 +51,6 @@ class PlotDataTable(QtGui.QWidget):
         source.plotdata_added.connect(self._on_plotdata_added)
         # Add existing plotdata
         for plotdata in source.plotdata.values():
-            #self.add_row(source,plotdata)
             self.add_to_group(plotdata.group, source, plotdata)
         source.unsubscribed.connect(self._on_unsubscribe)
         source.subscribed.connect(self._on_subscribe)
@@ -85,7 +83,6 @@ class PlotDataTable(QtGui.QWidget):
             self.add_to_group(None, source, plotdata)
         else:
             self.add_to_group(plotdata.group, source, plotdata)
-        #self.add_row(source, plotdata)
 
     def add_row(self, source, plotdata, row=None):
         if row is None:
