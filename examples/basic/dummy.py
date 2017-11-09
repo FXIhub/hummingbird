@@ -38,4 +38,4 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
 
     # Visualize detector image
-    plotting.image.plotImage(evt['photonPixelDetectors']['CCD'], send_rate=0.1)
+    plotting.image.plotImage(evt['photonPixelDetectors']['CCD'], send_rate=10)
