@@ -67,9 +67,9 @@ before_install:
   - pip install pyzmq
   - pip install tornado
   - pip install pytz
+  - pip install pyqtgraph
   - cd $HOME
   - pip install h5writer
-  - python -c "import PyQt4; print PyQt4.__file__"
   
 install:
   - pip install codecov
