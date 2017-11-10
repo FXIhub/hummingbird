@@ -6,7 +6,7 @@ is lots of documentation about how to set up things on the |psana| page.
 
 .. |psana| raw:: html
 
-          <a href="https://confluence.slac.stanford.edu/display/PSDM/psana+python">LCLS Data Analysis</a>
+          <a href="https://confluence.slac.stanford.edu/display/PSDM/psana+python" target="_blank">LCLS Data Analysis</a>
 
 .. tip::
    
@@ -26,7 +26,7 @@ and put it inside a directory for XTC files.
 
 .. |cxidb| raw:: html
                  
-   <a href="http://www.cxidb.org">CXIDB</a>
+   <a href="http://www.cxidb.org" target="_blank">CXIDB</a>
 
 mimi_dark.py
 ------------
