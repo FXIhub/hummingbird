@@ -1,5 +1,6 @@
 from test_basics import run_hummingbird
-import os, sys
+from test_imports import test_import_backend_lcls
+import os, sys, warnings
 __thisdir__ = os.path.dirname(os.path.realpath(__file__))
 
 # Testing basic examples
@@ -14,6 +15,8 @@ def test_hitfinding_example():
 def test_correlation_example():
     run_hummingbird(conf=__thisdir__ + '/../examples/basic/correlation.py')
 def test_lcls_mimi_dark_example():
-    run_hummingbird(conf=__thisdir__ + '/../examples/lcls/mimi_dark.py')
+    if test_import_backend_lcls():
+        run_hummingbird(conf=__thisdir__ + '/../examples/lcls/mimi_dark.py')
 def test_lcls_mimi_hits_example():
-    run_hummingbird(conf=__thisdir__ + '/../examples/lcls/mimi_hits.py')
+    if test_import_backend_lcls():
+        run_hummingbird(conf=__thisdir__ + '/../examples/lcls/mimi_hits.py')
