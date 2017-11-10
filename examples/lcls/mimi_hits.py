@@ -7,12 +7,12 @@ import utils.reader
 
 state = {}
 state['Facility'] = 'LCLS'
-state['LCLS/DataSource'] = 'exp=amo15010:dir=/path/to/xtc:run=92'
-state['indexing'] = True
+state['LCLS/DataSource'] = 'exp=amo15010:dir=/reg/d/psdm/AMO/amo15010/xtc:run=92'
+#state['indexing'] = True
 state['index_offset'] = 2250
 
 # Load dark frame from file
-dark = utils.reader.H5Reader('dark_run73.h5', 'mean').dataset
+dark = utils.reader.H5Reader('/tmp/amo15010_dark_run73.h5', 'mean').dataset
 
 # Parameters
 adu_photon = 12

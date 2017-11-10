@@ -202,7 +202,7 @@ class LCLSTranslator(object):
 
         self.init_detectors(state)
         
-        print "Detectors:" , psana.DetNames()
+        #print "Detectors:" , psana.DetNames()
 
     def init_detectors(self, state):
         # New psana call pattern

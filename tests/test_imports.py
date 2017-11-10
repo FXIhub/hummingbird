@@ -88,8 +88,11 @@ def test_import_backend_lcls():
     sys.path.insert(0, __thisdir__ + "/../src")
     try:
         import backend.lcls
+        return True
     except ImportError as e:
         warnings.warn(UserWarning("The LCLS backend could not be imported:\n %s" %e))
         assert(1 == 1)
+        return False
     sys.path.pop(0)
+    
 
