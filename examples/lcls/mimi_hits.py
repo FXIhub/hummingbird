@@ -8,7 +8,7 @@ import utils.reader
 state = {}
 state['Facility'] = 'LCLS'
 state['LCLS/DataSource'] = 'exp=amo15010:dir=/reg/d/psdm/AMO/amo15010/xtc:run=92'
-state['indexing'] = True
+#state['indexing'] = True
 state['index_offset'] = 2250
 
 # Load dark frame from file
