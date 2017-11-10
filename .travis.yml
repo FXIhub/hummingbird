@@ -17,6 +17,8 @@ cache:
     - $HOME/.cache/pip
     - $HOME/.venv
     - $HOME/local
+    - $HOME/data
+    
 matrix:
   include:
     # no MPI, dummy backend
@@ -55,7 +57,7 @@ matrix:
       script:
         # For some reason I cannot set the path to include the directory where
         # coverage is. I start getting errors about missing packages.
-        - docker run -v ${HOME}/build/FXIhub/hummingbird:/opt/hummingbird filipemaia/hummingbird-testing /bin/sh -c "source /reg/g/psdm/etc/ana_env.sh && cd /opt/hummingbird && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/coverage run --source src -m py.test  -v --color=yes --showlocals --durations=10"
+        - docker run -v ${HOME}/build/FXIhub/hummingbird:/opt/hummingbird -v ${HOME}/data:/opt/data filipemaia/hummingbird-testing /bin/sh -c "source /reg/g/psdm/etc/ana_env.sh && mkdir -p /reg/d/psdm/AMO/amo15010 && ln -s /opt/data /reg/d/psdm/AMO/amo15010/xtc && cd /opt/hummingbird && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/coverage run --source src -m py.test  -v --color=yes --showlocals --durations=10"
             
 virtualenv:
     system_site_packages: true
@@ -75,9 +77,12 @@ install:
   - pip install codecov
   - pip install pytest-cov
 
-after_success:
-  - codecov
-
+before_script:
+  - wget http://www.davinci.icm.uu.se/wp-content/uploads/xtc/*r0073*.xtc $HOME/data/
+  
 script:
   - cd ${HOME}/build/FXIhub/hummingbird
   - coverage run --source src -m py.test  -v --color=yes --showlocals --durations=10
+
+ after_success:
+  - codecov
