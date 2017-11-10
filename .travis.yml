@@ -79,7 +79,8 @@ install:
 
 before_script:
   - cd $HOME/data
-  - wget http://davinci.icm.uu.se/wp-content/uploads/xtc/*.xtc
+  - wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0073-s00-c00.xtc
+  - wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0092-s00-c00.xtc
   
 script:
   - cd ${HOME}/build/FXIhub/hummingbird
