@@ -84,5 +84,5 @@ script:
   - cd ${HOME}/build/FXIhub/hummingbird
   - coverage run --source src -m py.test  -v --color=yes --showlocals --durations=10
 
- after_success:
+after_success:
   - codecov
