@@ -13,3 +13,7 @@ def test_hitfinding_example():
     run_hummingbird(conf=__thisdir__ + '/../examples/basic/hitfinding.py')
 def test_correlation_example():
     run_hummingbird(conf=__thisdir__ + '/../examples/basic/correlation.py')
+def test_lcls_mimi_dark_example():
+    run_hummingbird(conf=__thisdir__ + '/../examples/lcls/mimi_dark.py')
+def test_lcls_mimi_hits_example():
+    run_hummingbird(conf=__thisdir__ + '/../examples/lcls/mimi_hits.py')
