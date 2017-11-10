@@ -25,8 +25,8 @@ def test_import_qt_modules():
     sys.path.insert(0, __thisdir__ + "/../src")
     try:
         from interface.Qt import QtGui, QtCore
-    except ImportError:
-        assert (1 == 0), "The Qt modules QtGui and QtCore could not be imported"
+    except ImportError as e:
+        assert (1 == 0), "The Qt modules QtGui and QtCore could not be imported:\n %s" %e
     sys.path.pop(0)
     
 # Testimg the import of the interface module
