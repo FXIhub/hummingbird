@@ -1,4 +1,5 @@
 import os, sys
+import warnings
 __thisdir__ = os.path.dirname(os.path.realpath(__file__))
 
 # Testing for broken MPI installation
@@ -6,8 +7,9 @@ def test_import_mpi4py():
     try:
         from mpi4py import MPI
     except ImportError:
-        pass
-    assert(1 == 1)
+        warnings.warn(UserWarning("MPI for python could not be imported"))
+        assert(1 == 1)
+    sys.path.pop(0)
 
 # Testing the import of the ipc module
 def test_import_ipc_module():
@@ -20,13 +22,13 @@ def test_import_ipc_module():
 
 # Testimg the import of the interface module
 # BD: Need to install PyQt on travis before we can test
-#def test_import_interface_module():
-#    sys.path.insert(0, __thisdir__ + "/../src")
-#    try:
-#        import interface
-#    except ImportError:
-#        assert (1 == 0), "The interface module could not be imported"
-#    sys.path.pop(0)
+def test_import_interface_module():
+    sys.path.insert(0, __thisdir__ + "/../src")
+    try:
+        import interface
+    except ImportError:
+        assert (1 == 0), "The interface module could not be imported"
+    sys.path.pop(0)
 
 # Testing the import of the plotting module
 def test_import_plotting_module():
@@ -70,6 +72,7 @@ def test_import_backend_lcls():
     try:
         import backend.lcls
     except ImportError:
-        pass
+        warnings.warn(UserWarning("The LCLS backend could not be imported"))
+        assert(1==1)
     sys.path.pop(0)
-    assert(1 == 1)
+

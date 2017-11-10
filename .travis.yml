@@ -11,14 +11,12 @@ notifications:
 
 sudo: false
 
-
 cache:
   directories:
     - $HOME/h5py
     - $HOME/.cache/pip
     - $HOME/.venv
     - $HOME/local
-
 matrix:
   include:
     # no MPI, dummy backend
@@ -30,6 +28,7 @@ matrix:
           - python-numpy
           - python-scipy
           - python-h5py
+          - python-qt4
 
     # with MPI, dummy backend
     - env: MPI=openmpi HDF5=serial BACKEND=dummy
@@ -40,6 +39,7 @@ matrix:
             - python-numpy
             - python-scipy
             - python-h5py
+            - python-qt4
             - libopenmpi-dev
             - openmpi-bin
             - python-mpi4py
