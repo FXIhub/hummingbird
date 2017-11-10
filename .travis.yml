@@ -80,8 +80,8 @@ install:
 before_script:
   - cd $HOME/data
   - rm e41-r0073-s00-c00.xtc.1
-  - [ -f e41-r0073-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0073-s00-c00.xtc
-  - [ -f e41-r0092-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0092-s00-c00.xtc
+  - '[ -f e41-r0073-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0073-s00-c00.xtc'
+  - '[ -f e41-r0092-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0092-s00-c00.xtc'
   
 script:
   - cd ${HOME}/build/FXIhub/hummingbird
