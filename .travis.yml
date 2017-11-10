@@ -79,7 +79,7 @@ install:
 
 before_script:
 #  - mkdir -p $HOME/data
-  - wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0073-s00-c00.xtc -o $HOME/data/
+  - wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0073-s00-c00.xtc -O $HOME/data/
   
 script:
   - cd ${HOME}/build/FXIhub/hummingbird
