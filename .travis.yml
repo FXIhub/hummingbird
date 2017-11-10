@@ -27,13 +27,13 @@ addons:
       - python-scipy
       - python-h5py
 
-env: MPI=none HDF5=serial
+#env: MPI=none HDF5=serial
 
 matrix:
   include:
     # Default job no MPI
     # Job 2, OpenMPI
-    - env: MPI=openmpi HDF5=serial
+    - env: MPI=openmpi HDF5=serial BACKEND=dummy
       addons:
         apt:
           packages:
@@ -44,7 +44,7 @@ matrix:
             - libopenmpi-dev
             - openmpi-bin
             - python-mpi4py
-    - env: MPI=none HDF5=serial DOCKER=true
+    - env: MPI=none HDF5=serial BACKEND=lcls
       sudo: required
       dist: trusty
       services:
