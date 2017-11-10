@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/FXIhub/hummingbird.svg?branch=master)](https://travis-ci.org/FXIhub/hummingbird) [![Documentation Status](https://readthedocs.org/projects/spidocs/badge/?version=latest)](http://fxihub.github.io/hummingbird/docs)
+[![Build Status](https://travis-ci.org/FXIhub/hummingbird.svg?branch=master)](https://travis-ci.org/FXIhub/hummingbird) [![Documentation Status](https://readthedocs.org/projects/spidocs/badge/?version=latest)](http://fxihub.github.io/hummingbird/docs) [![codecov](https://codecov.io/gh/FXIhub/hummingbird/branch/master/graph/badge.svg)](https://codecov.io/gh/FXIhub/hummingbird)
 # Hummingbird
 
 Monitoring and analysing flash X-ray imaging experiments in real time. 
