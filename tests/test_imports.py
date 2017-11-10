@@ -39,6 +39,14 @@ def test_import_interface_module():
         assert (1 == 0), "The interface module could not be imported"
     sys.path.pop(0)
 
+# Testing the import of the pyqtgraph module
+def test_import_pyqtgraph_module():
+    try:
+        import pyqtgraph
+    except ImportError:
+        assert (1 == 0), "The pyqtgraph module could not be imported"
+    sys.path.pop(0)
+
 # Testing the import of the plotting module
 def test_import_plotting_module():
     sys.path.insert(0, __thisdir__ + "/../src")
