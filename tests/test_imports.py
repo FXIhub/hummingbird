@@ -20,6 +20,15 @@ def test_import_ipc_module():
         assert (1 == 0), "The ipc module could not be imported"
     sys.path.pop(0)
 
+# Testing the import of the Qt modules QtGui and QtCore
+def test_import_qt_modules():
+    sys.path.insert(0, __thisdir__ + "/../src")
+    try:
+        from interface.Qt import QtGui, QtCore
+    except ImportError:
+        assert (1 == 0), "The Qt modules QtGui and QtCore could not be imported"
+    sys.path.pop(0)
+    
 # Testimg the import of the interface module
 # BD: Need to install PyQt on travis before we can test
 def test_import_interface_module():
@@ -73,6 +82,6 @@ def test_import_backend_lcls():
         import backend.lcls
     except ImportError:
         warnings.warn(UserWarning("The LCLS backend could not be imported"))
-        assert(1==1)
+        assert(1 == 1)
     sys.path.pop(0)
 
