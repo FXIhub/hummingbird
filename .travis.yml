@@ -79,12 +79,12 @@ before_install:
   - pip install subprocess32
   - pip install pyzmq
   - pip install tornado
-  - pip install codecov
   - pip install pytz
   - cd $HOME
   - pip install h5writer
   
 install:
+  - pip install codecov
   - pip install pytest-cov
 
 after_success:
