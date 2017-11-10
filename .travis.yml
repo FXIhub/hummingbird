@@ -78,6 +78,7 @@ install:
   - pip install pytest-cov
 
 before_script:
+  - mkdir -p $HOME/data
   - wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0073-s00-c00.xtc $HOME/data/
   
 script:
