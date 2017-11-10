@@ -67,7 +67,6 @@ before_install:
   - pip install pyzmq
   - pip install tornado
   - pip install pytz
-  - pip install pyqt4
   - cd $HOME
   - pip install h5writer
   - python -c "import PyQt4; print PyQt4.__file__"
