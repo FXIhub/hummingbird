@@ -42,7 +42,7 @@ def plotTimestamp(timestamp, name=None, group=None, **kwargs):
     ipc.new_data(name, timestamp.fiducials, **kwargs)
 
 histograms = {}
-def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, vline=None, history=100, mask=None, log10=False, name_extension="", name=None, group=None):
+def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False, vline=None, history=10000, mask=None, log10=False, name_extension="", name=None, group=None):
     """Plotting a histogram.
     
     Args:
@@ -74,7 +74,7 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
     ipc.new_data(name, H, xmin=B.min(), xmax=B.max(), vline=vline)
 
 traces = {}
-def plotTrace(paramY, paramX=None, label='', history=100, tracelen=None, name=None, group=None):
+def plotTrace(paramY, paramX=None, label='', history=10000, tracelen=None, name=None, group=None):
     """Plotting a trace.
     
     Args:

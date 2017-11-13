@@ -193,10 +193,16 @@ class DataSource(QtCore.QObject):
             self.conf[title].update(conf)
             if self._plotdata[title].recordhistory:
                 self._recorder.append(title, data, data_x)
-            if 'msg' in conf:
-                self._plotdata[title].append(data, data_x, conf['msg'])
+            if 'sum_over' in conf:
+                if 'msg' in conf:
+                    self._plotdata[title].sum_over(data, data_x, conf['msg'])
+                else:
+                    self._plotdata[title].sum_over(data, data_x, '')
             else:
-                self._plotdata[title].append(data, data_x, '')
+                if 'msg' in conf:
+                    self._plotdata[title].append(data, data_x, conf['msg'])
+                else:
+                    self._plotdata[title].append(data, data_x, '')                    
 
     @property
     def hostname(self):
@@ -231,6 +237,7 @@ class DataSource(QtCore.QObject):
                 pd.restore_state(pds, self)
                 self._plotdata[k] = pd            
                 self.plotdata_added.emit(self._plotdata[k])
+                self.add_item_to_group_structure(k, group)
 
     @property
     def group_structure(self):
