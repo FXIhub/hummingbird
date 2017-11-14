@@ -67,7 +67,7 @@ class EUxfelTranslator(object):
             self._pos = 0
 
         self.checked_asked_data()
-        result = EventTranslator(evt, self)
+        result = EventTranslator((self._pos, _self._data), self)
         
         self._pos++
         return result
@@ -75,7 +75,7 @@ class EUxfelTranslator(object):
     def event_keys(self, evt):
         """Returns the translated keys available"""
         # TODO
-        native_keys = evt.keys()
+        native_keys = evt[1].keys()
         common_keys = set()
         for k in native_keys:
             for c in self._native_to_common(k):
@@ -92,14 +92,12 @@ class EUxfelTranslator(object):
 
     def event_native_keys(self, evt):
         """Returns the native keys available"""
-        return evt.keys()
+        return evt[1].keys()
 
     def translate(self, evt, key):
         """Returns a dict of Records that match a given hummingbird key"""
         values = {}
-        if(key in self._c2id_detectors):
-            return self.translate_object(evt, key)
-        elif(key in self._c2n):
+        if(key in self._c2n):
             return self.translate_core(evt, key)
         #elif(key == 'parameters'):
         #    return self._tr_epics()
@@ -109,12 +107,12 @@ class EUxfelTranslator(object):
             return {}
         else:
             # check if the key matches any of the existing keys in the event
-            event_keys = evt.keys()
+            event_keys = evt[1].keys()
             values = {}
             found = False
             for event_key in event_keys:
                 if(event_key.key() == key):
-                    obj = evt.get(event_key.type(), event_key.src(), event_key.key())
+                    obj = evt[1].get(event_key.type(), event_key.src(), event_key.key())
                     found = True
                     add_record(values, 'native', '%s[%s]' % (self._s2c[str(event_key.src())], key),
                                obj, ureg.ADU)
@@ -122,35 +120,6 @@ class EUxfelTranslator(object):
                 return values
             else:
                 print '%s not found in event' % (key)
-
-    def translate_object(self, evt, key):
-        # TODO
-        values = {}
-        detid = self._c2id_detectors[key]
-        if detid in PNCCD_IDS:
-            det = self._detectors[detid]
-            obj = self._detectors[detid]['obj']
-            data_nda = det['data_method'](obj, evt)
-            if data_nda is None:
-                image = None
-            elif len(data_nda.shape) <= 2:
-                image = data_nda
-            elif len(data_nda.shape) == 3:
-                image = numpy.hstack([numpy.vstack([data_nda[0],data_nda[1][::-1,::-1]]),
-                                      numpy.vstack([data_nda[3],data_nda[2][::-1,::-1]])])
-            add_record(values, det['type'], det['key'], image, ureg.ADU)
-        elif detid in ACQ_IDS:
-            det = self._detectors[detid]
-            # waveforms are in Volts, times are in Seconds
-            obj = det['obj']
-            waveforms = obj.waveform(evt)
-            #print "waveforms", waveforms
-            #times = obj.wftime(evt)
-            for i, wf in enumerate(waveforms):
-                add_record(values, det['type'], det['keys'][i], wf, ureg.V)
-        else:
-            raise RuntimeError('%s not yet supported' % key)
-        return values
 
     def event_id(self, evt):
         """Returns an id which should be unique for each
