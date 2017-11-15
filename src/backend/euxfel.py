@@ -15,6 +15,8 @@ import ipc
 import zmq
 import msgpack
 import msgpack_numpy
+msgpack_numpy.patch()
+
 from hummingbird import parse_cmdline_args
 
 
@@ -46,10 +48,11 @@ class EUxfelTranslator(object):
         self._zmq_context = zmq.Context()
         self._zmq_request = self._zmq_context.socket(zmq.REQ)       
         self._zmq_request.connect(cmdline_args.euxfel_socket)
-        self._num_read_ahead = 0
+        self._num_read_ahead = 1
         self._pos = 0
         self._data = None
         self._asked_data = False
+        self.library = 'EUxfel'
 
         # Define how to translate between euxfel keys and Hummingbird ones
         # TODO: pulseEnergies, photonEnergies, train meta data, ..., ...        
@@ -63,7 +66,7 @@ class EUxfelTranslator(object):
         # Calculate the inverse mapping
         self._c2n = {}
         for k, v in self._n2c.iteritems():
-            if v is not list:
+            if type(v) is not list:
                 v = [v]
             for v2 in v:
                 self._c2n[v2] = self._c2n.get(v2, [])
@@ -80,7 +83,6 @@ class EUxfelTranslator(object):
             return
 
         if self._data is None or self._pos >= self._data[self._mainsource][pulsecount] - self._num_read_ahead:
-            print "Sending next"
             self._zmq_request.send(b'next')
             self._asked_data = True
                     
@@ -107,7 +109,6 @@ class EUxfelTranslator(object):
         native_keys = evt[1].keys()
         common_keys = set()
         for k in native_keys:
-            print k
             for c in self._native_to_common(k):
                 common_keys.add(c)
         # analysis is for values added later on
@@ -117,7 +118,7 @@ class EUxfelTranslator(object):
         """Translates a native key to a hummingbird one"""
         if(key in self._n2c):
             val = self._n2c[key]
-            if val is not list:
+            if type(val) is not list:
                 val = [val]
             return val
         else:
@@ -161,12 +162,10 @@ class EUxfelTranslator(object):
             if k in evt[1]:
                 if key == 'eventID':
                     self._tr_event_id(values, evt[1][k], evt[0])
-                elif key == 'photonDetectors':
-                    self._tr_photon_detector(values, evt[1][k], k)
+                elif key == 'photonPixelDetectors':
+                    self._tr_photon_detector(values, evt[1][k], k, evt[0])
                 else:
-                    print type(obj)
-                    print k
-                    raise RuntimeError('%s not yet supported' % (type(obj)))
+                    raise RuntimeError('%s not yet supported with key %s' % (k, key))
                 
         return values
 
@@ -179,10 +178,10 @@ class EUxfelTranslator(object):
         """Returns the int64 pulse ID"""
         return self.translate(evt, 'eventID')['Timestamp'].timestamp2
 
-    def _tr_photon_detector(self, values, obj, evt_key):
-        """Translates pixel detector into Humminbird ADU array"""        
-        add_record(values, 'photonPixelDetectors', self._s2c[k],
-                   obj['image.data'], ureg.ADU)
+    def _tr_photon_detector(self, values, obj, evt_key, pos):
+        """Translates pixel detector into Humminbird ADU array"""               
+        add_record(values, 'photonPixelDetectors', self._s2c[evt_key],
+                   obj['image.data'][pos], ureg.ADU)
 
     def _tr_event_id(self, values, obj, pos):
         """Translates euxfel event ID from some source into a hummingbird one"""
