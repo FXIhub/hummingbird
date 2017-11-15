@@ -87,7 +87,7 @@ class EUxfelTranslator(object):
         self.checked_asked_data()
         result = EventTranslator((self._pos, _self._data), self)
         
-        self._pos++
+        self._pos = self._pos + 1
         return result
 
     def event_keys(self, evt):
@@ -126,13 +126,12 @@ class EUxfelTranslator(object):
             event_keys = evt[1].keys()
             values = {}
             found = False
-            for event_key in event_keys:
-                if(event_key.key() == key):
-                    obj = evt[1].get(event_key.type(), event_key.src(), event_key.key())
-                    found = True
-                    add_record(values, 'native', '%s[%s]' % (self._s2c[str(event_key.src())], key),
-                               obj, ureg.ADU)
-            if(found):
+
+            if key in event_keys:        
+                obj = evt[1][key]
+                for subkey in obj.keys():
+                    add_record(values, 'native', '%s[%s]' % (self._s2c[key], subkey),
+                               obj[subkey], ureg.ADU)
                 return values
             else:
                 print '%s not found in event' % (key)
@@ -146,9 +145,9 @@ class EUxfelTranslator(object):
         for k in self._c2n[key]:
             if k in evt[1]:
                 if key == 'eventID':
-                    self._tr_event_id(values, evt[1][k])
-                else if key=='photonDetectors':
-                    self._tr_photon_detector(values, evt[1][k])
+                    self._tr_event_id(values, evt[1][k], evt[0])
+                elif key == 'photonDetectors':
+                    self._tr_photon_detector(values, evt[1][k], k)
                 else:
                     print type(obj)
                     print k
@@ -156,29 +155,30 @@ class EUxfelTranslator(object):
                 
         return values
 
-
     def event_id(self, evt):
         """Returns an id which should be unique for each
         shot and increase monotonically"""
-        # TODO
         return self.translate(evt, 'eventID')['Timestamp'].timestamp
 
     def event_id2(self, evt):
-        """Returns the LCLS time, a 64-bit integer as an alterative ID"""
-        # TODO. Should we exist?
+        """Returns the int64 pulse ID"""
+        return self.translate(evt, 'eventID')['Timestamp'].timestamp2
 
-    def _tr_event_id(self, values, obj):
+    def _tr_photon_detector(self, values, obj, evt_key):
+        """Translates pixel detector into Humminbird ADU array"""        
+        add_record(values, 'photonPixelDetectors', self._s2c[k],
+                   obj['image.data'], ureg.ADU)
+
+    def _tr_event_id(self, values, obj, pos):
         """Translates euxfel event ID from some source into a hummingbird one"""
-        timestamp = obj.time()[0]+obj.time()[1]*1e-9
+        src_timestamp = obj['metadata']['timestamp']        
+        timestamp = src_timestamp['sec'] + src_timestamp['frac'] * 1e-2 + pos * 1e-6
         time = datetime.datetime.fromtimestamp(timestamp, tz=timezone('utc'))
         time = time.astimezone(tz=timezone('CET'))
-        rec = Record('Timestamp', time, ureg.s)
-        time = datetime.datetime.fromtimestamp(obj.time()[0])
-        rec.datetime64 = numpy.datetime64(time, 'ns')+obj.time()[1]
+        rec = Record('Timestamp', time, ureg.s)        
         rec.fiducials = obj.fiducials()
-        rec.run = obj.run()
-        rec.ticks = obj.ticks()
-        rec.vector = obj.vector()
-        rec.timestamp = timestamp
-        rec.timestamp2 = obj.time()[0] << 32 | obj.time()[1]
+        rec.pulseCount = obj['header.pulseCount']
+        rec.pulseNo = pos       
+        #rec.timestamp2 = obj['trailer.trainId']
+        rec.timestamp2 = obj['image.pulseId'][rec.pulseNo]
         values[rec.name] = rec
