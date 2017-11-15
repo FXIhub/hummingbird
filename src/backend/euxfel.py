@@ -21,9 +21,9 @@ def add_cmdline_args():
     from utils.cmdline_args import argparser
     _argparser = argparser
     group = _argparser.add_argument_group('EUxfel', 'Options for the EUxfel event translator')
-    group.add_argument('--euxfel-socket', metavar='euxfel_socket', default='tcp://127.0.0.1:4500', nargs=1,
+    group.add_argument('--euxfel-socket', metavar='euxfel_socket', default='tcp://127.0.0.1:4500', nargs='1',
                         help="run number",
-                        type=string)
+                        type=int)
     # TODO
     #group.add_argument('--euxfel-number-of-frames', metavar='euxfel_number_of_frames', nargs='?',
     #                    help="number of frames to be processed",
