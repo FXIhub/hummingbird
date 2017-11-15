@@ -12,6 +12,7 @@ import datetime
 from . import ureg
 from backend import Worker
 import ipc
+import zmq
 from hummingbird import parse_cmdline_args
 
 
@@ -23,7 +24,7 @@ def add_cmdline_args():
     group = _argparser.add_argument_group('EUxfel', 'Options for the EUxfel event translator')
     group.add_argument('--euxfel-socket', metavar='euxfel_socket', default='tcp://127.0.0.1:4500', nargs='1',
                         help="run number",
-                        type=int)
+                        type=str)
     # TODO
     #group.add_argument('--euxfel-number-of-frames', metavar='euxfel_number_of_frames', nargs='?',
     #                    help="number of frames to be processed",
@@ -49,6 +50,7 @@ class EUxfelTranslator(object):
         # Define how to translate between euxfel keys and Hummingbird ones
         # TODO: pulseEnergies, photonEnergies, train meta data, ..., ...        
         # AGIPD
+        self._n2c = {}
         self._n2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'photonPixelDetectors'
         # Using the AGIPD metadata as our master source of metadata
         self._n2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'eventID'
