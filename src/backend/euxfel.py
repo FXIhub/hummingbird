@@ -13,6 +13,8 @@ from . import ureg
 from backend import Worker
 import ipc
 import zmq
+import msgpack
+import msgpack_numpy
 from hummingbird import parse_cmdline_args
 
 
@@ -29,6 +31,8 @@ def add_cmdline_args():
     #group.add_argument('--euxfel-number-of-frames', metavar='euxfel_number_of_frames', nargs='?',
     #                    help="number of frames to be processed",
     #                    type=int)
+
+pulsecount = 'header.pulseCount'
     
 class EUxfelTranslator(object):
     """Translate between EUxfel events and Hummingbird ones"""
@@ -51,6 +55,7 @@ class EUxfelTranslator(object):
         # TODO: pulseEnergies, photonEnergies, train meta data, ..., ...        
         # AGIPD
         self._n2c = {}
+        self._mainsource = 'SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'
         self._n2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'photonPixelDetectors'
         # Using the AGIPD metadata as our master source of metadata
         self._n2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'eventID'
@@ -72,6 +77,7 @@ class EUxfelTranslator(object):
             return
 
         if self._data is None or self._pos >= self._data[self._mainsource][pulsecount] - self._num_read_ahead:
+            print "Sending next"
             self._zmq_request.send(b'next')
             self._asked_data = True
                     
@@ -82,12 +88,13 @@ class EUxfelTranslator(object):
         # corresponding to indices 4,8,...,56
         if self._data is None or self._pos == self._data[self._mainsource][pulsecount]:
             self.check_asked_data()
-            self._data = self._zmq_request.recv_pyobj()
+            msg = self._zmq_request.recv()
+            self._data = msgpack.loads(msg)
             self._asked_data = False
             self._pos = 0
 
-        self.checked_asked_data()
-        result = EventTranslator((self._pos, _self._data), self)
+        self.check_asked_data()
+        result = EventTranslator((self._pos, self._data), self)
         
         self._pos = self._pos + 1
         return result
@@ -179,7 +186,7 @@ class EUxfelTranslator(object):
         time = time.astimezone(tz=timezone('CET'))
         rec = Record('Timestamp', time, ureg.s)        
         rec.fiducials = obj.fiducials()
-        rec.pulseCount = obj['header.pulseCount']
+        rec.pulseCount = obj[pulsecount]
         rec.pulseNo = pos       
         #rec.timestamp2 = obj['trailer.trainId']
         rec.timestamp2 = obj['image.pulseId'][rec.pulseNo]
