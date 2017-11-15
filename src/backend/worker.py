@@ -11,6 +11,9 @@ import ipc
 import time
 import signal
 
+# Compatibility with python 2 and 3
+from __future__ import print_function
+
 class Worker(object):
     """Coordinates data reading, translation and analysis.
 
@@ -54,7 +57,7 @@ class Worker(object):
         
         if ipc.mpi.is_event_reader():
             self.translator = init_translator(Worker.state)
-        print "MPI rank %d, pid %d" % (ipc.mpi.rank, os.getpid())
+        print("MPI rank %d, pid %d" % (ipc.mpi.rank, os.getpid()))
 
         if (ipc.mpi.is_zmqserver()):
             try:
@@ -80,7 +83,7 @@ class Worker(object):
         try:
             Worker.conf = imp.load_source('backend_conf', self._config_file)
         except:
-            print "Error reloading conf"
+            print("Error reloading conf")
             return
         if self.translator is not None:
             # Not all translators have the init_detectors 
@@ -99,16 +102,16 @@ class Worker(object):
         """Start the event loop."""
         self.state['running'] = True
         if 'beginning_of_run' in dir(Worker.conf) and not ipc.mpi.is_master():
-            print 'Beginning of run (worker %i/%i) ...' % (ipc.mpi.worker_index()+1, ipc.mpi.nr_workers())
+            print('Beginning of run (worker %i/%i) ...' % (ipc.mpi.worker_index()+1, ipc.mpi.nr_workers()))
             Worker.conf.beginning_of_run()
         if ipc.mpi.is_event_reader():
-            print 'Starting event loop (event reader %i/%i) ...' % (ipc.mpi.event_reader_rank()+1, ipc.mpi.nr_event_readers())
+            print('Starting event loop (event reader %i/%i) ...' % (ipc.mpi.event_reader_rank()+1, ipc.mpi.nr_event_readers()))
             self.event_loop()
         elif ipc.mpi.is_master():
-            print 'Starting master loop ...'
+            print('Starting master loop ...')
             self.event_loop()            
         if 'end_of_run' in dir(Worker.conf) and not ipc.mpi.is_master():
-            print 'End of run (worker %i/%i) ...' % (ipc.mpi.worker_index()+1, ipc.mpi.nr_workers())
+            print('End of run (worker %i/%i) ...' % (ipc.mpi.worker_index()+1, ipc.mpi.nr_workers()))
             self.conf.end_of_run()
         if not ipc.mpi.is_master():
             ipc.mpi.slave_done()
@@ -155,16 +158,16 @@ class Worker(object):
                             return
             except KeyboardInterrupt:
                 try:
-                    print "Hit Ctrl+c again in the next second to quit..."
+                    print("Hit Ctrl+c again in the next second to quit...")
                     time.sleep(1)
                     self.reloadnow = True
                     signal.signal(signal.SIGINT, self.ctrlcevent)
                 except KeyboardInterrupt:
-                    print "Exiting..."
+                    print("Exiting...")
                     break
             if self.reloadnow:
                 self.reloadnow = False
-                print "Reloading configuration file."
+                print("Reloading configuration file.")
                 self.load_conf()
         try:
             Worker.conf.close()

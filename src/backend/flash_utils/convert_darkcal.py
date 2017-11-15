@@ -5,6 +5,9 @@ import sys
 import os
 import argparse
 
+# Compatibility with python 2 and 3
+from __future__ import print_function
+
 class darkcal_reader():
     def __init__(self, fname, shape_str='assem'):
         self.f = open(fname, 'rb')
@@ -80,7 +83,7 @@ if __name__ == '__main__':
     reader.f.close()
 
     with h5py.File(args.output_fname, 'w') as f:
-        print 'Writing dark to', f.filename
+        print('Writing dark to', f.filename)
         f['data/sum'] = reader.sums
         f['data/offset'] = reader.offset
         f['data/sigma'] = reader.sigma

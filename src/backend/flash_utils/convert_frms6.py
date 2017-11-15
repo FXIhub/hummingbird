@@ -5,6 +5,9 @@ import sys
 import os
 import argparse
 
+# Compatibility with python 2 and 3
+from __future__ import print_function
+
 class Frms6_file_header():
     def __init__(self, length=1024):
         self.fmt = '2H4B80s2H932s'
@@ -18,7 +21,7 @@ class Frms6_file_header():
         f.close()
         
         if self.my_length != self.length:
-            print 'Non-standard header length:', self.my_length
+            print('Non-standard header length:', self.my_length)
             self.length = self.my_length
             self.fmt = self.fmt[:-4]+str(self.length-92)+'s'
             self.parse(fname)
@@ -29,15 +32,15 @@ class Frms6_file_header():
             return 0
     
     def dump(self):
-        print 'my_length', self.my_length
-        print 'fh_length', self.fh_length
-        print 'nCCDs', self.nCCDs
-        print 'width', self.width
-        print 'max_height', self.max_height
-        print 'version', self.version
-        print 'dataSetID', self.dataSetID
-        print 'the_width', self.the_width
-        print 'the_max_height', self.the_max_height
+        print('my_length', self.my_length)
+        print('fh_length', self.fh_length)
+        print('nCCDs', self.nCCDs)
+        print('width', self.width)
+        print('max_height', self.max_height)
+        print('version', self.version)
+        print('dataSetID', self.dataSetID)
+        print('the_width', self.the_width)
+        print('the_max_height', self.the_max_height)
 
 class Frms6_frame_header():
     def __init__(self, length=64):
@@ -63,18 +66,18 @@ class Frms6_frame_header():
         return 0
     
     def dump(self):
-        print 'start',self.start
-        print 'info',self.info
-        print 'id',self.id
-        print 'height',self.height
-        print 'tv_sec',self.tv_sec
-        print 'tv_usec',self.tv_usec
-        print 'index',self.index
-        print 'temp',self.temp
-        print 'the_start',self.the_start
-        print 'the_height',self.the_height
-        print 'external_id',self.external_id
-        print 'bunch_id',self.bunch_id
+        print('start',self.start)
+        print('info',self.info)
+        print('id',self.id)
+        print('height',self.height)
+        print('tv_sec',self.tv_sec)
+        print('tv_usec',self.tv_usec)
+        print('index',self.index)
+        print('temp',self.temp)
+        print('the_start',self.the_start)
+        print('the_height',self.the_height)
+        print('external_id',self.external_id)
+        print('bunch_id',self.bunch_id)
 
 class Frms6_reader():
     def __init__(self, fname, shape_str='assem', offset=None, verbose=False):
@@ -94,7 +97,7 @@ class Frms6_reader():
         self.file_header.parse(self.fname)
         self.nx = self.file_header.the_width
         self.ny = self.file_header.the_max_height
-        #print 'nx ny =', self.nx, self.ny
+        #print('nx ny =', self.nx, self.ny)
         if offset is None:
             self.offset = self.arg_reshape(np.zeros((self.nx, self.ny)))
         else:
@@ -113,7 +116,7 @@ class Frms6_reader():
             ret = self.frame_headers[-1].parse(self.fname, curr_pos)
 
             if ret != 0:
-                print 'Frame header parsing failed:', ret
+                print('Frame header parsing failed:', ret)
                 self.frame_headers = self.frame_headers[:-1]
                 break
             
@@ -124,7 +127,7 @@ class Frms6_reader():
             curr_pos += self.file_header.fh_length + 2*self.nx*self.ny
             
             if raw_frame.size < self.nx*self.ny:
-                #print 'Frame size = %d < %d' % (raw_frame.size, self.nx*self.ny)
+                #print('Frame size = %d < %d' % (raw_frame.size, self.nx*self.ny))
                 self.frame_headers = self.frame_headers[:-1]
                 break
             self.frames.append(self.arg_reshape(raw_frame)-self.offset)
@@ -166,7 +169,7 @@ if __name__ == '__main__':
     reader = Frms6_reader(args.fname, verbose=True)
     reader.parse_frames(num_frames=args.num_frames, start_num=args.start_num)
     
-    print 'Writing to', args.output_fname
+    print('Writing to', args.output_fname)
     with h5py.File(args.output_fname, 'w') as hf:
         hf['data/data'] = np.array(reader.frames)
         hf['meta/external_id'] = np.array([h.external_id for h in reader.frame_headers])
