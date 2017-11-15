@@ -56,15 +56,18 @@ class EUxfelTranslator(object):
         # AGIPD
         self._n2c = {}
         self._mainsource = 'SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'
-        self._n2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'photonPixelDetectors'
         # Using the AGIPD metadata as our master source of metadata
-        self._n2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'eventID'
+        self._n2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = ['photonPixelDetectors', 'eventID']
+        
 
         # Calculate the inverse mapping
         self._c2n = {}
         for k, v in self._n2c.iteritems():
-            self._c2n[v] = self._c2n.get(v, [])
-            self._c2n[v].append(k)
+            if v is not list:
+                v = [v]
+            for v2 in v:
+                self._c2n[v2] = self._c2n.get(v2, [])
+                self._c2n[v2].append(k)
 
         # Define how to translate between LCLS sources and Hummingbird ones
         self._s2c = {}
@@ -101,19 +104,22 @@ class EUxfelTranslator(object):
 
     def event_keys(self, evt):
         """Returns the translated keys available"""
-        # TODO
         native_keys = evt[1].keys()
         common_keys = set()
         for k in native_keys:
+            print k
             for c in self._native_to_common(k):
                 common_keys.add(c)
-        # parameters corresponds to the EPICS values, analysis is for values added later on
-        return list(common_keys)+['parameters']+['analysis']
+        # analysis is for values added later on
+        return list(common_keys)+['analysis']
 
     def _native_to_common(self, key):
         """Translates a native key to a hummingbird one"""
-        if(key.type() in self._n2c):
-            return [self._n2c[key.type()]]
+        if(key in self._n2c):
+            val = self._n2c[key]
+            if val is not list:
+                val = [val]
+            return val
         else:
             return []
 
