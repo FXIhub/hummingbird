@@ -7,6 +7,9 @@ import numpy as np
 from backend import ureg
 from backend import add_record
 
+# Compatibility with python 2 and 3
+from __future__ import print_function
+
 def averagePulseEnergy(evt, records, outkey="averagePulseEnergy"):
     """Averages across given pulse energies and adds it to evt["analysis"][outkey].
 
@@ -51,9 +54,9 @@ def averagePhotonEnergy(evt, records, outkey="averagePhotonEnergy"):
 def printPulseEnergy(pulseEnergies):
     """Expects a dictionary of pulse energy :func:`~backend.Record` objects and prints pulse energies to screen."""
     for k,v in pulseEnergies.iteritems():
-        print "%s = %s" % (k, (v.data*v.unit))
+        print("%s = %s" % (k, (v.data*v.unit)))
 
 def printPhotonEnergy(photonEnergies):
     """Expects a dictionary of photon energy :func:`~backend.Record` objects and prints photon energies to screen."""
     for k,v in photonEnergies.iteritems():
-        print "%s = %s" % (k, v.data*v.unit)
+        print("%s = %s" % (k, v.data*v.unit))

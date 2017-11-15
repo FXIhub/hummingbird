@@ -549,7 +549,7 @@ if __name__=='__main__':
     # ? = any charactar
     # * = any string of characters -- in folder
     for fname in glob.glob('%s/r0???/amoc6914*.cxi' % sourcepath):
-        print fname
+        print(fname)
 	runname = int(fname.split('/')[7][1:])
         if runname < 140 or runname == 214 or runname ==151 or runname == 145: continue
         #if not 'r0201' in fname: continue

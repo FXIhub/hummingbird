@@ -13,6 +13,9 @@ from datetime import datetime as DT
 import pytz
 import logging
 
+# Compatibility with python 2 and 3
+from __future__ import print_function
+
 class Stack:
     def __init__(self,name="stack",maxLen=100,reducePeriod=None,outPeriod=None, outputs=None):
         self._maxLen = maxLen
@@ -108,11 +111,11 @@ class Stack:
         if self._outPeriod is not None:
             if (self._currentIndex % self._outPeriod) != self._outIndex:
                 if verbose:
-                    print "Postponing writing stack because output period is %i (%i frames till next output)" % (self._currentIndex, self._outPeriod - (self._currentIndex % self._outPeriod))
+                    print("Postponing writing stack because output period is %i (%i frames till next output)" % (self._currentIndex, self._outPeriod - (self._currentIndex % self._outPeriod)))
                 return
         if not self._reduced:
             if verbose:
-                print "Postponing writing stack to file because stack is not reduced yet. Fill status %i/%i." % ((self._currentIndex % self._maxLen) + 1, self._maxLen)
+                print("Postponing writing stack to file because stack is not reduced yet. Fill status %i/%i." % ((self._currentIndex % self._maxLen) + 1, self._maxLen))
             return
         # Timestamp for filename
         dt = evt["eventID"]["Timestamp"].data
@@ -122,7 +125,7 @@ class Stack:
         fn_link = "%s/current_%s-rk%i.h5" % (directory,self._name, ipc.mpi.rank)
         # Write to H5
         if verbose:
-            print "Writing stack to %s" % fn
+            print("Writing stack to %s" % fn)
         d = os.path.dirname(os.path.realpath(fn))
         if not os.path.isdir(d):
             os.makedirs(d)

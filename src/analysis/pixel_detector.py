@@ -9,13 +9,16 @@ from backend import add_record
 import utils.io
 import utils.array
 
+# Compatibility with python 2 and 3
+from __future__ import print_function
+
 def printStatistics(detectors):
     for k,r in detectors.iteritems():
         v = r.data
-        print "%s (%s): sum=%g mean=%g min=%g max=%g std=%g" % (k, r.unit.units,
+        print("%s (%s): sum=%g mean=%g min=%g max=%g std=%g" % (k, r.unit.units,
                                                                 sum(v), mean(v),
                                                                 min(v), max(v),
-                                                                std(v))
+                                                                std(v)))
 
 
 def pnccdGain(evt, record, gainmode):
@@ -236,7 +239,7 @@ def bin(evt, type, key, binning, mask=None):
     """
     success, spimage = utils.io.load_spimage()
     if not success:
-        print "Skipping analysis.pixel_detector.bin"
+        print("Skipping analysis.pixel_detector.bin")
         return
     image = evt[type][key].data
     binned_image, binned_mask = spimage.binImage(image, binning, msk=mask, output_binned_mask=True)
@@ -265,7 +268,7 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
     """
     success, spimage = utils.io.load_spimage()
     if not success:
-        print "Skipping analysis.pixel_detector.radial"
+        print("Skipping analysis.pixel_detector.radial")
         return
     image = evt[type][key].data
     r, img_r = spimage.radialMeanImage(image, msk=mask, cx=cx, cy=cy, output_r=True)

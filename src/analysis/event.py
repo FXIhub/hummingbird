@@ -8,6 +8,9 @@ import ipc
 import numpy as np
 from backend import EventTranslator
 
+# Compatibility with python 2 and 3
+from __future__ import print_function
+
 processingTimes = collections.deque([], 10)
 def printProcessingRate():
     """Prints processing rate to screen"""
@@ -19,17 +22,17 @@ def printProcessingRate():
     ipc.mpi.sum("processingRate", proc_rate)
     proc_rate = proc_rate[()]
     if(ipc.mpi.is_main_event_reader()):
-        print 'Processing Rate %.2f Hz' % proc_rate
+        print('Processing Rate %.2f Hz' % proc_rate)
 
 def printKeys(evt, group=None):
     """prints available keys of Hummingbird events"""
     if isinstance(evt, EventTranslator) and group is None:
-        print "The event has the following keys: ", evt.keys()
+        print("The event has the following keys: ", evt.keys())
     elif isinstance(evt, EventTranslator) and group:
-        print "The dict of %s records has the following keys: " %(group), evt[group].keys()
+        print("The dict of %s records has the following keys: " %(group), evt[group].keys())
     else:
-        print evt.keys()    
+        print(evt.keys())
 
 def printNativeKeys(evt):
     """prints available keys of Native event"""
-    print evt.native_keys()
+    print(evt.native_keys())

@@ -8,6 +8,9 @@ import h5py
 import logging
 import numpy as np
 
+# Compatibility with python 2 and 3
+from __future__ import print_function
+
 class Recorder:
     def __init__(self, outpath, events, rank, maxEvents=1000):
         self.outpath = outpath
@@ -45,15 +48,15 @@ class Recorder:
                 file = h5py.File(self.filename, 'a')
                 self.index = len(file['LCLS/fiducial'][:])
             except IOError:
-                print "Could not open file: ", self.filename
+                print("Could not open file: ", self.filename)
                 return False
         else:
             try:
                 file = h5py.File(self.filename, 'a')
             except IOError:
-                print "Could not open file: ", self.filename
+                print("Could not open file: ", self.filename)
                 return False
-            print "Opened new file: ", self.filename
+            print("Opened new file: ", self.filename)
 
             file.create_group('LCLS')
             for key,type in zip(self.perm_vars,self.perm_types):
