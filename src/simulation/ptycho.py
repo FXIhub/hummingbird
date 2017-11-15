@@ -12,6 +12,9 @@ import h5py
 import sys, os
 import utils.io
 
+# Compatibility with python 2 and 3
+from __future__ import print_function
+
 # Physical constants
 h = 6.62606957e-34 #[Js]
 c = 299792458 #[m/s]
@@ -109,13 +112,13 @@ class Simulation:
         if material == 'gold':
             success, module = utils.io.load_condor()
             if not success:
-                print "Could not lookup refractive index, using values for gold 6 keV"
+                print("Could not lookup refractive index, using values for gold at 6 keV")
                 dn = 8.45912218E-05 + 1j* 1.38081241E-05
             else:
                 m = module.utils.material.AtomDensityMaterial('custom', massdensity=19320, atomic_composition={'Au':1})
                 dn = m.get_dn(self.wavelength)
         else:
-            print "Material not defined, use Gold at 6 keV"
+            print("Material not defined, use Gold at 6 keV")
             dn = 8.45912218E-05 + 1j* 1.38081241E-05
 
         # Complex transmission function
@@ -145,7 +148,7 @@ class Simulation:
         try:
             import ptypy.utils
         except ImportError:
-            print "Siemens star cannot be loaded with the ptypy package (https://github.com/ptycho/ptypy)"
+            print("Siemens star cannot be loaded with the ptypy package (https://github.com/ptycho/ptypy)")
         sample = ptypy.utils.xradia_star((900, 900),spokes=60,minfeature=1,ringfact=1.8,rings=5)
         return sample
 
@@ -179,7 +182,7 @@ class Simulation:
             sigma = self.focus_diameter / 2.3548 # match focus diameter with FWHM of the Gaussian
             self.illumination_intensity = np.exp(-.5*((rr*self.dx)**2)/(sigma**2))
         else:
-            print "Shape of illumination has to be of type 'flat' or 'gaussian'"
+            print("Shape of illumination has to be of type 'flat' or 'gaussian'")
 
         # Rescale intensity [ph/px]
         self.illumination_intensity = self.illumination_intensity / self.illumination_intensity.sum() * (self.pulse_energy / self.photon_energy)
@@ -283,7 +286,7 @@ if __name__ == '__main__':
     posx = sim.positions_x[0]
     posy = sim.positions_y[0]
     sim.shoot(posx,posy)
-    print "Maximum signal on detector [ADUs]: ", sim.diffraction_pattern.max()
+    print("Maximum signal on detector [ADUs]: ", sim.diffraction_pattern.max())
     
     # Plotting settings
     fig_width  = 16*0.393701
