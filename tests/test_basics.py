@@ -1,7 +1,10 @@
 import time
 import os, sys
 import signal
-import subprocess32 as subprocess # backport of subprocess from python 3 to work with python 2.7
+try:
+    import subprocess32 as subprocess # backport of subprocess from python 3 to work with python 2.7
+except ImportError:
+    import subprocess
 __thisdir__ = os.path.dirname(os.path.realpath(__file__))
 
 # Helper function for stopping Hummingbird
