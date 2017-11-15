@@ -3,8 +3,9 @@ language: python
 # When using just 1 python version it needs to be in the same
 # line as "python" due to a bug in travis:
 # https://github.com/travis-ci/travis-ci/issues/3674
-python: "2.7"
-#  - "3.4"
+python:
+  - "2.7"
+  - "3.4"
 
 notifications:
   email: false
