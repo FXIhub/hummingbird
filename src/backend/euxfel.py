@@ -46,6 +46,24 @@ class EUxfelTranslator(object):
         self._data = None
         self._asked_data = False
 
+        # Define how to translate between euxfel keys and Hummingbird ones
+        # TODO: pulseEnergies, photonEnergies, train meta data, ..., ...        
+        # AGIPD
+        self._n2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'photonPixelDetectors'
+        # Using the AGIPD metadata as our master source of metadata
+        self._n2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'eventID'
+
+        # Calculate the inverse mapping
+        self._c2n = {}
+        for k, v in self._n2c.iteritems():
+            self._c2n[v] = self._c2n.get(v, [])
+            self._c2n[v].append(k)
+
+        # Define how to translate between LCLS sources and Hummingbird ones
+        self._s2c = {}
+        # AGIPD
+        self._s2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'AGIPD1'        
+
     def check_asked_data(self):
         """"Call for new data if needed."""
         if self._asked_data:
@@ -99,8 +117,6 @@ class EUxfelTranslator(object):
         values = {}
         if(key in self._c2n):
             return self.translate_core(evt, key)
-        #elif(key == 'parameters'):
-        #    return self._tr_epics()
         elif(key == 'analysis'):
             return {}
         elif(key == 'stream'):
@@ -121,6 +137,26 @@ class EUxfelTranslator(object):
             else:
                 print '%s not found in event' % (key)
 
+    def translate_core(self, evt, key):
+        """Returns a dict of Records that matchs a core Hummingbird key.
+
+        Core keys include  all except: parameters, any psana create key,
+        any native key."""
+        values = {}
+        for k in self._c2n[key]:
+            if k in evt[1]:
+                if key == 'eventID':
+                    self._tr_event_id(values, evt[1][k])
+                else if key=='photonDetectors':
+                    self._tr_photon_detector(values, evt[1][k])
+                else:
+                    print type(obj)
+                    print k
+                    raise RuntimeError('%s not yet supported' % (type(obj)))
+                
+        return values
+
+
     def event_id(self, evt):
         """Returns an id which should be unique for each
         shot and increase monotonically"""
@@ -130,3 +166,19 @@ class EUxfelTranslator(object):
     def event_id2(self, evt):
         """Returns the LCLS time, a 64-bit integer as an alterative ID"""
         # TODO. Should we exist?
+
+    def _tr_event_id(self, values, obj):
+        """Translates euxfel event ID from some source into a hummingbird one"""
+        timestamp = obj.time()[0]+obj.time()[1]*1e-9
+        time = datetime.datetime.fromtimestamp(timestamp, tz=timezone('utc'))
+        time = time.astimezone(tz=timezone('CET'))
+        rec = Record('Timestamp', time, ureg.s)
+        time = datetime.datetime.fromtimestamp(obj.time()[0])
+        rec.datetime64 = numpy.datetime64(time, 'ns')+obj.time()[1]
+        rec.fiducials = obj.fiducials()
+        rec.run = obj.run()
+        rec.ticks = obj.ticks()
+        rec.vector = obj.vector()
+        rec.timestamp = timestamp
+        rec.timestamp2 = obj.time()[0] << 32 | obj.time()[1]
+        values[rec.name] = rec
