@@ -14,10 +14,10 @@ def init(dsn):
     global client
     global thread
     global queue
-    print "Initing InfluxDB"
+    print("Initing InfluxDB")
     client = InfluxDBClient.from_dsn(dsn)
-    print dsn
-    print "Inited InfluxDB"
+    print(dsn)
+    print("Inited InfluxDB")
     queue = Queue.Queue(10000)
     thread = threading.Thread(target = influxWorker)
     thread.start()

@@ -127,14 +127,14 @@ class ZmqServer(object):
         if(msg[0] == 'reload'):
             #TODO: Find a way to replace this with a direct function call (in all workers)
             stream.socket.send_json(['reload', bytes(True)])
-            print "Answering reload command"
+            print("Answering reload command")
             self.reloadmaster = True
             
     def _ioloop(self):
         """Start the ioloop fires the callbacks when data is received
         on the control stream. Runs on a separate thread."""
         zmq.eventloop.ioloop.IOLoop.instance().start()
-        print "ioloop ended"
+        print("ioloop ended")
 
     def _forward_xsub(self, stream, msg):
         self._xpub_stream.send_multipart(msg)
