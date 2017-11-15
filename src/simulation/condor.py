@@ -10,7 +10,7 @@ class Simulation:
     def __init__(self, conf):
         success, module = utils.io.load_condor()
         if not success:
-            print "Could not run simulation"
+            print("Could not run simulation")
             return
         self.e = module.experiment.experiment_from_configfile(conf)
         self._nx = self.e.detector.get_mask().shape[1]
