@@ -222,7 +222,6 @@ class ImageView(QtGui.QWidget):
         self.setParent(None)
         
     def keyPressEvent(self, ev):
-        #print ev.key()
         if ev.key() == QtCore.Qt.Key_Home:
             self.setCurrentIndex(0)
             ev.accept()

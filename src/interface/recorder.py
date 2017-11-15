@@ -7,6 +7,9 @@ import h5py
 import sys
 import re
 
+# Compatibility with python 2 and 3
+from __future__ import print_function
+
 class H5Recorder:
     """Recording event variables to an HDF5 file.
 
@@ -30,27 +33,27 @@ class H5Recorder:
     def openfile(self):
         """Open new file using a unique filename."""
         if self.outpath is None:
-            print "No outputpath specified"
+            print("No outputpath specified")
             return False
         filename = self.outpath + '/history_' + self._timestamp() + '.h5'
         try:
             self._file = h5py.File(filename, 'a')
         except IOError:
-            print "Could not open file: ", filename
+            print("Could not open file: ", filename)
             return False
-        print "Opened new file: ", filename
+        print("Opened new file: ", filename)
         return True
 
     def closefile(self):
         """Close existing file."""
-        print "Closed file: ", self._file.filename
+        print("Closed file: ", self._file.filename)
         time.sleep(1)
         self._file.close()
 
     def append(self, title, data, data_x):
         """Append a tuple of time and event variable to dataset with the name of the variable."""
         key = title.split('(')[-1].split(')')[0].split('/')[-1]
-        #print key, re.sub(r'[^\w]', ' ', key)
+        #print(key, re.sub(r'[^\w]', ' ', key))
         if key not in self._file.keys():
             self._file.create_dataset(key, (2, 1000), maxshape=(2, None), dtype=type(data_x))
             self._indices[key] = 0

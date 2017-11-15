@@ -136,14 +136,14 @@ class LinePlotSettings(QtGui.QDialog, Ui_linePlotSettings):
             return
         if self.bg_filename_loaded == self.bg_filename and self.bg_angle_loaded == self.bg_angle.text():
             return
-        print "Reading background image from file (%s) ..." % self.bg_filename
+        print("Reading background image from file (%s) ..." % self.bg_filename)
         self.bg = numpy.load(self.bg_filename)
         self.bg = numpy.array(self.bg, dtype=numpy.float64)
-        print "... done"
+        print("... done")
         a = float(self.bg_angle.text())
         if a != 0.:
             # Interpolate image with on roateted grid
-            print "Interpolating rotated background image ..."
+            print("Interpolating rotated background image ...")
             from scipy.interpolate import griddata
             X,Y = numpy.meshgrid(numpy.arange(self.bg.shape[1]), numpy.arange(self.bg.shape[0]))
             X = X - (X.shape[1]-1)/2.
@@ -152,7 +152,7 @@ class LinePlotSettings(QtGui.QDialog, Ui_linePlotSettings):
             X2 = X*numpy.cos(a) - Y*numpy.sin(a)
             Y2 = X*numpy.sin(a) + Y*numpy.cos(a)
             self.bg = griddata(points, self.bg.flat, (X2, Y2), method='nearest')
-            print "... done"
+            print("... done")
         self.bg_filename_loaded = self.bg_filename
         self.bg_angle_loaded = self.bg_angle.text()
             
