@@ -2,6 +2,7 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from __future__ import print_function # Compatibility with python 2 and 3
 import scipy.ndimage as ndi
 import PIL.Image as Image
 import matplotlib.pyplot as plt
@@ -11,9 +12,6 @@ from scipy.ndimage import zoom
 import h5py
 import sys, os
 import utils.io
-
-# Compatibility with python 2 and 3
-from __future__ import print_function
 
 # Physical constants
 h = 6.62606957e-34 #[Js]

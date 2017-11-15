@@ -2,13 +2,11 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from __future__ import print_function # Compatibility with python 2 and 3
 import time
 import h5py
 import sys
 import re
-
-# Compatibility with python 2 and 3
-from __future__ import print_function
 
 class H5Recorder:
     """Recording event variables to an HDF5 file.

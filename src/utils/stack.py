@@ -2,6 +2,7 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import collections
 import ipc
@@ -12,9 +13,6 @@ import time, datetime
 from datetime import datetime as DT
 import pytz
 import logging
-
-# Compatibility with python 2 and 3
-from __future__ import print_function
 
 class Stack:
     def __init__(self,name="stack",maxLen=100,reducePeriod=None,outPeriod=None, outputs=None):

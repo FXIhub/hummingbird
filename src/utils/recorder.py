@@ -2,14 +2,12 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import time, datetime
 import h5py
 import logging
 import numpy as np
-
-# Compatibility with python 2 and 3
-from __future__ import print_function
 
 class Recorder:
     def __init__(self, outpath, events, rank, maxEvents=1000):

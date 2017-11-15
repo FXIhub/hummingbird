@@ -1,12 +1,10 @@
+from __future__ import print_function # Compatibility with python 2 and 3
 import struct
 import numpy as np
 import h5py
 import sys
 import os
 import argparse
-
-# Compatibility with python 2 and 3
-from __future__ import print_function
 
 class Frms6_file_header():
     def __init__(self, length=1024):

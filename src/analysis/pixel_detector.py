@@ -2,15 +2,13 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from __future__ import print_function # Compatibility with python 2 and 3
 from numpy import sum, mean, min, max, std
 import numpy as np
 from backend import ureg
 from backend import add_record
 import utils.io
 import utils.array
-
-# Compatibility with python 2 and 3
-from __future__ import print_function
 
 def printStatistics(detectors):
     for k,r in detectors.iteritems():

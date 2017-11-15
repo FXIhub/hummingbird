@@ -1,12 +1,10 @@
+from __future__ import print_function # Compatibility with python 2 and 3
 import struct
 import numpy as np
 import h5py
 import sys
 import os
 import argparse
-
-# Compatibility with python 2 and 3
-from __future__ import print_function
 
 class darkcal_reader():
     def __init__(self, fname, shape_str='assem'):

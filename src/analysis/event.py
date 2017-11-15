@@ -2,14 +2,12 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from __future__ import print_function # Compatibility with python 2 and 3
 import collections
 import datetime
 import ipc
 import numpy as np
 from backend import EventTranslator
-
-# Compatibility with python 2 and 3
-from __future__ import print_function
 
 processingTimes = collections.deque([], 10)
 def printProcessingRate():

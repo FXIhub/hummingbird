@@ -1,18 +1,15 @@
-
 # --------------------------------------------------------------------------------------
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Coordinates data reading, translation and analysis."""
+from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import logging
 import imp
 import ipc
 import time
 import signal
-
-# Compatibility with python 2 and 3
-from __future__ import print_function
 
 class Worker(object):
     """Coordinates data reading, translation and analysis.

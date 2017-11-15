@@ -3,6 +3,7 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Creates Hummingbird events for testing purposes"""
+from __future__ import print_function # Compatibility with python 2 and 3
 import time
 import random
 from backend.event_translator import EventTranslator
@@ -19,9 +20,6 @@ import sys
 import os
 import h5py
 import re
-
-# Compatibility with python 2 and 3
-from __future__ import print_function
 
 class FLASHTranslator(object):
     """Creates Hummingbird events for testing purposes"""
