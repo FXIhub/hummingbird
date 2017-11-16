@@ -75,7 +75,7 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
             ipc.mpi.send_reduce(title, 'new_data', data_y, event_id, **kwds)
         else:
             m = hashlib.md5()
-            m.update(bytes(title))
+            m.update(title.encode('UTF-8'))
             if m.digest() in ipc.mpi.subscribed:
                 ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y,
                                      event_id, kwds])

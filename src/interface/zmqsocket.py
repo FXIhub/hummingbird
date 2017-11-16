@@ -47,14 +47,14 @@ class ZmqSocket(QtCore.QObject):
             return
         # scramble the filter to avoid spurious matches (like CCD matching CCD1)        
         m = hashlib.md5()
-        m.update(title)
+        m.update(title.encode('UTF-8'))
         self._socket.setsockopt(SUBSCRIBE, m.digest())
         self.filters.append(title)
 
     def unsubscribe(self, title):
         """Unsubscribe to a broadcast with the given title"""
         m = hashlib.md5()
-        m.update(title)
+        m.update(title.encode('UTF-8'))
         self._socket.setsockopt(UNSUBSCRIBE, m.digest())
         self.filters.remove(title)
 

@@ -105,7 +105,7 @@ class ZmqServer(object):
         # keys, when one title is a substring or another title
         # (e.g. "CCD" and "CCD1")
         m = hashlib.md5()
-        m.update(bytes(title))
+        m.update(title.encode('UTF-8'))
         self._data_socket.send(m.digest(), zmq.SNDMORE)
         if(len(array_list)):
             self._data_socket.send_json(data, zmq.SNDMORE)
