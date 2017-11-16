@@ -57,7 +57,7 @@ matrix:
       script:
         # For some reason I cannot set the path to include the directory where
         # coverage is. I start getting errors about missing packages.
-        - docker run -v ${HOME}/build/FXIhub/hummingbird:/opt/hummingbird -v ${HOME}/data:/opt/data filipemaia/hummingbird-testing /bin/sh -c "source /reg/g/psdm/etc/ana_env.sh && mkdir -p /reg/d/psdm/AMO/amo15010 && ln -s /opt/data /reg/d/psdm/AMO/amo15010/xtc && pip install pint && cd /opt/hummingbird && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/coverage run --source src -m py.test  -v --color=yes --showlocals --durations=10"
+        - docker run -v ${HOME}/build/FXIhub/hummingbird:/opt/hummingbird -v ${HOME}/data:/opt/data filipemaia/hummingbird-testing /bin/sh -c "source /reg/g/psdm/etc/ana_env.sh && mkdir -p /reg/d/psdm/AMO/amo15010 && ln -s /opt/data /reg/d/psdm/AMO/amo15010/xtc && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/pip install pint && cd /opt/hummingbird && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/coverage run --source src -m py.test  -v --color=yes --showlocals --durations=10"
             
 virtualenv:
     system_site_packages: true
