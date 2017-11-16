@@ -6,18 +6,16 @@ __thisdir__ = os.path.dirname(os.path.realpath(__file__))
 def test_import_numpy():
     try:
         import numpy as np
-    except ImportError:
-        warnings.warn(UserWarning("Numpy could not be imported"))
-        assert(1 == 1)
+    except ImportError as e:
+        assert(1 == 0), "Numpy could not be imported:\n %s" %e
     sys.path.pop(0)
 
 # Testing the import of the scipy package
 def test_import_scipy():
     try:
         import scipy as sp
-    except ImportError:
-        warnings.warn(UserWarning("Scipy could not be imported"))
-        assert(1 == 1)
+    except ImportError as e:
+        assert(1 == 0),  "Scipy could not be imported:\n %s" %e
     sys.path.pop(0)
     
 # Testing for broken MPI installation
