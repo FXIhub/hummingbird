@@ -44,7 +44,7 @@ matrix:
           - python-numpy
           - python-scipy
           - python-h5py
-          - python-qt4
+          - python-qt5
           
     # with MPI, dummy backend
     - python: "2.7"
