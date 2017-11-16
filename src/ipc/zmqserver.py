@@ -4,6 +4,7 @@
 # -------------------------------------------------------------------------
 """Implements the server that broadcasts the results from the backend.
 Analysis users do not need to deal with it."""
+from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import zmq
 import zmq.eventloop
 import zmq.eventloop.zmqstream
@@ -30,7 +31,7 @@ class ZmqServer(object):
             return
 
         self._state = backend.worker.Worker.state
-        self._zmq_key = bytes('hummingbird')
+        #self._zmq_key = bytes('hummingbird')
         self._context = zmq.Context()
         self._ctrl_socket = self._context.socket(zmq.REP)
         self._ctrl_port = self._state.get('zmq_ctrl_port', port)

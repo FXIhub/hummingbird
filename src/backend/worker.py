@@ -3,7 +3,7 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Coordinates data reading, translation and analysis."""
-from __future__ import print_function # Compatibility with python 2 and 3
+from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import os
 import logging
 import imp
