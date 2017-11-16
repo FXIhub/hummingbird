@@ -37,13 +37,11 @@ class Worker(object):
         if not os.path.isfile(config_file):
             raise IOError('Could not find backend configuration file %s' % (config_file))        
         Worker._config_file = config_file
-        # Worker.backend_conf = imp.load_source('backend_conf', config_file)
         signal.signal(signal.SIGUSR1, self.raise_interruption)
         self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
         self.translator = None
         self.load_conf()
         Worker.state['_config_file'] = config_file
-        #self.state['_config_dir'] = os.path.dirname(config_file)
 
         if 'reduce_nr_event_readers' in Worker.conf.state:
             rmin = Worker.conf.state['reduce_nr_event_readers']
