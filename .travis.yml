@@ -70,6 +70,7 @@ before_install:
   - pip install tornado
   - pip install pytz
   - pip install pyqtgraph
+  - pip install pint
   - cd $HOME
   - pip install h5writer
   

@@ -20,6 +20,7 @@ Requirements
 * `mpi4py <http://pythonhosted.org/mpi4py/>`_
 * `h5py <http://h5py.org>`_
 * `h5writer <https://pypi.python.org/pypi/h5writer>`_
+* `pint <http://pint.readthedocs.io/en/latest/>`_
 
 Requirements for testing
 ------------------------
