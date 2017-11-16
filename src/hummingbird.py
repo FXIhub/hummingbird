@@ -20,13 +20,8 @@ def main():
 
     if(len(sys.argv) == 1):
         argparser.print_help()
-
-    if "-b" in sys.argv and (sys.argv.index("-b")+1 < len(sys.argv)):
-        config_file = sys.argv[sys.argv.index("-b")+1]
-        imp.load_source('__config_file', config_file)
         
     args = argparser.parse_args()
-    
     level = logging.WARNING
     if args.verbose:
         level = logging.INFO
