@@ -43,6 +43,7 @@ def averagePhotonEnergy(evt, records, outkey="averagePhotonEnergy"):
     """
     photonEnergy = []
     for pE in records.values():
+        print pE.unit, ureg.eV
         if (pE.unit == ureg.eV):
             photonEnergy.append(pE.data)
     if photonEnergy:

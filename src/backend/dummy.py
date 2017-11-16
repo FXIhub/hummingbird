@@ -85,8 +85,8 @@ class DummyTranslator(object):
             if self.state['Dummy']['Data Sources'][ds]['type'] == key:
                 # If unit is a string translate into PINT quantity
                 u = self.state['Dummy']['Data Sources'][ds]['unit']
-                if not isinstance(self.state['Dummy']['Data Sources'][ds]['unit'],ureg.Quantity):
-                    u = ureg.parse_expression(u)
+                if not isinstance(self.state['Dummy']['Data Sources'][ds]['unit'],ureg.Unit):
+                    u = ureg.parse_units(u)
                 add_record(values, key, ds, evt[ds], u)
         if(values == {} and not key == 'analysis'):
             raise RuntimeError('%s not found in event' % (key))
