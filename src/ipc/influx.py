@@ -1,9 +1,18 @@
+# --------------------------------------------------------------------------------------
+# Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
+# Hummingbird is distributed under the terms of the Simplified BSD License.
+# -------------------------------------------------------------------------
+from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import datetime
-import Queue
 import threading
 import time
 import traceback
 from pytz import timezone
+
+try:
+    import queue
+except ImportError:
+    import Queue as queue
 
 client = None
 queue = None
@@ -14,11 +23,11 @@ def init(dsn):
     global client
     global thread
     global queue
-    print "Initing InfluxDB"
+    print("Initing InfluxDB")
     client = InfluxDBClient.from_dsn(dsn)
-    print dsn
-    print "Inited InfluxDB"
-    queue = Queue.Queue(10000)
+    print(dsn)
+    print("Inited InfluxDB")
+    queue = queue.Queue(10000)
     thread = threading.Thread(target = influxWorker)
     thread.start()
 

@@ -84,8 +84,8 @@ class RunningHistogram:
     def next(self, new_value, length=None, window=None, bins=None, hmin=None, hmax=None):
         reset = False
         for v in ["length", "window", "bins", "hmin", "hmax"]:
-            exec "if self.%s != %s and %s is not None: reset = True" % (v,v,v)
-            exec "if self.%s != %s and %s is not None: self.%s = %s" % (v,v,v,v,v)
+            exec("if self.%s != %s and %s is not None: reset = True" % (v,v,v))
+            exec("if self.%s != %s and %s is not None: self.%s = %s" % (v,v,v,v,v))
         if reset:
             self.clear()
         # Update buffer

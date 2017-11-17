@@ -3,6 +3,7 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Translates between LCLS events and Hummingbird ones"""
+from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import logging
 from backend.event_translator import EventTranslator
@@ -15,7 +16,6 @@ from . import ureg
 from backend import Worker
 import ipc
 from hummingbird import parse_cmdline_args
-
 
 _argparser = None
 def add_cmdline_args():
@@ -202,7 +202,7 @@ class LCLSTranslator(object):
 
         self.init_detectors(state)
         
-        #print "Detectors:" , psana.DetNames()
+        #print("Detectors:" , psana.DetNames())
 
     def init_detectors(self, state):
         # New psana call pattern
@@ -251,7 +251,7 @@ class LCLSTranslator(object):
                         raise RuntimeError('data_method = %s not supported' % meth)
                     self._detectors[detid]['data_method'] = f
                     self._c2id_detectors[det_dict['type']] = detid
-                    print "Set data method for detector id %s to %s." % (det_dict['id'], meth)
+                    print("Set data method for detector id %s to %s." % (det_dict['id'], meth))
                 elif detid in ACQ_IDS:
                     self._detectors[detid] = {}
                     self._detectors[detid]['id']  = det_dict['id']
@@ -281,7 +281,7 @@ class LCLSTranslator(object):
                 self.i += 1
                 evt = self.run.event(time)
                 if evt is None:
-                    print "Unable to find event listed in index file"                    
+                    print("Unable to find event listed in index file")
             # We got to the end without a valid event, time to call it a day
             if evt is None:
                 #if 'end_of_run' in dir(Worker.conf):
@@ -352,7 +352,7 @@ class LCLSTranslator(object):
             if(found):
                 return values
             else:
-                print '%s not found in event' % (key)
+                print('%s not found in event' % (key))
 
     def translate_object(self, evt, key):
         values = {}
@@ -374,7 +374,7 @@ class LCLSTranslator(object):
             # waveforms are in Volts, times are in Seconds
             obj = det['obj']
             waveforms = obj.waveform(evt)
-            #print "waveforms", waveforms
+            #print("waveforms", waveforms)
             #times = obj.wftime(evt)
             for i, wf in enumerate(waveforms):
                 add_record(values, det['type'], det['keys'][i], wf, ureg.V)
@@ -420,8 +420,8 @@ class LCLSTranslator(object):
                      isinstance(obj, psana.EvrData.DataV4)):
                     self._tr_event_codes(values, obj)
                 else:
-                    print type(obj)
-                    print k
+                    print(type(obj))
+                    print(k)
                     raise RuntimeError('%s not yet supported' % (type(obj)))
                 
         return values
@@ -470,7 +470,7 @@ class LCLSTranslator(object):
             add_record(values, 'photonEnergies', 'posY', ebeam_pos_y)
             add_record(values, 'photonEnergies', 'charge', ebeam_charge)
         except AttributeError:
-            print "Couldn't translate electron beam properties from BldDataEBeam"
+            print("Couldn't translate electron beam properties from BldDataEBeam")
 
     def _tr_bld_data_fee_gas_det_energy(self, values, obj):
         """Translates gas monitor detector to hummingbird pulse energy"""
@@ -496,10 +496,10 @@ class LCLSTranslator(object):
         """Translates Camera frame to hummingbird numpy array"""
         #if obj.depth == 16 or obj.depth() == 12:
         #    data = obj.data16()
-        #    print data.shape
+        #    print(data.shape)
         #else:
         #    data = obj.data8()
-        #    print data.shape
+        #    print(data.shape)
         data = obj.data16()
 
         # off Axis cam at CXI

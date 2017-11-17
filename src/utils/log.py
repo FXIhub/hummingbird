@@ -20,7 +20,7 @@ def log(logger, message, lvl, exception=None, rollback=1):
                 "DEBUG": logger.debug,
                 "INFO": logger.info}
     if lvl not in logcalls:
-        print "%s is an invalid logger level." % lvl
+        print("%s is an invalid logger level." % lvl)
         sys.exit(1)
     logcall = logcalls[lvl]
     # This should maybe go into a handler

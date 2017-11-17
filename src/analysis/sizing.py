@@ -2,6 +2,7 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from __future__ import print_function # Compatibility with python 2 and 3
 from backend import add_record
 import ipc
 import utils.io
@@ -33,7 +34,7 @@ def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5
     """
     success, spimage = utils.io.load_spimage()
     if not success:
-        print "Skipping analysis.sizing.findCenter"
+        print("Skipping analysis.sizing.findCenter")
         return
     img  = evt[type][key].data
     if mask is None:
@@ -85,7 +86,7 @@ def fitSphere(evt, type, key, mask=None, x0=0, y0=0, d0=100, i0=1.,
     """
     success, spimage = utils.io.load_spimage()
     if not success:
-        print "Skipping analysis.sizing.fitSphere"
+        print("Skipping analysis.sizing.fitSphere")
         return
     
     img = evt[type][key].data
@@ -169,7 +170,7 @@ def sphereModel(evt, type, key_centerx, key_centery, key_diameter, key_intensity
     """
     success, spimage = utils.io.load_spimage()
     if not success:
-        print "Skipping analysis.sizing.sphereModel"
+        print("Skipping analysis.sizing.sphereModel")
         return
     
     centerx    = evt[type][key_centerx].data
@@ -229,7 +230,7 @@ def fitSphereRadial(evt, type, radial_distance_key, radial_average_key, mask_r=N
     """
     success, spimage = utils.io.load_spimage()
     if not success:
-        print "Skipping analysis.sizing.fitSphereRadial"
+        print("Skipping analysis.sizing.fitSphereRadial")
         return
     
     r     = evt[type][radial_distance_key].data

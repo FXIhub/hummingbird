@@ -2,6 +2,7 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import time, datetime
 import h5py
@@ -45,15 +46,15 @@ class Recorder:
                 file = h5py.File(self.filename, 'a')
                 self.index = len(file['LCLS/fiducial'][:])
             except IOError:
-                print "Could not open file: ", self.filename
+                print("Could not open file: ", self.filename)
                 return False
         else:
             try:
                 file = h5py.File(self.filename, 'a')
             except IOError:
-                print "Could not open file: ", self.filename
+                print("Could not open file: ", self.filename)
                 return False
-            print "Opened new file: ", self.filename
+            print("Opened new file: ", self.filename)
 
             file.create_group('LCLS')
             for key,type in zip(self.perm_vars,self.perm_types):

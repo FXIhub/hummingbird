@@ -2,6 +2,7 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from __future__ import print_function # Compatibility with python 2 and 3
 import ipc
 import numpy as np
 from backend import ureg
@@ -51,9 +52,9 @@ def averagePhotonEnergy(evt, records, outkey="averagePhotonEnergy"):
 def printPulseEnergy(pulseEnergies):
     """Expects a dictionary of pulse energy :func:`~backend.Record` objects and prints pulse energies to screen."""
     for k,v in pulseEnergies.iteritems():
-        print "%s = %s" % (k, (v.data*v.unit))
+        print("%s = %s" % (k, (v.data*v.unit)))
 
 def printPhotonEnergy(photonEnergies):
     """Expects a dictionary of photon energy :func:`~backend.Record` objects and prints photon energies to screen."""
     for k,v in photonEnergies.iteritems():
-        print "%s = %s" % (k, v.data*v.unit)
+        print("%s = %s" % (k, v.data*v.unit))

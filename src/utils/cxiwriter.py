@@ -1,11 +1,11 @@
 try:
     import h5writer
 except ImportError:
-    print 100*"*"
-    print "ERROR: For using the utils.cxiwriter.CXIWriter class please install the package \'h5writer\'."
-    print "\t $ pip install h5writer"
-    print "\t (Github repository: https://github.com/mhantke/h5writer)"
-    print 100*"*"
+    print(100*"*")
+    print("ERROR: For using the utils.cxiwriter.CXIWriter class please install the package \'h5writer\'.")
+    print("\t $ pip install h5writer")
+    print("\t (Github repository: https://github.com/mhantke/h5writer)")
+    print(100*"*")
     exit(1)
     
 import ipc.mpi

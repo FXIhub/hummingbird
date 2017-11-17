@@ -58,27 +58,27 @@ def myconv2(A, B, zeropadding = False):
     return output
 
 def generate_masks(pattern,scattMaskRadius=50,scattMaskCenterX=523, scattMaskCenterY=523, background=30, slit=17):
-    print 'getting shape'
+    print('getting shape')
     [dimy,dimx] = pattern.shape
-    print 'mask bad areas'
+    print('mask bad areas')
     mask = euclid(dimx, dimx, scattMaskCenterX, scattMaskCenterY, scattMaskRadius)
     mask[518:518+slit,:] = 0
     mask[370:480,520:650] = 0
     mask[:370,520:580] = 0
     mask[590:600,505:515] = 0
-    print 'doint some flipping...'
+    print('doint some flipping...')
     mask = fliplr(rot90(mask,3))
 #    H = numpy.array([map(float,line.strip('\n').split(',')) for line in open('/Users/Goldmund/Documents/MATLAB/H.txt').readlines()])
-    print 'generate smear object'
+    print('generate smear object')
     H = zeropad(strel(9, shape = 'disk'), mask.shape[0], mask.shape[1])
-    print 'broaden mask by blurring it'
+    print('broaden mask by blurring it')
     blurred = numpy.abs(myconv2(mask,H))
     newMask = 1-(blurred<0.99)
     H2 = H
-    print 'blurring new mask'
+    print('blurring new mask')
     newMask = numpy.abs(myconv2(newMask.astype('double'),H2))
     mask *= newMask
-    print 'creating gaussian and center mask'
+    print('creating gaussian and center mask')
     gMask = gaussian_mask(dimx,dimx,400,700,300)
     centerMask = euclid(dimx,dimx,numpy.round(dimx/2),numpy.round(dimx/2),150)
     return mask, gMask, centerMask

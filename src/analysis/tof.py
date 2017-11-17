@@ -64,7 +64,6 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
 
     if photon_peak_position is None:
         if all_peak_x.size >= 1:
-            #print all_peak_x
             photon_peak_start = all_peak_x[0]
         elif all_peak_x.size == 1:
             photon_peak_end=photon_peak_start+1
@@ -95,7 +94,6 @@ def tofPreproc(evt, type, key, baseline_region_guess, number_of_std=5, photon_pe
                 Hpeak_end=len(corrected_tof)
         Hpeak = np.argmax(corrected_tof[:Hpeak_end])
         new_x = (np.arange(len(corrected_tof)) / float(Hpeak))**2.
-        #print new_x
         add_record(evt['analysis'], 'analysis', 'ToF - M/Q', new_x)
         
     else:

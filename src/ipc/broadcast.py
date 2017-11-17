@@ -3,6 +3,7 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Broadcasts the analysed data to be displayed in the interface."""
+from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import numpy
 import ipc
 import logging
@@ -65,7 +66,6 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
         else:
             send_probability = 1
         sent_time[title] = cur_time
-        #print 'send_probability', send_probability
         if numpy.random.random() > send_probability:
             # do not send the data
             return
@@ -75,7 +75,7 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
             ipc.mpi.send_reduce(title, 'new_data', data_y, event_id, **kwds)
         else:
             m = hashlib.md5()
-            m.update(bytes(title))
+            m.update(title.encode('UTF-8'))
             if m.digest() in ipc.mpi.subscribed:
                 ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y,
                                      event_id, kwds])

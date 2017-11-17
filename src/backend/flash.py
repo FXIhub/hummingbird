@@ -3,6 +3,7 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Creates Hummingbird events for testing purposes"""
+from __future__ import print_function # Compatibility with python 2 and 3
 import time
 import random
 from backend.event_translator import EventTranslator
@@ -51,9 +52,9 @@ class FLASHTranslator(object):
         else:
             self._online_start_from_run = False
         if self.do_offline and ipc.mpi.slave_rank() == 0:
-            print 'Running offline i.e. on all files in glob'
+            print('Running offline i.e. on all files in glob')
         if not self.do_offline and self._online_start_from_run:
-            print 'Running online and starting with all files from run', self._online_start_from_run
+            print('Running online and starting with all files from run', self._online_start_from_run)
 
     def next_event(self):
         """Generates and returns the next event"""
@@ -93,9 +94,9 @@ class FLASHTranslator(object):
             while True:
                 while not self.new_file_check(force=True):
                     time.sleep(.1)
-                    #print 'waiting for new file...'
+                    #print('waiting for new file...')
                     if self.do_offline:
-                        print 'Rank %d is closing' % ipc.mpi.rank
+                        print('Rank %d is closing' % ipc.mpi.rank)
                         return None
                 self.reader.parse_frames(start_num=ipc.mpi.slave_rank()+self.num*(ipc.mpi.size-1), num_frames=1)
                 if len(self.reader.frames) > 0:
@@ -203,14 +204,14 @@ class FLASHTranslator(object):
                 self.fnum = 0
                 self.flist = flist
                 if ipc.mpi.is_main_event_reader():
-                    print 'Found %d files'% len(flist)
+                    print('Found %d files'% len(flist))
                 if len(flist) == 0:
                     return False
             else:
                 if force and ((self.fnum+1) < len(flist)):
                     self.fnum += 1
                 if self.fnum == len(flist):
-                    print "No more files to process", force, self.fnum
+                    print("No more files to process", force, self.fnum)
                     return False
             latest_fname = flist[self.fnum]
             file_size = os.path.getsize(latest_fname)
@@ -219,7 +220,7 @@ class FLASHTranslator(object):
             latest_fname = sorted(flist, key=os.path.getmtime)[-2]
             file_size = os.path.getsize(latest_fname) 
             #if ipc.mpi.slave_rank() == 0:
-            #    print 'Glob in rank %d: latest: %s/%d' % (ipc.mpi.slave_rank(), latest_fname, file_size)
+            #    print('Glob in rank %d: latest: %s/%d' % (ipc.mpi.slave_rank(), latest_fname, file_size))
                 
         
         if latest_fname != self.current_fname:
@@ -227,7 +228,7 @@ class FLASHTranslator(object):
             if file_size < 1024:
                 return False
             if ipc.mpi.slave_rank() == 0:
-                print 'Rank %d found new file' % (ipc.mpi.slave_rank()), latest_fname, 'size =', self.current_size
+                print('Rank %d found new file' % (ipc.mpi.slave_rank()), latest_fname, 'size =', self.current_size)
             self.get_dark()
             
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)
@@ -238,7 +239,7 @@ class FLASHTranslator(object):
         elif file_size != self.current_size:
             # Check if the same file has been updated since the last check
             if ipc.mpi.slave_rank() == 0:
-                print 'File has changed with new size =', file_size
+                print('File has changed with new size =', file_size)
             self.current_size = file_size
             return True
         else:
@@ -253,7 +254,7 @@ class FLASHTranslator(object):
         latest_fname = max(flist, key=os.path.getmtime)
         if latest_fname != self.current_dark and os.path.getsize(latest_fname) > 1024**2:
             if ipc.mpi.slave_rank() == 0:
-                print 'Found new dark file', latest_fname
+                print('Found new dark file', latest_fname)
             self.current_dark = latest_fname
             with h5py.File(latest_fname, 'r') as f:
                 self.offset = f['data/offset'][:]
@@ -281,7 +282,7 @@ class FLASHTranslator(object):
                 self.gmds = numpy.array([float(l[3]) for l in self.daq_lines])
             except ValueError:
                 self.gmds = None
-            #print 'DAQ file:', filename, 'max id = %d, min id = %d' % (self.bunch_ids.max(), self.bunch_ids.min())
+            #print('DAQ file:', filename, 'max id = %d, min id = %d' % (self.bunch_ids.max(), self.bunch_ids.min()))
         locations = numpy.where(self.bunch_ids == self.reader.frame_headers[-1].external_id)[0]
         if len(locations) < 1:
             #return self.reader.frame_headers[-1].tv_sec+self.time_offset, None
