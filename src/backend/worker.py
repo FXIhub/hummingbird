@@ -77,8 +77,9 @@ class Worker(object):
         """Load or reload the configuration file."""
         try:
             Worker.conf = imp.load_source('backend_conf', self._config_file)
-        except:
-            print("Error reloading conf")
+            print(Worker.conf.state)
+        except Exception as e:
+            print("Error reloading conf: %s" %e)
             return
         if self.translator is not None:
             # Not all translators have the init_detectors 
