@@ -12,7 +12,7 @@ class DAQReader(object):
 
     def get_tof(self, event_id):
         try:
-            #print event_id
+            #print(event_id)
             tof = self._daq.valuesOfInterval("/Experiment/BL1/ADQ412 GHz ADC/CH00/TD", (event_id, event_id+1))
             return tof[0, :]
         except camp.pah.h5filedataaccess.NoDaqDataException:
@@ -24,7 +24,7 @@ if __name__ == "__main__":
     for event_id in range(start_id, start_id+100):
         tof_trace = reader.get_tof(event_id)
         if tof_trace is not None:
-            print tof_trace
-            print tof_trace.shape
+            print(tof_trace)
+            print(tof_trace.shape)
         else:
-            print "No tof data"
+            print("No tof data")

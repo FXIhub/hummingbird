@@ -3,6 +3,7 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Allows the backend and analysis to run in parallel using MPI."""
+from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import ipc
 import numpy
 import numbers
@@ -261,7 +262,7 @@ def send_reduce(title, cmd, data_y, data_x, **kwds):
     # Otherwise the main_slave can block the master
     # while other slaves are sending data
     # DO NOT USE ME
-    print "DO NOT USE send_reduce"
+    print("DO NOT USE send_reduce")
     slaves_comm.Barrier()
     if(is_main_slave()):
         # Alert master for the reduction

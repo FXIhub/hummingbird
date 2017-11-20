@@ -1,7 +1,10 @@
 import time
 import os, sys
 import signal
-import subprocess32 as subprocess # backport of subprocess from python 3 to work with python 2.7
+try:
+    import subprocess32 as subprocess # backport of subprocess from python 3 to work with python 2.7
+except ImportError:
+    import subprocess
 __thisdir__ = os.path.dirname(os.path.realpath(__file__))
 
 # Helper function for stopping Hummingbird
@@ -24,7 +27,7 @@ def start_hummingbird(conf=None, options=None, cmd=None):
         cmd += conf
     if options is not None:
         cmd += options
-    print "Running: ", cmd
+    print("Running: ", cmd)
     return subprocess.Popen(cmd.split(), shell=False, stdin=subprocess.PIPE, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
 
 # Template for testing Hummingbird execution
@@ -41,11 +44,11 @@ def run_hummingbird(conf=None,cmd=None):
             has_error = ('error' in error or 'Error' in error)
             if has_error:
                 ret = 1
-                print error.strip()
+                print(error.strip())
     except OSError as e:
-        print e.errno, e.strerror, e.filename
+        print(e.errno, e.strerror, e.filename)
     except:
-        print sys.exc_info()[0]
+        print(sys.exc_info()[0])
     assert (ret == 0), "Hummingbird %s did not finish successfully!" % (conf)
 
 # Testing default execution of the backend

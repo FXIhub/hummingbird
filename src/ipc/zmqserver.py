@@ -4,6 +4,7 @@
 # -------------------------------------------------------------------------
 """Implements the server that broadcasts the results from the backend.
 Analysis users do not need to deal with it."""
+from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import zmq
 import zmq.eventloop
 import zmq.eventloop.zmqstream
@@ -30,7 +31,7 @@ class ZmqServer(object):
             return
 
         self._state = backend.worker.Worker.state
-        self._zmq_key = bytes('hummingbird')
+        #self._zmq_key = bytes('hummingbird')
         self._context = zmq.Context()
         self._ctrl_socket = self._context.socket(zmq.REP)
         self._ctrl_port = self._state.get('zmq_ctrl_port', port)
@@ -104,7 +105,7 @@ class ZmqServer(object):
         # keys, when one title is a substring or another title
         # (e.g. "CCD" and "CCD1")
         m = hashlib.md5()
-        m.update(bytes(title))
+        m.update(title.encode('UTF-8'))
         self._data_socket.send(m.digest(), zmq.SNDMORE)
         if(len(array_list)):
             self._data_socket.send_json(data, zmq.SNDMORE)
@@ -127,14 +128,14 @@ class ZmqServer(object):
         if(msg[0] == 'reload'):
             #TODO: Find a way to replace this with a direct function call (in all workers)
             stream.socket.send_json(['reload', bytes(True)])
-            print "Answering reload command"
+            print("Answering reload command")
             self.reloadmaster = True
             
     def _ioloop(self):
         """Start the ioloop fires the callbacks when data is received
         on the control stream. Runs on a separate thread."""
         zmq.eventloop.ioloop.IOLoop.instance().start()
-        print "ioloop ended"
+        print("ioloop ended")
 
     def _forward_xsub(self, stream, msg):
         self._xpub_stream.send_multipart(msg)

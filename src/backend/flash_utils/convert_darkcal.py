@@ -1,3 +1,4 @@
+from __future__ import print_function # Compatibility with python 2 and 3
 import struct
 import numpy as np
 import h5py
@@ -80,7 +81,7 @@ if __name__ == '__main__':
     reader.f.close()
 
     with h5py.File(args.output_fname, 'w') as f:
-        print 'Writing dark to', f.filename
+        print('Writing dark to', f.filename)
         f['data/sum'] = reader.sums
         f['data/offset'] = reader.offset
         f['data/sigma'] = reader.sigma

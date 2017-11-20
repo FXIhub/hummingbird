@@ -137,7 +137,6 @@ def plotMeanMapDynamic(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, y
             m.updateLocalLimits()
             m.updateLocalMap()
             m.updateOverviewMap(X,Y)
-            print m.localXmin, m.localXmax, m.localYmin, m.localYmax
             ipc.new_data(name+' -> Local', m.localMap, msg=msg, \
                          xmin=m.localXmin, xmax=m.localXmax, ymin=m.localYmin, ymax=m.localYmax)
             ipc.new_data(name+' -> Overview', m.overviewMap) 

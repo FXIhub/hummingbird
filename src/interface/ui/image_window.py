@@ -174,9 +174,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         transform = scale_transform * translate_transform * transpose_transform
         #transform = scale_transform * translate_transform * rotate_transform * transpose_transform
         
-        # print '|%f %f %f|' % (transform.m11(), transform.m12(), transform.m13())
-        # print '|%f %f %f|' % (transform.m21(), transform.m22(), transform.m23())
-        # print '|%f %f %f|' % (transform.m31(), transform.m32(), transform.m33())
+        # print('|%f %f %f|' % (transform.m11(), transform.m12(), transform.m13()))
+        # print('|%f %f %f|' % (transform.m21(), transform.m22(), transform.m23()))
+        # print('|%f %f %f|' % (transform.m31(), transform.m32(), transform.m33()))
         return transform
 
     def _configure_axis(self, source, title):

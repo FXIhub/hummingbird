@@ -20,13 +20,8 @@ def main():
 
     if(len(sys.argv) == 1):
         argparser.print_help()
-
-    if "-b" in sys.argv and (sys.argv.index("-b")+1 < len(sys.argv)):
-        config_file = sys.argv[sys.argv.index("-b")+1]
-        imp.load_source('__config_file', config_file)
         
     args = argparser.parse_args()
-    
     level = logging.WARNING
     if args.verbose:
         level = logging.INFO
@@ -35,7 +30,7 @@ def main():
     logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s', level=level)
 
     if args.port < PORT_RANGE[0] or args.port > PORT_RANGE[1]:
-        print "The port must be from {0} to {1}".format(PORT_RANGE[0], PORT_RANGE[1])
+        print("The port must be from {0} to {1}".format(PORT_RANGE[0], PORT_RANGE[1]))
         exit(0)
 
     if(args.backend is not None):

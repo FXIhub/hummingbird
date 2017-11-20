@@ -143,6 +143,8 @@ else:
         except ImportError:
             pass
 
+        loadUiType = uic.loadUiType
+        
         # Re-implement deprecated APIs
         def scale(self, sx, sy):
             self.setTransform(QtGui.QTransform.fromScale(sx, sy), True)

@@ -1,3 +1,4 @@
+from __future__ import print_functio # Compatibility with python 2 and 3
 import time
 import os
 
@@ -21,7 +22,7 @@ class MotorPositions(object):
             self._history = []
             self._update_file(filename)
         if os.path.getsize(self._filename) > self._filesize:
-            print 'File size change'
+            print('File size change')
             self._update_file(self._filename)
         
         for index in xrange(len(self._history)-1, 0, -1):
@@ -36,11 +37,11 @@ class MotorPositions(object):
         return "{0}/stage-server_positions_{1:04}-{2:02}-{3:02}.log".format(self._path, time_info.tm_year, time_info.tm_mon, time_info.tm_mday)
 
     def _update_file(self, filename):
-        print "Motors file:", filename
+        print("Motors file:", filename)
         while not os.path.isfile(filename):
             self.timestamp -= self.timestamp%(24.*3600.) + 5.
             filename = self._time_to_filename(self.timestamp)
-            print filename
+            print(filename)
         with open(filename, "r") as file_handle:
             total_history = file_handle.readlines()
         self._filesize = os.path.getsize(filename)

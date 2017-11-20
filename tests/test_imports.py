@@ -2,6 +2,22 @@ import os, sys
 import warnings
 __thisdir__ = os.path.dirname(os.path.realpath(__file__))
 
+# Testing the import of the numpy package
+def test_import_numpy():
+    try:
+        import numpy as np
+    except ImportError as e:
+        assert(1 == 0), "Numpy could not be imported:\n %s" %e
+    sys.path.pop(0)
+
+# Testing the import of the scipy package
+def test_import_scipy():
+    try:
+        import scipy as sp
+    except ImportError as e:
+        assert(1 == 0),  "Scipy could not be imported:\n %s" %e
+    sys.path.pop(0)
+    
 # Testing for broken MPI installation
 def test_import_mpi4py():
     try:
@@ -9,15 +25,6 @@ def test_import_mpi4py():
     except ImportError:
         warnings.warn(UserWarning("MPI for python could not be imported"))
         assert(1 == 1)
-    sys.path.pop(0)
-
-# Testing the import of the ipc module
-def test_import_ipc_module():
-    sys.path.insert(0, __thisdir__ + "/../src")
-    try:
-        import ipc
-    except ImportError as e:
-        assert (1 == 0), "The ipc module could not be imported:\n %s" %e
     sys.path.pop(0)
 
 # Testing the import of the Qt modules QtGui and QtCore
@@ -29,16 +36,6 @@ def test_import_qt_modules():
         assert (1 == 0), "The Qt modules QtGui and QtCore could not be imported:\n %s" %e
     sys.path.pop(0)
     
-# Testimg the import of the interface module
-# BD: Need to install PyQt on travis before we can test
-def test_import_interface_module():
-    sys.path.insert(0, __thisdir__ + "/../src")
-    try:
-        import interface
-    except ImportError as e:
-        assert (1 == 0), "The interface module could not be imported:\n %s" %e
-    sys.path.pop(0)
-
 # Testing the import of the pyqtgraph module
 def test_import_pyqtgraph_module():
     try:
@@ -47,6 +44,24 @@ def test_import_pyqtgraph_module():
         assert (1 == 0), "The pyqtgraph module could not be imported"
     sys.path.pop(0)
 
+# Testimg the import of the interface module
+def test_import_interface_module():
+    sys.path.insert(0, __thisdir__ + "/../src")
+    try:
+        import interface
+    except ImportError as e:
+        assert (1 == 0), "The interface module could not be imported:\n %s" %e
+    sys.path.pop(0)
+    
+# Testing the import of the ipc module
+def test_import_ipc_module():
+    sys.path.insert(0, __thisdir__ + "/../src")
+    try:
+        import ipc
+    except ImportError as e:
+        assert (1 == 0), "The ipc module could not be imported:\n %s" %e
+    sys.path.pop(0)
+    
 # Testing the import of the plotting module
 def test_import_plotting_module():
     sys.path.insert(0, __thisdir__ + "/../src")

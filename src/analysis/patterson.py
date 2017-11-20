@@ -13,7 +13,7 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
     """
     success, module = utils.io.load_spimage()
     if not success:
-        print "Skipping analysis.patterson.patterson"
+        print("Skipping analysis.patterson.patterson")
         return
     img  = evt[type][key].data
     if mask is None:

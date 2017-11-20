@@ -232,8 +232,6 @@ def holographic_hitfinder_evt(evt, type, key, maskt, gMask, centerMask, off_x, t
             hitS[labeled == i] = 0.
         
     hitScore = ((labeled>0)*1).sum()
-#        print hitScore
-    #print holoData
     add_record(evt["analysis"], "analysis", "hologramScore", hitScore)
     add_record(evt["analysis"], "analysis", "holoData", holoData)
 
@@ -341,7 +339,6 @@ def find_foci(evt, type,key,type2,key2,minPhase=-500000, maxPhase=500000, steps=
         
         for CC in numpy.arange(Nfoci):
             centerx, centery = centroids[CC, :]
-            ###print  centerx, centery
             reconcut = numpy.abs(recon[numpy.max([0, centerx-Npixel-1]).astype(int): numpy.min([Xrange-1, centerx+Npixel]).astype(int), numpy.max([0, centery-Npixel-1]).astype(int): numpy.min([Yrange-1, centery+Npixel]).astype(int)])
             variance[idx, CC] = reconcut.var()
     
@@ -382,7 +379,6 @@ def hitfind_cxi_file(fname, attribute='/entry_1/image_1/detector_corrected/data'
     runname = fname.split('/')[7]
     #data is 3D structure, N x dimy x dimx, frame = dimy x dimx
     #N=number of frames/shots/diff_patterns, dimy=pixels_in_y, dimx=pixels_in_x
-    #print f[attribute].shape
     data = f[attribute]
     hitscores = numpy.zeros((data.shape[0],2))
 
@@ -407,7 +403,6 @@ def hitfind_cxi_file(fname, attribute='/entry_1/image_1/detector_corrected/data'
         #os.system('echo "%s %s" >> hitScores/log.%s.txt' % (n,hitscores[n][1],fname.split('/')[1]))
         if hitscore > 100:
             plotting_hologram(n,frame,holoData,hitS,runname=runname)
-            #print n,hitscores[n][1],ration
     f.close()
     return hitscores
 
@@ -522,7 +517,6 @@ def make_propagation(evt, type, key_img, key_mask, imnr, minPhase=-120000, maxPh
         #imsave('hitScores/hollows/img_recon_%05d_%06d_3.png'%(imnr,phase),recon,cmap='gray')
             
         #rg.append(recon)
-    #print variance
     
     focused_CC = []
     z_location = []
@@ -555,7 +549,7 @@ if __name__=='__main__':
     # ? = any charactar
     # * = any string of characters -- in folder
     for fname in glob.glob('%s/r0???/amoc6914*.cxi' % sourcepath):
-        print fname
+        print(fname)
 	runname = int(fname.split('/')[7][1:])
         if runname < 140 or runname == 214 or runname ==151 or runname == 145: continue
         #if not 'r0201' in fname: continue

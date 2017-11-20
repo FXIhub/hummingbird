@@ -35,13 +35,6 @@ try:
 except ImportError:
     pass
 
-# Add euxfel-specific arguments to argparser
-try:
-    from backend.euxfel import add_cmdline_args
-    add_cmdline_args()
-except ImportError:
-    pass
-
 _config_argument_group = None
 _config_file_arguments_added = []
 def add_config_file_argument(*args, **kwargs):
