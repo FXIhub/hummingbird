@@ -50,11 +50,11 @@ def onEvent(evt):
     analysis.hitfinding.hitrate(evt, hit, history=5000)
     
     # Plot the hitscore
-    plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"], label='Nr. of lit pixels', hline=100)
+    plotting.line.plotHistory(evt["analysis"]["litpixel: hitscore"], label='Nr. of lit pixels', hline=100, group="A")
 
     # Plot the hitrate
-    plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]')
+    plotting.line.plotHistory(evt["analysis"]["hitrate"], label='Hit rate [%]', group="B")
      
     # Visualize detector image of hits
     if hit:
-        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], vmin=-10, vmax=40)
+        plotting.image.plotImage(evt["photonPixelDetectors"]["CCD"], vmin=-10, vmax=40, group="Detectors")

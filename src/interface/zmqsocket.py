@@ -109,5 +109,4 @@ class ZmqSocket(QtCore.QObject):
         """Receive a numpy array"""
         md = self._socket.recv_json(flags=flags)
         msg = self._socket.recv(flags=flags, copy=copy, track=track)
-        buf = buffer(msg)
-        return  numpy.ndarray(shape=md['shape'], dtype=md['dtype'], buffer=buf, strides=md['strides'])
+        return  numpy.ndarray(shape=md['shape'], dtype=md['dtype'], buffer=msg, strides=md['strides'])

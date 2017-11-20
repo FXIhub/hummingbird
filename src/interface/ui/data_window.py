@@ -54,7 +54,6 @@ class DataWindow(QtGui.QMainWindow):
     def on_menu_show(self):
         """Show what data sources are available"""
         # Go through all the available data sources and add them
-
         def add_menu(title, menu, ds):
             action = QtGui.QAction(title, self)
             action.setData([ds, title])
