@@ -43,7 +43,7 @@ class DataSource(QtCore.QObject):
         if title not in self._subscribed_titles:
             self._subscribed_titles[title] = [plot]
             try:
-                self._data_socket.subscribe(bytes(title))
+                self._data_socket.subscribe(title)
                 self.subscribed.emit(title)
                 logging.debug("Subscribing to %s on %s.", title, self.name())
             # socket might still not exist
@@ -58,7 +58,7 @@ class DataSource(QtCore.QObject):
         self._subscribed_titles[title].remove(plot)
         # Check if list is empty
         if not self._subscribed_titles[title]:
-            self._data_socket.unsubscribe(bytes(title))
+            self._data_socket.unsubscribe(title)
             self.unsubscribed.emit(title)
             logging.debug("Unsubscribing from %s on %s.", title, self.name())
             self._subscribed_titles.pop(title)
@@ -71,7 +71,7 @@ class DataSource(QtCore.QObject):
         if title not in self._recorded_titles:
             self._recorded_titles[title] = True
             try:
-                self._data_socket.subscribe(bytes(title))
+                self._data_socket.subscribe(title)
                 self.subscribed.emit(title)
                 logging.debug("Subscribing to %s on %s.", title, self.name())
             # socket might still not exist
@@ -83,7 +83,7 @@ class DataSource(QtCore.QObject):
         If no one else is associated with it unsubscrine"""
         self._recorded_titles[title] = False
         if not title in self._subscribed_titles:
-            self._data_socket.unsubscribe(bytes(title))
+            self._data_socket.unsubscribe(title)
             self.unsubscribed.emit(title)
             logging.debug("Unsubscribing from %s on %s.", title, self.name())
             self._recorded_titles.pop(title)
@@ -109,15 +109,15 @@ class DataSource(QtCore.QObject):
 
     def _get_data_port(self):
         """Ask to the backend for the data port"""
-        self._ctrl_socket.send_multipart(['data_port'])
+        self._ctrl_socket.send_multipart(['data_port'.encode('UTF-8')])
 
     def query_configuration(self):
         """Ask to the backend for the configuration"""
-        self._ctrl_socket.send_multipart(['conf'])
+        self._ctrl_socket.send_multipart(['conf'.encode('UTF-8')])
 
     def query_reloading(self):
         """Ask the backend to reload its configuration"""
-        self._ctrl_socket.send_multipart(['reload'])
+        self._ctrl_socket.send_multipart(['reload'.encode('UTF-8')])
         
     def _get_request_reply(self, socket=None):
         """Handle the reply of the backend to a previous request"""

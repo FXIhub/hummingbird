@@ -119,13 +119,14 @@ class ZmqServer(object):
     
     def _answer_command(self, stream, msg):
         """Reply to commands received on the _ctrl_stream"""
-        if(msg[0] == 'conf'):
+        print(msg)
+        if(msg[0] == 'conf'.encode('UTF-8')):
             stream.socket.send_json(['conf', ipc.broadcast.data_conf])
-        if(msg[0] == 'data_port'):
-            stream.socket.send_json(['data_port', bytes(self._broker_pub_port)])
+        if(msg[0] == 'data_port'.encode('UTF-8')):
+            stream.socket.send_json(['data_port', self._broker_pub_port])
         if(msg[0] == 'uuid'):
             stream.socket.send_json(['uuid', bytes(ipc.uuid)])
-        if(msg[0] == 'reload'):
+        if(msg[0] == 'reload'.encode('UTF-8')):
             #TODO: Find a way to replace this with a direct function call (in all workers)
             stream.socket.send_json(['reload', bytes(True)])
             print("Answering reload command")
@@ -141,10 +142,10 @@ class ZmqServer(object):
         self._xpub_stream.send_multipart(msg)
 
     def _forward_xpub(self, stream, msg):
-        if msg[0][0] == '\x00':
+        if (msg[0][0] == '\x00') or (msg[0][0] == 0):
             logging.debug("Got unsubscription for: %r" % msg[0][1:])
             self._subscribed.discard(msg[0][1:])
-        elif msg[0][0] == '\x01':
+        elif (msg[0][0] == '\x01') or (msg[0][0] == 1):
             logging.debug("Got subscription for: %r" % msg[0][1:])
             self._subscribed.add(msg[0][1:])
         else:

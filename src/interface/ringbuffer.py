@@ -192,7 +192,7 @@ class RingBufferStr(object):
 
     def _init_data(self):
         """Initialize the buffer with the given data"""
-        self._data = [None for i in xrange(self._maxlen)]
+        self._data = [None for i in range(self._maxlen)]
         
     def __len__(self):
         """Return the length of the buffer"""
