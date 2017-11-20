@@ -167,6 +167,7 @@ else:
         QtWidgets.QHeaderView.setResizeMode = setResizeMode
 
 
+        QtGui.qApp = QtWidgets.qApp
         QtGui.QApplication = QtWidgets.QApplication
         QtGui.QGraphicsScene = QtWidgets.QGraphicsScene
         QtGui.QGraphicsObject = QtWidgets.QGraphicsObject

@@ -490,6 +490,7 @@
     <property name="title">
      <string>Data Sources</string>
     </property>
+    <addaction name="actionDefault"/>
    </widget>
    <widget class="QMenu" name="menuSave">
     <property name="title">
@@ -707,6 +708,11 @@
   <action name="actionReset_cache">
    <property name="text">
     <string>Reset Cache</string>
+   </property>
+  </action>
+  <action name="actionDefault">
+   <property name="text">
+    <string>default</string>
    </property>
   </action>
  </widget>

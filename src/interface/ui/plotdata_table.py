@@ -75,7 +75,7 @@ class PlotDataTable(QtGui.QWidget):
         return self.table.indexFromItem(self._groups[group][1]).row()
 
     def item_is_group_header(self, item):
-        return isinstance(item.data(QtCore.Qt.UserRole), unicode)
+        return isinstance(item.data(QtCore.Qt.UserRole), type(u""))
     
     def _on_plotdata_added(self, plotdata):
         source = self.sender()
