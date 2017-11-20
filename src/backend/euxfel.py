@@ -3,12 +3,14 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Online backend for reading EUxfel events from zmq."""
+from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import logging
 from backend.event_translator import EventTranslator
 from backend.record import Record, add_record
 import numpy
 import datetime
+from pytz import timezone
 from . import ureg
 from backend import Worker
 import ipc
@@ -26,8 +28,8 @@ def add_cmdline_args():
     from utils.cmdline_args import argparser
     _argparser = argparser
     group = _argparser.add_argument_group('EUxfel', 'Options for the EUxfel event translator')
-    group.add_argument('--euxfel-socket', metavar='euxfel_socket', default='tcp://127.0.0.1:4500', nargs='1',
-                        help="run number",
+    group.add_argument('--euxfel-socket', metavar='euxfel_socket', default='tcp://127.0.0.1:4500',
+                        help="EuXFEL socket address",
                         type=str)
     # TODO
     #group.add_argument('--euxfel-number-of-frames', metavar='euxfel_number_of_frames', nargs='?',
@@ -65,7 +67,7 @@ class EUxfelTranslator(object):
 
         # Calculate the inverse mapping
         self._c2n = {}
-        for k, v in self._n2c.iteritems():
+        for k, v in self._n2c.items():
             if type(v) is not list:
                 v = [v]
             for v2 in v:
@@ -150,7 +152,7 @@ class EUxfelTranslator(object):
                                obj[subkey], ureg.ADU)
                 return values
             else:
-                print '%s not found in event' % (key)
+                print('%s not found in event' % (key))
 
     def translate_core(self, evt, key):
         """Returns a dict of Records that matchs a core Hummingbird key.
@@ -189,10 +191,10 @@ class EUxfelTranslator(object):
         timestamp = src_timestamp['sec'] + src_timestamp['frac'] * 1e-2 + pos * 1e-6
         time = datetime.datetime.fromtimestamp(timestamp, tz=timezone('utc'))
         time = time.astimezone(tz=timezone('CET'))
-        rec = Record('Timestamp', time, ureg.s)        
-        rec.fiducials = obj.fiducials()
+        rec = Record('Timestamp', time, ureg.s)
+        #rec.fiducials = obj.fiducials()
         rec.pulseCount = obj[pulsecount]
         rec.pulseNo = pos       
         #rec.timestamp2 = obj['trailer.trainId']
-        rec.timestamp2 = obj['image.pulseId'][rec.pulseNo]
+        rec.timestamp = obj['image.pulseId'][rec.pulseNo]
         values[rec.name] = rec
