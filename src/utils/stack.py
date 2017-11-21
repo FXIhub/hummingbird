@@ -2,16 +2,12 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-from __future__ import print_function # Compatibility with python 2 and 3
+from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import os
-import collections
 import ipc
 import numpy
-from numpy import abs
 import h5py
-import time, datetime
-from datetime import datetime as DT
-import pytz
+import time
 import logging
 
 class Stack:
