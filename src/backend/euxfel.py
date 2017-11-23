@@ -74,7 +74,7 @@ class EUxfelTranslator(object):
                 self._c2n[v2] = self._c2n.get(v2, [])
                 self._c2n[v2].append(k)
 
-        # Define how to translate between LCLS sources and Hummingbird ones
+        # Define how to translate between EuXFEL sources and Hummingbird ones
         self._s2c = {}
         # AGIPD
         self._s2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'AGIPD1'        
@@ -187,8 +187,10 @@ class EUxfelTranslator(object):
 
     def _tr_event_id(self, values, obj, pos):
         """Translates euxfel event ID from some source into a hummingbird one"""
-        src_timestamp = obj['metadata']['timestamp']        
-        timestamp = src_timestamp['sec'] + src_timestamp['frac'] * 1e-2 + pos * 1e-6
+        src_timestamp = obj['metadata']['timestamp']
+        print(src_timestamp, pos)
+        timestamp = src_timestamp['sec'] + src_timestamp['frac'] * 1e-6 + pos * 1e-2
+        print(timestamp)
         time = datetime.datetime.fromtimestamp(timestamp, tz=timezone('utc'))
         time = time.astimezone(tz=timezone('CET'))
         rec = Record('Timestamp', time, ureg.s)
@@ -197,4 +199,5 @@ class EUxfelTranslator(object):
         rec.pulseNo = pos       
         #rec.timestamp2 = obj['trailer.trainId']
         rec.timestamp = obj['image.pulseId'][rec.pulseNo]
+        rec.timestamp = timestamp
         values[rec.name] = rec
