@@ -119,16 +119,15 @@ class ZmqServer(object):
     
     def _answer_command(self, stream, msg):
         """Reply to commands received on the _ctrl_stream"""
-        print(msg)
         if(msg[0] == 'conf'.encode('UTF-8')):
             stream.socket.send_json(['conf', ipc.broadcast.data_conf])
         if(msg[0] == 'data_port'.encode('UTF-8')):
             stream.socket.send_json(['data_port', self._broker_pub_port])
         if(msg[0] == 'uuid'):
-            stream.socket.send_json(['uuid', bytes(ipc.uuid)])
+            stream.socket.send_json(['uuid', ipc.uuid])
         if(msg[0] == 'reload'.encode('UTF-8')):
             #TODO: Find a way to replace this with a direct function call (in all workers)
-            stream.socket.send_json(['reload', bytes(True)])
+            stream.socket.send_json(['reload', True])
             print("Answering reload command")
             self.reloadmaster = True
             
