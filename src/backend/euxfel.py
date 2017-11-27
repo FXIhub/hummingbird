@@ -45,11 +45,18 @@ class EUxfelTranslator(object):
         self.timestamps = None
         
         cmdline_args = _argparser.parse_args()
+
+        # Define socket adress by state or cmdl argument
+        # TODO: need to extend to multiple addresses (ports) for different sources
+        if 'socket' in state:
+            self._euxfel_socket = state['socket']
+        else:
+            self._euxfel_socket = cmdline_args.euxfel_socket
         # TODO
         #self.N = cmdline_args.euxfel_number_of_frames
         self._zmq_context = zmq.Context()
-        self._zmq_request = self._zmq_context.socket(zmq.REQ)       
-        self._zmq_request.connect(cmdline_args.euxfel_socket)
+        self._zmq_request = self._zmq_context.socket(zmq.REQ)
+        self._zmq_request.connect(self._euxfel_socket)
         self._num_read_ahead = 1
         self._pos = 0
         self._data = None
