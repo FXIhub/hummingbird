@@ -1,12 +1,5 @@
 language: python
 
-# When using just 1 python version it needs to be in the same
-# line as "python" due to a bug in travis:
-# https://github.com/travis-ci/travis-ci/issues/3674
-#python:
-#  - "2.7"
-#  - "3.4"
-
 notifications:
   email: false
 
@@ -22,7 +15,7 @@ cache:
     
 matrix:
   include:
-    # no MPI, dummy backend, python 2
+    # no MPI, dummy backend, python 2.7
     - python: "2.7"
       env: MPI=none HDF5=serial BACKEND=dummy
       addons:
@@ -34,7 +27,7 @@ matrix:
           - python-h5py
           - python-qt4
 
-    # no MPI, dummy backend, python 3
+    # no MPI, dummy backend, python 3.4
     - python: "3.4"
       env: MPI=none HDF5=serial BACKEND=dummy
       addons:
@@ -45,7 +38,21 @@ matrix:
           - python3-scipy
           - python3-h5py
           - python3-pyqt5
-          
+
+    # no MPI, dummy backend, python 3.5
+    - python: "3.5"
+      env: MPI=none HDF5=serial BACKEND=dummy
+      virtualenv:
+        system_site_packages: false
+      addons:
+        apt:
+          packages:
+          - libhdf5-serial-dev
+          - python3-numpy
+          - python3-scipy
+          - python3-h5py
+          - python3-pyqt5
+
     # with MPI, dummy backend
     - python: "2.7"
       env: MPI=openmpi HDF5=serial BACKEND=dummy
@@ -83,6 +90,8 @@ before_install:
   - rm -f $VIRTUAL_ENV/lib/python$TRAVIS_PYTHON_VERSION/no-global-site-packages.txt
   - pip install pyzmq
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install subprocess32; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install scipy; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install pyqt5; fi
   - pip install tornado
   - pip install pytz
   - pip install pyqtgraph
