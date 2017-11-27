@@ -91,6 +91,7 @@ before_install:
   - pip install pyzmq
   - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install subprocess32; fi
   - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install scipy; fi
+  - if [[ $TRAVIS_PYTHON_VERSION == 3.5 ]]; then pip install pyqt5; fi
   - pip install tornado
   - pip install pytz
   - pip install pyqtgraph
