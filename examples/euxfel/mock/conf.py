@@ -1,4 +1,5 @@
 import plotting.image
+import analysis.agipd
 
 state = {}
 state['Facility'] = 'euxfel'
@@ -11,8 +12,9 @@ def onEvent(evt):
     global dark, event_number
     print("Available keys: " + str(evt.keys()))
     print(evt['photonPixelDetectors']['AGIPD1'].data.shape)
-    dark  += evt['photonPixelDetectors']['AGIPD1'].data
+    agipd_0 = analysis.agipd.get_panel(evt, evt['photonPixelDetectors']['AGIPD1'], 0)
+    dark  += agipd_0.data
     print(event_number)
     event_number += 1
 
-    plotting.image.plotImage(evt['photonPixelDetectors']['AGIPD1'])
+    plotting.image.plotImage(agipd_0)
