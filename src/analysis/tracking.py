@@ -2,6 +2,7 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
+from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import numpy as np
 import cv2
 import scipy.ndimage.measurements
@@ -15,16 +16,11 @@ def getMaskedParticles(evt, type, key, output, thresh = 20, minX = 800, maxX = 1
     kernel = np.ones((kw*2+1,kw*2+1), np.uint8)
     outimg[minY:maxY, minX:maxX] = evt[type][key].data[minY:maxY,minX:maxX] > thresh
     outimg = cv2.dilate(outimg, kernel)
-    # cv2.adaptiveThreshold(evt[type][key].data.astype(np.uint8), 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
     add_record(evt["analysis"], "analysis", output, outimg)
-
-# findContours
-# eliminate wrong areas
 
 def countContours(evt, type, key, maskedKey, outimage, outvector):
     imageoutput = np.ndarray(evt[type][key].data.shape, np.uint8)
     (contours,_) = cv2.findContours(evt["analysis"][maskedKey].data, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
-    
     for i in xrange(len(contours)):
         cv2.drawContours(imageoutput, contours, i, i + 1, -1)
     needed_labels = np.arange(1, len(contours))
@@ -32,5 +28,3 @@ def countContours(evt, type, key, maskedKey, outimage, outvector):
     add_record(evt["analysis"], "analysis", outimage, imageoutput)
     add_record(evt["analysis"], "analysis", outvector, counts)
     
-
-# send resulting vector
