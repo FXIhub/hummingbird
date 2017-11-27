@@ -169,7 +169,7 @@ def checkreload():
         if ipc.zmq().reloadmaster == True:
             ipc.zmq().reloadmaster = False
             if reload_comm is not None:
-                for i in xrange(1,size):
+                for i in range(1,size):
                     reload_comm.send(['__reload__'], i)
             return True
     if is_slave():
