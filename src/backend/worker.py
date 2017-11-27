@@ -77,7 +77,6 @@ class Worker(object):
         """Load or reload the configuration file."""
         try:
             Worker.conf = imp.load_source('backend_conf', self._config_file)
-            print(Worker.conf.state)
         except Exception as e:
             print("Error reloading conf: %s" %e)
             return
