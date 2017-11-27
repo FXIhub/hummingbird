@@ -1,4 +1,4 @@
-from __future__ import print_functio # Compatibility with python 2 and 3
+from __future__ import print_function # Compatibility with python 2 and 3
 import time
 import os
 

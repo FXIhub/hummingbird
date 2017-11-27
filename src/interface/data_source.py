@@ -133,7 +133,7 @@ class DataSource(QtCore.QObject):
             self.parent().add_backend(self)
             # Subscribe to stuff already requested
             for title in self._subscribed_titles.keys():
-                self._data_socket.subscribe(bytes(title))
+                self._data_socket.subscribe(title)
                 self.subscribed.emit(title)
                 logging.debug("Subscribing to %s on %s.", title, self.name())
             self.query_configuration()

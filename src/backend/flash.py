@@ -14,7 +14,7 @@ import numpy
 import ipc
 import backend.flash_utils.convert_frms6 as convert
 import backend.flash_utils.tomas_motors as motors
-#import read_daq_offline
+import backend.flash_utils.read_daq_offline as read_daq
 import glob
 import sys
 import os
@@ -30,7 +30,6 @@ class FLASHTranslator(object):
         self.keys.add('analysis')
         self.keys.add('DAQ')
         self._last_event_time = -1
-        #self.time_offset = 208
         self.current_fname = None
         self.daq_fname = None
         self.current_dark = None
@@ -41,7 +40,6 @@ class FLASHTranslator(object):
         self._current_event_id = None
         self.get_dark()
         self.motors = motors.MotorPositions(state['FLASH/MotorFolder'])
-        #self.daq = read_daq_offline.DAQReader(state['FLASH/DAQBaseDir'])
         self.daq = None
         if 'do_offline' in state:
             self.do_offline = state['do_offline']
@@ -107,10 +105,7 @@ class FLASHTranslator(object):
                         self._current_event_id = None
                     self.keys.add('photonPixelDetectors')
                     break
-        #event_id += 3583434 - 2586939
         #event_id += 1
-        # Done finding pnCCD file. Now check if there is a TOF trace (only if we are offline)
-            
         self.num += 1
         return EventTranslator(evt, self)
 
@@ -129,7 +124,6 @@ class FLASHTranslator(object):
             # Translate pnCCD
             add_record(values, key, 'pnCCD', evt['pnCCD'], ureg.ADU)
         elif key == 'motorPositions':
-            #val = motors.get(self.reader.frame_headers[-1].tv_sec + self.time_offset)
             val = self.motors.get(self.get_bunch_time()[0])
             if val is None:
                 raise RuntimeError('%s not found in event' % key)
@@ -144,8 +138,7 @@ class FLASHTranslator(object):
             add_record(values, key, 'bunch_sec', self.get_bunch_time()[0], ureg.s)
         elif key == "DAQ":
             if self.daq is None:
-                import read_daq_offline
-                self.daq = read_daq_offline.DAQReader(self.state['FLASH/DAQBaseDir'])
+                self.daq = read_daq.DAQReader(self.state['FLASH/DAQBaseDir'])
             if self._current_event_id is not None:
                 tof_trace = self.daq.get_tof(self._current_event_id)
                 if tof_trace is not None:
@@ -175,9 +168,8 @@ class FLASHTranslator(object):
         shot and increase monotonically"""
         tv_sec  = self.translate(evt, 'ID')['tv_sec'].data
         tv_usec = self.translate(evt, 'ID')['tv_usec'].data
-        tv_sec_usec = tv_sec + 1e-6*tv_usec# + float(self.time_offset)
+        tv_sec_usec = tv_sec + 1e-6*tv_usec
         return tv_sec_usec
-        #return time.time()
 
     def event_id2(self, _):
         """Returns an alternative id, which is jsut a copy of the usual id here"""
@@ -189,7 +181,7 @@ class FLASHTranslator(object):
             return False
         else:
             run = int(m.groups()[0])
-            if run >= runnr: # and run < 10000:
+            if run >= runnr:
                 return True
             else:
                 return False
@@ -267,7 +259,6 @@ class FLASHTranslator(object):
             tmp_tvsec = self.reader.frame_headers[-1].tv_sec
         except AttributeError:
             tmp_tvsec = 0
-        #tmp_time = time.localtime(tmp_tvsec+self.time_offset)
         tmp_time = time.localtime(tmp_tvsec)
         #self.reader.frame_headers[-1].dump()
         filename = self.state['FLASH/DAQFolder']+'/daq-%.4d-%.2d-%.2d-%.2d.txt' % (tmp_time.tm_year, tmp_time.tm_mon, tmp_time.tm_mday, tmp_time.tm_hour)
@@ -285,7 +276,6 @@ class FLASHTranslator(object):
             #print('DAQ file:', filename, 'max id = %d, min id = %d' % (self.bunch_ids.max(), self.bunch_ids.min()))
         locations = numpy.where(self.bunch_ids == self.reader.frame_headers[-1].external_id)[0]
         if len(locations) < 1:
-            #return self.reader.frame_headers[-1].tv_sec+self.time_offset, None
             return self.reader.frame_headers[-1].tv_sec, None
         else:
             return int(self.daq_lines[locations[0]][0]), locations[0]
