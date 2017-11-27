@@ -42,6 +42,8 @@ matrix:
     # no MPI, dummy backend, python 3.5
     - python: "3.5"
       env: MPI=none HDF5=serial BACKEND=dummy
+      virtualenv:
+        system_site_packages: false
       addons:
         apt:
           packages:
