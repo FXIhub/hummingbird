@@ -37,8 +37,6 @@ def add_cmdline_args():
     #                    help="number of frames to be processed",
     #                    type=int)
 
-#pulsecount = 'header.pulseCount'
-pulsecount = 30
 
 class EUxfelTranslator(object):
     """Translate between EUxfel events and Hummingbird ones"""
@@ -61,6 +59,7 @@ class EUxfelTranslator(object):
         # Counters
         self._num_read_ahead = 1
         self._pos = 0
+        self._pulsecount = None
         self._data = None
         self._asked_data = False
         self.library = 'EUxfel'
@@ -93,7 +92,7 @@ class EUxfelTranslator(object):
         if self._asked_data:
             return
 
-        if self._data is None or self._pos >= pulsecount - self._num_read_ahead:
+        if self._data is None or (self._pos >= self._pulsecount - self._num_read_ahead):
             self._zmq_request.send(b'next')
             self._asked_data = True
             
@@ -102,15 +101,14 @@ class EUxfelTranslator(object):
         # Old comment from Onda
         # FM: When running with vetoeing we get data on cells 2,4,6...,28
         # corresponding to indices 4,8,...,56
-        if self._data is None or self._pos == pulsecount:
+        if self._data is None or self._pos == self._pulsecount:
             self.check_asked_data()
             msg = self._zmq_request.recv()
             self._data = msgpack.loads(msg)
             self._asked_data = False
             self._pos = 0
+            self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
             self.ntrains += 1.
-            #print(self._data.keys())
-            #print(self._data[self._mainsource]['image.pulseId'].shape)
             #print("Train count: ", self.ntrains)
             #print("Trains per sec: ",self.ntrains / (timemodule.time()-self.t0))
 
@@ -199,8 +197,11 @@ class EUxfelTranslator(object):
 
     def _tr_photon_detector(self, values, obj, evt_key, pos):
         """Translates pixel detector into Humminbird ADU array"""
-        add_record(values, 'photonPixelDetectors', self._s2c[evt_key],
-                   obj['image.data'][pos], ureg.ADU)
+        if self._source['format'] == 'combined':
+            img = obj['image.data'][pos]
+        elif self._source['format'] == 'panel':
+            img = obj['image.data'][:,:,0,pos]
+        add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
     def _tr_event_id(self, values, obj, pos):
         """Translates euxfel event ID from some source into a hummingbird one"""
@@ -209,14 +210,10 @@ class EUxfelTranslator(object):
         timestamp = src_timestamp['sec'] + src_timestamp['frac'] * 1e-18 + pos * 1e-2
         #print(timestamp)
         #print(timemodule.time()-timestamp)
-
         time = datetime.datetime.fromtimestamp(timestamp, tz=timezone('utc'))
         time = time.astimezone(tz=timezone('CET'))
         rec = Record('Timestamp', time, ureg.s)
-        #rec.fiducials = obj.fiducials()
-        rec.pulseCount = pulsecount #obj[pulsecount]
+        rec.pulseCount = self._pulsecount
         rec.pulseNo = pos       
-        #rec.timestamp2 = obj['trailer.trainId']
-        #rec.timestamp = obj['image.pulseId'][rec.pulseNo]
         rec.timestamp = timestamp
         values[rec.name] = rec
