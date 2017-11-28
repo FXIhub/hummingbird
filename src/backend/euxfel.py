@@ -38,42 +38,12 @@ def add_cmdline_args():
     #                    type=int)
 
 #pulsecount = 'header.pulseCount'
-pulsecount = 64
+pulsecount = 30
 
 class EUxfelTranslator(object):
-    def __init__(self,state):
-        self._connectors = []
-        if 'euxfel/agipd_raw_socket' in state:
-            self._connectors.append(KaraboConnector(state['euxfel/agipd_raw_socket']),
-                                    'SPB_DET_AGIPD1M-1/DET', pulsecount=30)
-        if 'euxfel/agipd_calib_socket' in state:
-            self._connectors.append(KaraboConnector(state['euxfel/agipd_calib_socket']),
-                                    'SPB_DET_AGIPD1M-1/DET', pulsecount=30)
-        if 'euxfel/agipd_panel_03_socket' in state:
-            self._connectors.append(KaraboConnector(state['euxfel/agipd_panel_03_socket']),
-                                    'SPB_DET_AGIPD1M-1/DET/3CH0:xtdf', pulsecount=64)
-        if 'euxfel/agipd_panel_04_socket' in state:
-            self._connectors.append(KaraboConnector(state['euxfel/agipd_panel_04_socket']),
-                                    'SPB_DET_AGIPD1M-1/DET/3CH0:xtdf', pulsecount=64)
-        if 'euxfel/agipd_panel_15_socket' in state:
-            self._connectors.append(KaraboConnector(state['euxfel/agipd_panel_15_socket']),
-                                    'SPB_DET_AGIPD1M-1/DET/3CH0:xtdf', pulsecount=64)
-        
-    def next_event(self):
-        #return [c.next_event() for c in self._connectors]
-        return self._connectors[0].next_event()
-    def translate(self):
-        #return [c.translate() for c in self._connectors]
-        return self._connectors[0].translate()
-    def event_keys(self, evt):
-        return self._connectors[0].event_keys(evt)
-    def event_native_keys(self, evt):
-        return self._connectors[0].event_native_keys(evt)
-
-class KaraboConnector(object):
     """Translate between EUxfel events and Hummingbird ones"""
     """Note: Karabo provides full trains. We extract pulses from those."""
-    def __init__(self, socket, datasource, pulsecount=30):
+    def __init__(self, state):
 
         # Hack for timing
         self.t0 = timemodule.time()
@@ -81,13 +51,14 @@ class KaraboConnector(object):
 
         self.timestamps = None
         cmdline_args = _argparser.parse_args()
-
-        # Reading data over ZMQ using socket adress
+        self._source = state['euxfel/agipd']
+        
+        # Reading data over ZMQ using socket adress (this is blocking, so this backend only works with one source at a time)
         self._zmq_context = zmq.Context()
         self._zmq_request = self._zmq_context.socket(zmq.REQ)
-        self._zmq_request.connect(socket)
+        self._zmq_request.connect(self._source['socket'])
 
-        # 
+        # Counters
         self._num_read_ahead = 1
         self._pos = 0
         self._data = None
@@ -98,7 +69,7 @@ class KaraboConnector(object):
         # TODO: pulseEnergies, photonEnergies, train meta data, ..., ...        
         # AGIPD
         self._n2c = {}
-        self._mainsource = datasource
+        self._mainsource = self._source['source']
         # Using the AGIPD metadata as our master source of metadata
         self._n2c[self._mainsource] = ['photonPixelDetectors', 'eventID']
         
@@ -115,7 +86,7 @@ class KaraboConnector(object):
         # Define how to translate between EuXFEL sources and Hummingbird ones
         self._s2c = {}
         # AGIPD
-        self._s2c[self._mainsource] = 'AGIPD1'        
+        self._s2c[self._mainsource] = self._mainsource
 
     def check_asked_data(self):
         """"Call for new data if needed."""
@@ -125,7 +96,7 @@ class KaraboConnector(object):
         if self._data is None or self._pos >= pulsecount - self._num_read_ahead:
             self._zmq_request.send(b'next')
             self._asked_data = True
-                    
+            
     def next_event(self):
         """Grabs the next event and returns the translated version"""           
         # Old comment from Onda
@@ -135,23 +106,20 @@ class KaraboConnector(object):
             self.check_asked_data()
             msg = self._zmq_request.recv()
             self._data = msgpack.loads(msg)
-            import pickle
-            # with open('./raw_dump.p', 'wb') as f:
-            #     pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
-            # sys.exit(0)
             self._asked_data = False
             self._pos = 0
             self.ntrains += 1.
-            print(self._data.keys())
-            print(self._data[self._mainsource]['image.pulseId'].shape)
-            print("Train count: ", self.ntrains)
-            print("Trains per sec: ",self.ntrains / (timemodule.time()-self.t0))
+            #print(self._data.keys())
+            #print(self._data[self._mainsource]['image.pulseId'].shape)
+            #print("Train count: ", self.ntrains)
+            #print("Trains per sec: ",self.ntrains / (timemodule.time()-self.t0))
 
         self.check_asked_data()
-        
         result = EventTranslator((self._pos, self._data), self)
-        
+
+        # Update pulse position counter
         self._pos = self._pos + 1
+        
         return result
 
     def event_keys(self, evt):
