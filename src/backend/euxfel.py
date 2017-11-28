@@ -28,10 +28,10 @@ def add_cmdline_args():
     global _argparser
     from utils.cmdline_args import argparser
     _argparser = argparser
-    group = _argparser.add_argument_group('EUxfel', 'Options for the EUxfel event translator')
-    group.add_argument('--euxfel-socket', metavar='euxfel_socket', default='tcp://127.0.0.1:4500',
-                        help="EuXFEL socket address",
-                        type=str)
+    #group = _argparser.add_argument_group('EUxfel', 'Options for the EUxfel event translator')
+    #group.add_argument('--euxfel-socket', metavar='euxfel_socket', default='tcp://127.0.0.1:4500',
+    #                    help="EuXFEL socket address",
+    #                    type=str)
     # TODO
     #group.add_argument('--euxfel-number-of-frames', metavar='euxfel_number_of_frames', nargs='?',
     #                    help="number of frames to be processed",
@@ -40,11 +40,25 @@ def add_cmdline_args():
 #pulsecount = 'header.pulseCount'
 pulsecount = 64
 
-
 class EUxfelTranslator(object):
     def __init__(self,state):
         self._connectors = []
-        self._connectors.append(KaraboConnector(state['socket']))
+        if 'euxfel/agipd_raw_socket' in state:
+            self._connectors.append(KaraboConnector(state['euxfel/agipd_raw_socket']),
+                                    'SPB_DET_AGIPD1M-1/DET', pulsecount=30)
+        if 'euxfel/agipd_calib_socket' in state:
+            self._connectors.append(KaraboConnector(state['euxfel/agipd_calib_socket']),
+                                    'SPB_DET_AGIPD1M-1/DET', pulsecount=30)
+        if 'euxfel/agipd_panel_03_socket' in state:
+            self._connectors.append(KaraboConnector(state['euxfel/agipd_panel_03_socket']),
+                                    'SPB_DET_AGIPD1M-1/DET/3CH0:xtdf', pulsecount=64)
+        if 'euxfel/agipd_panel_04_socket' in state:
+            self._connectors.append(KaraboConnector(state['euxfel/agipd_panel_04_socket']),
+                                    'SPB_DET_AGIPD1M-1/DET/3CH0:xtdf', pulsecount=64)
+        if 'euxfel/agipd_panel_15_socket' in state:
+            self._connectors.append(KaraboConnector(state['euxfel/agipd_panel_15_socket']),
+                                    'SPB_DET_AGIPD1M-1/DET/3CH0:xtdf', pulsecount=64)
+        
     def next_event(self):
         #return [c.next_event() for c in self._connectors]
         return self._connectors[0].next_event()
@@ -59,20 +73,21 @@ class EUxfelTranslator(object):
 class KaraboConnector(object):
     """Translate between EUxfel events and Hummingbird ones"""
     """Note: Karabo provides full trains. We extract pulses from those."""
-    def __init__(self, socket):
-        self.timestamps = None
+    def __init__(self, socket, datasource, pulsecount=30):
+
+        # Hack for timing
         self.t0 = timemodule.time()
         self.ntrains = 0
+
+        self.timestamps = None
         cmdline_args = _argparser.parse_args()
 
-        # Define socket adress by state or cmdl argument
-        # TODO: need to extend to multiple addresses (ports) for different sources
-        self._euxfel_socket = socket
-        # TODO
-        #self.N = cmdline_args.euxfel_number_of_frames
+        # Reading data over ZMQ using socket adress
         self._zmq_context = zmq.Context()
         self._zmq_request = self._zmq_context.socket(zmq.REQ)
-        self._zmq_request.connect(self._euxfel_socket)
+        self._zmq_request.connect(socket)
+
+        # 
         self._num_read_ahead = 1
         self._pos = 0
         self._data = None
@@ -83,7 +98,7 @@ class KaraboConnector(object):
         # TODO: pulseEnergies, photonEnergies, train meta data, ..., ...        
         # AGIPD
         self._n2c = {}
-        self._mainsource = 'SPB_DET_AGIPD1M-1/DET/3CH0:xtdf'
+        self._mainsource = datasource
         # Using the AGIPD metadata as our master source of metadata
         self._n2c[self._mainsource] = ['photonPixelDetectors', 'eventID']
         
