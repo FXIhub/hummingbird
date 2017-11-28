@@ -136,9 +136,9 @@ class KaraboConnector(object):
             msg = self._zmq_request.recv()
             self._data = msgpack.loads(msg)
             import pickle
-            with open('./raw_dump.p', 'wb') as f:
-                pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
-            sys.exit(0)
+            # with open('./raw_dump.p', 'wb') as f:
+            #     pickle.dump(self._data, f, pickle.HIGHEST_PROTOCOL)
+            # sys.exit(0)
             self._asked_data = False
             self._pos = 0
             self.ntrains += 1.
