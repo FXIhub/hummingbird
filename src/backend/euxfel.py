@@ -18,6 +18,7 @@ import zmq
 import msgpack
 import msgpack_numpy
 msgpack_numpy.patch()
+import time as timemodule
 
 from hummingbird import parse_cmdline_args
 
@@ -27,38 +28,38 @@ def add_cmdline_args():
     global _argparser
     from utils.cmdline_args import argparser
     _argparser = argparser
-    group = _argparser.add_argument_group('EUxfel', 'Options for the EUxfel event translator')
-    group.add_argument('--euxfel-socket', metavar='euxfel_socket', default='tcp://127.0.0.1:4500',
-                        help="EuXFEL socket address",
-                        type=str)
+    #group = _argparser.add_argument_group('EUxfel', 'Options for the EUxfel event translator')
+    #group.add_argument('--euxfel-socket', metavar='euxfel_socket', default='tcp://127.0.0.1:4500',
+    #                    help="EuXFEL socket address",
+    #                    type=str)
     # TODO
     #group.add_argument('--euxfel-number-of-frames', metavar='euxfel_number_of_frames', nargs='?',
     #                    help="number of frames to be processed",
     #                    type=int)
 
-pulsecount = 'header.pulseCount'
-    
+
 class EUxfelTranslator(object):
     """Translate between EUxfel events and Hummingbird ones"""
     """Note: Karabo provides full trains. We extract pulses from those."""
     def __init__(self, state):
-        self.timestamps = None
-        
-        cmdline_args = _argparser.parse_args()
 
-        # Define socket adress by state or cmdl argument
-        # TODO: need to extend to multiple addresses (ports) for different sources
-        if 'socket' in state:
-            self._euxfel_socket = state['socket']
-        else:
-            self._euxfel_socket = cmdline_args.euxfel_socket
-        # TODO
-        #self.N = cmdline_args.euxfel_number_of_frames
+        # Hack for timing
+        self.t0 = timemodule.time()
+        self.ntrains = 0
+
+        self.timestamps = None
+        cmdline_args = _argparser.parse_args()
+        self._source = state['euxfel/agipd']
+        
+        # Reading data over ZMQ using socket adress (this is blocking, so this backend only works with one source at a time)
         self._zmq_context = zmq.Context()
         self._zmq_request = self._zmq_context.socket(zmq.REQ)
-        self._zmq_request.connect(self._euxfel_socket)
+        self._zmq_request.connect(self._source['socket'])
+
+        # Counters
         self._num_read_ahead = 1
         self._pos = 0
+        self._pulsecount = None
         self._data = None
         self._asked_data = False
         self.library = 'EUxfel'
@@ -67,9 +68,9 @@ class EUxfelTranslator(object):
         # TODO: pulseEnergies, photonEnergies, train meta data, ..., ...        
         # AGIPD
         self._n2c = {}
-        self._mainsource = 'SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'
+        self._mainsource = self._source['source']
         # Using the AGIPD metadata as our master source of metadata
-        self._n2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = ['photonPixelDetectors', 'eventID']
+        self._n2c[self._mainsource] = ['photonPixelDetectors', 'eventID']
         
 
         # Calculate the inverse mapping
@@ -84,33 +85,39 @@ class EUxfelTranslator(object):
         # Define how to translate between EuXFEL sources and Hummingbird ones
         self._s2c = {}
         # AGIPD
-        self._s2c['SPB_DET_AGIPD1M-1/DET/0CH0:xtdf'] = 'AGIPD1'        
+        self._s2c[self._mainsource] = self._mainsource
 
     def check_asked_data(self):
         """"Call for new data if needed."""
         if self._asked_data:
             return
 
-        if self._data is None or self._pos >= self._data[self._mainsource][pulsecount] - self._num_read_ahead:
+        if self._data is None or (self._pos >= self._pulsecount - self._num_read_ahead):
             self._zmq_request.send(b'next')
             self._asked_data = True
-                    
+            
     def next_event(self):
         """Grabs the next event and returns the translated version"""           
         # Old comment from Onda
         # FM: When running with vetoeing we get data on cells 2,4,6...,28
         # corresponding to indices 4,8,...,56
-        if self._data is None or self._pos == self._data[self._mainsource][pulsecount]:
+        if self._data is None or self._pos == self._pulsecount:
             self.check_asked_data()
             msg = self._zmq_request.recv()
             self._data = msgpack.loads(msg)
             self._asked_data = False
             self._pos = 0
+            self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
+            self.ntrains += 1.
+            #print("Train count: ", self.ntrains)
+            #print("Trains per sec: ",self.ntrains / (timemodule.time()-self.t0))
 
         self.check_asked_data()
         result = EventTranslator((self._pos, self._data), self)
-        
+
+        # Update pulse position counter
         self._pos = self._pos + 1
+        
         return result
 
     def event_keys(self, evt):
@@ -167,6 +174,7 @@ class EUxfelTranslator(object):
         Core keys include  all except: parameters, any psana create key,
         any native key."""
         values = {}
+        #print(evt,evt[0],evt[1])
         for k in self._c2n[key]:
             if k in evt[1]:
                 if key == 'eventID':
@@ -188,23 +196,24 @@ class EUxfelTranslator(object):
         return self.translate(evt, 'eventID')['Timestamp'].timestamp2
 
     def _tr_photon_detector(self, values, obj, evt_key, pos):
-        """Translates pixel detector into Humminbird ADU array"""               
-        add_record(values, 'photonPixelDetectors', self._s2c[evt_key],
-                   obj['image.data'][pos], ureg.ADU)
+        """Translates pixel detector into Humminbird ADU array"""
+        if self._source['format'] == 'combined':
+            img = obj['image.data'][pos]
+        elif self._source['format'] == 'panel':
+            img = obj['image.data'][:,:,0,pos]
+        add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
     def _tr_event_id(self, values, obj, pos):
         """Translates euxfel event ID from some source into a hummingbird one"""
         src_timestamp = obj['metadata']['timestamp']
-        print(src_timestamp, pos)
-        timestamp = src_timestamp['sec'] + src_timestamp['frac'] * 1e-6 + pos * 1e-2
-        print(timestamp)
+        #print(src_timestamp, pos)
+        timestamp = src_timestamp['sec'] + src_timestamp['frac'] * 1e-18 + pos * 1e-2
+        #print(timestamp)
+        #print(timemodule.time()-timestamp)
         time = datetime.datetime.fromtimestamp(timestamp, tz=timezone('utc'))
         time = time.astimezone(tz=timezone('CET'))
         rec = Record('Timestamp', time, ureg.s)
-        #rec.fiducials = obj.fiducials()
-        rec.pulseCount = obj[pulsecount]
+        rec.pulseCount = self._pulsecount
         rec.pulseNo = pos       
-        #rec.timestamp2 = obj['trailer.trainId']
-        rec.timestamp = obj['image.pulseId'][rec.pulseNo]
         rec.timestamp = timestamp
         values[rec.name] = rec
