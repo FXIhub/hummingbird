@@ -103,11 +103,11 @@ class EUxfelTranslator(object):
             msg = self._zmq_request.recv()
             self._data = msgpack.loads(msg)
 
-            import pickle
-            pickle.dump(self._data, open("dump_3ch0.p", "wb"))
-            import sys
-            print("exiting")
-            sys.exit(1)
+            #import pickle
+            #pickle.dump(self._data, open("dump_3ch0.p", "wb"))
+            #import sys
+            #print("exiting")
+            #sys.exit(1)
 
             self._asked_data = False
             self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
@@ -217,10 +217,6 @@ class EUxfelTranslator(object):
                                 gain[numpy.newaxis, ...]))
             
         elif self._source['format'] == 'panel':
-            # Pulses are unfiltered, drop the first 2 frames, keep every second frame up to 30 pulses, drop the rest
-            #valid_pos = range(2,64-2,2)
-            #if pos not in valid_pos:
-            #    return
             # Reshape data such that it becomes (mode, panel, ny, nx) = (2,1,512,128)
             img = numpy.rollaxis(obj['image.data'][:,:,:,pos], 2)
             img = numpy.ascontiguousarray(img.reshape((img.shape[0], 1, img.shape[1], img.shape[2])))
