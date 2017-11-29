@@ -64,7 +64,7 @@ def getAGIPD(evt, record, calibrate=True, assemble=False, copy=True):
 
     if assemble:
         img = analysis.cfel_geom.apply_geometry_from_pixel_maps(data_as_slab, yx, im_out=None)
-        return add_record(evt['analysis'], 'analysis', 'AGIPD_assembled' %(index), img)
+        return add_record(evt['analysis'], 'analysis', 'AGIPD_assembled', img)
     else:
         return add_record(evt['analysis'], 'analysis', 'AGIPD', calData)
 
@@ -147,5 +147,4 @@ class AGIPD_Calibrator:
                 badpixMask[pixGain] = (cellBadpix[lvl][pixGain] != 0)
 
         return calData, badpixMask
-
 
