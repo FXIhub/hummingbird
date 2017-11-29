@@ -11,6 +11,7 @@ import ipc
 import time
 import signal
 
+
 class Worker(object):
     """Coordinates data reading, translation and analysis.
 
@@ -139,7 +140,9 @@ class Worker(object):
                             raise KeyboardInterrupt
                         except AttributeError as e:
                             logging.warning("Attribute error during event translation. Skipping event. (%s)" % e)
-                            continue                            
+                            continue
+                        except IndexError:
+                            continue
                         ipc.set_current_event(evt)
                         try:
                             Worker.conf.onEvent(evt)

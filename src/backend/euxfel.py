@@ -91,33 +91,37 @@ class EUxfelTranslator(object):
         """"Call for new data if needed."""
         if self._asked_data:
             return
-
         if self._data is None or (self._pos >= self._pulsecount - self._num_read_ahead):
             self._zmq_request.send(b'next')
             self._asked_data = True
             
     def next_event(self):
-        """Grabs the next event and returns the translated version"""           
-        # Old comment from Onda
-        # FM: When running with vetoeing we get data on cells 2,4,6...,28
-        # corresponding to indices 4,8,...,56
+        """Grabs the next event and returns the translated version"""
+        # Request new train
         if self._data is None or self._pos == self._pulsecount:
             self.check_asked_data()
             msg = self._zmq_request.recv()
             self._data = msgpack.loads(msg)
             self._asked_data = False
-            self._pos = 0
             self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
-            self.ntrains += 1.
-            #print("Train count: ", self.ntrains)
-            #print("Trains per sec: ",self.ntrains / (timemodule.time()-self.t0))
-
+            self._pos = 0
         self.check_asked_data()
-        result = EventTranslator((self._pos, self._data), self)
 
-        # Update pulse position counter
-        self._pos = self._pos + 1
-        
+        # For the combined data, pulses are filtered, but a train only has 30 pulses, drop the rest of the frames
+        if self._source['format'] == 'combined':
+            if self._pos >= 30:
+                self._pos += 1 # Update pulse position counter
+                raise IndexError
+        # Pulses are unfiltered, drop the first 2 frames, keep every second frame up to 30 pulses, drop the rest
+        elif self._source['format'] == 'panel':
+            valid_pos = range(2,64-2,2)
+            if self._pos not in valid_pos:
+                self._pos += 1 # Update pulse position counter
+                raise IndexError
+
+        # Translate valid pulses
+        result = EventTranslator((self._pos, self._data), self)
+        self._pos += 1 # Update pulse position counter
         return result
 
     def event_keys(self, evt):
@@ -198,9 +202,17 @@ class EUxfelTranslator(object):
     def _tr_photon_detector(self, values, obj, evt_key, pos):
         """Translates pixel detector into Humminbird ADU array"""
         if self._source['format'] == 'combined':
+            # Currently, the data has shape (panel, ny, nx) = (16,512,128)
+            # should be extented to (mode, panel, ny, nx) = (2,16,512,128)
             img = obj['image.data'][pos]
         elif self._source['format'] == 'panel':
-            img = obj['image.data'][:,:,0,pos]
+            # Pulses are unfiltered, drop the first 2 frames, keep every second frame up to 30 pulses, drop the rest
+            #valid_pos = range(2,64-2,2)
+            #if pos not in valid_pos:
+            #    return
+            # Reshape data such that it becomes (mode, panel, ny, nx) = (2,1,512,128)
+            img = numpy.rollaxis(obj['image.data'][:,:,:,pos], 2)
+            img = numpy.ascontiguousarray(img.reshape((img.shape[0], 1, img.shape[1], img.shape[2])))
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
     def _tr_event_id(self, values, obj, pos):
