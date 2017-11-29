@@ -102,6 +102,13 @@ class EUxfelTranslator(object):
             self.check_asked_data()
             msg = self._zmq_request.recv()
             self._data = msgpack.loads(msg)
+
+            import pickle
+            pickle.dump(self._data, open("dump_3ch0.p", "wb"))
+            import sys
+            print("exiting")
+            sys.exit(1)
+
             self._asked_data = False
             self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
             self._pos = 0
@@ -204,7 +211,11 @@ class EUxfelTranslator(object):
         if self._source['format'] == 'combined':
             # Currently, the data has shape (panel, ny, nx) = (16,512,128)
             # should be extented to (mode, panel, ny, nx) = (2,16,512,128)
-            img = obj['image.data'][pos]
+            img_values = obj['image.data'][pos]
+            gain = obj['image.gain'][pos]
+            img = numpy.vstack((img_values[numpy.newaxis, ...],
+                                gain[numpy.newaxis, ...]))
+            
         elif self._source['format'] == 'panel':
             # Pulses are unfiltered, drop the first 2 frames, keep every second frame up to 30 pulses, drop the rest
             #valid_pos = range(2,64-2,2)

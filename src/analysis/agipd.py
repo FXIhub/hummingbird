@@ -12,5 +12,5 @@ def get_panel(evt, record, index):
     """
     Returns one out of the 16 individual panels of the AGIPD by indexing the raw (16,512,128) array.
     """
-    return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d' %(index), record.data[index])
+    return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d' %(index), record.data[:, index])
 
