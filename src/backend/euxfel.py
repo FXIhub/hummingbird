@@ -225,14 +225,14 @@ class EUxfelTranslator(object):
     def _tr_event_id(self, values, obj, pos):
         """Translates euxfel event ID from some source into a hummingbird one"""
         src_timestamp = obj['metadata']['timestamp']
-        #print(src_timestamp, pos)
         timestamp = src_timestamp['sec'] + src_timestamp['frac'] * 1e-18 + pos * 1e-2
-        #print(timestamp)
-        #print(timemodule.time()-timestamp)
         time = datetime.datetime.fromtimestamp(timestamp, tz=timezone('utc'))
         time = time.astimezone(tz=timezone('CET'))
         rec = Record('Timestamp', time, ureg.s)
         rec.pulseCount = self._pulsecount
-        rec.pulseNo = pos       
+        rec.pulseNo = pos
+        rec.pulseId = obj['image.pulseId'][pos]
+        rec.trainId = obj['image.trainId'][pos]
+        rec.cellId  = obj['image.cellId'][pos]
         rec.timestamp = timestamp
         values[rec.name] = rec
