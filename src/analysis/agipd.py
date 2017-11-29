@@ -31,14 +31,18 @@ def getAGIPDCell(evt, record, cellID, calibrate=True, copy=True):
     by calling init_agipd(filename=path_to_calibration_file) before.
     """
 
-    aduData  = record.data[0][cellID]
-    gainData = record.data[1][cellID]
+    is_isolated_panel = record.data.shape[1] == 1
+    aduData  = record.data[0][0 if is_isolated_panel else cellID]
+    gainData = record.data[1][0 if is_isolated_panel else cellID]
+    print(aduData.dtype)
+    print(aduData[0,0])
+    print(gainData[0,0])
 
     if calibrate:
         calData, badpixMask = _agipd_calibrator.calibrate_cell(aduData=aduData, gainData=gainData, cellID=cellID, copy=copy)
-        return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_cal' %(index), calData)
+        return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_cal' %(cellID), calData)
     else:
-        return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_raw' %(index), aduData)
+        return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_raw' %(cellID), aduData)
     
 
 def getAGIPD(evt, record, calibrate=True, assemble=False, copy=True):
@@ -83,7 +87,7 @@ class AGIPD_Calibrator:
         #RelativeGain             Dataset {3, 32, 512, 128} H5T_IEEE_F32LE
         with h5py.File(filename) as f:
             self._badpixData       = np.asarray(f["/Badpixel"])
-            self._offsetData       = np.asarray(f["/AnalogOffset"])
+            self._darkOffsetData   = np.asarray(f["/AnalogOffset"])
             self._relativeGainData = np.asarray(f["/RelativeGain"])
             self._gainLevelData    = np.asarray(f["/DigitalGainLevel"])
 
@@ -103,25 +107,22 @@ class AGIPD_Calibrator:
     def calibrate_cell(self, aduData, gainData, cellID, apply_gain_switch=False, copy=True, mask_write_to=None):
         assert aduData is not None
         assert gainData is not None
-        assert 0 <= cellID < nCells
+        assert (0 <= cellID < nCells)
 
-        # WARNING: we are overwriting the input data for performance reasons
-        copy_data = False
-        if copy_data:
+        if copy:
             calData = np.copy(aduData)
         else:
             calData = aduData
         
-        cellDarkOffeset  = np.asarray([self._darkOffsetData[g][cellID] for g in range(nGains)])
-        cellGainLevel    = np.asarray([self._gainLevelData[g][cellID] for g in range(nGains)])
-        cellRelativeGain = np.asarray([self._relativeGainData[g][cellID] for g in range(nGains)])
         cellBadpix       = np.asarray([self._badpixData[g][cellID] for g in range(nGains)])
+        cellDarkOffset  = np.asarray([self._darkOffsetData[g][cellID] for g in range(nGains)])
+        cellRelativeGain = np.asarray([self._relativeGainData[g][cellID] for g in range(nGains)])
+        cellGainLevel    = np.asarray([self._gainLevelData[g][cellID] for g in range(nGains)])
 
         if mask_write_to is not None:
             baspixMask = mask_write_to
         else:
-            np.empty(shape=aduData.shape, dtype='bool')
-        badpixMask[:] = (cellBadpix != 0)[:]
+            badpixMask = np.empty(shape=aduData.shape, dtype='bool')
         
         if apply_gain_switch:
             # Option: bypass multi-gain calibration
@@ -141,8 +142,9 @@ class AGIPD_Calibrator:
             for lvl, pixGain in enumerate(pixGainLevels):
                 if not pixGain.any():
                     continue
-                calData[pixGain] -= cellDarkOffset[pixGain]
-                calData[pixGain] *= cellRelativeGain[pixGain]
+                calData[pixGain] = calData[pixGain] - cellDarkOffset[lvl][pixGain]
+                calData[pixGain] = calData[pixGain] * cellRelativeGain[lvl][pixGain]
+                badpixMask[pixGain] = (cellBadpix[lvl][pixGain] != 0)
 
         return calData, badpixMask
 
