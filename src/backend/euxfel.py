@@ -220,39 +220,16 @@ class EUxfelTranslator(object):
                                 gain[numpy.newaxis, ...]))
             
         elif self._source['format'] == 'panel':
+            # (128, 512, 2, 64) this is how the data comes in
             img = obj['image.data']
-            # Sometimes the first two axes are swapped for whatever reason
-            if True:
-                # This is dangerous but apparently needed because otherwise we observe stripes in the images
-                img = numpy.reshape(img, newshape=(64, 512, 128, 2))
-                # Move data form axis from the 3rd to the 1st coordinate
-                img = numpy.moveaxis(img, source=3, destination=1)
-                # 1) Select the image at position=pos in train, new shape (nx, ny, mode) = (128, 512, 2)
-                img = img[pos, :, :, :]
-            if False:
-                # Data comes as (128, 512, 2, 64) = (nx, ny, mode, train)
-                # Goal: Reshape data such that it becomes (mode, -, ny, nx) = (2, 1, 512, 128)
-                assert img.shape[0] == 128
-                assert img.shape[1] == 512
-                assert img.shape[2] == 2
-                assert img.shape[3] == 64
-                # 1) Select the image at position=pos in train, new shape (nx, ny, mode) = (128, 512, 2)
-                img = img[:, :, :, pos]
-                # 2) New shape (mode, nx, ny) = (2, 128, 512)
-                img = numpy.moveaxis(img, source=2, destination=0)
-                assert img.shape[0] == 2
-                assert img.shape[1] == 128
-                assert img.shape[2] == 512
-                # 3) New shape (mode, ny, nx) = (2, 512, 128)
-                img = numpy.moveaxis(img, source=1, destination=2)
-            # 4) Insert size 1 dimensions, new shape (mode, -, ny, nx) = (2, 1, 512, 128)
-            assert img.shape[0] == 2
+            assert img.shape[0] == 128
             assert img.shape[1] == 512
-            assert img.shape[2] == 128
-            img = img.reshape((2, 1, 512, 128))
-            # 5) From view to contiguous array
+            assert img.shape[2] == 2
+            assert img.shape[3] == 64
+            img = numpy.reshape(img, newshape=(64, 2, 512, 128))
+            img = img[pos, :, :, :]
+            img = img.reshape((img.shape[0], 1, img.shape[1], img.shape[2]))
             img = numpy.ascontiguousarray(img)
-            # 6) Check final shape
             assert img.shape[0] == 2
             assert img.shape[1] == 1
             assert img.shape[2] == 512
