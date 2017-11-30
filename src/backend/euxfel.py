@@ -103,8 +103,12 @@ class EUxfelTranslator(object):
             msg = self._zmq_request.recv()
             #print(msg)
             self._data = msgpack.loads(msg)
-
-            #print(self._data.shape)
+            current_time = timemodule.time()
+            data_timestamp = self._data['SPB_DET_AGIPD1M-1/DET']['metadata']['timestamp']
+            data_time = data_timestamp['sec'] + data_timestamp['frac'] * 1e-18
+            print("Trains per second: %.2f" %(1. / (current_time - self.t0)))
+            print("Time delay: %.2f" %(current_time - data_time))
+            self.t0 = current_time
 
             # import pickle
             # pickle.dump(self._data, open("dump_raw.p", "wb"))
