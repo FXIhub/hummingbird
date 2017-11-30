@@ -73,7 +73,6 @@ class AGIPD_Calibrator:
 
     def __init__(self, filenames):
         assert len(filenames) == _nPanels
-        print("init2")
         self._badpixData       = []
         self._darkOffsetData   = []
         self._relativeGainData = []
@@ -151,8 +150,6 @@ class AGIPD_Calibrator:
             for g, pixGain in enumerate(pixGainLevels):
                 if not pixGain.any():
                     continue
-                print(calData.shape, cellDarkOffset.shape)
-                print(cellID)
                 calData[pixGain] = calData[pixGain] - cellDarkOffset[g][pixGain]
                 calData[pixGain] = calData[pixGain] * cellRelativeGain[g][pixGain]
                 badpixMask[pixGain] = (cellBadpix[g][pixGain] != 0)
