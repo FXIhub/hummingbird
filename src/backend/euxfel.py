@@ -209,15 +209,14 @@ class EUxfelTranslator(object):
     def _tr_photon_detector(self, values, obj, evt_key, pos):
         """Translates pixel detector into Humminbird ADU array"""
         if self._source['format'] == 'combined':
+            img = obj['image.data'][pos]
             # Currently, the data has shape (panel, ny, nx) = (16,512,128)
             # should be extented to (mode, panel, ny, nx) = (2,16,512,128)
-            img = obj['image.data']
             assert img.shape[0] == 16
             assert img.shape[1] == 512
             assert img.shape[2] == 128
-            img_values = img[pos]
             gain = obj['image.gain'][pos]
-            img = numpy.vstack((img_values[numpy.newaxis, ...],
+            img = numpy.vstack((img[numpy.newaxis, ...],
                                 gain[numpy.newaxis, ...]))
             
         elif self._source['format'] == 'panel':
