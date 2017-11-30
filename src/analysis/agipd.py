@@ -64,7 +64,7 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
         if assemble:
             img = np.zeros(shape=_agipd_img_shape, dtype=calData.dtype)
             img[_agipd_yx[0], _agipd_yx[1]] = calData.ravel()
-            if _agipd_flip180:
+            if _agipd_rot180:
                 img = img[::-1, ::-1]
             return add_record(evt['analysis'], 'analysis', 'AGIPD_assembled', img)
         else:
