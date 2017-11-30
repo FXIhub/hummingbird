@@ -4,7 +4,7 @@
 # -------------------------------------------------------------------------
 """Online backend for reading EUxfel events from zmq."""
 from __future__ import print_function # Compatibility with python 2 and 3
-import os
+import sys,os
 import logging
 from backend.event_translator import EventTranslator
 from backend.record import Record, add_record
@@ -211,16 +211,49 @@ class EUxfelTranslator(object):
         if self._source['format'] == 'combined':
             # Currently, the data has shape (panel, ny, nx) = (16,512,128)
             # should be extented to (mode, panel, ny, nx) = (2,16,512,128)
-            img_values = obj['image.data'][pos]
+            img = obj['image.data']
+            assert img.shape[0] == 16
+            assert img.shape[1] == 512
+            assert img.shape[2] == 128
+            img_values = img[pos]
             gain = obj['image.gain'][pos]
             img = numpy.vstack((img_values[numpy.newaxis, ...],
                                 gain[numpy.newaxis, ...]))
             
         elif self._source['format'] == 'panel':
-            # Reshape data such that it becomes (mode, panel, ny, nx) = (2,1,512,128)
-            img = numpy.rollaxis(obj['image.data'][:,:,:,pos], 2)
-            #img = numpy.ascontiguousarray(img.reshape((img.shape[0], 1, img.shape[1], img.shape[2])))
-            img = numpy.ascontiguousarray(img.reshape((2, 1, 512, 128)))
+            img = obj['image.data']
+            # Sometimes the first two axes are swapped for whatever reason
+            if True:
+                # This is dangerous but apparently needed because otherwise we observe stripes in the images
+                img = numpy.reshape(img, newshape=(64, 512, 128, 2))
+                # Move data form axis from the 3rd to the 1st coordinate
+                img = numpy.moveaxis(img, source=3, destination=1)
+                # 1) Select the image at position=pos in train, new shape (nx, ny, mode) = (128, 512, 2)
+                img = img[pos, :, :, :]
+            if False:
+                # Data comes as (128, 512, 2, 64) = (nx, ny, mode, train)
+                # Goal: Reshape data such that it becomes (mode, -, ny, nx) = (2, 1, 512, 128)
+                assert img.shape[0] == 128
+                assert img.shape[1] == 512
+                assert img.shape[2] == 2
+                assert img.shape[3] == 64
+                # 1) Select the image at position=pos in train, new shape (nx, ny, mode) = (128, 512, 2)
+                img = img[:, :, :, pos]
+                # 2) New shape (mode, nx, ny) = (2, 128, 512)
+                img = numpy.moveaxis(img, source=2, destination=0)
+                assert img.shape[0] == 2
+                assert img.shape[1] == 128
+                assert img.shape[2] == 512
+                # 3) New shape (mode, ny, nx) = (2, 512, 128)
+                img = numpy.moveaxis(img, source=1, destination=2)
+            # 4) Insert size 1 dimensions, new shape (mode, -, ny, nx) = (2, 1, 512, 128)
+            assert img.shape[0] == 2
+            assert img.shape[1] == 512
+            assert img.shape[2] == 128
+            img = img.reshape((2, 1, 512, 128))
+            # 5) From view to contiguous array
+            img = numpy.ascontiguousarray(img)
+            # 6) Check final shape
             assert img.shape[0] == 2
             assert img.shape[1] == 1
             assert img.shape[2] == 512
@@ -236,8 +269,8 @@ class EUxfelTranslator(object):
         rec = Record('Timestamp', time, ureg.s)
         rec.pulseCount = self._pulsecount
         rec.pulseNo = pos
-        rec.pulseId = obj['image.pulseId'][0, pos]
-        rec.cellId  = obj['image.cellId'][0, pos]
-        rec.trainId = obj['header.trainId']
+        rec.pulseId = int(obj['image.pulseId'].ravel()[pos])
+        rec.cellId  = int(obj['image.cellId'].ravel()[pos])
+        #rec.trainId = int(obj['image.trainId'].ravel()[pos])
         rec.timestamp = timestamp
         values[rec.name] = rec
