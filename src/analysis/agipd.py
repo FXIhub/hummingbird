@@ -38,14 +38,15 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
 
     """
 
-    is_isolated_panel = record.data.shape[1] == 1
-    if panelID is None and is_isolated_panel:
+    nPanels = record.data.shape[1]
+    is_isolated_panel = nPanels == 1 and panelID is None
+    if panelID is None and nPanels == 1:
         print("ERROR: Please provide a panelID to identify the panel that shall be processed.")
         return
     
     if is_isolated_panel:
-        aduData  = record.data[0][0 if is_isolated_panel else panelID]
-        gainData = record.data[1][0 if is_isolated_panel else panelID]
+        aduData  = record.data[0][0 if nPanels == 1 else panelID]
+        gainData = record.data[1][0 if nPanels == 1 else panelID]
         calData = np.array(aduData, copy=copy, dtype=np.int32)
         if calibrate:
             _agipd_calibrator.calibrate_panel(aduData=calData, gainData=gainData,
