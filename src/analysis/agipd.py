@@ -41,7 +41,7 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
     """
 
     nPanels = record.data.shape[1]
-    is_isolated_panel = nPanels == 1 and panelID is None
+    is_isolated_panel = panelID is not None
     if panelID is None and nPanels == 1:
         print("ERROR: Please provide a panelID to identify the panel that shall be processed.")
         return
