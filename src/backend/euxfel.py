@@ -4,7 +4,7 @@
 # -------------------------------------------------------------------------
 """Online backend for reading EUxfel events from zmq."""
 from __future__ import print_function # Compatibility with python 2 and 3
-import os
+import sys,os
 import logging
 from backend.event_translator import EventTranslator
 from backend.record import Record, add_record
@@ -212,17 +212,31 @@ class EUxfelTranslator(object):
     def _tr_photon_detector(self, values, obj, evt_key, pos):
         """Translates pixel detector into Humminbird ADU array"""
         if self._source['format'] == 'combined':
+            img = obj['image.data'][pos]
             # Currently, the data has shape (panel, ny, nx) = (16,512,128)
             # should be extented to (mode, panel, ny, nx) = (2,16,512,128)
-            img_values = obj['image.data'][pos]
+            assert img.shape[0] == 16
+            assert img.shape[1] == 512
+            assert img.shape[2] == 128
             gain = obj['image.gain'][pos]
-            img = numpy.vstack((img_values[numpy.newaxis, ...],
+            img = numpy.vstack((img[numpy.newaxis, ...],
                                 gain[numpy.newaxis, ...]))
             
         elif self._source['format'] == 'panel':
-            # Reshape data such that it becomes (mode, panel, ny, nx) = (2,1,512,128)
-            img = numpy.rollaxis(obj['image.data'][:,:,:,pos], 2)
-            img = numpy.ascontiguousarray(img.reshape((img.shape[0], 1, img.shape[1], img.shape[2])))
+            # (128, 512, 2, 64) this is how the data comes in
+            img = obj['image.data']
+            assert img.shape[0] == 128
+            assert img.shape[1] == 512
+            assert img.shape[2] == 2
+            assert img.shape[3] == 64
+            img = numpy.reshape(img, newshape=(64, 2, 512, 128))
+            img = img[pos, :, :, :]
+            img = img.reshape((img.shape[0], 1, img.shape[1], img.shape[2]))
+            img = numpy.ascontiguousarray(img)
+            assert img.shape[0] == 2
+            assert img.shape[1] == 1
+            assert img.shape[2] == 512
+            assert img.shape[3] == 128
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
     def _tr_event_id(self, values, obj, pos):
@@ -234,12 +248,8 @@ class EUxfelTranslator(object):
         rec = Record('Timestamp', time, ureg.s)
         rec.pulseCount = self._pulsecount
         rec.pulseNo = pos
-        #print(obj['image.pulseId'].shape)
-        #print(pos)
-        #import sys
-        #sys.exit(1)
-        #rec.pulseId = obj['image.pulseId'][pos]
-        #rec.trainId = obj['image.trainId'][pos]
-        #rec.cellId  = obj['image.cellId'][pos]
+        rec.pulseId = int(obj['image.pulseId'].ravel()[pos])
+        rec.cellId  = int(obj['image.cellId'].ravel()[pos])
+        #rec.trainId = int(obj['image.trainId'].ravel()[pos])
         rec.timestamp = timestamp
         values[rec.name] = rec
