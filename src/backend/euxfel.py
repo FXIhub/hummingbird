@@ -219,7 +219,12 @@ class EUxfelTranslator(object):
         elif self._source['format'] == 'panel':
             # Reshape data such that it becomes (mode, panel, ny, nx) = (2,1,512,128)
             img = numpy.rollaxis(obj['image.data'][:,:,:,pos], 2)
-            img = numpy.ascontiguousarray(img.reshape((img.shape[0], 1, img.shape[1], img.shape[2])))
+            #img = numpy.ascontiguousarray(img.reshape((img.shape[0], 1, img.shape[1], img.shape[2])))
+            img = numpy.ascontiguousarray(img.reshape((2, 1, 512, 128)))
+            assert img.shape[0] == 2
+            assert img.shape[1] == 1
+            assert img.shape[2] == 512
+            assert img.shape[3] == 128
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
     def _tr_event_id(self, values, obj, pos):
@@ -231,8 +236,8 @@ class EUxfelTranslator(object):
         rec = Record('Timestamp', time, ureg.s)
         rec.pulseCount = self._pulsecount
         rec.pulseNo = pos
-        rec.pulseId = obj['image.pulseId'][pos]
-        rec.trainId = obj['image.trainId'][pos]
-        rec.cellId  = obj['image.cellId'][pos]
+        rec.pulseId = obj['image.pulseId'][0, pos]
+        rec.cellId  = obj['image.cellId'][0, pos]
+        rec.trainId = obj['header.trainId']
         rec.timestamp = timestamp
         values[rec.name] = rec
