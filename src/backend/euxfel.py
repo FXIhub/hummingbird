@@ -101,13 +101,16 @@ class EUxfelTranslator(object):
         if self._data is None or self._pos == self._pulsecount:
             self.check_asked_data()
             msg = self._zmq_request.recv()
+            #print(msg)
             self._data = msgpack.loads(msg)
 
-            #import pickle
-            #pickle.dump(self._data, open("dump_3ch0.p", "wb"))
-            #import sys
-            #print("exiting")
-            #sys.exit(1)
+            #print(self._data.shape)
+
+            # import pickle
+            # pickle.dump(self._data, open("dump_raw.p", "wb"))
+            # import sys
+            # print("exiting")
+            # sys.exit(1)
 
             self._asked_data = False
             self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
@@ -231,8 +234,12 @@ class EUxfelTranslator(object):
         rec = Record('Timestamp', time, ureg.s)
         rec.pulseCount = self._pulsecount
         rec.pulseNo = pos
-        rec.pulseId = obj['image.pulseId'][pos]
-        rec.trainId = obj['image.trainId'][pos]
-        rec.cellId  = obj['image.cellId'][pos]
+        #print(obj['image.pulseId'].shape)
+        #print(pos)
+        #import sys
+        #sys.exit(1)
+        #rec.pulseId = obj['image.pulseId'][pos]
+        #rec.trainId = obj['image.trainId'][pos]
+        #rec.cellId  = obj['image.cellId'][pos]
         rec.timestamp = timestamp
         values[rec.name] = rec
