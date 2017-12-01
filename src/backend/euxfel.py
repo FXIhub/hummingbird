@@ -148,8 +148,7 @@ class EUxfelTranslator(object):
             #     except IOError:
             #         pass
 
-            # Receive slow data once per pulse train
-            
+            # Receive slow data once per pulse train            
             if self._zmq_request_slow_data is not None:
                 self._zmq_request_slow_data.send(b'next')
                 msg = self._zmq_request_slow_data.recv()
