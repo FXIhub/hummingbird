@@ -44,32 +44,36 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
     is_isolated_panel = nPanels == 1 and panelID is None
     if panelID is None and nPanels == 1:
         print("ERROR: Please provide a panelID to identify the panel that shall be processed.")
-        return
+        return        
     
     if is_isolated_panel:
         aduData  = record.data[0][0 if nPanels == 1 else panelID]
         gainData = record.data[1][0 if nPanels == 1 else panelID]
-        calData = np.array(aduData, copy=copy, dtype=np.int32)
-        if calibrate:
-            _agipd_calibrator.calibrate_panel(aduData=calData, gainData=gainData,
-                                              panelID=panelID, cellID=cellID)
-            return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_cal' %(panelID), calData)
-        else:
-            return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_raw' %(panelID), aduData)
     else:
         aduData  = record.data[0] 
         gainData = record.data[1]
-        calData = np.array(aduData, copy=copy, dtype=np.int32)
+        
+    outData = np.array(aduData, copy=copy, dtype='int32')
+        
+    if is_isolated_panel:
         if calibrate:
-            _agipd_calibrator.calibrate_all_panels(aduData=calData, gainData=gainData, cellID=cellID)
+            _agipd_calibrator.calibrate_panel(aduData=aduData, gainData=gainData,
+                                              panelID=panelID, cellID=cellID, write_to_data=outData)
+            return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_cal' %(panelID), outData)
+        else:
+            return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_raw' %(panelID), outData)
+    else:
+        if calibrate:
+            outData = np.array(aduData, copy=copy, dtype=np.int32)
+            _agipd_calibrator.calibrate_all_panels(aduData=outData, gainData=gainData, cellID=cellID, write_to_data=outData)
         if assemble:
-            img = np.zeros(shape=_agipd_img_shape, dtype=calData.dtype)
-            img[_agipd_yx[0], _agipd_yx[1]] = calData.ravel()
+            img = np.zeros(shape=_agipd_img_shape, dtype=outData.dtype)
+            img[_agipd_yx[0], _agipd_yx[1]] = outData.ravel()
             if _agipd_rot180:
                 img = img[::-1, ::-1]
             return add_record(evt['analysis'], 'analysis', 'AGIPD_assembled', img)
         else:
-            return add_record(evt['analysis'], 'analysis', 'AGIPD', calData)
+            return add_record(evt['analysis'], 'analysis', 'AGIPD', outData)
 
 
 class AGIPD_Calibrator:
@@ -101,40 +105,58 @@ class AGIPD_Calibrator:
             self._relativeGainData.append(np.asarray(f["/RelativeGain"]))
             self._gainLevelData.append(np.asarray(f["/DigitalGainLevel"]))
 
-    def calibrate_all_panels(self, aduData, gainData, cellID, apply_gain_switch=False):
-        # WARNING: aduData is overwritten!
-        badpixMask = np.empty(shape=(32, 512, 128), dtype='bool')
+    def calibrate_all_panels(self, aduData, gainData, cellID, apply_gain_switch=False, mask_write_to=None, data_write_to=None):
+        
+        if data_write_to is None:
+            assert str(data_write_to.dtype) == 'int32'
+            outData = data_write_to
+        else:
+            outData = np.array(aduData, copy=True, dtype=np.int32)
 
+        if mask_write_to is None:
+            assert str(mask_write_to.dtype) == 'bool'
+            badpixMask = mask_write_to
+        else:
+            badpixMask = np.ones(shape=aduData.shape, dtype=np.bool)
+            
         for panelID in range(_nPanels):
             self.calibrate_panel(aduData=aduData[panelID],
                                  gainData=gainData[panelID],
                                  panelID=panelID,
                                  cellID=cellID,
-                                 apply_gain_switch=apply_gain_switch, mask_write_to=badpixMask[panelID])
+                                 apply_gain_switch=apply_gain_switch,
+                                 data_write_to=outData[panelID],
+                                 mask_write_to=badpixMask[panelID])
 
-    def calibrate_panel(self, aduData, gainData, cellID, panelID, apply_gain_switch=False, mask_write_to=None):
-        # WARNING: aduData is overwritten!
-        apply_gain_switch = True
+        return outData, badpixMask
+        
+    def calibrate_panel(self, aduData, gainData, cellID, panelID, apply_gain_switch=False, mask_write_to=None, data_write_to=None):
         assert aduData is not None
         assert gainData is not None
         assert (0 <= cellID < _nCells)
         assert (0 <= panelID < _nPanels)
-        assert str(aduData.dtype) == 'int32'
+
+        if data_write_to is None:
+            outData = np.array(aduData, copy=True, dtype=np.int32)
+        else:
+            assert str(data_write_to.dtype) == 'int32'
+            outData = data_write_to
+
+        if mask_write_to is None:
+            badpixMask = np.zeros(shape=aduData.shape, dtype=np.bool)
+        else:
+            assert str(mask_write_to.dtype) == 'bool'
+            badpixMask = mask_write_to
             
         cellBadpix       = np.asarray([self._badpixData[panelID][g][cellID] for g in range(_nGains)])
         cellDarkOffset   = np.asarray([self._darkOffsetData[panelID][g][cellID] for g in range(_nGains)])
         cellRelativeGain = np.asarray([self._relativeGainData[panelID][g][cellID] for g in range(_nGains)])
         cellGainLevel    = np.asarray([self._gainLevelData[panelID][g][cellID] for g in range(_nGains)])
-
-        if mask_write_to is not None:
-            badpixMask = mask_write_to
-        else:
-            badpixMask = np.empty(shape=aduData.shape, dtype='bool')
         
         if apply_gain_switch:
             # Option: bypass multi-gain calibration
             # In this case use only the gain0 offset
-            aduData -= cellDarkOffset[0]
+            outData -= cellDarkOffset[0]
         else:
 	    # Determine which gain stage by thresholding
             # Thresholding for gain level 3 is dodgy - thresholds merge
@@ -150,7 +172,9 @@ class AGIPD_Calibrator:
             for g, pixGain in enumerate(pixGainLevels):
                 if not pixGain.any():
                     continue
-                aduData[pixGain] = aduData[pixGain] - cellDarkOffset[g][pixGain]
-                aduData[pixGain] = aduData[pixGain] * cellRelativeGain[g][pixGain]
+                outData[pixGain] = outData[pixGain] - cellDarkOffset[g][pixGain]
+                outData[pixGain] = outData[pixGain] * cellRelativeGain[g][pixGain]
                 badpixMask[pixGain] = (cellBadpix[g][pixGain] != 0)
+
+        return outData, badpixMask
 
