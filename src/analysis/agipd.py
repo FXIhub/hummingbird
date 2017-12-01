@@ -152,5 +152,7 @@ class AGIPD_Calibrator:
                     continue
                 aduData[pixGain] = aduData[pixGain] - cellDarkOffset[g][pixGain]
                 aduData[pixGain] = aduData[pixGain] * cellRelativeGain[g][pixGain]
+                aduData[pixGain] *= (cellBadpix[g][pixGain] == 0)
                 badpixMask[pixGain] = (cellBadpix[g][pixGain] != 0)
+
 
