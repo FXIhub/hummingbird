@@ -45,6 +45,8 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
     if panelID is None and nPanels == 1:
         print("ERROR: Please provide a panelID to identify the panel that shall be processed.")
         return
+    if assemble and panelID is not None:
+        print("WARNING: Cannot assemble a single panel.")
     
     if is_isolated_panel:
         aduData  = record.data[0][0 if nPanels == 1 else panelID]
@@ -110,7 +112,8 @@ class AGIPD_Calibrator:
                                  gainData=gainData[panelID],
                                  panelID=panelID,
                                  cellID=cellID,
-                                 apply_gain_switch=apply_gain_switch, mask_write_to=badpixMask[panelID])
+                                 apply_gain_switch=apply_gain_switch,
+                                 mask_write_to=badpixMask[panelID])
 
     def calibrate_panel(self, aduData, gainData, cellID, panelID, apply_gain_switch=False, mask_write_to=None):
         # WARNING: aduData is overwritten!
