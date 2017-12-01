@@ -300,12 +300,6 @@ class EUxfelTranslator(object):
         values[rec.name] = rec
 
     def _tr_slow_data(self, values, slow_data):
-        # rec = Record("slowData", 0., ureg.s)
-        # rec.full_dict = self._slow_data
-        # values[rec.name] = rec
-        # print(self._slow_data)
-        # import sys
-        # sys.exit(1)
-        add_record(values, "slowData", "full_dict", self._slow_data, None)
-        #values[rec.name, 
+        for k,v in slow_data.items():
+            add_record(values, "slowData", k, v, None)
         
