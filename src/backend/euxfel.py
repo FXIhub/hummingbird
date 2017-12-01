@@ -64,13 +64,7 @@ class EUxfelTranslator(object):
         self._zmq_request.connect(self._source['socket'])
 
         # Slow data zmq
-        if "slow_data_socket" in self._source:
-            self._zmq_context_slow_data = zmq.Context()
-            self._zmq_request_slow_data = self._zmq_context_slow_data.socket(zmq.REQ)
-            self._zmq_request_slow_data.connect(self._source["slow_data_socket"])
-            self._zmq_request_slow_data.RCVTIMEO = 1000
-        else:
-            self._zmq_request_slow_data = None
+        self.init_slow_data_reader()
 
         # Counters
         self._num_read_ahead = 1
@@ -103,6 +97,16 @@ class EUxfelTranslator(object):
         # AGIPD
         self._s2c[self._mainsource] = self._mainsource
 
+    def init_slow_data_reader(self):
+        if "slow_data_socket" in self._source:
+            self._zmq_context_slow_data = zmq.Context()
+            self._zmq_request_slow_data = self._zmq_context_slow_data.socket(zmq.REQ)
+            self._zmq_request_slow_data.connect(self._source["slow_data_socket"])
+            self._zmq_request_slow_data.RCVTIMEO = 1000
+            self._slow_data_active = True
+        else:
+            self._zmq_request_slow_data = None
+
     def check_asked_data(self):
         """"Call for new data if needed."""
         if self._asked_data:
@@ -125,7 +129,7 @@ class EUxfelTranslator(object):
             print("Trains per second: %.2f" %(1. / (current_time - self.t0)))
             print("Time delay: %.2f" %(current_time - data_time))
             self.t0 = current_time
-
+            self.ntrains += 1
             # import pickle
             # pickle.dump(self._data, open("dump_raw.p", "wb"))
             # import sys
@@ -148,13 +152,20 @@ class EUxfelTranslator(object):
             #     except IOError:
             #         pass
 
-            # Receive slow data once per pulse train            
-            if self._zmq_request_slow_data is not None:
-                self._zmq_request_slow_data.send(b'next')
-                msg = self._zmq_request_slow_data.recv()
-                #print(msg[:100])
-                self._slow_data = msgpack.loads(msg)
-
+            # Receive slow data once per pulse train
+            if (self._zmq_request_slow_data is not None) and (not (self.ntrains % 20) or self._slow_data_active):
+                if not (self._slow_data_active):
+                    self.init_slow_data_reader()
+                try:
+                    self._zmq_request_slow_data.send(b'next')
+                    msg = self._zmq_request_slow_data.recv()
+                    self._slow_data = msgpack.loads(msg)
+                    self._slow_data_active = True
+                except zmq.error.Again:
+                    self._slow_data_active = False
+            else:
+                self._slow_data = None
+            
             self._asked_data = False
             self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
             self._pos = 0
@@ -300,6 +311,7 @@ class EUxfelTranslator(object):
         values[rec.name] = rec
 
     def _tr_slow_data(self, values, slow_data):
-        for k,v in slow_data.items():
-            add_record(values, "slowData", k, v, None)
+        if (slow_data is not None):
+            for k,v in slow_data.items():
+                add_record(values, "slowData", k, v, None)
         
