@@ -26,8 +26,8 @@ _agipd_rot180     = False
 def init_geom(filename, rot180=False):
     global _agipd_yx, _agipd_slap_shape, _agipd_img_shape, _agipd_rot180
     _agipd_yx, _agipd_slap_shape, _agipd_img_shape = analysis.cfel_geom.pixel_maps_for_image_view(geometry_filename=filename)    
-    _agipd_rot180 = rot180
-
+    _agipd_rot180 = rot180    
+    
 def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=False, copy=True):
     """
     Returns individual panels or the entire frame of the AGIPD.
@@ -44,7 +44,12 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
     is_isolated_panel = nPanels == 1 and panelID is None
     if panelID is None and nPanels == 1:
         print("ERROR: Please provide a panelID to identify the panel that shall be processed.")
-        return        
+        return
+
+    is_group_of_panels = isinstance(panelID, list)
+    if is_group_of_panels and not nPanels == len(panelID):
+        print("ERROR: Please provide a panelID list that matches the number of panels given.")
+        return
     
     if is_isolated_panel:
         aduData  = record.data[0][0 if nPanels == 1 else panelID]
@@ -65,16 +70,21 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
     else:
         if calibrate:
             outData = np.array(aduData, copy=copy, dtype=np.int32)
-            _agipd_calibrator.calibrate_all_panels(aduData=outData, gainData=gainData, cellID=cellID, write_to_data=outData)
+            _agipd_calibrator.calibrate_panels(aduData=outData, gainData=gainData,
+                                               panelID=panelID, cellID=cellID, write_to_data=outData)
         if assemble:
             img = np.zeros(shape=_agipd_img_shape, dtype=outData.dtype)
-            img[_agipd_yx[0], _agipd_yx[1]] = outData.ravel()
+            if panelID is None:
+                p_list = range(_nPanels)
+            else:
+                p_list = panelID
+            for i, p in enumerate(p_list):
+                img[_agipd_yx[0][i], _agipd_yx[1][i]] = outData[i].ravel()
             if _agipd_rot180:
                 img = img[::-1, ::-1]
             return add_record(evt['analysis'], 'analysis', 'AGIPD_assembled', img)
         else:
             return add_record(evt['analysis'], 'analysis', 'AGIPD', outData)
-
 
 class AGIPD_Calibrator:
 
@@ -105,7 +115,12 @@ class AGIPD_Calibrator:
             self._relativeGainData.append(np.asarray(f["/RelativeGain"]))
             self._gainLevelData.append(np.asarray(f["/DigitalGainLevel"]))
 
-    def calibrate_all_panels(self, aduData, gainData, cellID, apply_gain_switch=False, mask_write_to=None, data_write_to=None):
+    def calibrate_panels(self, aduData, gainData, cellID, panelID=None, apply_gain_switch=False, mask_write_to=None, data_write_to=None):
+
+        if panelID is None:
+            p_list = range(_nPanels)
+        else:
+            p_list = panelID
         
         if data_write_to is None:
             assert str(data_write_to.dtype) == 'int32'
@@ -119,14 +134,14 @@ class AGIPD_Calibrator:
         else:
             badpixMask = np.ones(shape=aduData.shape, dtype=np.bool)
             
-        for panelID in range(_nPanels):
-            self.calibrate_panel(aduData=aduData[panelID],
-                                 gainData=gainData[panelID],
-                                 panelID=panelID,
+        for i, p in enumerate(p_list):
+            self.calibrate_panel(aduData=aduData[i],
+                                 gainData=gainData[i],
+                                 panelID=p,
                                  cellID=cellID,
                                  apply_gain_switch=apply_gain_switch,
-                                 data_write_to=outData[panelID],
-                                 mask_write_to=badpixMask[panelID])
+                                 data_write_to=outData[i],
+                                 mask_write_to=badpixMask[i])
 
         return outData, badpixMask
         
