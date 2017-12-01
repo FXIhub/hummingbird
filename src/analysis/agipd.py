@@ -114,7 +114,7 @@ class AGIPD_Calibrator:
 
     def calibrate_panel(self, aduData, gainData, cellID, panelID, apply_gain_switch=False, mask_write_to=None):
         # WARNING: aduData is overwritten!
-        apply_gain_switch = True
+        apply_gain_switch = False
         assert aduData is not None
         assert gainData is not None
         assert (0 <= cellID < _nCells)
