@@ -124,7 +124,7 @@ class EUxfelTranslator(object):
             #print(msg)
             self._data = msgpack.loads(msg)
             current_time = timemodule.time()
-            data_timestamp = self._data['SPB_DET_AGIPD1M-1/DET']['metadata']['timestamp']
+            data_timestamp = self._data[self._mainsource]['metadata']['timestamp']
             data_time = data_timestamp['sec'] + data_timestamp['frac'] * 1e-18
             print("Trains per second: %.2f" %(1. / (current_time - self.t0)))
             print("Time delay: %.2f" %(current_time - data_time))
