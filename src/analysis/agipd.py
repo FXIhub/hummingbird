@@ -43,13 +43,13 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
     """
 
     nPanels = record.data.shape[1]
-    is_isolated_panel = panelID is not None
-    if panelID is None and nPanels == 1:
-        print("ERROR: Please provide a panelID to identify the panel that shall be processed.")
-        return
     is_group_of_panels = isinstance(panelID, list)
     if is_group_of_panels and not nPanels == len(panelID):
         print("ERROR: Please provide a panelID list that matches the number of panels given.")
+        return
+    is_isolated_panel = (panelID is not None if not is_group_of_panels else False)
+    if panelID is None and nPanels == 1:
+        print("ERROR: Please provide a panelID to identify the panel that shall be processed.")
         return
 
     if is_isolated_panel:
