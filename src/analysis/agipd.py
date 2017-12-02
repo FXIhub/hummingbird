@@ -26,6 +26,8 @@ _agipd_rot180     = False
 def init_geom(filename, rot180=False):
     global _agipd_yx, _agipd_slap_shape, _agipd_img_shape, _agipd_rot180
     _agipd_yx, _agipd_slap_shape, _agipd_img_shape = analysis.cfel_geom.pixel_maps_for_image_view(geometry_filename=filename)    
+    _agipd_yx = np.asarray(_agipd_yx, dtype=np.int64)
+    _agipd_yx = _agipd_yx.reshape((2, 16, _agipd_yx[0].size//16))
     _agipd_rot180 = rot180    
     
 def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=False, copy=True):
@@ -41,7 +43,7 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
     """
 
     nPanels = record.data.shape[1]
-    is_isolated_panel = nPanels == 1 and panelID is None
+    is_isolated_panel = panelID is not None
     if panelID is None and nPanels == 1:
         print("ERROR: Please provide a panelID to identify the panel that shall be processed.")
         return
@@ -115,22 +117,22 @@ class AGIPD_Calibrator:
             self._relativeGainData.append(np.asarray(f["/RelativeGain"]))
             self._gainLevelData.append(np.asarray(f["/DigitalGainLevel"]))
 
-    def calibrate_panels(self, aduData, gainData, cellID, panelID=None, apply_gain_switch=False, mask_write_to=None, data_write_to=None):
+    def calibrate_panels(self, aduData, gainData, cellID, panelID=None, apply_gain_switch=False, write_to_mask=None, write_to_data=None):
 
         if panelID is None:
             p_list = range(_nPanels)
         else:
             p_list = panelID
         
-        if data_write_to is None:
-            assert str(data_write_to.dtype) == 'int32'
-            outData = data_write_to
+        if write_to_data is not None:
+            assert str(write_to_data.dtype) == 'int32'
+            outData = write_to_data
         else:
             outData = np.array(aduData, copy=True, dtype=np.int32)
 
-        if mask_write_to is None:
-            assert str(mask_write_to.dtype) == 'bool'
-            badpixMask = mask_write_to
+        if write_to_mask is not None:
+            assert str(write_to_mask.dtype) == 'bool'
+            badpixMask = write_to_mask
         else:
             badpixMask = np.ones(shape=aduData.shape, dtype=np.bool)
             
@@ -140,28 +142,28 @@ class AGIPD_Calibrator:
                                  panelID=p,
                                  cellID=cellID,
                                  apply_gain_switch=apply_gain_switch,
-                                 data_write_to=outData[i],
-                                 mask_write_to=badpixMask[i])
+                                 write_to_data=outData[i],
+                                 write_to_mask=badpixMask[i])
 
         return outData, badpixMask
-        
-    def calibrate_panel(self, aduData, gainData, cellID, panelID, apply_gain_switch=False, mask_write_to=None, data_write_to=None):
+
+    def calibrate_panel(self, aduData, gainData, cellID, panelID, apply_gain_switch=False, write_to_mask=None, write_to_data=None):
         assert aduData is not None
         assert gainData is not None
         assert (0 <= cellID < _nCells)
         assert (0 <= panelID < _nPanels)
 
-        if data_write_to is None:
+        if write_to_data is not None:
+            assert str(write_to_data.dtype) == 'int32'
+            outData = write_to_data
+        else:
             outData = np.array(aduData, copy=True, dtype=np.int32)
-        else:
-            assert str(data_write_to.dtype) == 'int32'
-            outData = data_write_to
 
-        if mask_write_to is None:
-            badpixMask = np.zeros(shape=aduData.shape, dtype=np.bool)
+        if write_to_mask is not None:
+            assert str(write_to_mask.dtype) == 'bool'
+            badpixMask = write_to_mask
         else:
-            assert str(mask_write_to.dtype) == 'bool'
-            badpixMask = mask_write_to
+            badpixMask = np.zeros(shape=aduData.shape, dtype=np.bool)
             
         cellBadpix       = np.asarray([self._badpixData[panelID][g][cellID] for g in range(_nGains)])
         cellDarkOffset   = np.asarray([self._darkOffsetData[panelID][g][cellID] for g in range(_nGains)])
@@ -192,4 +194,3 @@ class AGIPD_Calibrator:
                 badpixMask[pixGain] = (cellBadpix[g][pixGain] != 0)
 
         return outData, badpixMask
-

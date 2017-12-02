@@ -19,6 +19,7 @@ import msgpack
 import msgpack_numpy
 msgpack_numpy.patch()
 import time as timemodule
+import pickle
 
 from hummingbird import parse_cmdline_args
 
@@ -50,11 +51,20 @@ class EUxfelTranslator(object):
         self.timestamps = None
         cmdline_args = _argparser.parse_args()
         self._source = state['euxfel/agipd']
+
+        self._slow_data = None
+        if "slow_data_file" in self._source:
+            self._slow_data_file = self._source["slow_data_file"]
+        else:
+            self._slow_data_file = None
         
         # Reading data over ZMQ using socket adress (this is blocking, so this backend only works with one source at a time)
         self._zmq_context = zmq.Context()
         self._zmq_request = self._zmq_context.socket(zmq.REQ)
         self._zmq_request.connect(self._source['socket'])
+
+        # Slow data zmq
+        self.init_slow_data_reader()
 
         # Counters
         self._num_read_ahead = 1
@@ -70,7 +80,7 @@ class EUxfelTranslator(object):
         self._n2c = {}
         self._mainsource = self._source['source']
         # Using the AGIPD metadata as our master source of metadata
-        self._n2c[self._mainsource] = ['photonPixelDetectors', 'eventID']
+        self._n2c[self._mainsource] = ['photonPixelDetectors', 'eventID', 'slowData']
         
 
         # Calculate the inverse mapping
@@ -86,6 +96,16 @@ class EUxfelTranslator(object):
         self._s2c = {}
         # AGIPD
         self._s2c[self._mainsource] = self._mainsource
+
+    def init_slow_data_reader(self):
+        if "slow_data_socket" in self._source:
+            self._zmq_context_slow_data = zmq.Context()
+            self._zmq_request_slow_data = self._zmq_context_slow_data.socket(zmq.REQ)
+            self._zmq_request_slow_data.connect(self._source["slow_data_socket"])
+            self._zmq_request_slow_data.RCVTIMEO = 1000
+            self._slow_data_active = True
+        else:
+            self._zmq_request_slow_data = None
 
     def check_asked_data(self):
         """"Call for new data if needed."""
@@ -109,13 +129,43 @@ class EUxfelTranslator(object):
             print("Trains per second: %.2f" %(1. / (current_time - self.t0)))
             print("Time delay: %.2f" %(current_time - data_time))
             self.t0 = current_time
-
+            self.ntrains += 1
             # import pickle
             # pickle.dump(self._data, open("dump_raw.p", "wb"))
             # import sys
             # print("exiting")
             # sys.exit(1)
 
+            # # Read slow data once per pulse train
+            # if (self._slow_data_file is not None and
+            #     os.path.isfile(self._slow_data_file)):
+            #     try:
+            #         data_read = False
+            #         while not data_read:
+            #             with open(self._slow_data_file, "rb") as file_handle:
+            #                 self._slow_data = pickle.load(file_handle)
+            #                 data_read = True
+            #                 #print(self._slow_data)
+            #                 # print("slow data read")
+            #                 # import sys
+            #                 # sys.exit(1)
+            #     except IOError:
+            #         pass
+
+            # Receive slow data once per pulse train
+            if (self._zmq_request_slow_data is not None) and (not (self.ntrains % 20) or self._slow_data_active):
+                if not (self._slow_data_active):
+                    self.init_slow_data_reader()
+                try:
+                    self._zmq_request_slow_data.send(b'next')
+                    msg = self._zmq_request_slow_data.recv()
+                    self._slow_data = msgpack.loads(msg)
+                    self._slow_data_active = True
+                except zmq.error.Again:
+                    self._slow_data_active = False
+            else:
+                self._slow_data = None
+            
             self._asked_data = False
             self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
             self._pos = 0
@@ -134,7 +184,7 @@ class EUxfelTranslator(object):
                 raise IndexError
 
         # Translate valid pulses
-        result = EventTranslator((self._pos, self._data), self)
+        result = EventTranslator((self._pos, self._data, self._slow_data), self)
         self._pos += 1 # Update pulse position counter
         return result
 
@@ -199,6 +249,8 @@ class EUxfelTranslator(object):
                     self._tr_event_id(values, evt[1][k], evt[0])
                 elif key == 'photonPixelDetectors':
                     self._tr_photon_detector(values, evt[1][k], k, evt[0])
+                elif key == 'slowData':
+                    self._tr_slow_data(values, evt[2])
                 else:
                     raise RuntimeError('%s not yet supported with key %s' % (k, key))
                 
@@ -257,3 +309,9 @@ class EUxfelTranslator(object):
         #rec.trainId = int(obj['image.trainId'].ravel()[pos])
         rec.timestamp = timestamp
         values[rec.name] = rec
+
+    def _tr_slow_data(self, values, slow_data):
+        if (slow_data is not None):
+            for k,v in slow_data.items():
+                add_record(values, "slowData", k, v, None)
+        
