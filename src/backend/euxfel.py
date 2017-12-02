@@ -57,11 +57,12 @@ class EUxfelTranslator(object):
             self._slow_data_file = self._source["slow_data_file"]
         else:
             self._slow_data_file = None
-        
+
         # Reading data over ZMQ using socket adress (this is blocking, so this backend only works with one source at a time)
         self._zmq_context = zmq.Context()
         self._zmq_request = self._zmq_context.socket(zmq.REQ)
         self._zmq_request.connect(self._source['socket'])
+        #print(self._source['socket'])
 
         # Slow data zmq
         self.init_slow_data_reader()
@@ -81,7 +82,7 @@ class EUxfelTranslator(object):
         self._mainsource = self._source['source']
         # Using the AGIPD metadata as our master source of metadata
         self._n2c[self._mainsource] = ['photonPixelDetectors', 'eventID', 'slowData']
-        
+        #self._n2c['synced'] = ['photonPixelDetectors']
 
         # Calculate the inverse mapping
         self._c2n = {}
@@ -96,6 +97,7 @@ class EUxfelTranslator(object):
         self._s2c = {}
         # AGIPD
         self._s2c[self._mainsource] = self._mainsource
+        #self._s2c['synced'] = 'synced'
 
     def init_slow_data_reader(self):
         if "slow_data_socket" in self._source:
@@ -120,11 +122,13 @@ class EUxfelTranslator(object):
         # Request new train
         if self._data is None or self._pos == self._pulsecount:
             self.check_asked_data()
+            #print("next")
             msg = self._zmq_request.recv()
             #print(msg)
             self._data = msgpack.loads(msg)
             current_time = timemodule.time()
-            data_timestamp = self._data['SPB_DET_AGIPD1M-1/DET']['metadata']['timestamp']
+            #data_timestamp = self._data['SPB_DET_AGIPD1M-1/DET']['metadata']['timestamp']
+            data_timestamp = self._data[0][list(self._data[0].keys())[0]]['metadata']['timestamp']
             data_time = data_timestamp['sec'] + data_timestamp['frac'] * 1e-18
             print("Trains per second: %.2f" %(1. / (current_time - self.t0)))
             print("Time delay: %.2f" %(current_time - data_time))
@@ -165,9 +169,12 @@ class EUxfelTranslator(object):
                     self._slow_data_active = False
             else:
                 self._slow_data = None
-            
+
             self._asked_data = False
-            self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
+            if self._source['format'] == 'synced':
+                self._pulsecount = len(self._data[0][list(self._data[0].keys())[0]]['image.pulseId'].squeeze())
+            else:
+                self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
             self._pos = 0
         self.check_asked_data()
 
@@ -177,7 +184,7 @@ class EUxfelTranslator(object):
                 self._pos += 1 # Update pulse position counter
                 raise IndexError
         # Pulses are unfiltered, drop the first 2 frames, keep every second frame up to 30 pulses, drop the rest
-        elif self._source['format'] == 'panel':
+        elif self._source['format'] == 'panel' or self._source['format'] == 'synced':
             valid_pos = range(2,64-2,2)
             if self._pos not in valid_pos:
                 self._pos += 1 # Update pulse position counter
@@ -241,6 +248,7 @@ class EUxfelTranslator(object):
 
         Core keys include  all except: parameters, any psana create key,
         any native key."""
+        #print(evt[1].keys())
         values = {}
         #print(evt,evt[0],evt[1])
         for k in self._c2n[key]:
@@ -253,6 +261,12 @@ class EUxfelTranslator(object):
                     self._tr_slow_data(values, evt[2])
                 else:
                     raise RuntimeError('%s not yet supported with key %s' % (k, key))
+            if k == 'synced':
+                if key == 'eventID':
+                    l = list(evt[1][0].keys())[0]
+                    self._tr_event_id(values, evt[1][0][l], evt[0])
+                elif key == 'photonPixelDetectors':
+                    self._tr_photon_detector(values, evt[1], k, evt[0])
                 
         return values
 
@@ -277,6 +291,7 @@ class EUxfelTranslator(object):
             gain = obj['image.gain'][pos]
             img = numpy.vstack((img[numpy.newaxis, ...],
                                 gain[numpy.newaxis, ...]))
+            add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
             
         elif self._source['format'] == 'panel':
             # (128, 512, 2, 64) this is how the data comes in
@@ -293,7 +308,34 @@ class EUxfelTranslator(object):
             assert img.shape[1] == 1
             assert img.shape[2] == 512
             assert img.shape[3] == 128
-        add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
+            add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
+
+        elif self._source['format'] == 'synced':
+            images = numpy.zeros((2, len(self._data), 512, 128), dtype="uint16")
+            for panel_index, this_data in enumerate(self._data):
+                key = list(this_data.keys())[0]
+                img = this_data[key]["image.data"][...]
+                img = numpy.reshape(img, newshape=(64, 2, 512, 128))
+                img = img[pos, :, :, :]
+                #img = img.reshape((img.shape[0], 1, img.shape[1], img.shape[2]))
+                images[:, panel_index, :, :] = img
+            img = images
+            add_record(values, 'photonPixelDetectors', 'synced', img, ureg.ADU)
+
+            
+
+        # if self._reading_synced_data and self._synced_data is not None:
+        #     images = numpy.zeros((len(self._synced_data), 2, 512, 128), dtype="uint16")
+        #     for panel_index, this_data in enumerate(self._synced_data):
+        #         img = this_data["SPB_DET_AGIPD1M-1/DET/3CH0:xtdf"]["image.data"][...]
+        #         img = numpy.reshape(img, newshape=(64, 2, 512, 128))
+        #         img = img[pos, :, :, :]
+        #         #img = img.reshape((img.shape[0], 1, img.shape[1], img.shape[2]))
+        #         images[panel_index, :, :, :] = img
+        #     add_record(values, "photonPixelDetectors", "synced", images, ureg.ADU)
+        # else:
+        #     add_record(values, "photonPixelDetectors", "synced", None, ureg.ADU)
+
 
     def _tr_event_id(self, values, obj, pos):
         """Translates euxfel event ID from some source into a hummingbird one"""
