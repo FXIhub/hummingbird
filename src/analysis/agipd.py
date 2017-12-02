@@ -146,7 +146,7 @@ class AGIPD_Calibrator:
 
         return outData, badpixMask
 
-    def calibrate_panel(self, aduData, gainData, cellID, panelID, apply_gain_switch=False, write_to_mask=None, write_to_data=None):
+    def calibrate_panel(self, aduData, gainData, cellID, panelID, apply_gain_switch=True, write_to_mask=None, write_to_data=None):
         assert aduData is not None
         assert gainData is not None
         assert (0 <= cellID < _nCells)
