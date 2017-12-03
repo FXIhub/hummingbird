@@ -286,6 +286,10 @@ class EUxfelTranslator(object):
                     self._tr_event_id(values, evt[1][0][l], evt[0])
                 elif key == 'photonPixelDetectors':
                     self._tr_photon_detector(values, evt[1], k, evt[0])
+                elif key == 'slowData':
+                    self._tr_slow_data(values, evt[2])
+                else:
+                    raise RuntimeError('%s not yet supported with key %s' % (k, key))
                 
         return values
 
