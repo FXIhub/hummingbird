@@ -245,11 +245,13 @@ def bin(evt, type, key, binning, mask=None):
     if binned_mask is not None:
         add_record(evt["analysis"], "analysis", "binned mask - "+key, binned_mask)
 
-def radial(evt, type, key, mask=None, cx=None, cy=None):
+def radial(evt, record, mask=None, cx=None, cy=None, key=''):
     """Compute the radial average of a detector image given the center position (and a mask). 
     Adds the records ``evt["analysis"]["radial average - " + key]`` and ``evt["analysis"]["radial distance - " + key]``.
 
     .. note:: This feature depends on the python package `libspimage <https://github.com/FilipeMaia/libspimage>`_.
+
+    TODO: Updated docstring
 
     Args:
         :evt:        The event variable
@@ -268,14 +270,18 @@ def radial(evt, type, key, mask=None, cx=None, cy=None):
     if not success:
         print("Skipping analysis.pixel_detector.radial")
         return
-    image = evt[type][key].data
+    image = record.data
     r, img_r = spimage.radialMeanImage(image, msk=mask, cx=cx, cy=cy, output_r=True)
     valid = np.isfinite(img_r)
     if valid.sum() > 0:
         r = r[valid]
         img_r = img_r[valid]
-    add_record(evt["analysis"], "analysis", "radial distance - " + key, r)
-    add_record(evt["analysis"], "analysis", "radial average - "  + key, img_r)
+    r_rec = add_record(evt["analysis"], "analysis", "radial distance - " + key, r)
+    img_rec = add_record(evt["analysis"], "analysis", "radial average - "  + key, img_r)
+    return r_rec, img_rec
+
+
+
 
 def commonModeCSPAD2x2(evt, type, key, mask=None):
     """Subtraction of common mode using median value of masked pixels (left and right half of detector are treated separately). 
