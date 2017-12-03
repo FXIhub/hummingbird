@@ -30,7 +30,7 @@ def init_geom(filename, rot180=False):
     _agipd_yx = _agipd_yx.reshape((2, 16, _agipd_yx[0].size//16))
     _agipd_rot180 = rot180    
     
-def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=False, copy=True):
+def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=False, copy=True, crop=None):
     """
     Returns individual panels or the entire frame of the AGIPD.
 
@@ -81,7 +81,9 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
             else:
                 p_list = panelID
             for i, p in enumerate(p_list):
-                img[_agipd_yx[0][i], _agipd_yx[1][i]] = outData[i].ravel()
+                img[_agipd_yx[0][p], _agipd_yx[1][p]] = outData[i].ravel()
+            if crop is not None:
+                img = img[crop[0][0]:crop[0][1], crop[1][0]:crop[1][1]]
             if _agipd_rot180:
                 img = img[::-1, ::-1]
             return add_record(evt['analysis'], 'analysis', 'AGIPD_assembled', img)

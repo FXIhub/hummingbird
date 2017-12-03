@@ -60,8 +60,17 @@ class EUxfelTranslator(object):
 
         # Reading data over ZMQ using socket adress (this is blocking, so this backend only works with one source at a time)
         self._zmq_context = zmq.Context()
-        self._zmq_request = self._zmq_context.socket(zmq.REQ)
+        if self._source['format'] == 'synced':
+            self._zmq_request = self._zmq_context.socket(zmq.SUB)
+            self._zmq_request.setsockopt(zmq.SUBSCRIBE, b"%d" %(ipc.mpi.event_reader_rank()))
+            self._zmq_pattern = 'SUB'
+        elif self._source['format'] in ['combined', 'panel']:
+            self._zmq_request = self._zmq_context.socket(zmq.REQ)
+            self._zmq_pattern = 'REQ'
+        else:
+            raise RuntimeError("AGIPD format must be either synced, combined or panel")
         self._zmq_request.connect(self._source['socket'])
+
         #print(self._source['socket'])
 
         # Slow data zmq
@@ -114,7 +123,8 @@ class EUxfelTranslator(object):
         if self._asked_data:
             return
         if self._data is None or (self._pos >= self._pulsecount - self._num_read_ahead):
-            self._zmq_request.send(b'next')
+            if self._zmq_pattern == 'REQ':
+                self._zmq_request.send(b'next')
             self._asked_data = True
             
     def next_event(self):
@@ -124,13 +134,19 @@ class EUxfelTranslator(object):
             self.check_asked_data()
             #print("next")
             msg = self._zmq_request.recv()
+            if self._zmq_pattern == 'SUB':
+                topic,msg = msg.split(b' ', 1)
             #print(msg)
             self._data = msgpack.loads(msg)
+            if self._zmq_pattern == 'REQ':
+                self._data = [self._data]
             current_time = timemodule.time()
             #data_timestamp = self._data['SPB_DET_AGIPD1M-1/DET']['metadata']['timestamp']
+            
             data_timestamp = self._data[0][list(self._data[0].keys())[0]]['metadata']['timestamp']
             data_time = data_timestamp['sec'] + data_timestamp['frac'] * 1e-18
-            print("Trains per second: %.2f" %(1. / (current_time - self.t0)))
+            sys.stdout.flush()
+            print("Trains per second: %.2f" %(ipc.mpi.nr_event_readers() / (current_time - self.t0)))
             print("Time delay: %.2f" %(current_time - data_time))
             self.t0 = current_time
             self.ntrains += 1
@@ -171,10 +187,10 @@ class EUxfelTranslator(object):
                 self._slow_data = None
 
             self._asked_data = False
-            if self._source['format'] == 'synced':
-                self._pulsecount = len(self._data[0][list(self._data[0].keys())[0]]['image.pulseId'].squeeze())
-            else:
-                self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
+            #if self._source['format'] == 'synced':
+            self._pulsecount = len(self._data[0][list(self._data[0].keys())[0]]['image.pulseId'].squeeze())
+            #else:
+            #    self._pulsecount = len(self._data[self._mainsource]['image.pulseId'].squeeze())
             self._pos = 0
         self.check_asked_data()
 
@@ -185,6 +201,7 @@ class EUxfelTranslator(object):
                 raise IndexError
         # Pulses are unfiltered, drop the first 2 frames, keep every second frame up to 30 pulses, drop the rest
         elif self._source['format'] == 'panel' or self._source['format'] == 'synced':
+            # TODO: make this a state variable
             valid_pos = range(2,64-2,2)
             if self._pos not in valid_pos:
                 self._pos += 1 # Update pulse position counter
@@ -197,7 +214,7 @@ class EUxfelTranslator(object):
 
     def event_keys(self, evt):
         """Returns the translated keys available"""
-        native_keys = evt[1].keys()
+        native_keys = evt[1][0].keys()
         common_keys = set()
         for k in native_keys:
             for c in self._native_to_common(k):
@@ -217,7 +234,7 @@ class EUxfelTranslator(object):
 
     def event_native_keys(self, evt):
         """Returns the native keys available"""
-        return evt[1].keys()
+        return evt[1][0].keys()
 
     def translate(self, evt, key):
         """Returns a dict of Records that match a given hummingbird key"""
@@ -230,7 +247,7 @@ class EUxfelTranslator(object):
             return {}
         else:
             # check if the key matches any of the existing keys in the event
-            event_keys = evt[1].keys()
+            event_keys = evt[1][0].keys()
             values = {}
             found = False
 
@@ -250,18 +267,20 @@ class EUxfelTranslator(object):
         any native key."""
         #print(evt[1].keys())
         values = {}
+        
         #print(evt,evt[0],evt[1])
+        #sys.exit(0)
         for k in self._c2n[key]:
-            if k in evt[1]:
+            if k in evt[1][0]:
                 if key == 'eventID':
-                    self._tr_event_id(values, evt[1][k], evt[0])
+                    self._tr_event_id(values, evt[1][0][k], evt[0])
                 elif key == 'photonPixelDetectors':
-                    self._tr_photon_detector(values, evt[1][k], k, evt[0])
+                    self._tr_photon_detector(values, evt[1][0][k], k, evt[0])
                 elif key == 'slowData':
                     self._tr_slow_data(values, evt[2])
                 else:
                     raise RuntimeError('%s not yet supported with key %s' % (k, key))
-            if k == 'synced':
+            if k in ['synced']:
                 if key == 'eventID':
                     l = list(evt[1][0].keys())[0]
                     self._tr_event_id(values, evt[1][0][l], evt[0])
