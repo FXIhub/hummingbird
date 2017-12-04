@@ -536,6 +536,11 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                                    autoRange=auto_range, autoLevels=auto_levels,
                                    autoHistogramRange=auto_histogram)
 
+                roi = pyqtgraph.CircleROI((0,0), 10)
+                self.plot.addItem(roi)
+                roi = pyqtgraph.CircleROI((0,0), 10)
+                self.plot.addItem(roi)
+                
                 self._show_crosshair(x,y)
                 if(len(self.plot.image.shape) > 2):
                     # Make sure to go to the last image
