@@ -97,6 +97,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
         self.plot.getView().scene().sigMouseMoved.connect(self._onMouseMoved)
         self.plot.getView().scene().sigMouseHover.connect(self._onMouseHover)
+
+        self._has_rois = False
         
     def get_time_and_msg(self, index=None):
         """Returns the time/msg of the given index, or the time/msg of the last data point"""
@@ -536,10 +538,17 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                                    autoRange=auto_range, autoLevels=auto_levels,
                                    autoHistogramRange=auto_histogram)
 
-                roi = pyqtgraph.CircleROI((0,0), 10)
-                self.plot.addItem(roi)
-                roi = pyqtgraph.CircleROI((0,0), 10)
-                self.plot.addItem(roi)
+                if not self._has_rois:
+                    r1 = 2*8*1.4*2
+                    roi = pyqtgraph.CircleROI((21-r1/2 ,512+13-r1/2), r1)
+                    self.plot.addItem(roi)
+                    r1 = 2*8*2.4*2
+                    roi = pyqtgraph.CircleROI((21-r1/2 ,512+13-r1/2), r1)
+                    self.plot.addItem(roi)
+                    r1 = 2*8*3.4*2
+                    roi = pyqtgraph.CircleROI((21-r1/2 ,512+13-r1/2), r1)
+                    self.plot.addItem(roi)
+                    self._has_rois = True
                 
                 self._show_crosshair(x,y)
                 if(len(self.plot.image.shape) > 2):
