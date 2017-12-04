@@ -20,7 +20,6 @@ import msgpack_numpy
 msgpack_numpy.patch()
 import time as timemodule
 import pickle
-import socket
 
 from hummingbird import parse_cmdline_args
 
@@ -66,14 +65,7 @@ class EUxfelTranslator(object):
             self._zmq_pattern = 'SUB'
         elif self._source['format'] in ['combined', 'panel']:
             self._zmq_request = self._zmq_context.socket(zmq.REQ)
-            self._zmq_request.RCVTIMEO = 10000
             self._zmq_pattern = 'REQ'
-            try:
-                self._sound_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                self._sound_socket.connect(('localhost', 19999))
-            except:
-                self._sound_socket = None
-            print(self._sound_socket)
         else:
             raise RuntimeError("AGIPD format must be either synced, combined or panel")
         self._zmq_request.connect(self._source['socket'])
@@ -140,20 +132,7 @@ class EUxfelTranslator(object):
         if self._data is None or self._pos == self._pulsecount:
             self.check_asked_data()
             #print("next")
-            while(True):
-                try:
-                    msg = self._zmq_request.recv()
-                    break
-                except zmq.error.Again:
-                    #Play the sound
-                    if ipc.mpi.is_main_worker():
-                        if self._sound_socket is not None:
-                            #print("The backend is screaming!!!!")
-                            try:
-                                self._sound_socket.send(b'scream\n')
-                            except:
-                                pass
-                
+            msg = self._zmq_request.recv()
             #print("received")
             if self._zmq_pattern == 'SUB':
                 topic,msg = msg.split(b' ', 1)
@@ -169,6 +148,7 @@ class EUxfelTranslator(object):
             sys.stdout.flush()
             print("Trains per second: %.2f" %(ipc.mpi.nr_event_readers() / (current_time - self.t0)))
             print("Time delay: %.2f" %(current_time - data_time))
+            # print("Rank = {}, trainid = {}".format(ipc.mpi.rank, self._data[0][self._mainsource]['header.trainId']))
             self.t0 = current_time
             self.ntrains += 1
             # import pickle
@@ -392,7 +372,7 @@ class EUxfelTranslator(object):
         rec.pulseNo = pos
         rec.pulseId = int(obj['image.pulseId'].ravel()[pos])
         rec.cellId  = int(obj['image.cellId'].ravel()[pos])
-        #rec.trainId = int(obj['image.trainId'].ravel()[pos])
+        rec.trainId = int(obj['header.trainId'])
         rec.timestamp = timestamp
         values[rec.name] = rec
 
