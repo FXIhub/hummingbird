@@ -68,6 +68,7 @@ def getAGIPD(evt, record, cellID=None, panelID=None, calibrate=True, assemble=Fa
             add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_mask' % panelID, maskData)
             return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_cal' %(panelID), outData)
         else:
+            #add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_mask' % panelID, maskData)
             return add_record(evt['analysis'], 'analysis', 'AGIPD_panel_%d_raw' %(panelID), outData)
     else:
         if calibrate:

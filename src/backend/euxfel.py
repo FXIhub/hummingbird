@@ -23,7 +23,6 @@ import pickle
 
 from hummingbird import parse_cmdline_args
 
-
 _argparser = None
 def add_cmdline_args():
     global _argparser
@@ -71,7 +70,7 @@ class EUxfelTranslator(object):
             raise RuntimeError("AGIPD format must be either synced, combined or panel")
         self._zmq_request.connect(self._source['socket'])
 
-        #print(self._source['socket'])
+        print(self._source['socket'])
 
         # Slow data zmq
         self.init_slow_data_reader()
@@ -134,6 +133,7 @@ class EUxfelTranslator(object):
             self.check_asked_data()
             #print("next")
             msg = self._zmq_request.recv()
+            #print("received")
             if self._zmq_pattern == 'SUB':
                 topic,msg = msg.split(b' ', 1)
             #print(msg)
