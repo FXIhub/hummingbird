@@ -84,7 +84,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self._set_logscale_lookuptable()
 
         self.running_hist_initialised = False
-
+        self._has_circular_roi = False
+        self._circular_rois = []
+        
         self.actionReset_cache.triggered.connect(self.on_reset_cache)
 
         self.updateFonts()
@@ -97,8 +99,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
         self.plot.getView().scene().sigMouseMoved.connect(self._onMouseMoved)
         self.plot.getView().scene().sigMouseHover.connect(self._onMouseHover)
-
-        self._has_rois = False
         
     def get_time_and_msg(self, index=None):
         """Returns the time/msg of the given index, or the time/msg of the last data point"""
@@ -359,6 +359,24 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         else:
             return self.meanmap[2], self.meanmap_transform, x, y
 
+    def _show_circular_rois(self, center=None, diameters=None):
+        if (self.actionCircularROI.isChecked()):
+            if (center is not None) and (diameters is not None):
+                if not self._has_circular_roi:
+                    if not isinstance(diameters, list):
+                        diameters = list(diameters)
+                    for i in range(len(diameters)):
+                        roi = pyqtgraph.CircleROI((center[0]-diameters[i]/2, center[0]-diameters[i]/2), diameters[i], movable=False)
+                        self._circular_rois.append(roi)
+                        self.plot.addItem(roi)
+                    self._has_circular_roi = True
+        else:
+            if self._has_circular_roi:
+                for roi in self._circular_rois:
+                    self.plot.removeItem(roi)
+                self._circular_rois = []
+                self._has_circular_roi = False
+        
     def _show_crosshair(self, x,y):
         if (self.actionCrosshair.isChecked()):
             if self.vline is None:
@@ -538,18 +556,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                                    autoRange=auto_range, autoLevels=auto_levels,
                                    autoHistogramRange=auto_histogram)
 
-                if not self._has_rois:
-                    r1 = 2*8*1.4*2
-                    roi = pyqtgraph.CircleROI((21-r1/2 ,512+13-r1/2), r1)
-                    self.plot.addItem(roi)
-                    r1 = 2*8*2.4*2
-                    roi = pyqtgraph.CircleROI((21-r1/2 ,512+13-r1/2), r1)
-                    self.plot.addItem(roi)
-                    r1 = 2*8*3.4*2
-                    roi = pyqtgraph.CircleROI((21-r1/2 ,512+13-r1/2), r1)
-                    self.plot.addItem(roi)
-                    self._has_rois = True
-                
+                self._show_circular_rois(conf['center'], conf['diameters'])
+                                
                 self._show_crosshair(x,y)
                 if(len(self.plot.image.shape) > 2):
                     # Make sure to go to the last image
@@ -664,6 +672,9 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionHistogram.triggered.emit(settings['histogram_view'])
         self.actionCrosshair.setChecked(settings['crosshair'])
         self.actionCrosshair.triggered.emit(settings['crosshair'])
+        self.actionCircularROI.setChecked(settings['circular_roi'])
+        self.actionCircularROI.triggered.emit(settings['circular_roi'])
+
         self.plot.getHistogramWidget().item.gradient.restoreState(settings['gradient_mode'])
         
         return DataWindow.restore_from_state(self, settings, data_sources)
