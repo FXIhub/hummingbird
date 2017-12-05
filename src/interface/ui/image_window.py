@@ -366,7 +366,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     if not isinstance(diameters, list):
                         diameters = list(diameters)
                     for i in range(len(diameters)):
-                        roi = pyqtgraph.CircleROI((center[0]-diameters[i]/2, center[0]-diameters[i]/2), diameters[i], movable=False)
+                        roi = pyqtgraph.CircleROI((center[0]-diameters[i]/2, center[1]-diameters[i]/2), diameters[i], movable=False)
                         self._circular_rois.append(roi)
                         self.plot.addItem(roi)
                     self._has_circular_roi = True
@@ -556,7 +556,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                                    autoRange=auto_range, autoLevels=auto_levels,
                                    autoHistogramRange=auto_histogram)
 
-                self._show_circular_rois(conf['center'], conf['diameters'])
+                if 'center' in conf and 'diameters' in conf:
+                    self._show_circular_rois(conf['center'], conf['diameters'])
                                 
                 self._show_crosshair(x,y)
                 if(len(self.plot.image.shape) > 2):
