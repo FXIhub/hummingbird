@@ -507,6 +507,7 @@
     <addaction name="actionY_axis"/>
     <addaction name="actionHistogram"/>
     <addaction name="actionCrosshair"/>
+    <addaction name="actionCircularROI"/>
     <addaction name="separator"/>
     <addaction name="actionReset_cache"/>
    </widget>
@@ -713,6 +714,14 @@
   <action name="actionDefault">
    <property name="text">
     <string>default</string>
+   </property>
+  </action>
+  <action name="actionCircularROI">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Circular ROI</string>
    </property>
   </action>
  </widget>
