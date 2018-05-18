@@ -184,7 +184,11 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         if(source is not None and title in source.plotdata and
            source.plotdata[title].x is not None):
             pd = source.plotdata[title]
-            dt = datetime.datetime.fromtimestamp(pd.x[index])
+            try:
+                dt = datetime.datetime.fromtimestamp(pd.x[index])
+            except ValueError:
+                print('Unusable timestamp:', pd.x[index], 'Using current time')
+                dt = datetime.datetime.now()
             return dt
         else:
             return datetime.datetime.now()
@@ -416,10 +420,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             elif(source.data_type[title] == "normalized_histogram"):
                 ringbuffer = pd.y
                 # Clear histogram if asked for
-                print("clear_histograms = {0}".format(pd.clear_histograms))
-                if pd.clear_histograms:
-                    self._histograms[title].reset()
-                    pd.clear_histograms = False
+                #print("clear_histogram = {0}".format(pd.clear_histogram))
+                if pd.clear_histogram:
+                    self._normalized_histograms[title].reset()
+                    pd.clear_histogram = False
                 self._normalized_histograms[title].add_values_from_ringbuffer(ringbuffer)
                 x = self._normalized_histograms[title].values_x
                 y = self._normalized_histograms[title].values_y

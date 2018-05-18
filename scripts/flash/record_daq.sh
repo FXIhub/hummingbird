@@ -1,7 +1,7 @@
 #!/bin/zsh
 
 #outfolder=/var/acqu/bl1camp/Chapman_2016/DAQ/
-outfolder=/asap3/flash/gpfs/bl1/2017/data/11001733/processed/daq/
+outfolder=/gpfs/bl1/current/processed/daq/
 bunch=FLASH.FEL/TIMER/EXP1/MACRO_PULSE_NUMBER/VAL
 pulse_energy=TTF2.FEL/BKR.FLASH.STATE/BKR.FLASH.STATE/SLOW.INTENSITY/VAL
 lambda=TTF2.DAQ/ENERGY.DOGLEG/LAMBDA_MEAN/VAL

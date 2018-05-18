@@ -673,8 +673,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.actionHistogram.triggered.emit(settings['histogram_view'])
         self.actionCrosshair.setChecked(settings['crosshair'])
         self.actionCrosshair.triggered.emit(settings['crosshair'])
-        self.actionCircularROI.setChecked(settings['circular_roi'])
-        self.actionCircularROI.triggered.emit(settings['circular_roi'])
+        #self.actionCircularROI.setChecked(settings['circular_roi'])
+        #self.actionCircularROI.triggered.emit(settings['circular_roi'])
 
         self.plot.getHistogramWidget().item.gradient.restoreState(settings['gradient_mode'])
         

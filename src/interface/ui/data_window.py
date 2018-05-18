@@ -3,6 +3,7 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Base class for all the data display windows"""
+from __future__ import print_function
 from interface.Qt import QtGui, QtCore
 import logging
 
@@ -11,6 +12,15 @@ class DataWindow(QtGui.QMainWindow):
     (e.g. PlotWindow, ImageWindow)"""
     def __init__(self, parent=None):
         QtGui.QMainWindow.__init__(self, None)
+        self.setStyleSheet('''
+            QMenuBar {
+                background-color: rgb(255,255,255);
+                color: rgb(0,0,0);
+            }
+            QMenubar::item {
+                background-color: rgb(255,255,255);
+            }
+        ''')
         self.setAttribute(QtCore.Qt.WA_DeleteOnClose)
         self._enabled_sources = {}
         self.settings = QtCore.QSettings()
@@ -72,7 +82,11 @@ class DataWindow(QtGui.QMainWindow):
             if ds.titles is not None:
                 for name in sorted(ds.group_structure.keys()):
                     item_list = ds.group_structure[name]
-                    items_of_right_type = [item for item in item_list if ds.data_type[item] in self.acceptable_data_types]
+                    items_of_right_type = []
+                    for item in item_list:
+                        if item in ds.data_type and ds.data_type[item] in self.acceptable_data_types:
+                            items_of_right_type.append(item)
+                    #items_of_right_type = [item for item in item_list if ds.data_type[item] in self.acceptable_data_types]
                     if len(items_of_right_type) == 0:
                         continue
                     if name is None:
@@ -141,9 +155,13 @@ class DataWindow(QtGui.QMainWindow):
         dt = self.get_time()
         self.timeLabel.setText('%02d:%02d:%02d.%03d' % (dt.hour, dt.minute, dt.second, dt.microsecond/1000))
         timestamp = '%04d%02d%02d_%02d%02d%02d' %(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
-        print(self.settings.value("outputPath") + '/' + timestamp + '_' + self.plot_title + '.png')
-        QtGui.QPixmap.grabWidget(self).save(self.settings.value("outputPath") + '/' +
-                                            timestamp + '.png', 'png', quality=100)
+        title = self.plot_title.replace(' ', '_').replace(r'/', '').replace('__', '_')
+        filename = self.settings.value("outputPath") + '/' + timestamp + '_' + title + '.png'
+        print('Saving image to', filename)
+        try:
+            QtGui.QPixmap.grabWidget(self).save(filename, 'png', quality=100)
+        except AttributeError:
+            self.grab().save(filename, 'png', quality=100)
 
     def _source_title_triggered(self):
         """Enable/disable a data source"""

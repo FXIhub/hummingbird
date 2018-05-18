@@ -91,7 +91,7 @@ class LinePlotSettings(QtGui.QDialog, Ui_linePlotSettings):
         self.showTrendScalar.setChecked(settings["showTrendScalar"])
         self.windowLength.setText(settings["windowLength"])
         self.showTrendVector.setChecked(settings["showTrendVector"])
-        self.showMainLine.setChecked(settings["showMainLine"])
+        self.showMainLine.setChecked(settings["trendVector_skip"])
         self.trendVector_min.setChecked(settings["trendVector_min"])
         self.trendVector_max.setChecked(settings["trendVector_max"])
         self.trendVector_std.setChecked(settings["trendVector_std"])

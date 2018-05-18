@@ -5,6 +5,7 @@ import h5py
 import sys
 import os
 import argparse
+import glob
 
 class Frms6_file_header():
     def __init__(self, length=1024):
@@ -155,7 +156,7 @@ class Frms6_reader():
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert frms6 file to h5')
-    parser.add_argument('fname', help='Path to frms6 file to be converted')
+    parser.add_argument('fglob', help='Glob of frms6 files to be converted (must be specified in quotes)')
     parser.add_argument('-n', '--num_frames', help='Number of frames to parse. Default=-1 (all)', type=int, default=-1)
     parser.add_argument('-s', '--start_num', help='Start from frame number. Default=0', type=int, default=0)
     parser.add_argument('-o', '--output_fname', help='Path to output h5 file. Default=<fname_without_ext>.h5')
@@ -164,15 +165,36 @@ if __name__ == '__main__':
     if args.output_fname is None:
         args.output_fname = os.path.splitext(os.path.basename(args.fname))[0]+'.h5'
     
-    reader = Frms6_reader(args.fname, verbose=True)
-    reader.parse_frames(num_frames=args.num_frames, start_num=args.start_num)
-    
     print('Writing to', args.output_fname)
     with h5py.File(args.output_fname, 'w') as hf:
-        hf['data/data'] = np.array(reader.frames)
-        hf['meta/external_id'] = np.array([h.external_id for h in reader.frame_headers])
-        hf['meta/tv_sec'] = np.array([h.tv_sec for h in reader.frame_headers])
-        hf['meta/tv_usec'] = np.array([h.tv_usec for h in reader.frame_headers])
-        hf['meta/temp'] = np.array([h.temp for h in reader.frame_headers])
-        hf['meta/dataSetID'] = np.string_(reader.file_header.dataSetID.rstrip('\0'))
+        data_dset = hf.create_dataset('data/data', (0,1024,1024), maxshape=(None,1024,1024), chunks=(1,1024,1024), dtype='f8')
+        external_id_dset = hf.create_dataset('meta/external_id', (0,), maxshape=(None,), chunks=True, dtype='i8')
+        sec_dset = hf.create_dataset('meta/tv_sec', (0,), maxshape=(None,), chunks=True, dtype='i8')
+        usec_dset = hf.create_dataset('meta/tv_usec', (0,), maxshape=(None,), chunks=True, dtype='i8')
+        temp_dset = hf.create_dataset('meta/temp', (0,), maxshape=(None,), chunks=True, dtype='f8')
+        dataset_id_dset = hf.create_dataset('meta/dataSetID', (0,), maxshape=(None,), chunks=True, dtype='S128')
+        for fname in sorted(glob.glob(args.fglob)):
+            print(os.path.basename(fname))
+            reader = Frms6_reader(fname, verbose=True)
+            #reader = Frms6_reader(fname)
+            reader.parse_frames(num_frames=args.num_frames, start_num=args.start_num)
+            
+            frames = np.array(reader.frames)
+            num_frames = len(frames)
+            curr_size = data_dset.shape[0]
+            
+            data_dset.resize(curr_size+num_frames, axis=0)
+            external_id_dset.resize(curr_size+num_frames, axis=0)
+            sec_dset.resize(curr_size+num_frames, axis=0)
+            usec_dset.resize(curr_size+num_frames, axis=0)
+            temp_dset.resize(curr_size+num_frames, axis=0)
+            dataset_id_dset.resize(dataset_id_dset.shape[0]+1, axis=0)
+            
+            data_dset[-num_frames:] = frames
+            dataset_id_dset[-1] = np.string_(reader.file_header.dataSetID.rstrip('\0'))
+            for i, header in enumerate(reader.frame_headers):
+                external_id_dset[-num_frames+i] = header.external_id
+                sec_dset[-num_frames+i] = header.tv_sec
+                usec_dset[-num_frames+i] = header.tv_usec
+                temp_dset[-num_frames+i] = header.temp
 

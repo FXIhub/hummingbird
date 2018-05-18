@@ -13,8 +13,9 @@ from . import ureg
 import numpy
 import ipc
 import backend.flash_utils.convert_frms6 as convert
-import backend.flash_utils.tomas_motors as motors
-import backend.flash_utils.read_daq_offline as read_daq
+import backend.flash_utils.martin_motors as motors
+import backend.flash_utils.optical_imaging as optical
+#import backend.flash_utils.read_daq_offline as read_daq
 import glob
 import sys
 import os
@@ -39,8 +40,10 @@ class FLASHTranslator(object):
         self.reader = None
         self._current_event_id = None
         self.get_dark()
-        self.motors = motors.MotorPositions(state['FLASH/MotorFolder'])
         self.daq = None
+        self.motors = motors.MotorPositions(state['FLASH/MotorLogFile'])
+        if 'FLASH/OpticalImageHeader' in state:
+            self.optical = optical.OpticalImages(state['FLASH/OpticalImageHeader'])
         if 'do_offline' in state:
             self.do_offline = state['do_offline']
         else:
@@ -124,7 +127,8 @@ class FLASHTranslator(object):
             # Translate pnCCD
             add_record(values, key, 'pnCCD', evt['pnCCD'], ureg.ADU)
         elif key == 'motorPositions':
-            val = self.motors.get(self.get_bunch_time()[0])
+            #val = self.motors.get(self.get_bunch_time()[0])
+            val = self.motors.get(self.reader.frame_headers[-1].external_id)
             if val is None:
                 raise RuntimeError('%s not found in event' % key)
             for motorname,motorpos in val.iteritems():
@@ -135,7 +139,13 @@ class FLASHTranslator(object):
             add_record(values, key, 'BunchID', self.reader.frame_headers[-1].external_id)
             add_record(values, key, 'tv_sec', self.reader.frame_headers[-1].tv_sec, ureg.s)
             add_record(values, key, 'tv_usec', self.reader.frame_headers[-1].tv_usec, ureg.s)
-            add_record(values, key, 'bunch_sec', self.get_bunch_time()[0], ureg.s)
+            #add_record(values, key, 'bunch_sec', self.get_bunch_time()[0], ureg.s)
+        elif key == 'OpticalImage':
+            img = self.optical.get(self.reader.frame_headers[-1].external_id)
+            if img is None:
+                print('No img')
+                raise RuntimeError('Image not found for given ID')
+            add_record(values, key, 'Image', img, ureg.ADU)
         elif key == "DAQ":
             if self.daq is None:
                 self.daq = read_daq.DAQReader(self.state['FLASH/DAQBaseDir'])
@@ -220,7 +230,7 @@ class FLASHTranslator(object):
             if file_size < 1024:
                 return False
             if ipc.mpi.slave_rank() == 0:
-                print('Rank %d found new file' % (ipc.mpi.slave_rank()), latest_fname, 'size =', self.current_size)
+                print('Found new file', latest_fname, 'size =', self.current_size)
             self.get_dark()
             
             self.reader = convert.Frms6_reader(latest_fname, offset=self.offset)

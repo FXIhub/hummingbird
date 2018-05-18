@@ -11,6 +11,7 @@ from interface.recorder import H5Recorder
 from interface import DataSource
 import logging
 import os
+import traceback
 
 class GUI(QtGui.QMainWindow, Ui_mainWindow):
     """Main Window Class.
@@ -75,8 +76,9 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         if do_restore:
             try:
                 self._restore_data_windows(s, loaded_sources)
-            except (TypeError, KeyError):
+            except (TypeError, KeyError) as e:
                 # Be a bit more resilient against configuration problems
+                traceback.print_exc(e)
                 logging.warning("Failed to load data windows settings! Continuing...")
             self.plotdata_widget.restore_state(s)
         self.settings = s
