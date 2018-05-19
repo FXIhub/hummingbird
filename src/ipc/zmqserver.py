@@ -18,6 +18,13 @@ import logging
 from utils.cmdline_args import argparser as _argparser
 
 eventLimit = 125
+zmq.eventloop.ioloop.install()
+# Tornado 5 changed the behaviour of IOLoop.instance() such that
+# is now returns a new thread local IOLoop instead of the main
+# thread IOLoop. So we need this global variable to tell the thread
+# the correct IOLoop to start.
+# http://www.tornadoweb.org/en/stable/ioloop.html#tornado.ioloop.IOLoop.instance
+ioloop = zmq.eventloop.ioloop.IOLoop.instance()
 
 class ZmqServer(object):
     """Implements the server that broadcasts the results from the backend.
@@ -54,7 +61,6 @@ class ZmqServer(object):
         self._broker_sub_socket.bind("tcp://*:%d" % (self._broker_sub_port))
         self._data_socket.connect("tcp://127.0.0.1:%d" % (self._broker_sub_port))
 
-        zmq.eventloop.ioloop.install()
         # We are installing event handlers for those sockets
         # but also for data stream, since a PUB socket actually
         # can leak data if it never is asked to process its events.
@@ -134,7 +140,7 @@ class ZmqServer(object):
     def _ioloop(self):
         """Start the ioloop fires the callbacks when data is received
         on the control stream. Runs on a separate thread."""
-        zmq.eventloop.ioloop.IOLoop.instance().start()
+        ioloop.start()
         print("ioloop ended")
 
     def _forward_xsub(self, stream, msg):
