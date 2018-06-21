@@ -26,7 +26,6 @@ matrix:
           - python-scipy
           - python-h5py
           - python-qt4
-          - python-tornado
 
     # no MPI, dummy backend, python 3.4
     - python: "3.4"
@@ -39,7 +38,6 @@ matrix:
           - python3-scipy
           - python3-h5py
           - python3-pyqt5
-          - python3-tornado
 
     # no MPI, dummy backend, python 3.5
     - python: "3.5"
@@ -54,7 +52,6 @@ matrix:
           - python3-scipy
           - python3-h5py
           - python3-pyqt5
-          - python3-tornado
 
     # with MPI, dummy backend
     - python: "2.7"
@@ -70,7 +67,6 @@ matrix:
             - libopenmpi-dev
             - openmpi-bin
             - python-mpi4py
-            - python-tornado
 
     # without MPI, LCLS backend
     - python: "2.7"
@@ -99,6 +95,7 @@ before_install:
   - pip install pytz
   - pip install pyqtgraph
   - pip install pint
+  - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then pip install "tornado>=4.0.0,<5.0"; else pip install tornado; fi
   - cd $HOME
   - pip install h5writer
   
