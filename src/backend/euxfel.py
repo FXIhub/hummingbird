@@ -197,7 +197,15 @@ class EUxfelTranslator(object):
             add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
         elif self._data_format == 'Calib':
-            raise NotImplementedError
+            img = obj['image.data']
+            assert img.shape[0] == 16
+            assert img.shape[1] == 512
+            assert img.shape[2] == 128
+            gain = obj['image.gain']
+            #img = numpy.vstack((img[numpy.newaxis, ...],
+            #                    gain[numpy.newaxis, ...]))
+            add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
+
         elif self._data_format == 'Raw':
             raise NotImplementedError
         else:
