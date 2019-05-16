@@ -140,7 +140,6 @@ class Worker(object):
                             raise KeyboardInterrupt
                         except AttributeError as e:
                             logging.warning("Attribute error during event translation. Skipping event. (%s)" % e)
-                            import sys; sys.exit(0)
                             continue
                         except IndexError:
                             continue
