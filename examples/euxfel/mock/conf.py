@@ -1,20 +1,31 @@
+"""
+For testing the EuXFEL backend, start the karabo server:
+
+./karabo-bridge-server-sim 1234
+
+from the karabo-bridge (https://github.com/European-XFEL/karabo-bridge-py).
+and then start the Hummingbird backend:
+
+./hummingbird.py -b examples/euxfel/mock/conf.py
+"""
 import plotting.image
 import analysis.agipd
+import analysis.event
+from backend import add_record
 
 state = {}
-state['Facility'] = 'euxfel'
-state['socket'] = 'tcp://127.0.0.1:4501'
+state['Facility'] = 'EuXFEL'
+state['EuXFEL/DataSource'] = 'tcp://127.0.0.1:1234'
+state['EuXFEL/DataFormat'] = 'CalibSim'
 
-dark = 0.
 event_number = 0
-
 def onEvent(evt):
-    global dark, event_number
-    print("Available keys: " + str(evt.keys()))
-    print(evt['photonPixelDetectors']['AGIPD1'].data.shape)
-    agipd_0 = analysis.agipd.get_panel(evt, evt['photonPixelDetectors']['AGIPD1'], 0)
-    dark  += agipd_0.data
-    print(event_number)
-    event_number += 1
-
+    global event_number
+    #analysis.event.printKeys(evt)
+    #analysis.event.printNativeKeys(evt)
+    analysis.event.printProcessingRate()
+    T = evt["eventID"]["Timestamp"]
+    #print(event_number, T.timestamp, T.pulseId, T.cellId, T.trainId)
+    agipd_0 = add_record(evt['analysis'], 'analysis', 'AGIPD', evt['photonPixelDetectors']['AGIPD'].data[:,:,0])
     plotting.image.plotImage(agipd_0)
+    event_number += 1
