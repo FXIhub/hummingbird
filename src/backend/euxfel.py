@@ -84,7 +84,9 @@ class EUxfelTranslator(object):
         
     def next_event(self):
         """Grabs the next event returns the translated version."""
-        # when reading full trains, no remaining pulses in the buffer
+        # When reading full trains, and no remaining pulses in the buffer:
+        #   Gets next train from Karabo Bridge
+        #   Resets number of remaining pulses
         if self._recv_trains and not self._remaining_pulses:
             self._train_buffer, self._train_meta = self._krb_client.next()
             self._train_id = self._train_buffer[list(self._train_buffer.keys())[0]]['image.trainId']
@@ -92,7 +94,10 @@ class EUxfelTranslator(object):
             self._remaining_pulses = self._train_length
             #print("Received train: ", self._train_id)
             #print("Remaining pulses: ", self._remaining_pulses)
-        # when reading full trains, still pulses remaining in the buffer
+
+        # When reading full trains, and pulses still remaining in the buffer:
+        #   Sets current event to first remaining pulse
+        #   Populates event dictionary
         if self._recv_trains and self._remaining_pulses:
             index = self._train_length - self._remaining_pulses
             evt = {}
@@ -110,7 +115,9 @@ class EUxfelTranslator(object):
                 for k,v in d.items():
                     evt[source][k] = v
             self._remaining_pulses = max(0, self._remaining_pulses - 1)
-        # when reading individual trains
+
+        # When reading individual pulses:
+        #   Populates event dictionary directly from Karabo Bridge
         if not self._recv_trains:
             evt, metadata = self._krb_client.next()
             for source, d in metadata.items():
