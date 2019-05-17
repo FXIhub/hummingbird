@@ -44,7 +44,6 @@ class EUxfelTranslator(object):
 
         # We allow different data formats
         # Calib: This is calibrated in online mode with (nmodules,X,Y)
-        # CalibSim: This is calibration in simulation mode with (Y,X,nmodules)
         # Raw: This is for reading uncalibrated data online, don't know shape yet
         self._data_format = "Calib"
         if 'EuXFEL/DataFormat' in state:
@@ -61,6 +60,11 @@ class EUxfelTranslator(object):
         self._train_meta = None
         self._remaining_pulses = 0
 
+        # Option to skip pulses within a train
+        self._skip_n_pulses = 0
+        if 'EuXFEL/SkipPulses' in state:
+            self._skip_n_pulses = state['EuXFEL/SkipPulses']
+        
         # Start Karabo client
         self._krb_client = karabo_bridge.Client(dsrc)
         
@@ -114,7 +118,8 @@ class EUxfelTranslator(object):
                         evt[source][k] = v[index]
                 for k,v in d.items():
                     evt[source][k] = v
-            self._remaining_pulses = max(0, self._remaining_pulses - 1)
+            # Update remaining pulses, skipping some pulses if requested
+            self._remaining_pulses = max(0, self._remaining_pulses - (1 + self._skip_n_pulses))
 
         # When reading individual pulses:
         #   Populates event dictionary directly from Karabo Bridge

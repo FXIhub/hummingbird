@@ -18,6 +18,7 @@ state['Facility'] = 'EuXFEL'
 state['EuXFEL/DataSource'] = 'tcp://127.0.0.1:1234'
 state['EuXFEL/DataFormat'] = 'Calib'
 state['EuXFEL/RecvTrains'] = True
+state['EuXFEL/SkipPulses'] = 0
 
 event_number = 0
 def onEvent(evt):
