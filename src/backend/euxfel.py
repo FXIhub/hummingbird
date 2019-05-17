@@ -49,9 +49,9 @@ class EUxfelTranslator(object):
         self._data_format = "Calib"
         if 'EuXFEL/DataFormat' in state:
             self._data_format = state["EuXFEL/DataFormat"]
-        if not self._data_format in ["Calib", "CalibSim", "Raw"]:
+        if not self._data_format in ["Calib", "Raw"]:
             raise ValueError("You need to set the 'EuXFEL/DataFormat'"
-                             " in the configuration as 'Calib', 'CalibSim' or 'Raw'")
+                             " in the configuration as 'Calib' or 'Raw'")
             
         # Switch for receiving full trains (current default) or individual pulses
         self._recv_trains = True
@@ -186,18 +186,12 @@ class EUxfelTranslator(object):
     
     def _tr_photon_detector(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
-        if self._data_format == 'CalibSim':
+        if self._data_format == 'Calib':
             img = obj['image.data']
-            assert img.shape[0] == 128
-            assert img.shape[1] == 512
-            assert img.shape[2] == 16
-            gain = obj['image.gain']
-            #img = numpy.vstack((img[numpy.newaxis, ...],
-            #                    gain[numpy.newaxis, ...]))
-            add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
-
-        elif self._data_format == 'Calib':
-            img = obj['image.data']
+            # If shortest dimension (modules) is last, swap it with zero dimension
+            # This is necesary for the simulated karabo-bridge output, should happen in online mode
+            if not (numpy.array(img.shape).argmin() == 0):
+                img = img.swapaxes(0,-1)
             assert img.shape[0] == 16
             assert img.shape[1] == 512
             assert img.shape[2] == 128
@@ -207,9 +201,11 @@ class EUxfelTranslator(object):
             add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
         elif self._data_format == 'Raw':
+            img = obj['image.data']
+            add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
             raise NotImplementedError
         else:
-            raise NotImplementedError("DataFormat should be 'Calib', 'CalibSim or 'Raw''")
+            raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
         
     def _tr_event_id(self, values, obj):
         """Translates euxfel event ID from some source into a hummingbird one"""
