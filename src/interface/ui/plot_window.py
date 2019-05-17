@@ -122,6 +122,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
         self.plot.scene().sigMouseMoved.connect(self._onMouseMoved)
 
+        # Make sure menubar is attached to the main window
+        self.menubar = self.menuBar()
+        self.menubar.setNativeMenuBar(False)
+
     def on_view_legend_box(self):
         """Show/hide legend box"""
         action = self.sender()

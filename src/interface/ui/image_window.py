@@ -99,6 +99,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
         self.plot.getView().scene().sigMouseMoved.connect(self._onMouseMoved)
         self.plot.getView().scene().sigMouseHover.connect(self._onMouseHover)
+
+        # Make sure menubar is attached to the main window
+        self.menubar = self.menuBar()
+        self.menubar.setNativeMenuBar(False)
         
     def get_time_and_msg(self, index=None):
         """Returns the time/msg of the given index, or the time/msg of the last data point"""
