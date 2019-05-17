@@ -6,7 +6,7 @@
 from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import numpy
-import datetime
+import datetime, time
 from pytz import timezone
 from backend.event_translator import EventTranslator
 from backend.record import Record, add_record
@@ -60,6 +60,11 @@ class EUxfelTranslator(object):
         self._train_meta = None
         self._remaining_pulses = 0
 
+        # Option to decide about maximum allowd age of trains
+        self._max_train_age = 5 # in units of seconds
+        if 'EuXFEL/MaxTrainAge' in state:
+            self._max_train_age = state['EuXFEL/MaxTrainAge']
+
         # Option to skip pulses within a train
         self._skip_n_pulses = 0
         if 'EuXFEL/SkipPulses' in state:
@@ -85,6 +90,15 @@ class EUxfelTranslator(object):
         self._s2c = {}
         self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
         ## Add more AGIPD sources here
+
+    def next_train(self):
+        """Asks for next train until its age is within a given time window."""
+        buf, meta = self._krb_client.next()
+        age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
+        if age < self._max_train_age:
+            return buf, meta
+        else:
+            return self.next_train()
         
     def next_event(self):
         """Grabs the next event returns the translated version."""
@@ -92,7 +106,7 @@ class EUxfelTranslator(object):
         #   Gets next train from Karabo Bridge
         #   Resets number of remaining pulses
         if self._recv_trains and not self._remaining_pulses:
-            self._train_buffer, self._train_meta = self._krb_client.next()
+            self._train_buffer, self._train_meta = self.next_train()
             self._train_id = self._train_buffer[list(self._train_buffer.keys())[0]]['image.trainId']
             self._train_length = len(self._train_id)
             self._remaining_pulses = self._train_length
