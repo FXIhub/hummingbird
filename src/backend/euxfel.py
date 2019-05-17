@@ -54,8 +54,11 @@ class EUxfelTranslator(object):
             
         # Switch for receiving full trains (current default) or individual pulses
         self._recv_trains = True
-        if 'EuXFEL/RecvFullTrains' in state:
-            self._recv_trains = state['EuXFEL/RecvFullTrains']
+        if 'EuXFEL/RecvTrains' in state:
+            self._recv_trains = state['EuXFEL/RecvTrains']
+        self._sel_module = None
+        if 'EuXFEL/SelModule' in state:
+            self._sel_module = state['EuXFEL/SelModule']
         self._train_buffer = None
         self._train_meta = None
         self._remaining_pulses = 0
@@ -75,7 +78,10 @@ class EUxfelTranslator(object):
         
         # Define how to translate between EuXFEL types and Hummingbird ones
         self._n2c = {}
-        self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = ['photonPixelDetectors', 'eventID']
+        if self._sel_module is None:
+            self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = ['photonPixelDetectors', 'eventID']
+        else:
+            self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = ['photonPixelDetectors', 'eventID']
         
         # Calculate the inverse mapping
         self._c2n = {}
@@ -88,7 +94,11 @@ class EUxfelTranslator(object):
 
         # Define how to translate between EuXFEL sources and Hummingbird ones
         self._s2c = {}
-        self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
+        if self._sel_module is None:
+            self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
+        else:
+            self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = "AGIPD"
+
         ## Add more AGIPD sources here
 
     def next_train(self):
@@ -213,12 +223,14 @@ class EUxfelTranslator(object):
     def _tr_photon_detector(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
         img = obj['image.data']
+        if self._sel_module is not None:
+            img = img[numpy.newaxis]
         # If shortest dimension (modules) is last, swap it with zero dimension
         # This is necesary for the simulated karabo-bridge output, should happen in online mode
         if not (numpy.array(img.shape).argmin() == 0):
             img = img.swapaxes(0,-1)
         # Check that first is either 16 or 1 module
-        assert (img.shape[0] == 16 or img.shape[0].shape == 1)
+        assert (img.shape[0] == 16 or img.shape[0] == 1)
         # Check that module has shape (512,128)
         assert img.shape[1] == 512
         assert img.shape[2] == 128
