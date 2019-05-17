@@ -186,26 +186,26 @@ class EUxfelTranslator(object):
     
     def _tr_photon_detector(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
+        img = obj['image.data']
+        # If shortest dimension (modules) is last, swap it with zero dimension
+        # This is necesary for the simulated karabo-bridge output, should happen in online mode
+        if not (numpy.array(img.shape).argmin() == 0):
+            img = img.swapaxes(0,-1)
+        # Check that first is either 16 or 1 module
+        assert (img.shape[0] == 16 or img.shape[0].shape == 1)
+        # Check that module has shape (512,128)
+        assert img.shape[1] == 512
+        assert img.shape[2] == 128
+        # If data is calibrated read the gain and add to stack after last module
         if self._data_format == 'Calib':
-            img = obj['image.data']
-            # If shortest dimension (modules) is last, swap it with zero dimension
-            # This is necesary for the simulated karabo-bridge output, should happen in online mode
-            if not (numpy.array(img.shape).argmin() == 0):
-                img = img.swapaxes(0,-1)
-            assert img.shape[0] == 16
-            assert img.shape[1] == 512
-            assert img.shape[2] == 128
             gain = obj['image.gain']
-            #img = numpy.vstack((img[numpy.newaxis, ...],
-            #                    gain[numpy.newaxis, ...]))
-            add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
-
+            # This needs to be tested if it also works when we receive only one module
+            img = numpy.vstack((img, gain[numpy.newaxis, ...]))
         elif self._data_format == 'Raw':
-            img = obj['image.data']
-            add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
-            raise NotImplementedError
+            pass
         else:
             raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
+        add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
         
     def _tr_event_id(self, values, obj):
         """Translates euxfel event ID from some source into a hummingbird one"""

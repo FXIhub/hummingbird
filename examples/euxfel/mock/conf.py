@@ -27,6 +27,8 @@ def onEvent(evt):
     analysis.event.printProcessingRate()
     T = evt["eventID"]["Timestamp"]
     #print(event_number, T.timestamp, T.pulseId, T.cellId, T.trainId)
-    agipd_0 = add_record(evt['analysis'], 'analysis', 'AGIPD', evt['photonPixelDetectors']['AGIPD'].data[0])
+    agipd_module_8 = evt['photonPixelDetectors']['AGIPD'].data[8]
+    agipd_gain = evt['photonPixelDetectors']['AGIPD'].data[-1]
+    agipd_0 = add_record(evt['analysis'], 'analysis', 'AGIPD', agipd_module_8)
     plotting.image.plotImage(agipd_0)
     event_number += 1
