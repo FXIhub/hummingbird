@@ -2,7 +2,7 @@
 # Copyright 2017, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-"""Online backend for reading EuXFEL events via the Karabo-bridge."""
+"""Pulse-based online backend for reading EuXFEL events via the Karabo-bridge."""
 from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import numpy

@@ -39,6 +39,8 @@ except ImportError:
 try:
     from backend.euxfel import add_cmdline_args
     add_cmdline_args()
+    from backend.euxfel_trains import add_cmdline_args
+    add_cmdline_args()
 except ImportError:
     pass
 

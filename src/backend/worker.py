@@ -190,6 +190,9 @@ def init_translator(state):
     elif(state['Facility'].lower() == 'euxfel'):
         from backend.euxfel import EUxfelTranslator
         return EUxfelTranslator(state)
+    elif(state['Facility'].lower() == 'euxfeltrains'):
+        from backend.euxfel_trains import EUxfelTranslator
+        return EUxfelTranslator(state)
     else:
         raise ValueError('Facility %s not supported' % (state['Facility']))
 
