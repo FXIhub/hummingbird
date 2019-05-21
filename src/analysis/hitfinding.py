@@ -64,7 +64,7 @@ def hitrate(evt, hit, history=100, unit='percent', outkey="hitrate"):
         elif unit == 'percent':
             add_record(v, "analysis", outkey, 100.*hitrate)
 
-def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, outkey="litpixel: "):
+def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscoreDark=0, hitscoreMax=None, mask=None, stack=False, outkey="litpixel: "):
     """A simple hitfinder that counts the number of lit pixels and
     adds the result to ``evt["analysis"][outkey + "isHit"]``,  ``evt["analysis"][outkey + "isMiss"]``, 
     and  the hitscore to ``evt["analysis"][outkey + "hitscore"]``.
@@ -84,13 +84,14 @@ def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscore
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
-    hitscore = (record.data[mask] > aduThreshold).sum()
-    hit = int(hitscore > hitscoreThreshold)
+    hitscore = np.squeeze((record.data[mask] > aduThreshold).sum(axis=(-2,-1) if stack is True else None))
+    hit = np.array(hitscore > hitscoreThreshold, dtype='int')
     if hitscoreMax is not None:
-        hit *= int(hitscore <= hitscoreMax)
+        hit *= np.array(hitscore <= hitscoreMax, dtype='int')
+    miss = np.array((~hit) & (hitscore > hitscoreDark), dtype='int')
     v = evt["analysis"]
     add_record(v, "analysis", outkey + "isHit", hit)
-    add_record(v, "analysis", outkey + "isMiss", int(not hit and (hitscore > hitscoreDark)))
+    add_record(v, "analysis", outkey + "isMiss", miss)
     add_record(v, "analysis", outkey + "hitscore", hitscore)
 
 def countTof(evt, record, signalThreshold=1, minWindow=0, maxWindow=-1, hitscoreThreshold=2, outkey="tof: "):
