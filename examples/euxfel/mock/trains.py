@@ -32,8 +32,14 @@ def onEvent(evt):
     event_number += 1
     #analysis.event.printKeys(evt)
     #analysis.event.printNativeKeys(evt)
-    analysis.event.printProcessingRate()
+
+    # Timestamp
     T = evt["eventID"]["Timestamp"]
+    
+    # Nr. of pulses per train
+    npulses = len(T.timestamp)
+    analysis.event.printProcessingRate(pulses_per_event=npulses)
+
     #print(event_number, T.timestamp, T.pulseId, T.cellId, T.trainId)
 
     # Full train(stack) of a single agipd module
