@@ -14,6 +14,7 @@ import plotting.image
 import analysis.agipd
 import analysis.event
 import analysis.hitfinding
+import ipc.mpi
 from backend import add_record
 
 state = {}
@@ -62,7 +63,9 @@ def onEvent(evt):
     agipd_hits = agipd_module[hittrain]
 
     # Hitrate
-    # TODO: Need a hitrate function that can take a full train of hits/misses and updates the buffers, and returns the current hitrate.
+    analysis.hitfinding.hitrate(evt, hittrain)
+    if ipc.mpi.is_main_worker():
+        print(evt['analysis']['hitrate'].data)
     
     # Iterate through the hits
     max_hits = 10 # The maximum number of hits to be selected from each train

@@ -50,10 +50,15 @@ def hitrate(evt, hit, history=100, unit='percent', outkey="hitrate"):
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se),
         Tomas Ekeberg
     """
+    if type(hit) is np.ndarray:
+        hit = list(hit)
+    if type(hit) is not list:
+        hit = [hit]
     global hitrate_counters
     if outkey not in hitrate_counters or hitrate_counters[outkey].maxlen != history:
         hitrate_counters[outkey] = collections.deque([], history)
-    hitrate_counters[outkey].append(bool(hit))
+    for h in hit:
+        hitrate_counters[outkey].append(bool(h))
     hitcount = np.array(hitrate_counters[outkey].count(True))
     ipc.mpi.sum("hitcount - " + outkey, hitcount)
     v = evt["analysis"]
