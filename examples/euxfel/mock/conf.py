@@ -39,7 +39,7 @@ def onEvent(evt):
     T = evt["eventID"]["Timestamp"]
     #print(event_number, T.timestamp, T.pulseId, T.cellId, T.trainId)
     if 'EuXFEL/SelModule' in state and state['EuXFEL/SelModule'] != None:
-        agipd_module = evt['photonPixelDetectors']['AGIPD'].data[state['EuXFEL/SelModule']]
+        agipd_module = evt['photonPixelDetectors']['AGIPD'].data[0]
     else:
         agipd_module = evt['photonPixelDetectors']['AGIPD'].data[8]
 

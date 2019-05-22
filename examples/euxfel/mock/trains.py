@@ -38,7 +38,7 @@ def onEvent(evt):
 
     # Full train(stack) of a single agipd module
     if 'EuXFEL/SelModule' in state and state['EuXFEL/SelModule'] != None:
-        agipd_module = evt['photonPixelDetectors']['AGIPD'].data[:,state['EuXFEL/SelModule']]
+        agipd_module = evt['photonPixelDetectors']['AGIPD'].data[:,0]
     else:
         agipd_module = evt['photonPixelDetectors']['AGIPD'].data[:,8]
 
