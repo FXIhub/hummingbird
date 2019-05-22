@@ -13,6 +13,7 @@ and then start the Hummingbird backend:
 import plotting.image
 import analysis.agipd
 import analysis.event
+import analysis.hitfinding
 from backend import add_record
 
 state = {}
@@ -43,9 +44,22 @@ def onEvent(evt):
 
     # Gain doesn't make physical sense here since the shape is not the same
     agipd_gain = evt['photonPixelDetectors']['AGIPD'].data[:,-1]
-    
-    # Iterate through the pulses
-    for i in range(len(agipd_module)):
-        agipd_pulse = add_record(evt['analysis'], 'analysis', 'AGIPD', agipd_module[i])
 
+    # Create a record for the agipd module of a full train
+    agipd_train = add_record(evt['analysis'], 'analysis', 'AGIPD/train', agipd_module)
+
+    # Do hitfinding on a full train
+    analysis.hitfinding.countLitPixels(evt, agipd_train, aduThreshold=0, hitscoreThreshold=0, stack=True)
+    hittrain = evt['analysis']['litpixel: isHit'].data
+
+    # Select pulses from the AGIPD train that are hits
+    agipd_hits = agipd_module[hittrain]
+
+    # Hitrate
+    # TODO: Need a hitrate function that can take a full train of hits/misses and updates the buffers, and returns the current hitrate.
+    
+    # Iterate through the hits
+    max_hits = 10 # The maximum number of hits to be selected from each train
+    for i in range(len(agipd_hits[:max_hits])):
+        agipd_pulse = add_record(evt['analysis'], 'analysis', 'AGIPD', agipd_hits[i])
         plotting.image.plotImage(agipd_pulse)
