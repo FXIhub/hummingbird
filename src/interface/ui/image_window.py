@@ -451,7 +451,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 if not img.shape[0]:
                     continue
             elif conf["data_type"] == "vector":
-                img = numpy.array(pd.y[:,1,:], copy=False)
+                img = numpy.array(pd.y[:,:], copy=False)
+                #img = numpy.array(pd.y[:,1,:], copy=False)
                 bins   = img.shape[1]
                 hmin   = 0
                 hmax   = img.shape[1]
