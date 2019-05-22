@@ -26,7 +26,7 @@ state['EuXFEL/RecvTrains'] = True
 
 # Use SelModule = None or remove key to indicate a full detector
 # [For simulator, comment if running with full detector, otherwise uncomment]
-#state['EuXFEL/SelModule'] = 0
+state['EuXFEL/SelModule'] = 0
 state['EuXFEL/SkipPulses'] = 0
 
 event_number = 0

@@ -42,7 +42,13 @@ class Worker(object):
         self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
         self.translator = None
         self.load_conf()
-        Worker.state['_config_file'] = config_file
+        try:
+            Worker.state['_config_file'] = config_file
+        except TypeError:
+            print()
+            print('Failed to load configuration file')
+            print()
+            raise
 
         if 'reduce_nr_event_readers' in Worker.conf.state:
             rmin = Worker.conf.state['reduce_nr_event_readers']

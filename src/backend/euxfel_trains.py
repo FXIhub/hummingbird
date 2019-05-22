@@ -192,11 +192,13 @@ class EUxfelTranslator(object):
         # This is necesary for the simulated karabo-bridge output, should not happen in online mode
         if not (numpy.array(img.shape).argmin() == 1):
             img = img.swapaxes(1,-1)
+        '''
         # Check that second is either 16 or 1 module
         assert (img.shape[1] == 16 or img.shape[1] == 1)
         # Check that module has shape (512,128)
         assert img.shape[2] == 512
         assert img.shape[3] == 128
+        '''
         # If data is calibrated read the gain and add to stack after last module
         if self._data_format == 'Calib':
             gain = obj['image.gain']
