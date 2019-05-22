@@ -5,6 +5,8 @@
 """A table to show the available PlotData"""
 
 from interface.Qt import QtGui, QtCore
+from interface.ui import PlotWindow, ImageWindow
+#from .plot_window import PlotWindow
 
 class PlotDataTable(QtGui.QWidget):
     """A table to show the available PlotData"""
@@ -25,6 +27,7 @@ class PlotDataTable(QtGui.QWidget):
         self.table.setSelectionMode(QtGui.QAbstractItemView.SingleSelection)
         self.table.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         self.table.itemSelectionChanged.connect(self._on_selection_changed)
+        self.table.cellDoubleClicked.connect(self._on_double_click)
 
         self._groups = {None: [[], None]}
         
@@ -240,6 +243,25 @@ class PlotDataTable(QtGui.QWidget):
             self.buffer_spin.setEnabled(False)
             self.clear_buffer.setEnabled(False)
 
+    def _on_double_click(self, row, column):
+        print('Clicked: %d, %d'%(row, column))
+        item = self.table.item(row, 1)
+        if self.item_is_group_header(item):
+            return
+        plotdata = item.data(QtCore.Qt.UserRole)
+        data_type = plotdata._parent.data_type[plotdata.title]
+        mwindow = self.window()
+        if data_type in ImageWindow.acceptable_data_types:
+            w = ImageWindow(mwindow)
+        elif data_type in PlotWindow.acceptable_data_types:
+            w = PlotWindow(mwindow)
+        else:
+            print('Unrecognized data_type:', data_type)
+            return
+
+        w.show()
+        mwindow._data_windows.append(w)
+        w.set_source_title(plotdata._parent, plotdata.title)
 
     def _on_buffer_size_clicked(self):
         table = self.table

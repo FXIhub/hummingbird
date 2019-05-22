@@ -11,7 +11,6 @@ Ui_preferences, base = loadUiType(uidir + '/preferences.ui')
 Ui_plotWindow, base = loadUiType(uidir + '/plot_window.ui')
 Ui_imageWindowSettings, base = loadUiType(uidir + '/image_window_settings.ui')
 Ui_imageWindow, base = loadUiType(uidir + '/image_window.ui')
-Ui_mainWindow, base = loadUiType(uidir + '/main_window.ui')
 Ui_linePlotSettings, base = loadUiType(uidir + '/line_plot_settings.ui')
 
 from interface.ui.data_window import DataWindow # pylint: disable=unused-import
@@ -20,4 +19,6 @@ from interface.ui.preferences import PreferencesDialog # pylint: disable=unused-
 from interface.ui.line_plot_settings import LinePlotSettings # pylint: disable=unused-import
 from interface.ui.plot_window import PlotWindow # pylint: disable=unused-import
 from interface.ui.image_window import ImageWindow # pylint: disable=unused-import
+
+Ui_mainWindow, base = loadUiType(uidir + '/main_window.ui')
 

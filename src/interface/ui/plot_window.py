@@ -92,6 +92,8 @@ class NormalizedHistogram(Histogram):
             
 class PlotWindow(DataWindow, Ui_plotWindow):
     """Window to display 2D plots"""
+    acceptable_data_types = ['scalar', 'vector', 'tuple', 'triple', 'running_hist', 'histogram' , 'normalized_histogram']
+
     def __init__(self, parent=None):
         DataWindow.__init__(self, parent)
         self.plot = pyqtgraph.PlotWidget(self.plotFrame, antialiasing=True)
@@ -102,7 +104,6 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.actionLegend_Box.triggered.connect(self.on_view_legend_box)
         self.actionX_axis.triggered.connect(self.on_view_x_axis)
         self.actionY_axis.triggered.connect(self.on_view_y_axis)
-        self.acceptable_data_types = ['scalar', 'vector', 'tuple', 'triple', 'running_hist', 'histogram' , 'normalized_histogram']
         self.exclusive_source = False
         self.line_colors = [(252, 175, 62), (114, 159, 207), (255, 255, 255),
                             (239, 41, 41), (138, 226, 52), (173, 127, 168)]

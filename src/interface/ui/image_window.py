@@ -17,6 +17,8 @@ import utils.io
 
 class ImageWindow(DataWindow, Ui_imageWindow):
     """Window to display images"""
+    acceptable_data_types = ['image', 'vector', 'triple', 'running_hist']
+
     def __init__(self, parent=None):
         # This also sets up the UI part
         DataWindow.__init__(self, parent)
@@ -25,7 +27,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         self.plot = ImageView(self, view=pyqtgraph.PlotItem())
         self._finish_layout()
         self.infoLabel.setText('')
-        self.acceptable_data_types = ['image', 'vector', 'triple', 'running_hist']
         self.exclusive_source = True
         self.meanmap = None
         self.last_x = None

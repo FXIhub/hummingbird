@@ -16,6 +16,7 @@ PYQT4 = 1
 PYQT5 = 2
 
 USE_QT_PY = None
+print('Imported Qt.py')
 
 
 # Special code when running in sphinx mode
