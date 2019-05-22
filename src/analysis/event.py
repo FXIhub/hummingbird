@@ -14,7 +14,7 @@ def printProcessingRate(pulses_per_event=1):
     """Prints processing rate to screen"""
     for i in range(pulses_per_event):
         processingTimes.appendleft(datetime.datetime.now())
-    if(len(processingTimes) < 200):
+    if(len(processingTimes) < 2):
         return
     dt = processingTimes[0] - processingTimes[-1]
     proc_rate = np.array((len(processingTimes)-1)/dt.total_seconds())

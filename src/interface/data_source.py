@@ -27,7 +27,7 @@ class DataSource(QtCore.QObject):
         self._recorder = None
         self._data_socket = ZmqSocket(SUB, self)
         self.conf = conf
-        self._group_structure = {None: []}
+        self._group_structure = {}
         try:
             self._connect()
             self.connected = True
@@ -150,7 +150,9 @@ class DataSource(QtCore.QObject):
                 self.data_type[k] = self.conf[k]['data_type']
                 if(k not in self._plotdata):
                     if "group" in self.conf[k]:
-                        group = self.conf[k]["group"]                        
+                        group = self.conf[k]["group"]
+                        if group is None:
+                            group = "No group"
                     else:
                         group = "No group"
 
