@@ -231,7 +231,7 @@ class EUxfelTranslator(object):
         
     def _tr_event_id(self, values, obj):
         """Translates euxfel event ID from some source into a hummingbird one"""
-        pulseid = numpy.array(obj["image.pulseId"][...,self._pulse_filter], dtype='int')
+        pulseid  = numpy.array(obj["image.pulseId"][...,self._pulse_filter], dtype='int')
         tsec  = numpy.array(obj['timestamp.sec'], dtype='int') 
         tfrac = numpy.array(obj['timestamp.frac'], dtype='int') * 1e-18 
         timestamp = tsec + tfrac + (pulseid / 760.)
@@ -239,6 +239,7 @@ class EUxfelTranslator(object):
         rec = Record('Timestamp', time, ureg.s)
         rec.pulseId = pulseid
         rec.cellId  = numpy.array(obj['image.cellId'][...,self._pulse_filter], dtype='int')
+        rec.badCells = numpy.array(obj["image.cellId"][...,~self._pulse_filter], dtype='int')
         rec.trainId = numpy.array(obj['image.trainId'][...,self._pulse_filter], dtype='int')
         rec.timestamp = timestamp
         values[rec.name] = rec
