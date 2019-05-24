@@ -72,7 +72,8 @@ class EUxfelTranslator(object):
         self._pulse_filter = numpy.ones(max_length, dtype='bool')
         self._pulse_filter[max_pulses:] = False
         self._pulse_filter[0] = False
-        for i in range(5): self._pulse_filter[18+i*32] = False
+        self._pulse_filter[18::32] = False
+        self._pulse_filter[29::32] = False
 
         # Start Karabo client
         self._krb_client = karabo_bridge.Client(dsrc)
@@ -159,7 +160,7 @@ class EUxfelTranslator(object):
             values = {}
             found = False
 
-            if key in event_keys:        
+            if key in event_keys: 
                 obj = evt[key]
                 for subkey in obj.keys():
                     add_record(values, 'native', '%s[%s]' % (self._s2c[key], subkey),
@@ -191,8 +192,9 @@ class EUxfelTranslator(object):
     
     def _tr_photon_detector(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
-        img = obj['image.data'][..., self._pulse_filter]
-        length = len(obj['image.pulseId'][..., self._pulse_filter])
+        train_length = numpy.array(obj["image.pulseId"]).shape[-1]
+        img = obj['image.data'][..., self._pulse_filter[:train_length]]
+        length = len(obj['image.pulseId'][..., self._pulse_filter[:train_length]])
         # Make sure that the pulses are along the zero dimension
         if img.shape[0] != length:
             dim = numpy.where(numpy.array(img.shape) == length)[0][0]
@@ -213,7 +215,7 @@ class EUxfelTranslator(object):
         '''
         # If data is calibrated read the gain and add to stack after last module
         if self._data_format == 'Calib':
-            gain = obj['image.gain'][..., self._pulse_filter]
+            gain = obj['image.gain'][..., self._pulse_filter[:train_length]]
             # Make sure that the pulses are along the zero dimension
             if gain.shape[0] != length:
                 dim  = numpy.where(numpy.array(gain.shape) == length)[0][0]
@@ -221,7 +223,7 @@ class EUxfelTranslator(object):
             # This needs to be tested if it also works when we receive only one module
             img = numpy.concatenate((img, gain[:,numpy.newaxis, ...]), axis=1)
         elif self._data_format == 'Raw':
-            gain = obj['image.gain'][..., self._pulse_filter]
+            gain = obj['image.gain'][..., self._pulse_filter[:train_length]]
             if self._sel_module is not None:
                 gain = gain[numpy.newaxis]
             img = numpy.concatenate((img, gain), axis=0)
@@ -231,16 +233,17 @@ class EUxfelTranslator(object):
         
     def _tr_event_id(self, values, obj):
         """Translates euxfel event ID from some source into a hummingbird one"""
-        pulseid  = numpy.array(obj["image.pulseId"][...,self._pulse_filter], dtype='int')
+        train_length = numpy.array(obj["image.pulseId"]).shape[-1]
+        pulseid  = numpy.array(obj["image.pulseId"][...,self._pulse_filter[:train_length]], dtype='int')
         tsec  = numpy.array(obj['timestamp.sec'], dtype='int') 
         tfrac = numpy.array(obj['timestamp.frac'], dtype='int') * 1e-18 
         timestamp = tsec + tfrac + (pulseid / 760.)
         time = numpy.array([datetime.datetime.fromtimestamp(t, tz=timezone('utc')) for t in timestamp])
         rec = Record('Timestamp', time, ureg.s)
         rec.pulseId = pulseid
-        rec.cellId  = numpy.array(obj['image.cellId'][...,self._pulse_filter], dtype='int')
-        rec.badCells = numpy.array(obj["image.cellId"][...,~self._pulse_filter], dtype='int')
-        rec.trainId = numpy.array(obj['image.trainId'][...,self._pulse_filter], dtype='int')
+        rec.cellId  = numpy.array(obj['image.cellId'][...,self._pulse_filter[:train_length]], dtype='int')
+        rec.badCells = numpy.array(obj["image.cellId"][...,~self._pulse_filter[:train_length]], dtype='int')
+        rec.trainId = numpy.array(obj['image.trainId'][...,self._pulse_filter[:train_length]], dtype='int')
         rec.timestamp = timestamp
         values[rec.name] = rec
 
