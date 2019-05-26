@@ -9,7 +9,7 @@ import ipc
 import numpy as np
 from backend import EventTranslator
 
-processingTimes = collections.deque([], 200)
+processingTimes = collections.deque([], 1000)
 def printProcessingRate(pulses_per_event=1):
     """Prints processing rate to screen"""
     for i in range(pulses_per_event):
