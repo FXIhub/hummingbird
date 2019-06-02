@@ -15,6 +15,7 @@ from . import ureg
 import logging
 import ipc
 import karabo_bridge
+import numpy
 
 from hummingbird import parse_cmdline_args
 _argparser = None
@@ -23,6 +24,7 @@ def add_cmdline_args():
     from utils.cmdline_args import argparser
     _argparser = argparser
     ## ADD EuXFEL specific parser arguments here ##
+
 
 class EUxfelTranslator(object):
     """Translate between EUxfel events and Hummingbird ones"""
@@ -69,15 +71,26 @@ class EUxfelTranslator(object):
             
         # Hardcoded pulse filter
         max_length = 176
+
         self._pulse_filter = numpy.ones(max_length, dtype='bool')
-        self._pulse_filter[max_pulses:] = False
-        self._pulse_filter[0] = False
-        self._pulse_filter[18::32] = False
-        self._pulse_filter[29::32] = False
+        # self._pulse_filter = numpy.zeros(max_length, dtype='bool')
+        # self._pulse_filter[1::2] = True
+
+        # self._pulse_filter[max_pulses:] = False # Default: disables last cell
+        # self._pulse_filter[0] = False # Disables first cell
+        # self._pulse_filter[18::32] = False # Bad cells
+        # self._pulse_filter[29::32] = False # Possibly bad cells
+
 
         # Start Karabo client
         self._krb_client = karabo_bridge.Client(dsrc)
         
+        if 'EuXFEL/DataSource_GMD' in state:
+            self._krb_gmd_client = karabo_bridge.Client(state['EuXFEL/DataSource_GMD'])
+            self._gmd_cache = None
+        else:
+            self._krb_gmd_client = None
+
         # Define how to translate between EuXFEL types and Hummingbird ones
         self._n2c = {}
         if self._sel_module is None:
@@ -100,12 +113,23 @@ class EUxfelTranslator(object):
             self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
         else:
             self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = "AGIPD"
-
+        
+        self._s2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = "SASE3 GMD"
         ## Add more AGIPD sources here
 
     def next_train(self):
         """Asks for next train until its age is within a given time window."""
         buf, meta = self._krb_client.next()
+
+        if(self._krb_gmd_client is not None):    
+            if(self._gmd_cache is None or numpy.random.random() < 0.05):            
+                gmd_buf, gmd_meta = self._krb_gmd_client.next()
+                # Inject the GMD data in the dictionary
+                self._gmd_cache = (gmd_buf['SA3_XTD10_XGM/XGM/DOOCS:output'],  gmd_meta['SA3_XTD10_XGM/XGM/DOOCS:output'])
+            buf['SA3_XTD10_XGM/XGM/DOOCS:output'] = self._gmd_cache[0]
+            meta['SA3_XTD10_XGM/XGM/DOOCS:output'] = self._gmd_cache[1]
+
+
         age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
         if age < self._max_train_age:
             return buf, meta
@@ -226,6 +250,7 @@ class EUxfelTranslator(object):
             gain = obj['image.gain'][..., self._pulse_filter[:train_length]]
             if self._sel_module is not None:
                 gain = gain[numpy.newaxis]
+            # print(img.shape, gain.shape)
             img = numpy.concatenate((img, gain), axis=0)
         else:
             raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
