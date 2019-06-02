@@ -213,7 +213,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             else:
                 self.plot.setLabel('left', self._settings_diag.y_label.text())
 
-    def _set_range(self, xmin, xmax, ymin, ymax):
+    def _set_manual_range(self):
         if not self._settings_diag.xlimits_auto.isChecked():
             try:
                 xmin = float(str(self._settings_diag.xmin.text()))
@@ -223,6 +223,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 xmax = float(str(self._settings_diag.xmax.text()))
             except ValueError:
                 pass
+            if (xmax - xmin) == 0.:
+                xmin -= 0.1
+                xmax += 0.1
+            self.plot.setXRange(xmin, xmax)
         if not self._settings_diag.ylimits_auto.isChecked():
             try:
                 ymin = float(str(self._settings_diag.ymin.text()))
@@ -232,13 +236,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 ymax = float(str(self._settings_diag.ymax.text()))
             except ValueError:
                 pass
-        if (xmax - xmin) == 0.:
-            xmin -= 0.1
-            xmax += 0.1
-        if (ymax - ymin) == 0.:
-            ymin -= 0.1
-            ymax += 0.1
-        self.plot.setRange(xRange=(xmin, xmax), yRange=(ymin, ymax))    
+            if (ymax - ymin) == 0.:
+                ymin -= 0.1
+                ymax += 0.1
+            self.plot.setYRange(ymin, ymax)
             
     def replot(self):
         """Replot data"""
@@ -479,7 +480,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
         # Set ranges
         if len(xmins) > 0:
-            self._set_range(min(xmins), max(xmaxs), min(ymins), max(ymaxs))
+            self._set_manual_range()
         
         # Various options
         if self._settings_diag.aspect_locked.isChecked():
