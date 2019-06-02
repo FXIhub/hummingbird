@@ -651,6 +651,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         settings['y_view'] = self.actionY_axis.isChecked()
         settings['histogram_view'] = self.actionHistogram.isChecked()
         settings['crosshair'] = self.actionCrosshair.isChecked()
+        settings['circular_roi'] = self.actionCircularROI.isChecked()
         settings['gradient_mode'] = self.plot.getHistogramWidget().item.gradient.saveState()
         
         return DataWindow.get_state(self, settings)
