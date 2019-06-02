@@ -519,6 +519,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         settings['lines'] = self.actionLines.isChecked()
         settings['points'] = self.actionPoints.isChecked()
         settings['legend'] = self.actionLegend_Box.isChecked()
+        plot_item = self.plot.getPlotItem()
+        settings['grid_x'] = plot_item.ctrl.xGridCheck.isChecked()
+        settings['grid_y'] = plot_item.ctrl.yGridCheck.isChecked()
+        settings['grid_alpha'] = plot_item.ctrl.gridAlphaSlider.value()
         settings = self._settings_diag.get_state(settings)
         return DataWindow.get_state(self, settings)
 
@@ -533,6 +537,12 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.actionPoints.setChecked(settings['points'])
         self.actionLegend_Box.setChecked(settings['legend'])
         self.actionLegend_Box.triggered.emit(settings['legend'])
+        plot_item = self.plot.getPlotItem()
+        plot_item.ctrl.xGridCheck.setChecked(settings['grid_x'])
+        plot_item.ctrl.xGridCheck.toggled.emit(settings['grid_x'])
+        plot_item.ctrl.yGridCheck.setChecked(settings['grid_y'])
+        plot_item.ctrl.yGridCheck.toggled.emit(settings['grid_y'])
+        plot_item.ctrl.gridAlphaSlider.setValue(settings['grid_alpha'])
         return DataWindow.restore_from_state(self, settings, data_sources)
     
     def _update_bg(self):
