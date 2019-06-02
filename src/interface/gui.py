@@ -69,13 +69,13 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
                 loaded_sources = self._init_data_sources(s)
         except (TypeError, KeyError):
             # raise
-            #raise
             # Be a bit more resilient against configuration problems
             logging.warning("Failed to load data source settings! Continuing...")
         if do_restore:
             try:
                 self._restore_data_windows(s, loaded_sources)
             except (TypeError, KeyError):
+                # raise
                 # Be a bit more resilient against configuration problems
                 logging.warning("Failed to load data windows settings! Continuing...")
             self.plotdata_widget.restore_state(s)
