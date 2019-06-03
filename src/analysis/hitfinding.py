@@ -89,7 +89,11 @@ def countLitPixels(evt, record, aduThreshold=20, hitscoreThreshold=200, hitscore
     :Authors:
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se)
     """
+    
+    if(mask is None):
+        mask = 1
     hitscore = ((record.data*mask) > aduThreshold).sum(axis=(0,1) if stack is True else None)
+
     hit = np.array(hitscore > hitscoreThreshold, dtype='int')
     if hitscoreMax is not None:
         hit *= np.array(hitscore <= hitscoreMax, dtype='int')
