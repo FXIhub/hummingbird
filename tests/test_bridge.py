@@ -6,7 +6,13 @@ Edit address in main() to connect to a non-standard sender
 import sys
 import time
 import signal
-from karabo_bridge import Client
+import warnings
+
+try:
+    from karabo_bridge import Client
+except ImportError:
+    pass
+
 
 class Tester():
     def __init__(self, address, sigint):
@@ -54,4 +60,8 @@ def main():
     t.loop()
     
 if __name__ == '__main__':
-    main()
+    try:
+        from karabo_bridge import Client
+        main()
+    except ImportError:
+        warnings.warn(UserWarning("karabo_bridge is not available and therefore not be tested..."))
