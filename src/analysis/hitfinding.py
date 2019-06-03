@@ -50,10 +50,7 @@ def hitrate(evt, hit, history=100, unit='percent', outkey="hitrate"):
         Benedikt J. Daurer (benedikt@xray.bmc.uu.se),
         Tomas Ekeberg
     """
-    if type(hit) is np.ndarray:
-        hit = list(hit)
-    if type(hit) is not list:
-        hit = [hit]
+    hit = np.atleast_1d(hit)
     global hitrate_counters
     if outkey not in hitrate_counters or hitrate_counters[outkey].maxlen != history:
         hitrate_counters[outkey] = collections.deque([], history)
