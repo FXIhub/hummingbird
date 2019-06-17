@@ -12,6 +12,7 @@ from interface.colorbar import ColorBar
 import datetime
 import utils.array
 import os
+from .pg_time_axis import DateAxisItem
 
 class Histogram(object):
     def __init__(self, hmin, hmax, bins):
@@ -126,6 +127,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         # Make sure menubar is attached to the main window
         self.menubar = self.menuBar()
         self.menubar.setNativeMenuBar(False)
+        self.time_on_x_axis = False
+        self.time_axis = DateAxisItem(orientation='bottom')
 
     def on_view_legend_box(self):
         """Show/hide legend box"""
@@ -455,6 +458,18 @@ class PlotWindow(DataWindow, Ui_plotWindow):
             xmaxs.append(x.max())
             ymins.append(y.min())
             ymaxs.append(y.max())
+
+            if(x.dtype.metadata is not None and
+               'units' in x.dtype.metadata and
+               x.dtype.metadata['units'] == 's'):
+                if(self.time_on_x_axis == False):
+                    self.time_on_x_axis = True
+                    self.time_axis.attachToPlotItem(self.plot.getPlotItem())
+
+            else:
+                if(self.time_on_x_axis == True):
+                    self.time_on_x_axis = False
+                    self.time_axis.detachFromPlotItem()
             
             color_index += 1
             

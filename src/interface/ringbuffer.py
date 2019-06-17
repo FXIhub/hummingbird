@@ -56,6 +56,8 @@ class RingBuffer(object):
         self._data[0:self._len] = tmp_data[prev_maxlen+self._index-self._len:prev_maxlen+self._index]
         self._data[self._maxlen:self._maxlen+self._len] = tmp_data[prev_maxlen+self._index-self._len:prev_maxlen+self._index]
         self._index = self._len % self._maxlen
+        # Preserve dtype, otherwise dtype.metadata is lost
+        self._data.dtype = tmp_data.dtype
 
     def _init_data(self, x):
         """Initialize the buffer with the given data"""
