@@ -174,7 +174,7 @@ class DateAxisItem(AxisItem):
                 # Special case for milliseconds as strftime does not support it
                 if(fmt == "[+%f"):
                     s = t.strftime(fmt)
-                    s = s[:-3] + ' us]'
+                    s = s[:-3] + ' ms]'
                     ret.append(s)
                 else:
                     ret.append(t.strftime(fmt))
