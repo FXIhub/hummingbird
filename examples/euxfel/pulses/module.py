@@ -21,9 +21,6 @@ state['EuXFEL/DataSource'] = 'tcp://127.0.0.1:1234'
 state['EuXFEL/DataFormat'] = 'Calib'
 state['EuXFEL/MaxTrainAge'] = 4
 
-# Use RecvTrains = True or remove key to indicate reception of a full train
-state['EuXFEL/RecvTrains'] = True
-
 # Use SelModule = None or remove key to indicate a full detector
 # [For simulator, comment if running with full detector, otherwise uncomment]
 state['EuXFEL/SelModule'] = 0

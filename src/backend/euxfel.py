@@ -2,7 +2,7 @@
 # Copyright 2017, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-"""Pulse-based online backend for reading EuXFEL events via the Karabo-bridge."""
+"""Online backend for reading EuXFEL events via the Karabo-bridge."""
 from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import numpy
@@ -15,6 +15,7 @@ from . import ureg
 import logging
 import ipc
 import karabo_bridge
+import numpy
 
 from hummingbird import parse_cmdline_args
 _argparser = None
@@ -23,6 +24,8 @@ def add_cmdline_args():
     from utils.cmdline_args import argparser
     _argparser = argparser
     ## ADD EuXFEL specific parser arguments here ##
+
+MAX_TRAIN_LENGTH = 352
 
 class EUxfelTranslator(object):
     """Translate between EUxfel events and Hummingbird ones"""
@@ -33,7 +36,7 @@ class EUxfelTranslator(object):
         # parse additional arguments
         cmdline_args = _argparser.parse_args()
 
-        # Read data source, this currently only allows for a single source, e.g. AGIPD
+        # Read the main data source, e.g. AGIPD
         if 'EuXFEL/DataSource' in state:
             dsrc = state['EuXFEL/DataSource']
         elif('EuXFEL' in state and 'DataSource' in state['EuXFEL']):
@@ -42,9 +45,13 @@ class EUxfelTranslator(object):
             raise ValueError("You need to set the '[EuXFEL][DataSource]'"
                              " in the configuration")
 
-        # We allow different data formats
-        # Calib: This is calibrated in online mode with (nmodules,X,Y)
-        # Raw: This is for reading uncalibrated data online, don't know shape yet
+        # Option to read a slow data source, e.g for GMD, MOTORS, ....
+        if 'EuXFEL/SlowSource' in state:
+            slsrc = state['EuXFEL/SlowSource']
+        else:
+            slsrc = None
+
+        # The data format for the data source, either "Calib" or "Raw"
         self._data_format = "Calib"
         if 'EuXFEL/DataFormat' in state:
             self._data_format = state["EuXFEL/DataFormat"]
@@ -52,34 +59,51 @@ class EUxfelTranslator(object):
             raise ValueError("You need to set the 'EuXFEL/DataFormat'"
                              " in the configuration as 'Calib' or 'Raw'")
             
-        # Switch for receiving full trains (current default) or individual pulses
-        self._recv_trains = True
-        if 'EuXFEL/RecvTrains' in state:
-            self._recv_trains = state['EuXFEL/RecvTrains']
+        # Option to select specific AGIPD module
         self._sel_module = None
         if 'EuXFEL/SelModule' in state:
             self._sel_module = state['EuXFEL/SelModule']
-        self._train_buffer = None
-        self._train_meta = None
-        self._remaining_pulses = 0
 
         # Option to decide about maximum allowd age of trains
         self._max_train_age = 5 # in units of seconds
         if 'EuXFEL/MaxTrainAge' in state:
             self._max_train_age = state['EuXFEL/MaxTrainAge']
 
-        # Option to skip pulses within a train
-        self._skip_n_pulses = 0
-        if 'EuXFEL/SkipPulses' in state:
-            self._skip_n_pulses = state['EuXFEL/SkipPulses']
+        # Option to set the first cell to be selected per train
+        first_cell = 1
+        if 'EuXFEL/FirstCell' in state:
+            first_cell = state['EuXFEL/FirstCell']
+
+        # Option to set the last cell to be selected per train
+        last_cell = -1
+        if 'EuXFEL/LastCell' in state:
+            last_cell = state['EuXFEL/LastCell'] + 1
+
+        # Option to specify bad cells
+        bad_cells = []
+        if 'EuXFEL/BadCells' in state:
+            bad_cells = list(state['EuXFEL/BadCells'])
         
-        # Start Karabo client
-        self._krb_client = karabo_bridge.Client(dsrc)
+        # Cell filter
+        self._cell_filter = numpy.zeros(MAX_TRAIN_LENGTH, dtype='bool')
+        self._cell_filter[first_cell:last_cell] = True
+        for cell in bad_cells:
+            self._cell_filter[cell] = False
+
+        # Start Karabo client for data source
+        self._data_client = karabo_bridge.Client(dsrc)
         
+        # Start Karabo client for slow data source
+        self._slow_cache  = None
+        self._slow_client = None
+        if slsrc is not None:
+            self._slow_client = karabo_bridge.Client(slsrc)
+
         # Define how to translate between EuXFEL types and Hummingbird ones
         self._n2c = {}
         if self._sel_module is None:
             self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = ['photonPixelDetectors', 'eventID']
+            self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = ['photonPixelDetectors', 'eventID']
         else:
             self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = ['photonPixelDetectors', 'eventID']
         
@@ -96,14 +120,166 @@ class EUxfelTranslator(object):
         self._s2c = {}
         if self._sel_module is None:
             self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
+            self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = "AGIPD"
         else:
             self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = "AGIPD"
-
+        
+        self._s2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = "SASE3 GMD"
         ## Add more AGIPD sources here
+
+    def event_keys(self, evt):
+        """Returns the translated keys available"""
+        native_keys = evt.keys()
+        common_keys = set()
+        for k in native_keys:
+            for c in self._native_to_common(k):
+                common_keys.add(c)
+        # analysis is for values added later on
+        return list(common_keys)+['analysis']
+
+    def _native_to_common(self, key):
+        """Translates a native key to a hummingbird one"""
+        if(key in self._n2c):
+            val = self._n2c[key]
+            if type(val) is not list:
+                val = [val]
+            return val
+        else:
+            return []
+
+    def event_native_keys(self, evt):
+        """Returns the native keys available"""
+        return evt.keys()
+
+    def translate(self, evt, key):
+        """Returns a dict of Records that match a given hummingbird key"""
+        values = {}
+        if(key in self._c2n):
+            return self.translate_core(evt, key)
+        elif(key == 'analysis'):
+            return {}
+        elif(key == 'stream'):
+            return {}
+        else:
+            # check if the key matches any of the existing keys in the event
+            event_keys = evt.keys()
+            values = {}
+            found = False
+
+            if key in event_keys: 
+                obj = evt[key]
+                for subkey in obj.keys():
+                    add_record(values, 'native', '%s[%s]' % (self._s2c[key], subkey),
+                               obj[subkey], ureg.ADU)
+                return values
+            else:
+                print('%s not found in event' % (key))
+
+    def translate_core(self, evt, key):
+        """Returns a dict of Records that matchs a core Hummingbird key."""
+        values = {}
+        for k in self._c2n[key]:
+            if k in evt:
+                if key == 'eventID':
+                    self._tr_event_id(values, evt[k])
+                elif key == 'photonPixelDetectors':
+                    self._tr_photon_detector(values, evt[k], k)
+                else:
+                    raise RuntimeError('%s not yet supported with key %s' % (k, key))
+        return values
+        
+
+class EUxfelTrainTranslator(EUxfelTranslator):
+    """Translate between EUxfel train events and Hummingbird ones"""
+    def __init__(self, state):
+        EUxfelTranslator.__init__(self, state)
 
     def next_train(self):
         """Asks for next train until its age is within a given time window."""
-        buf, meta = self._krb_client.next()
+        buf, meta = self._data_client.next()
+
+        if(self._slow_client is not None):    
+            if(self._slow_cache is None or numpy.random.random() < 0.05):            
+                gmd_buf, gmd_meta = self._slow_client.next()
+                # Inject the GMD data in the dictionary
+                self._slow_cache = (gmd_buf['SA3_XTD10_XGM/XGM/DOOCS:output'],  gmd_meta['SA3_XTD10_XGM/XGM/DOOCS:output'])
+            buf['SA3_XTD10_XGM/XGM/DOOCS:output'] = self._slow_cache[0]
+            meta['SA3_XTD10_XGM/XGM/DOOCS:output'] = self._slow_cache[1]
+
+
+        age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
+        if age < self._max_train_age:
+            return buf, meta
+        else:
+            return self.next_train()
+        
+    def next_event(self):
+        """Grabs the next train event returns the translated version."""
+        # Populates event dictionary with trains from Karabo Bridge
+        train, metadata = self.next_train()
+        for source, d in metadata.items():
+            for k,v in d.items():
+                train[source][k] = v
+        return EventTranslator(train, self)
+
+    def event_id(self, evt):
+        """Returns the first id of a train."""
+        return self.translate(evt, 'eventID')['Timestamp'].timestamp[0]
+
+    def train_id(self, evt):
+        """Returns the full stack of all event ids within a train."""
+        return self.translate(evt, 'eventID')['Timestamp'].timestamp
+    
+    def _tr_photon_detector(self, values, obj, evt_key):
+        """Translates pixel detector into Humminbird ADU array"""
+        train_length = numpy.array(obj["image.pulseId"]).shape[-1]
+        cells = self._cell_filter[:train_length]
+        img  = obj['image.data'][..., cells]
+        gain = obj['image.gain'][..., cells]
+        if self._sel_module is not None:
+            img = img[numpy.newaxis]
+        assert img.ndim == 4
+        if self._sel_module is not None:
+            gain = gain[numpy.newaxis] 
+
+        # If data is raw, add the gain reference along the 0th dimension
+        if self._data_format == 'Raw':
+            assert gain.ndim == 4
+            img = numpy.concatenate((img, gain), axis=0)
+        # If data is calibrated there is no need to look at the gain
+        elif self._data_format == 'Calib':
+            pass
+        else:
+            raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
+        add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
+
+    def _tr_event_id(self, values, obj):
+        """Translates euxfel train event ID from data source into a hummingbird one"""
+        train_length = numpy.array(obj["image.pulseId"]).shape[-1]
+        cells = self._cell_filter[:train_length]
+        pulseid  = numpy.array(obj["image.pulseId"][..., cells], dtype='int')
+        tsec  = numpy.array(obj['timestamp.sec'], dtype='int') 
+        tfrac = numpy.array(obj['timestamp.frac'], dtype='int') * 1e-18 
+        timestamp = tsec + tfrac + (pulseid / 760.)
+        time = numpy.array([datetime.datetime.fromtimestamp(t, tz=timezone('utc')) for t in timestamp])
+        rec = Record('Timestamp', time, ureg.s)
+        rec.pulseId = pulseid
+        rec.cellId   = numpy.array(obj['image.cellId'][...,  cells], dtype='int')
+        rec.badCells = numpy.array(obj['image.cellId'][..., ~cells], dtype='int')
+        rec.trainId  = numpy.array(obj['image.trainId'][..., cells], dtype='int')
+        rec.timestamp = timestamp
+        values[rec.name] = rec
+
+
+        
+class EUxfelPulseTranslator(EUxfelTranslator):
+    """Translate between EUxfel pulse events and Hummingbird ones"""
+    def __init__(self, state):
+        EUxfelTranslator.__init__(self, state)
+
+    def next_train(self):
+        """Asks for next train until its age is within a given time window."""
+        buf, meta = self._data_client.next()
         age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
         if age < self._max_train_age:
             return buf, meta
@@ -148,72 +324,11 @@ class EUxfelTranslator(object):
         # When reading individual pulses:
         #   Populates event dictionary directly from Karabo Bridge
         if not self._recv_trains:
-            evt, metadata = self._krb_client.next()
+            evt, metadata = self._data_client.next()
             for source, d in metadata.items():
                 for k,v in d.items():
                     evt[source][k] = v
         return EventTranslator(evt, self)
-
-    def event_keys(self, evt):
-        """Returns the translated keys available"""
-        native_keys = evt.keys()
-        common_keys = set()
-        for k in native_keys:
-            for c in self._native_to_common(k):
-                common_keys.add(c)
-        # analysis is for values added later on
-        return list(common_keys)+['analysis']
-
-    def _native_to_common(self, key):
-        """Translates a native key to a hummingbird one"""
-        if(key in self._n2c):
-            val = self._n2c[key]
-            if type(val) is not list:
-                val = [val]
-            return val
-        else:
-            return []
-
-    def event_native_keys(self, evt):
-        """Returns the native keys available"""
-        return evt.keys()
-
-    def translate(self, evt, key):
-        """Returns a dict of Records that match a given hummingbird key"""
-        values = {}
-        if(key in self._c2n):
-            return self.translate_core(evt, key)
-        elif(key == 'analysis'):
-            return {}
-        elif(key == 'stream'):
-            return {}
-        else:
-            # check if the key matches any of the existing keys in the event
-            event_keys = evt.keys()
-            values = {}
-            found = False
-
-            if key in event_keys:        
-                obj = evt[key]
-                for subkey in obj.keys():
-                    add_record(values, 'native', '%s[%s]' % (self._s2c[key], subkey),
-                               obj[subkey], ureg.ADU)
-                return values
-            else:
-                print('%s not found in event' % (key))
-
-    def translate_core(self, evt, key):
-        """Returns a dict of Records that matchs a core Hummingbird key."""
-        values = {}
-        for k in self._c2n[key]:
-            if k in evt:
-                if key == 'eventID':
-                    self._tr_event_id(values, evt[k])
-                elif key == 'photonPixelDetectors':
-                    self._tr_photon_detector(values, evt[k], k)
-                else:
-                    raise RuntimeError('%s not yet supported with key %s' % (k, key))
-        return values
 
     def event_id(self, evt):
         """Returns an id which should be unique for each
@@ -257,5 +372,3 @@ class EUxfelTranslator(object):
         rec.trainId = int(obj['image.trainId'])
         rec.timestamp = timestamp
         values[rec.name] = rec
-
-        
