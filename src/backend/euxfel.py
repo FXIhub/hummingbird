@@ -265,7 +265,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         assert img.ndim == 4
         if self._sel_module is not None:
             gain = gain[numpy.newaxis] 
-
+ 
         # If data is raw, add the gain reference along the 0th dimension
         if self._data_format == 'Raw':
             assert gain.ndim == 4
@@ -299,49 +299,48 @@ class EUxfelPulseTranslator(EUxfelTranslator):
     """Translate between EUxfel pulse events and Hummingbird ones"""
     def __init__(self, state):
         EUxfelTranslator.__init__(self, state)
-        
+        self._train_buffer = None
+        self._train_meta = None
+        self._remaining_pulses = 0
+        self._good_cells = None
+
+        # Option to skip pulses within a train
+        self._skip_n_pulses = 0
+        if 'EuXFEL/SkipNrPulses' in state:
+            self._skip_n_pulses = state['EuXFEL/SkipNrPulses']
+
     def next_event(self):
         """Grabs the next event returns the translated version."""
-        # When reading full trains, and no remaining pulses in the buffer:
+        # If no remaining pulses in the buffer:
         #   Gets next train from Karabo Bridge
         #   Resets number of remaining pulses
-        if self._recv_trains and not self._remaining_pulses:
+        if not self._remaining_pulses:
             self._train_buffer, self._train_meta = self.next_train()
             self._train_id = self._train_buffer[list(self._train_buffer.keys())[0]]['image.trainId']
             self._train_length = len(self._train_id)
             self._remaining_pulses = self._train_length
-            #print("Received train: ", self._train_id)
-            #print("Remaining pulses: ", self._remaining_pulses)
+            self._good_cells = self._cell_filter[:self._train_length]
 
-        # When reading full trains, and pulses still remaining in the buffer:
+        # If pulses still remaining in the buffer:
         #   Sets current event to first remaining pulse
         #   Populates event dictionary
-        if self._recv_trains and self._remaining_pulses:
+        if self._remaining_pulses:
             index = self._train_length - self._remaining_pulses
+            if not self._good_cells[index]:
+                self._remaining_pulses -= 1
+                return self.next_event()
             evt = {}
             for source, d in self._train_meta.items():
                 evt[source] = {}
                 for k,v in self._train_buffer[source].items():
                     if type(v) is list:
                         continue
-                    # Make sure we are filtering the correct dimension
-                    if v.shape[0] != self._train_length:
-                        dim = numpy.where(numpy.array(v.shape) == self._train_length)[0][0]
-                        evt[source][k] = v.swapaxes(0,dim)[index]
-                    else:
-                        evt[source][k] = v[index]
+                    evt[source][k] = v[...,index]
                 for k,v in d.items():
                     evt[source][k] = v
             # Update remaining pulses, skipping some pulses if requested
             self._remaining_pulses = max(0, self._remaining_pulses - (1 + self._skip_n_pulses))
 
-        # When reading individual pulses:
-        #   Populates event dictionary directly from Karabo Bridge
-        if not self._recv_trains:
-            evt, metadata = self._data_client.next()
-            for source, d in metadata.items():
-                for k,v in d.items():
-                    evt[source][k] = v
         return EventTranslator(evt, self)
 
     def event_id(self, evt):
@@ -352,25 +351,18 @@ class EUxfelPulseTranslator(EUxfelTranslator):
     def _tr_photon_detector(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
         img = obj['image.data']
+        gain = obj['image.gain']
         if self._sel_module is not None:
             img = img[numpy.newaxis]
-        # If shortest dimension (modules) is last, swap it with zero dimension
-        # This is necesary for the simulated karabo-bridge output, should happen in online mode
-        if not (numpy.array(img.shape).argmin() == 0):
-            img = img.swapaxes(0,-1)
-        # Check that first is either 16 or 1 module
-        assert (img.shape[0] == 16 or img.shape[0] == 1)
-        # Check that module has shape (512,128)
-        assert img.shape[1] == 512
-        assert img.shape[2] == 128
-        # If data is calibrated read the gain and add to stack after last module
-        if self._data_format == 'Calib':
-            gain = obj['image.gain']
-            # This needs to be tested if it also works when we receive only one module
-            img = numpy.vstack((img, gain[numpy.newaxis, ...]))
-        elif self._data_format == 'Raw':
+        if self._sel_module is not None:
+            gain = gain[numpy.newaxis]
+        # If data is raw, add the gain reference along the 0th dimension
+        if self._data_format == 'Raw':
+            img = numpy.concatenate((img, gain), axis=0)
+        # If data is calibrated there is no need to look at the gain
+        elif self._data_format == 'Calib':
             pass
-        else:
+        else:        
             raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
         

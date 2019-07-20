@@ -41,7 +41,7 @@ def onEvent(evt):
     print("%d pulses per train" %(npulses))
     print("Bad cells: ", T.badCells)
 
-    # Read data/gain from AGIPD source
+    # Read calibrated data from AGIPD source
     agipd_data = evt['photonPixelDetectors']['AGIPD'].data[0]
     agipd_train = add_record(evt['analysis'], 'analysis', 'AGIPD/train', agipd_data)
 
