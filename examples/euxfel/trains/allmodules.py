@@ -20,6 +20,7 @@ state['Facility'] = 'EuXFEL'
 state['EventIsTrain'] = True
 state['EuXFEL/DataSource'] = 'tcp://127.0.0.1:1234'
 state['EuXFEL/DataFormat'] = 'Calib'
+state['EuXFEL/SlowSource'] = 'tcp://127.0.0.1:1234'
 state['EuXFEL/SelModule'] = None
 state['EuXFEL/MaxTrainAge'] = 4
 state['EuXFEL/FirstCell'] = 1

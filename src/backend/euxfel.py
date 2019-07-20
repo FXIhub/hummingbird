@@ -45,12 +45,6 @@ class EUxfelTranslator(object):
             raise ValueError("You need to set the '[EuXFEL][DataSource]'"
                              " in the configuration")
 
-        # Option to read a slow data source, e.g for GMD, MOTORS, ....
-        if 'EuXFEL/SlowSource' in state:
-            slsrc = state['EuXFEL/SlowSource']
-        else:
-            slsrc = None
-
         # The data format for the data source, either "Calib" or "Raw"
         self._data_format = "Calib"
         if 'EuXFEL/DataFormat' in state:
@@ -83,6 +77,23 @@ class EUxfelTranslator(object):
         bad_cells = []
         if 'EuXFEL/BadCells' in state:
             bad_cells = list(state['EuXFEL/BadCells'])
+
+
+        # Option to read a slow data source, e.g for GMD, MOTORS, ....
+        if 'EuXFEL/SlowSource' in state:
+            slsrc = state['EuXFEL/SlowSource']
+        else:
+            slsrc = None
+
+        # Option to provide a list of slow data native keys
+        self._slow_keys = None
+        if 'EuXFEL/SlowKeys' in state:
+            self._slow_keys = list(state['EuXFEL/SlowKeys'])
+
+        # Option to provide update frequency for slow data source
+        self._slow_update_rate = 1
+        if 'EuXFEL/SlowUpdate' in state:
+            self._slow_update_rate = int(state['EuXFEL/SlowUpdate'])
         
         # Cell filter
         self._cell_filter = numpy.zeros(MAX_TRAIN_LENGTH, dtype='bool')
@@ -95,6 +106,7 @@ class EUxfelTranslator(object):
         
         # Start Karabo client for slow data source
         self._slow_cache  = None
+        self._slow_last_time = 0
         self._slow_client = None
         if slsrc is not None:
             self._slow_client = karabo_bridge.Client(slsrc)
@@ -126,6 +138,37 @@ class EUxfelTranslator(object):
         
         self._s2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = "SASE3 GMD"
         ## Add more AGIPD sources here
+
+    def append_slow_data(self, buf, meta):
+        """Append slow data to train buffer"""
+        do_update =  (time.time() - self._slow_last_time) > self._slow_update_rate
+        if do_update or self._slow_cache is None:
+            self._slow_cache = self._slow_client.next() 
+            self._slow_last_time = time.time()
+        
+        if self._slow_keys is not None:
+            for k in self._slow_keys:
+                buf[k]  = self._slow_cache[0][k]
+                meta[k] = self._slow_cache[1][k]
+        else:
+            for k,v in self._slow_cache[0].items():
+                buf[k] = v
+            for k,v in self._slow_cache[1].items():
+                meta[k] = v
+        return buf, meta
+
+    def next_train(self):
+        """Asks for next train until its age is within a given time window."""
+        buf, meta = self._data_client.next()
+
+        if(self._slow_client is not None): 
+            buf, meta = self.append_slow_data(buf, meta)
+
+        age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
+        if age < self._max_train_age:
+            return buf, meta
+        else:
+            return self.next_train()
 
     def event_keys(self, evt):
         """Returns the translated keys available"""
@@ -187,32 +230,13 @@ class EUxfelTranslator(object):
                 else:
                     raise RuntimeError('%s not yet supported with key %s' % (k, key))
         return values
-        
+
 
 class EUxfelTrainTranslator(EUxfelTranslator):
     """Translate between EUxfel train events and Hummingbird ones"""
     def __init__(self, state):
         EUxfelTranslator.__init__(self, state)
-
-    def next_train(self):
-        """Asks for next train until its age is within a given time window."""
-        buf, meta = self._data_client.next()
-
-        if(self._slow_client is not None):    
-            if(self._slow_cache is None or numpy.random.random() < 0.05):            
-                gmd_buf, gmd_meta = self._slow_client.next()
-                # Inject the GMD data in the dictionary
-                self._slow_cache = (gmd_buf['SA3_XTD10_XGM/XGM/DOOCS:output'],  gmd_meta['SA3_XTD10_XGM/XGM/DOOCS:output'])
-            buf['SA3_XTD10_XGM/XGM/DOOCS:output'] = self._slow_cache[0]
-            meta['SA3_XTD10_XGM/XGM/DOOCS:output'] = self._slow_cache[1]
-
-
-        age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
-        if age < self._max_train_age:
-            return buf, meta
-        else:
-            return self.next_train()
-        
+          
     def next_event(self):
         """Grabs the next train event returns the translated version."""
         # Populates event dictionary with trains from Karabo Bridge
@@ -221,7 +245,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             for k,v in d.items():
                 train[source][k] = v
         return EventTranslator(train, self)
-
+        
     def event_id(self, evt):
         """Returns the first id of a train."""
         return self.translate(evt, 'eventID')['Timestamp'].timestamp[0]
@@ -271,20 +295,10 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         values[rec.name] = rec
 
 
-        
 class EUxfelPulseTranslator(EUxfelTranslator):
     """Translate between EUxfel pulse events and Hummingbird ones"""
     def __init__(self, state):
         EUxfelTranslator.__init__(self, state)
-
-    def next_train(self):
-        """Asks for next train until its age is within a given time window."""
-        buf, meta = self._data_client.next()
-        age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
-        if age < self._max_train_age:
-            return buf, meta
-        else:
-            return self.next_train()
         
     def next_event(self):
         """Grabs the next event returns the translated version."""
