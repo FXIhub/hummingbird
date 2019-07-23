@@ -34,6 +34,7 @@ class EUxfelTranslator(object):
         self.library = 'karabo_bridge'
 
         # parse additional arguments
+
         cmdline_args = _argparser.parse_args()
 
         # Read the main data source, e.g. AGIPD
@@ -104,6 +105,7 @@ class EUxfelTranslator(object):
         # Start Karabo client for data source
         self._data_client = karabo_bridge.Client(dsrc)
         
+        
         # Start Karabo client for slow data source
         self._slow_cache  = None
         self._slow_last_time = 0
@@ -118,7 +120,19 @@ class EUxfelTranslator(object):
             self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = ['photonPixelDetectors', 'eventID']
         else:
             self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = ['photonPixelDetectors', 'eventID']
-        
+        self._n2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = ['photonPixelDetectors', 'eventID']
+        self._n2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = ['GMD', 'eventID']
+        # self._n2c["SQS_NQS_PNCCD1MP/CAL/CORR_CM:dataOutput"] = ['photonPixelDetectors', 'eventID']
+        # self._n2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-1:output"] = ['photonPixelDetectors', 'eventID']
+
+        # MCP
+        self._n2c["SQS_DIGITIZER_UTC1/ADC/1:network"] = ["trace"]
+        # ["digitizers.channel_1_A.raw.samples"] # Change channel
+
+        # GMD 
+        # "data.intensitySa3TD" # SASE3
+        # "data.intensitySa1TD" # SASE1
+
         # Calculate the inverse mapping
         self._c2n = {}
         for k, v in self._n2c.items():
@@ -136,7 +150,10 @@ class EUxfelTranslator(object):
         else:
             self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = "AGIPD"
         
-        self._s2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = "SASE3 GMD"
+        self._s2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = "pnCCD"
+        # self._s2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-1:output"] = "pnCCD"
+        
+        self._s2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = "GMD"
         ## Add more AGIPD sources here
 
     def append_slow_data(self, buf, meta):
@@ -160,11 +177,13 @@ class EUxfelTranslator(object):
     def next_train(self):
         """Asks for next train until its age is within a given time window."""
         buf, meta = self._data_client.next()
+        # print("got data")
 
         if(self._slow_client is not None): 
             buf, meta = self.append_slow_data(buf, meta)
-
-        age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
+       
+        # age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
+        age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.tid'])
         if age < self._max_train_age:
             return buf, meta
         else:
@@ -224,9 +243,13 @@ class EUxfelTranslator(object):
         for k in self._c2n[key]:
             if k in evt:
                 if key == 'eventID':
-                    self._tr_event_id(values, evt[k])
+                    self._tr_event_id_sqs_pnccd(values, evt[k])
                 elif key == 'photonPixelDetectors':
-                    self._tr_photon_detector(values, evt[k], k)
+                    self._tr_photon_detector_sqs_pnccd(values, evt[k], k)
+                elif key == 'GMD':
+                    self._tr_gmd_sqs_pnccd(values, evt[k], k)
+                elif key == "trace":
+                    self._tr_trace_sqs_pnccd(values, evt[k], k)
                 else:
                     raise RuntimeError('%s not yet supported with key %s' % (k, key))
         return values
@@ -254,7 +277,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         """Returns the full stack of all event ids within a train."""
         return self.translate(evt, 'eventID')['Timestamp'].timestamp
     
-    def _tr_photon_detector(self, values, obj, evt_key):
+    def _tr_photon_detector_spb(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
         train_length = numpy.array(obj["image.pulseId"]).shape[-1]
         cells = self._cell_filter[:train_length]
@@ -277,11 +300,17 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
-    def _tr_event_id(self, values, obj):
+    def _tr_photon_detector_sqs_pnccd(self, values, obj, evt_key):
+        """Translates pixel detector into Humminbird ADU array"""
+        img  = obj['data.image'][...].squeeze()
+        # print("raw image shape", img.shape)
+        add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
+
+    def _tr_event_id_spb(self, values, obj):
         """Translates euxfel train event ID from data source into a hummingbird one"""
         train_length = numpy.array(obj["image.pulseId"]).shape[-1]
         cells = self._cell_filter[:train_length]
-        pulseid  = numpy.array(obj["image.pulseId"][..., cells], dtype='int')
+        pulseid  = numpy.array(obj["image.pulseId"][..., cells], dtype='int') #doesnt exist for pnccd
         tsec  = numpy.array(obj['timestamp.sec'], dtype='int') 
         tfrac = numpy.array(obj['timestamp.frac'], dtype='int') * 1e-18 
         timestamp = tsec + tfrac + (pulseid / 760.)
@@ -290,10 +319,34 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         rec.pulseId = pulseid
         rec.cellId   = numpy.array(obj['image.cellId'][...,  cells], dtype='int')
         rec.badCells = numpy.array(obj['image.cellId'][..., ~cells], dtype='int')
-        rec.trainId  = numpy.array(obj['image.trainId'][..., cells], dtype='int')
+        # rec.trainId  = numpy.array(obj['data.trainId'][..., cells], dtype='int')
         rec.timestamp = timestamp
         values[rec.name] = rec
 
+    def _tr_event_id_sqs_pnccd(self, values, obj):
+        """Translates euxfel train event ID from data source into a hummingbird one"""
+        timestamp = numpy.array(obj['timestamp.tid'], dtype='int')
+
+        rec = Record('Timestamp', timestamp, ureg.s)
+        # rec.trainId  = [numpy.array(obj['data.trainId'], dtype='int')]
+        rec.timestamp = [timestamp]
+        values[rec.name] = rec
+
+    def _tr_gmd_sqs_pnccd(self, values, obj, evt_key):
+        sase_3_pulse_index = 0
+        # print("obj.keys()", obj.keys())
+        sase3 = obj['data.intensitySa3TD'][sase_3_pulse_index]
+        add_record(values, 'GMD', 'SASE3', sase3, ureg.ADU)
+
+        sase_1_train_length = 176
+        sase1 = obj['data.intensitySa1TD'][:sase_1_train_length]
+        add_record(values, 'GMD', 'SASE1', sase1, ureg.ADU)
+        
+    def _tr_trace_sqs_pnccd(self, values, obj, evt_key):
+        trace_dict = {'MCP': 'digitizers.channel_1_A.raw.samples'}
+        for k in trace_dict.keys():
+            data = obj[trace_dict[k]]
+            add_record(values, 'trace', k, data, ureg.ADU)
 
 class EUxfelPulseTranslator(EUxfelTranslator):
     """Translate between EUxfel pulse events and Hummingbird ones"""
@@ -316,14 +369,16 @@ class EUxfelPulseTranslator(EUxfelTranslator):
         #   Resets number of remaining pulses
         if not self._remaining_pulses:
             self._train_buffer, self._train_meta = self.next_train()
-            self._train_id = self._train_buffer[list(self._train_buffer.keys())[0]]['image.trainId']
-            self._train_length = len(self._train_id)
+            # self._train_id = self._train_buffer[list(self._train_buffer.keys())[0]]['image.trainId']
+            # self._train_id = self._train_buffer["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-1:output"]['data.trainId']
+            # self._train_length = len(self._train_id)
             self._remaining_pulses = self._train_length
             self._good_cells = self._cell_filter[:self._train_length]
 
         # If pulses still remaining in the buffer:
         #   Sets current event to first remaining pulse
         #   Populates event dictionary
+        
         if self._remaining_pulses:
             index = self._train_length - self._remaining_pulses
             if not self._good_cells[index]:
@@ -369,12 +424,13 @@ class EUxfelPulseTranslator(EUxfelTranslator):
     def _tr_event_id(self, values, obj):
         """Translates euxfel event ID from some source into a hummingbird one"""
         pulseid = int(obj["image.pulseId"])
-        timestamp = int(obj['timestamp.sec']) + int(obj['timestamp.frac']) * 1e-18 + pulseid * 1e-2
+        # timestamp = int(obj['timestamp.sec']) + int(obj['timestamp.frac']) * 1e-18 + pulseid * 1e-2
+        timestamp = int(obj['timestamp.tid']) + pulseid * 1e-2
         time = datetime.datetime.fromtimestamp(timestamp, tz=timezone('utc'))
         time = time.astimezone(tz=timezone('CET'))
         rec = Record('Timestamp', time, ureg.s)
-        rec.pulseId = int(obj['image.pulseId'])
-        rec.cellId  = int(obj['image.cellId'])
-        rec.trainId = int(obj['image.trainId'])
+        # rec.pulseId = int(obj['image.pulseId'])
+        # rec.cellId  = int(obj['image.cellId'])
+        # rec.trainId = int(obj['data.trainId'])
         rec.timestamp = timestamp
         values[rec.name] = rec
