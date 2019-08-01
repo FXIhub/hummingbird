@@ -40,3 +40,15 @@ To do that just clone the git repository:
    $ git clone https://github.com/FXIhub/hummingbird.git
 
 There is no need for any other installation steps.
+
+Installing the requirements
+---------------------------
+
+The simplest way to install the requirements is to use `pip`:
+
+::
+
+   $ pip install -r requirements.txt
+
+After this command executes successfully, you will be able to start `hummingbird.py`
+
