@@ -1,4 +1,6 @@
 language: python
+os: linux
+dist: trusty
 
 notifications:
   email: false
