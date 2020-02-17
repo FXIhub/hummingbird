@@ -42,6 +42,19 @@ matrix:
           - python3-h5py
           - python3-pyqt5
 
+    # no MPI, dummy backend, python 3.4
+    - python: "3.6"
+      dist: bionic
+      env: MPI=none HDF5=serial BACKEND=dummy
+      addons:
+        apt:
+          packages:
+          - libhdf5-serial-dev
+          - python3-numpy
+          - python3-scipy
+          - python3-h5py
+          - python3-pyqt5          
+
     # with MPI, dummy backend
     - python: "2.7"
       dist: trusty
