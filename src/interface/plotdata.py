@@ -31,7 +31,7 @@ class PlotData(object):
                 # Make sure the image ringbuffers don't take more than
                 # 200 MBs. The factor of 2 takes into account the fact
                 # that the buffer is twice as big as its usable size
-                self._maxlen = max(1, min(self._maxlen, 1024*1024*200/(2*y.nbytes)))
+                self._maxlen = max(1, min(self._maxlen, 1024*1024*200//(2*y.nbytes)))
             self._y = RingBuffer(self._maxlen)
         if(self._x is None):
             self._x = RingBuffer(self._maxlen)
