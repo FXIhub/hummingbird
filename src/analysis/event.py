@@ -14,7 +14,7 @@ processingTimesDict = {}
 def printProcessingRate(pulses_per_event=1, label="Processing Rate"):
     """Prints processing rate to screen"""
     if label not in processingTimesDict:
-        processingTimesDict[label] = collections.deque([], 1000)
+        processingTimesDict[label] = collections.deque([], 100)
     processingTimes = processingTimesDict[label]
     for i in range(pulses_per_event):
         processingTimes.appendleft(datetime.datetime.now())
