@@ -1,9 +1,9 @@
 import time
 import os, sys
 import signal
-try:
+if sys.version_info[0] == 2:
     import subprocess32 as subprocess # backport of subprocess from python 3 to work with python 2.7
-except ImportError:
+else:
     import subprocess
 __thisdir__ = os.path.dirname(os.path.realpath(__file__))
 
