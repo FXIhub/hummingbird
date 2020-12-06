@@ -75,6 +75,7 @@ jobs:
       shell: bash -l {0}
       run: |
         docker pull filipemaia/hummingbird-testing
+        docker info
     - name: LCLS Test Run
       shell: bash -l {0}
       run: |
