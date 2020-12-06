@@ -30,7 +30,7 @@ jobs:
         # Install requirements except for h5writer and pint which must be from pip
         # Also PyQt5 called pyqt in conda and will be installed automatically with the other dependencies
         pip install Pint
-        conda install --yes h5py pexpect pyqtgraph scipy pyzmq
+        conda install --yes h5py pexpect pyqtgraph scipy pyzmq tornado
         pip install h5writer
     - name: Install mpi
       shell: bash -l {0}
