@@ -67,6 +67,7 @@ jobs:
     - name: Prepare data
       shell: bash -l {0}
       run: |
+        mkdir -p ${HOME}/data
         cd ${HOME}/data
         '[ -f e41-r0073-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0073-s00-c00.xtc'
         '[ -f e41-r0092-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0092-s00-c00.xtc'
