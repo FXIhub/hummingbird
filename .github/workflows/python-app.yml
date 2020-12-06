@@ -53,23 +53,28 @@ jobs:
 
   lcls-build:
     runs-on: ubuntu-latest
-    container:
-      image: filipemaia/hummingbird-testing
     steps:
     - uses: actions/checkout@v2
+    - name: Create data dir
+      shell: bash -l {0}
+      run: mkdir data
     - name: Cache data
       uses: actions/cache@v2
       with:
-        path: /opt/data
+        path: ${HOME}/data
         key: xtc-data
         restore-keys: xtc-data
     - name: Prepare data
       shell: bash -l {0}
       run: |
-        cd /opt/data
+        cd ${HOME}/data
         '[ -f e41-r0073-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0073-s00-c00.xtc'
         '[ -f e41-r0092-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0092-s00-c00.xtc'
+    - name: Pull image
+      shell: bash -l {0}
+      run: |
+        docker pull filipemaia/hummingbird-testing
     - name: LCLS Test Run
       shell: bash -l {0}
       run: |
-        source /reg/g/psdm/etc/ana_env.sh && mkdir -p /reg/d/psdm/AMO/amo15010 && ln -s /opt/data /reg/d/psdm/AMO/amo15010/xtc && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/pip install pint==0.9 && cd ${HOME} && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/coverage run --source src -m py.test  -v --color=yes --showlocals --durations=10
+        docker run -v ${GITHUB_WORKSPACE}:/opt/hummingbird -v ${HOME}/data:/opt/data filipemaia/hummingbird-testing /bin/sh -c "source /reg/g/psdm/etc/ana_env.sh && mkdir -p /reg/d/psdm/AMO/amo15010 && ln -s /opt/data /reg/d/psdm/AMO/amo15010/xtc && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/pip install pint==0.9 && cd /opt/hummingbird && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/coverage run --source src -m py.test  -v --color=yes --showlocals --durations=10"
