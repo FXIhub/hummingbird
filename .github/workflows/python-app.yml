@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
        mpi: ['mpi4py', 'none']
-#      backend: ['dummy', 'lcls']
+       backend: ['dummy']
      steps:
     - uses: actions/checkout@v2
     - uses: conda-incubator/setup-miniconda@v2
