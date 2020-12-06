@@ -10,16 +10,18 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  dummy-build:
 
     runs-on: ubuntu-latest
-
+    strategy:
+      matrix:
+        mpi: ['mpi4py', 'none']
     steps:
     - uses: actions/checkout@v2
     - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: 2.7
-    - name: Install dependencies
+    - name: Install base dependencies
       shell: bash -l {0}
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
@@ -27,8 +29,12 @@ jobs:
         # Install requirements except for h5writer and pint which must be from pip
         # Also PyQt5 called pyqt in conda and will be installed automatically with the other dependencies
         pip install Pint
-        grep -v h5writer requirements.txt | grep -v Pint |grep -v PyQt5 | while read requirement; do conda install --yes $requirement; done
+        conda install --yes h5py pexpect pyqtgraph scipy pyzmq tornado pytz
         pip install h5writer
+    - name: Install mpi
+      shell: bash -l {0}
+      run: conda install --yes ${{ matrix.mpi }}
+      if: matrix.mpi != 'none'
     - name: Lint with flake8
       shell: bash -l {0}
       run: |
@@ -44,3 +50,32 @@ jobs:
         conda install subprocess32
         conda install pytest
         pytest
+
+  lcls-build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Create data dir
+      shell: bash -l {0}
+      run: mkdir data
+    - name: Cache data
+      uses: actions/cache@v2
+      with:
+        path: ~/data
+        key: xtc-home-data
+        restore-keys: xtc-home-data
+    - name: Prepare data
+      shell: bash -l {0}
+      run: |
+        mkdir -p ${HOME}/data
+        cd ${HOME}/data
+        [ -f e41-r0073-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0073-s00-c00.xtc
+        [ -f e41-r0092-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0092-s00-c00.xtc
+    - name: Pull image
+      shell: bash -l {0}
+      run: |
+        docker pull filipemaia/hummingbird-testing
+    - name: LCLS Test Run
+      shell: bash -l {0}
+      run: |
+        docker run -v ${GITHUB_WORKSPACE}:/opt/hummingbird -v ${HOME}/data:/opt/data filipemaia/hummingbird-testing /bin/sh -c "source /reg/g/psdm/etc/ana_env.sh && mkdir -p /reg/d/psdm/AMO/amo15010 && ln -s /opt/data /reg/d/psdm/AMO/amo15010/xtc && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/pip install pint==0.9 && cd /opt/hummingbird && /reg/g/psdm/sw/external/python/2.7.10/x86_64-rhel6-gcc44-opt/bin/coverage run --source src -m py.test  -v --color=yes --showlocals --durations=10"
