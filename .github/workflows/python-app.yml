@@ -61,16 +61,18 @@ jobs:
     - name: Cache data
       uses: actions/cache@v2
       with:
-        path: ${HOME}/data
-        key: xtc-data
-        restore-keys: xtc-data
+        path: ~/data
+        key: xtc-home-data
+        restore-keys: xtc-home-data
     - name: Prepare data
       shell: bash -l {0}
       run: |
         mkdir -p ${HOME}/data
         cd ${HOME}/data
+        pwd
         [ -f e41-r0073-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0073-s00-c00.xtc
         [ -f e41-r0092-s00-c00.xtc ] && echo "File already exists" || wget http://davinci.icm.uu.se/wp-content/uploads/xtc/e41-r0092-s00-c00.xtc
+        ls
     - name: Pull image
       shell: bash -l {0}
       run: |
