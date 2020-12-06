@@ -13,13 +13,16 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-
-    steps:
+    strategy:
+      matrix:
+       mpi: ['mpi4py', 'none']
+#      backend: ['dummy', 'lcls']
+     steps:
     - uses: actions/checkout@v2
     - uses: conda-incubator/setup-miniconda@v2
       with:
         python-version: 2.7
-    - name: Install dependencies
+    - name: Install base dependencies
       shell: bash -l {0}
       run: |
         # $CONDA is an environment variable pointing to the root of the miniconda directory
@@ -27,8 +30,12 @@ jobs:
         # Install requirements except for h5writer and pint which must be from pip
         # Also PyQt5 called pyqt in conda and will be installed automatically with the other dependencies
         pip install Pint
-        grep -v h5writer requirements.txt | grep -v Pint |grep -v PyQt5 | while read requirement; do conda install --yes $requirement; done
+        conda install --yes h5py pexpect pyqtgraph scipy pyzmq
         pip install h5writer
+    - name: Install mpi
+      shell: bash -l {0}
+      run: do conda install --yes ${{ matrix.mpi }}
+      if: matrix.mpi != 'none'
     - name: Lint with flake8
       shell: bash -l {0}
       run: |
