@@ -34,7 +34,7 @@ jobs:
         pip install h5writer
     - name: Install mpi
       shell: bash -l {0}
-      run: do conda install --yes ${{ matrix.mpi }}
+      run: conda install --yes ${{ matrix.mpi }}
       if: matrix.mpi != 'none'
     - name: Lint with flake8
       shell: bash -l {0}
