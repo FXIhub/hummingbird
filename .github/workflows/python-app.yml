@@ -55,8 +55,6 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: filipemaia/hummingbird-testing
-      volumes:
-        - ${HOME}/data:/opt/data
     steps:
     - uses: actions/checkout@v2
     - name: Cache data
