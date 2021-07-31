@@ -33,6 +33,8 @@ def printProcessingRate(pulses_per_event=1, label="Processing Rate"):
     proc_rate = processingRate(pulses_per_event, label)
     if(ipc.mpi.is_main_event_reader() and proc_rate is not None):
         print('{} {:.2f} Hz'.format(label, proc_rate))
+        return proc_rate
+    return None
 
 def printKeys(evt, group=None):
     """prints available keys of Hummingbird events"""
