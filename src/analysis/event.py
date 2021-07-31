@@ -11,21 +11,27 @@ from backend import EventTranslator
 
 #processingTimes = collections.deque([], 1000)
 processingTimesDict = {}
-def printProcessingRate(pulses_per_event=1, label="Processing Rate"):
-    """Prints processing rate to screen"""
+
+def processingRate(pulses_per_event=1, label="Processing Rate"):
+    """Returns the processing rate of events"""
     if label not in processingTimesDict:
         processingTimesDict[label] = collections.deque([], 100)
     processingTimes = processingTimesDict[label]
     for i in range(pulses_per_event):
         processingTimes.appendleft(datetime.datetime.now())
     if(len(processingTimes) < 2):
-        return
+        return None
     dt = processingTimes[0] - processingTimes[-1]
     proc_rate = np.array((len(processingTimes)-1)/dt.total_seconds())
     # ipc.mpi.sum("processingRate", proc_rate)
     ipc.mpi.sum(label, proc_rate)
     proc_rate = proc_rate[()]
-    if(ipc.mpi.is_main_event_reader()):
+    return proc_rate
+
+def printProcessingRate(pulses_per_event=1, label="Processing Rate"):
+    """Prints processing rate to screen"""
+    proc_rate = processingRate(pulses_per_event, label)
+    if(ipc.mpi.is_main_event_reader() and proc_rate is not None):
         print('{} {:.2f} Hz'.format(label, proc_rate))
 
 def printKeys(evt, group=None):
