@@ -200,6 +200,13 @@ def init_translator(state):
         else:
             from backend.euxfel import EUxfelPulseTranslator
             return EUxfelPulseTranslator(state)
+    elif(state['Facility'].lower() == 'euxfeldssc'):
+        if ("EventIsTrain" in state) and state["EventIsTrain"]:
+            from backend.euxfel_dssc import EUxfelTrainTranslator
+            return EUxfelTrainTranslator(state)
+        else:
+            from backend.euxfel_dssc import EUxfelPulseTranslator
+            return EUxfelPulseTranslator(state)
 
     else:
         raise ValueError('Facility %s not supported' % (state['Facility']))
