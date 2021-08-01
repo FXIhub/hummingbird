@@ -354,8 +354,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
 
     def _tr_event_id_sqs_dssc(self, values, obj):
         """Translates euxfel train event ID from data source into a hummingbird one"""
-        timestamp = numpy.array(obj['timestamp.tid'], dtype='int')
-
+        timestamp = numpy.array(float(obj['timestamp']))
         rec = Record('Timestamp', timestamp, ureg.s)
         # rec.trainId  = [numpy.array(obj['data.trainId'], dtype='int')]
         rec.timestamp = [timestamp]
