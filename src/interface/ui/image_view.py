@@ -290,7 +290,7 @@ class ImageView(QtGui.QWidget):
             ax = numpy.argmax(data.shape)
             sl = [slice(None)] * data.ndim
             sl[ax] = slice(None, None, 2)
-            data = data[sl]
+            data = data[tuple(sl)]
         return data.min(), data.max()
 
     def normalize(self, image):
