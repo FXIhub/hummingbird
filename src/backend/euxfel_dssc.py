@@ -103,7 +103,7 @@ class EUxfelTranslator(object):
             self._cell_filter[cell] = False
 
         # Start Karabo client for data source
-        self._data_client = karabo_bridge.Client(dsrc)
+        self._data_client = karabo_bridge.Client(dsrc, 'PULL')
         
         
         # Start Karabo client for slow data source
@@ -121,7 +121,8 @@ class EUxfelTranslator(object):
         else:
             self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = ['photonPixelDetectors', 'eventID']
         self._n2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = ['photonPixelDetectors', 'eventID']
-        self._n2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = ['GMD', 'eventID']
+        #self._n2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = ['GMD', 'eventID'] # Not getting timestamps from XGM
+        self._n2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = ['GMD']
         if self._sel_module is None:
             #raise NotImplementedError("Can only choose a single module of DSSC now.")
             for module_index in range(16):
@@ -159,7 +160,7 @@ class EUxfelTranslator(object):
         if self._sel_module is None:
             # This probably needs correcting, just a placeholder.
             for module_index in range(16):
-                self._s2c[f"SQS_DET_DSSC1M-1/DET/{module_index}CH0:xtdf"] = f"DSSC{module_index}"
+                self._s2c[f"SQS_DET_DSSC1M-1/DET/{module_index}CH0:xtdf"] = f"DSSC%.2d" % module_index
         else:
             self._s2c[f"SQS_DET_DSSC1M-1/DET/{self._sel_module}CH0:xtdf"] = "DSSC"
         
@@ -196,7 +197,8 @@ class EUxfelTranslator(object):
             buf, meta = self.append_slow_data(buf, meta)
        
         # age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
-        age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.tid'])
+        #age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.tid'])
+        age = numpy.floor(time.time()) - int(meta[list(meta.keys())[-1]]['timestamp.sec'])
         if age < self._max_train_age:
             return buf, meta
         else:
