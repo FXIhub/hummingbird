@@ -7,7 +7,7 @@
 import sys
 import logging
 import socket
-import imp
+import importlib
 
 from utils.cmdline_args import argparser
 # Leave this for backwards compatibility with old configuration files
