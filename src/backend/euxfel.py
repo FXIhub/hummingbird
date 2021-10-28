@@ -17,25 +17,13 @@ import ipc
 import karabo_bridge
 import numpy
 
-from hummingbird import parse_cmdline_args
-_argparser = None
-def add_cmdline_args():
-    global _argparser
-    from utils.cmdline_args import argparser
-    _argparser = argparser
-    ## ADD EuXFEL specific parser arguments here ##
-
 MAX_TRAIN_LENGTH = 352
 
-class EUxfelTranslator(object):
+class EUxfelTranslator():
     """Translate between EUxfel events and Hummingbird ones"""
     def __init__(self, state):
         self.timestamps = None
         self.library = 'karabo_bridge'
-
-        # parse additional arguments
-
-        cmdline_args = _argparser.parse_args()
 
         # Read the main data source, e.g. AGIPD
         if 'EuXFEL/DataSource' in state:
@@ -54,48 +42,15 @@ class EUxfelTranslator(object):
             raise ValueError("You need to set the 'EuXFEL/DataFormat'"
                              " in the configuration as 'Calib' or 'Raw'")
             
-        # Option to select specific AGIPD module
-        self._sel_module = None
-        if 'EuXFEL/SelModule' in state:
-            self._sel_module = state['EuXFEL/SelModule']
+        self._sel_module = state['EuXFEL/SelModule'] if 'EuXFEL/SelModule' in state else None
+        self._max_train_age = state['EuXFEL/MaxTrainAge'] if 'EuXFEL/MaxTrainAge' in state else 5 # seconds
+        first_cell = state['EuXFEL/FirstCell'] if 'EuXFEL/FirstCell' in state else 1
+        last_cell = state['EuXFEL/LastCell'] if 'EuXFEL/LastCell' in state else -1
+        bad_cells = state['EuXFEL/BadCells'] if 'EuXFEL/BadCells' in state else []
+        slsrc = state['EuXFEL/SlowSource'] if 'EuXFEL/SlowSource' in state else None
+        self._slow_keys = state['EuXFEL/SlowKeys'] if 'EuXFEL/SlowKeys' in state else None
+        self._slow_update_rate = state['EuXFEL/SlowUpdate'] if 'EuXFEL/SlowUpdate' in state else 1
 
-        # Option to decide about maximum allowd age of trains
-        self._max_train_age = 5 # in units of seconds
-        if 'EuXFEL/MaxTrainAge' in state:
-            self._max_train_age = state['EuXFEL/MaxTrainAge']
-
-        # Option to set the first cell to be selected per train
-        first_cell = 1
-        if 'EuXFEL/FirstCell' in state:
-            first_cell = state['EuXFEL/FirstCell']
-
-        # Option to set the last cell to be selected per train
-        last_cell = -1
-        if 'EuXFEL/LastCell' in state:
-            last_cell = state['EuXFEL/LastCell'] + 1
-
-        # Option to specify bad cells
-        bad_cells = []
-        if 'EuXFEL/BadCells' in state:
-            bad_cells = list(state['EuXFEL/BadCells'])
-
-
-        # Option to read a slow data source, e.g for GMD, MOTORS, ....
-        if 'EuXFEL/SlowSource' in state:
-            slsrc = state['EuXFEL/SlowSource']
-        else:
-            slsrc = None
-
-        # Option to provide a list of slow data native keys
-        self._slow_keys = None
-        if 'EuXFEL/SlowKeys' in state:
-            self._slow_keys = list(state['EuXFEL/SlowKeys'])
-
-        # Option to provide update frequency for slow data source
-        self._slow_update_rate = 1
-        if 'EuXFEL/SlowUpdate' in state:
-            self._slow_update_rate = int(state['EuXFEL/SlowUpdate'])
-        
         # Cell filter
         self._cell_filter = numpy.zeros(MAX_TRAIN_LENGTH, dtype='bool')
         self._cell_filter[first_cell:last_cell] = True
@@ -103,8 +58,8 @@ class EUxfelTranslator(object):
             self._cell_filter[cell] = False
 
         # Start Karabo client for data source
-        self._data_client = karabo_bridge.Client(dsrc)
-        
+        #self._data_client = karabo_bridge.Client(dsrc)
+        self._data_client = karabo_bridge.Client(dsrc, 'PULL')
         
         # Start Karabo client for slow data source
         self._slow_cache  = None
@@ -154,7 +109,6 @@ class EUxfelTranslator(object):
         # self._s2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-1:output"] = "pnCCD"
         
         self._s2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = "GMD"
-        ## Add more AGIPD sources here
 
     def append_slow_data(self, buf, meta):
         """Append slow data to train buffer"""
@@ -243,9 +197,15 @@ class EUxfelTranslator(object):
         for k in self._c2n[key]:
             if k in evt:
                 if key == 'eventID':
-                    self._tr_event_id_sqs_pnccd(values, evt[k])
+                    if self._s2c[k] == 'AGIPD':
+                        self._tr_event_id_spb(values, evt[k])
+                    elif self._s2c[k] == 'pnCCD':
+                        self._tr_event_id_sqs_pnccd(values, evt[k])
                 elif key == 'photonPixelDetectors':
-                    self._tr_photon_detector_sqs_pnccd(values, evt[k], k)
+                    if self._s2c[k] == 'AGIPD':
+                        self._tr_photon_detector_spb(values, evt[k], k)
+                    elif self._s2c[k] == 'pnCCD':
+                        self._tr_photon_detector_sqs_pnccd(values, evt[k], k)
                 elif key == 'GMD':
                     self._tr_gmd_sqs_pnccd(values, evt[k], k)
                 elif key == "trace":
@@ -258,7 +218,7 @@ class EUxfelTranslator(object):
 class EUxfelTrainTranslator(EUxfelTranslator):
     """Translate between EUxfel train events and Hummingbird ones"""
     def __init__(self, state):
-        EUxfelTranslator.__init__(self, state)
+        super().__init__(state)
           
     def next_event(self):
         """Grabs the next train event returns the translated version."""
@@ -351,7 +311,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
 class EUxfelPulseTranslator(EUxfelTranslator):
     """Translate between EUxfel pulse events and Hummingbird ones"""
     def __init__(self, state):
-        EUxfelTranslator.__init__(self, state)
+        super().__init__(state)
         self._train_buffer = None
         self._train_meta = None
         self._remaining_pulses = 0
