@@ -57,9 +57,11 @@ class EUxfelTranslator():
         for cell in bad_cells:
             self._cell_filter[cell] = False
 
-        # Start Karabo client for data source
+        # Start Karabo client for data source(s)
         #self._data_client = karabo_bridge.Client(dsrc)
-        self._data_client = karabo_bridge.Client(dsrc, 'PULL')
+        if not isinstance(dsrc, list):
+            dsrc = [dsrc]
+        self._data_clients = [karabo_bridge.Client(s, 'PULL') for s in dsrc]
         
         # Start Karabo client for slow data source
         self._slow_cache  = None
@@ -70,11 +72,10 @@ class EUxfelTranslator():
 
         # Define how to translate between EuXFEL types and Hummingbird ones
         self._n2c = {}
-        if self._sel_module is None:
-            self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = ['photonPixelDetectors', 'eventID']
-            self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = ['photonPixelDetectors', 'eventID']
-        else:
-            self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = ['photonPixelDetectors', 'eventID']
+        self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = ['photonPixelDetectors', 'eventID']
+        self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = ['photonPixelDetectors', 'eventID']
+        for module_index in range(16):
+            self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%module_index] = ['photonPixelDetectors', 'eventID']
         self._n2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = ['photonPixelDetectors', 'eventID']
         self._n2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = ['GMD', 'eventID']
         # self._n2c["SQS_NQS_PNCCD1MP/CAL/CORR_CM:dataOutput"] = ['photonPixelDetectors', 'eventID']
@@ -102,6 +103,8 @@ class EUxfelTranslator():
         if self._sel_module is None:
             self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
             self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = "AGIPD"
+            for module_index in range(16):
+                self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%module_index] = "AGIPD%.2d" % module_index
         else:
             self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = "AGIPD"
         
@@ -130,7 +133,12 @@ class EUxfelTranslator():
 
     def next_train(self):
         """Asks for next train until its age is within a given time window."""
-        buf, meta = self._data_client.next()
+        buf = {}
+        meta = {}
+        for client in self._data_clients:
+            buf_n, meta_n = client.next()
+            buf.update(buf_n)
+            meta.update(meta_n)
         # print("got data")
 
         if(self._slow_client is not None): 
@@ -197,12 +205,12 @@ class EUxfelTranslator():
         for k in self._c2n[key]:
             if k in evt:
                 if key == 'eventID':
-                    if self._s2c[k] == 'AGIPD':
+                    if 'AGIPD' in self._s2c[k]:
                         self._tr_event_id_spb(values, evt[k])
                     elif self._s2c[k] == 'pnCCD':
                         self._tr_event_id_sqs_pnccd(values, evt[k])
                 elif key == 'photonPixelDetectors':
-                    if self._s2c[k] == 'AGIPD':
+                    if 'AGIPD' in self._s2c[k]:
                         self._tr_photon_detector_spb(values, evt[k], k)
                     elif self._s2c[k] == 'pnCCD':
                         self._tr_photon_detector_sqs_pnccd(values, evt[k], k)
@@ -239,6 +247,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
     
     def _tr_photon_detector_spb(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
+        '''
         train_length = numpy.array(obj["image.pulseId"]).shape[-1]
         cells = self._cell_filter[:train_length]
         img  = obj['image.data'][..., cells]
@@ -259,6 +268,12 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         else:
             raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
+        '''
+
+        if "image.data" not in obj.keys():
+            return
+        img  = obj['image.data'][...].squeeze()
+        add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
     def _tr_photon_detector_sqs_pnccd(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
@@ -268,6 +283,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
 
     def _tr_event_id_spb(self, values, obj):
         """Translates euxfel train event ID from data source into a hummingbird one"""
+        '''
         train_length = numpy.array(obj["image.pulseId"]).shape[-1]
         cells = self._cell_filter[:train_length]
         pulseid  = numpy.array(obj["image.pulseId"][..., cells], dtype='int') #doesnt exist for pnccd
@@ -279,8 +295,11 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         rec.pulseId = pulseid
         rec.cellId   = numpy.array(obj['image.cellId'][...,  cells], dtype='int')
         rec.badCells = numpy.array(obj['image.cellId'][..., ~cells], dtype='int')
-        # rec.trainId  = numpy.array(obj['data.trainId'][..., cells], dtype='int')
-        rec.timestamp = timestamp
+        '''
+        timestamp = numpy.array(float(obj['timestamp']))
+        rec = Record('Timestamp', timestamp, ureg.s)
+        # rec.trainId  = [numpy.array(obj['data.trainId'], dtype='int')]
+        rec.timestamp = [timestamp]
         values[rec.name] = rec
 
     def _tr_event_id_sqs_pnccd(self, values, obj):
