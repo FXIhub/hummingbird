@@ -504,7 +504,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self.plot.setImage(img,
                                    transform=transform,
                                    autoRange=auto_range, autoLevels=auto_levels,
-                                   autoHistogramRange=auto_histogram)
+                                   autoHistogramRange=auto_histogram, axes={'t': 0, 'x': 1, 'y': 2, 'c': None})
 
                 if 'center' in conf and 'diameters' in conf:
                     self._show_circular_rois(conf['center'], conf['diameters'])
