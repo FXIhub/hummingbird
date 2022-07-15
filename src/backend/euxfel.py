@@ -120,10 +120,11 @@ class EUxfelTranslator(object):
             self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = ['photonPixelDetectors', 'eventID']
         else:
             self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = ['photonPixelDetectors', 'eventID']
+        for module in range(16):
+            self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
+            
         self._n2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = ['photonPixelDetectors', 'eventID']
         self._n2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = ['GMD', 'eventID']
-        # self._n2c["SQS_NQS_PNCCD1MP/CAL/CORR_CM:dataOutput"] = ['photonPixelDetectors', 'eventID']
-        # self._n2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-1:output"] = ['photonPixelDetectors', 'eventID']
 
         # MCP
         self._n2c["SQS_DIGITIZER_UTC1/ADC/1:network"] = ["trace"]
@@ -149,9 +150,11 @@ class EUxfelTranslator(object):
             self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = "AGIPD"
         else:
             self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = "AGIPD"
+
+        for module in range(16):
+            self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"% module] = ("AGIPD%02d" % module)
         
         self._s2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = "pnCCD"
-        # self._s2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-1:output"] = "pnCCD"
         
         self._s2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = "GMD"
         ## Add more AGIPD sources here
