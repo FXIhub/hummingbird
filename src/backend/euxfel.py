@@ -60,7 +60,7 @@ class EUxfelTranslator(object):
             self._sel_module = state['EuXFEL/SelModule']
 
         # Option to decide about maximum allowd age of trains
-        self._max_train_age = 5 # in units of seconds
+        self._max_train_age = None # in units of seconds
         if 'EuXFEL/MaxTrainAge' in state:
             self._max_train_age = state['EuXFEL/MaxTrainAge']
 
@@ -177,16 +177,16 @@ class EUxfelTranslator(object):
     def next_train(self):
         """Asks for next train until its age is within a given time window."""
         buf, meta = self._data_client.next()
-        # print("got data")
+        logging.debug("Received train data")
 
         if(self._slow_client is not None): 
             buf, meta = self.append_slow_data(buf, meta)
        
-        # age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.sec'])
         age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.tid'])
-        if age < self._max_train_age:
+        if self._max_train_age is not None and age < self._max_train_age:
             return buf, meta
         else:
+            logging.info("Skipping train data with age %f > %f", age, self._max_train_age)
             return self.next_train()
 
     def event_keys(self, evt):
