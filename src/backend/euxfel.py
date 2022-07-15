@@ -324,7 +324,6 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             rec.pulseId = pulseid
             rec.cellId   = numpy.array(obj['image.cellId'][...,  cells], dtype='int')
             rec.badCells = numpy.array(obj['image.cellId'][..., ~cells], dtype='int')
-            rec.trainId  = obj['image.trainId'][..., cells], dtype='int')
             rec.timestamp = timestamp
         else:
             rec = Record('Timestamp', timestamp, ureg.s)
