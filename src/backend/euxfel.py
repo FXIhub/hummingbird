@@ -245,6 +245,7 @@ class EUxfelTranslator(object):
                 if key == 'eventID':
                     self._tr_event_id(values, evt[k])
                 elif key == 'photonPixelDetectors':
+                    self._tr_photon_detector_spb(values, evt[k], k)
                     self._tr_photon_detector_sqs_pnccd(values, evt[k], k)
                 elif key == 'GMD':
                     self._tr_gmd_sqs_pnccd(values, evt[k], k)
@@ -279,6 +280,8 @@ class EUxfelTrainTranslator(EUxfelTranslator):
     
     def _tr_photon_detector_spb(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
+        if('image.pulseId' not in obj or 'image.data' not in obj or 'image.gain' not in obj):
+            return
         train_length = numpy.array(obj["image.pulseId"]).shape[-1]
         cells = self._cell_filter[:train_length]
         img  = obj['image.data'][..., cells]
@@ -302,6 +305,8 @@ class EUxfelTrainTranslator(EUxfelTranslator):
 
     def _tr_photon_detector_sqs_pnccd(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
+        if 'data.image' not in obj:
+            return
         img  = obj['data.image'][...].squeeze()
         # print("raw image shape", img.shape)
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
