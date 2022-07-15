@@ -183,7 +183,7 @@ class EUxfelTranslator(object):
             buf, meta = self.append_slow_data(buf, meta)
        
         age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.tid'])
-        if self._max_train_age is not None and age < self._max_train_age:
+        if self._max_train_age is None or age < self._max_train_age:
             return buf, meta
         else:
             logging.info("Skipping train data with age %f > %f", age, self._max_train_age)
