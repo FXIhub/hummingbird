@@ -243,7 +243,7 @@ class EUxfelTranslator(object):
         for k in self._c2n[key]:
             if k in evt:
                 if key == 'eventID':
-                    self._tr_event_id_sqs_pnccd(values, evt[k])
+                    self._tr_event_id(values, evt[k])
                 elif key == 'photonPixelDetectors':
                     self._tr_photon_detector_sqs_pnccd(values, evt[k], k)
                 elif key == 'GMD':
@@ -306,30 +306,30 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         # print("raw image shape", img.shape)
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
-    def _tr_event_id_spb(self, values, obj):
+    def _tr_event_id(self, values, obj):
         """Translates euxfel train event ID from data source into a hummingbird one"""
-        train_length = numpy.array(obj["image.pulseId"]).shape[-1]
-        cells = self._cell_filter[:train_length]
-        pulseid  = numpy.array(obj["image.pulseId"][..., cells], dtype='int') #doesnt exist for pnccd
-        tsec  = numpy.array(obj['timestamp.sec'], dtype='int') 
-        tfrac = numpy.array(obj['timestamp.frac'], dtype='int') * 1e-18 
-        timestamp = tsec + tfrac + (pulseid / 760.)
-        time = numpy.array([datetime.datetime.fromtimestamp(t, tz=timezone('utc')) for t in timestamp])
-        rec = Record('Timestamp', time, ureg.s)
-        rec.pulseId = pulseid
-        rec.cellId   = numpy.array(obj['image.cellId'][...,  cells], dtype='int')
-        rec.badCells = numpy.array(obj['image.cellId'][..., ~cells], dtype='int')
-        # rec.trainId  = numpy.array(obj['data.trainId'][..., cells], dtype='int')
-        rec.timestamp = timestamp
-        values[rec.name] = rec
+        if 'timestamp' in obj:
+            timestamp = np.asarray(float(obj['timestamp']))
+        else:
+            logging.warning('Could not find timestamp information. Faking it...')
+            timestamp = np.asarray(time.time())
 
-    def _tr_event_id_sqs_pnccd(self, values, obj):
-        """Translates euxfel train event ID from data source into a hummingbird one"""
-        timestamp = numpy.array(obj['timestamp.tid'], dtype='int')
-
-        rec = Record('Timestamp', timestamp, ureg.s)
-        # rec.trainId  = [numpy.array(obj['data.trainId'], dtype='int')]
-        rec.timestamp = [timestamp]
+        if 'image.pulseId' in obj:
+            train_length = numpy.array(obj["image.pulseId"]).shape[-1]
+            cells = self._cell_filter[:train_length]
+            pulseid  = numpy.array(obj["image.pulseId"][..., cells], dtype='int')
+            # The denominator here is totally arbitrary, just we have different timestamps for different pulses
+            timestamp = timestamp + (pulseid / 27000.)
+            rec = Record('Timestamp', timestamp, ureg.s)
+            rec.pulseId = pulseid
+            rec.cellId   = numpy.array(obj['image.cellId'][...,  cells], dtype='int')
+            rec.badCells = numpy.array(obj['image.cellId'][..., ~cells], dtype='int')
+            rec.trainId  = obj['image.trainId'][..., cells], dtype='int')
+            rec.timestamp = timestamp
+        else:
+            rec = Record('Timestamp', timestamp, ureg.s)
+            rec.timestamp = timestamp
+            
         values[rec.name] = rec
 
     def _tr_gmd_sqs_pnccd(self, values, obj, evt_key):
