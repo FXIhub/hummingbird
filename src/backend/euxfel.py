@@ -285,7 +285,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if('image.pulseId' not in obj or 'image.data' not in obj):
             logging.warning('Could not find an AGIPD data')
             return
-        train_length = numpy.asarray(obj["image.pulseId"]).shape[-1]
+        train_length = obj["image.pulseId"].size
         cells = self._cell_filter[:train_length]
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
@@ -345,7 +345,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if('image.pulseId' not in obj or 'image.data' not in obj):
             logging.warning('Could not find an DSSC data')
             return
-        train_length = numpy.asarray(obj["image.pulseId"]).shape[-1]
+        train_length = obj["image.pulseId"].size
         cells = self._cell_filter[:train_length]
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
