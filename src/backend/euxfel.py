@@ -64,7 +64,7 @@ class EUxfelTranslator(object):
             self._max_train_age = state['EuXFEL/MaxTrainAge']
 
         # Option to set the first cell to be selected per train
-        first_cell = 1
+        first_cell = 0
         if 'EuXFEL/FirstCell' in state:
             first_cell = state['EuXFEL/FirstCell']
 
