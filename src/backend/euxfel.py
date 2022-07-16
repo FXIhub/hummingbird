@@ -396,13 +396,13 @@ class EUxfelTrainTranslator(EUxfelTranslator):
     def _tr_photon_detector(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
         if('DET_DSSC1M' in evt_key):
-                self._tr_DSSC(self, values, obj, evt_key)
+            self._tr_DSSC(values, obj, evt_key)
         elif('DET_AGIPD1M' in evt_key):
-                self._tr_AGIPD(self, values, obj, evt_key)
+            self._tr_AGIPD(values, obj, evt_key)
         elif('PNCCD1MP' in evt_key):
-                self._tr_pnCCD(self, values, obj, evt_key)
+            self._tr_pnCCD(values, obj, evt_key)
         else:
-                raise ValueError("Unknown photon detector %s", evt_key)
+            raise ValueError("Unknown photon detector %s", evt_key)
 
 
 
