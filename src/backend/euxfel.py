@@ -224,7 +224,7 @@ class EUxfelTranslator(object):
             if key in event_keys: 
                 obj = evt[key]
                 for subkey in obj.keys():
-                    add_record(values, 'native', '%s[%s]' % (self._s2c[key], subkey),
+                    add_record(values, 'native', '%s' % (subkey),
                                obj[subkey], ureg.ADU)
                 return values
             else:
