@@ -194,12 +194,8 @@ def init_translator(state):
         from backend.flash import FLASHTranslator
         return FLASHTranslator(state)
     elif(state['Facility'].lower() == 'euxfel'):
-        if ("EventIsTrain" in state) and state["EventIsTrain"]:
-            from backend.euxfel import EUxfelTrainTranslator
-            return EUxfelTrainTranslator(state)
-        else:
-            from backend.euxfel import EUxfelPulseTranslator
-            return EUxfelPulseTranslator(state)
+        from backend.euxfel import EUxfelTrainTranslator
+        return EUxfelTrainTranslator(state)
     else:
         raise ValueError('Facility %s not supported' % (state['Facility']))
 
