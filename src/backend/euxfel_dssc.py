@@ -25,7 +25,7 @@ import numpy
 #     _argparser = argparser
 #     ## ADD EuXFEL specific parser arguments here ##
 
-MAX_TRAIN_LENGTH = 352
+MAX_TRAIN_LENGTH = 800
 
 class EUxfelTranslator(object):
     """Translate between EUxfel events and Hummingbird ones"""
