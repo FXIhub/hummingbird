@@ -121,6 +121,7 @@ class EUxfelTranslator(object):
             self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = ['photonPixelDetectors', 'eventID']
         for module in range(16):
             self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
+            self._n2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
             
         self._n2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = ['photonPixelDetectors', 'eventID']
         self._n2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = ['GMD', 'eventID']
@@ -152,6 +153,7 @@ class EUxfelTranslator(object):
 
         for module in range(16):
             self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"% module] = ("AGIPD%02d" % module)
+            self._s2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ("DSSC%02d" % module)
         
         self._s2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = "pnCCD"
         
