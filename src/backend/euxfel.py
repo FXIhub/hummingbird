@@ -52,11 +52,6 @@ class EUxfelTranslator(object):
         if not self._data_format in ["Calib", "Raw"]:
             raise ValueError("You need to set the 'EuXFEL/DataFormat'"
                              " in the configuration as 'Calib' or 'Raw'")
-            
-        # Option to select specific AGIPD module
-        self._sel_module = None
-        if 'EuXFEL/SelModule' in state:
-            self._sel_module = state['EuXFEL/SelModule']
 
         # Option to decide about maximum allowd age of trains
         self._max_train_age = None # in units of seconds
@@ -114,11 +109,8 @@ class EUxfelTranslator(object):
 
         # Define how to translate between EuXFEL types and Hummingbird ones
         self._n2c = {}
-        if self._sel_module is None:
-            self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = ['photonPixelDetectors', 'eventID']
-            self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = ['photonPixelDetectors', 'eventID']
-        else:
-            self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = ['photonPixelDetectors', 'eventID']
+        self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = ['photonPixelDetectors', 'eventID']
+        self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = ['photonPixelDetectors', 'eventID']
         for module in range(16):
             self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
             self._n2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
@@ -145,12 +137,9 @@ class EUxfelTranslator(object):
 
         # Define how to translate between EuXFEL sources and Hummingbird ones
         self._s2c = {}
-        if self._sel_module is None:
-            self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
-            self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = "AGIPD"
-        else:
-            self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"%self._sel_module] = "AGIPD"
-
+        self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
+        self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = "AGIPD"
+        
         for module in range(16):
             self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"% module] = ("AGIPD%02d" % module)
             self._s2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ("DSSC%02d" % module)
@@ -322,14 +311,14 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             # We're dealing with live data
             # No need to tranpose            
             img = obj['image.data'][...,cells]
-            if self._sel_module is not None:
+            if img.ndim == 3:
                 img = img[numpy.newaxis]
             assert img.ndim == 4
             
             # If data is raw, add the gain reference along the 0th dimension
             if self._data_format == 'Raw':
                 gain = obj['image.gain'][...,cells]
-                if self._sel_module is not None:
+                if gain.ndim == 3:
                     gain = gain[numpy.newaxis]                
                 img = numpy.concatenate((img, gain), axis=0)
             # If data is calibrated there is no need to look at the gain
@@ -380,11 +369,9 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             # We're dealing with live data
             # No need to tranpose            
             img = obj['image.data'][...,cells]
-            if self._sel_module is not None:
-                img = img[numpy.newaxis]
-            assert img.ndim == 4            
         else:
             raise ValueError("image.data does not have a known shape!")
+        assert img.ndim == 4
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)                
         
     def _tr_pnCCD(self, values, obj, evt_key):
@@ -510,9 +497,9 @@ class EUxfelPulseTranslator(EUxfelTranslator):
         """Translates pixel detector into Humminbird ADU array"""
         img = obj['image.data']
         gain = obj['image.gain']
-        if self._sel_module is not None:
+        if img.ndim == 2:
             img = img[numpy.newaxis]
-        if self._sel_module is not None:
+        if gain.ndim == 2:
             gain = gain[numpy.newaxis]
         # If data is raw, add the gain reference along the 0th dimension
         if self._data_format == 'Raw':
