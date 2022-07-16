@@ -248,8 +248,7 @@ class EUxfelTranslator(object):
                 if key == 'eventID':
                     self._tr_event_id(values, evt[k])
                 elif key == 'photonPixelDetectors':
-                    self._tr_photon_detector_spb(values, evt[k], k)
-                    self._tr_photon_detector_sqs_pnccd(values, evt[k], k)
+                    self._tr_photon_detector(values, evt[k], k)
                 elif key == 'GMD':
                     self._tr_gmd_sqs_pnccd(values, evt[k], k)
                 elif key == "trace":
@@ -280,39 +279,135 @@ class EUxfelTrainTranslator(EUxfelTranslator):
     def train_id(self, evt):
         """Returns the full stack of all event ids within a train."""
         return self.translate(evt, 'eventID')['Timestamp'].timestamp
-    
-    def _tr_photon_detector_spb(self, values, obj, evt_key):
-        """Translates pixel detector into Humminbird ADU array"""
-        if('image.pulseId' not in obj or 'image.data' not in obj or 'image.gain' not in obj):
+
+
+    def _tr_AGIPD(self, values, obj, evt_key):
+        """Translates an AGIPD detector or module into Humminbird ADU array"""
+        if('image.pulseId' not in obj or 'image.data' not in obj):
+            logging.warning('Could not find an AGIPD data')
             return
-        train_length = numpy.array(obj["image.pulseId"]).shape[-1]
+        train_length = numpy.asarray(obj["image.pulseId"]).shape[-1]
         cells = self._cell_filter[:train_length]
-        img  = obj['image.data'][..., cells]
-        gain = obj['image.gain'][..., cells]
-        if self._sel_module is not None:
-            img = img[numpy.newaxis]
-        assert img.ndim == 4
-        if self._sel_module is not None:
-            gain = gain[numpy.newaxis] 
- 
-        # If data is raw, add the gain reference along the 0th dimension
-        if self._data_format == 'Raw':
-            assert gain.ndim == 4
-            img = numpy.concatenate((img, gain), axis=0)
-        # If data is calibrated there is no need to look at the gain
-        elif self._data_format == 'Calib':
-            pass
+        # When reading from the real live data stream the data looks like
+        # (modules, x, y, memory cells) with both image.data and image.gain
+        # for raw data and only image.data for calibrated data
+        # When reading from a streamed file it looks like
+        # (memory cells, 2, x, y) for raw data and
+        # (memory cells, x, y) for calibrated data
+        # Information confirmed by EXtra-foam
+        # https://github.com/European-XFEL/EXtra-foam/blob/dev/extra_foam/pipeline/processors/image_assembler.py
+        if(obj['image.data'].shape[-2] == 512 and obj['image.data'].shape[-1] == 128):
+            # We're dealing with file streamed data
+            # Reshape it to look like live data
+            if (obj['image.data'].ndim == 4:
+                # looks like raw data
+                if self._data_format != 'Raw':
+                    logging.error('AGIPD data looks raw but self._data_format says otherwise!')
+                    return
+                # Add a dummy dimension for the module number
+                img = obj['image.data'][numpy.newaxis]
+                # Transpose to look like live data
+                img = np.transpose(img[:,cells,...], (0, 2, 3, 4, 1))
+            elif obj['image.data'].ndim == 3:
+                # looks like calibrated data
+                if self._data_format != 'Calib':
+                    logging.error('AGIPD data looks calibrated but self._data_format says otherwise!')
+                    return
+                                # Add a dummy dimension for the module number
+                img = obj['image.data'][numpy.newaxis]
+                img = np.transpose(img[:,cells,...], (0, 2, 3, 1))
+
+        elif(obj['image.data'].shape[-3] == 512 and obj['image.data'].shape[-2] == 128):
+            # We're dealing with live data
+            # No need to tranpose            
+            img = obj['image.data'][...,cells]
+            if self._sel_module is not None:
+                img = img[numpy.newaxis]
+            assert img.ndim == 4
+            
+            # If data is raw, add the gain reference along the 0th dimension
+            if self._data_format == 'Raw':
+                gain = obj['image.gain'][...,cells]
+                if self._sel_module is not None:
+                    gain = gain[numpy.newaxis]                
+                img = numpy.concatenate((img, gain), axis=0)
+            # If data is calibrated there is no need to look at the gain
+            elif self._data_format == 'Calib':
+                pass
+            else:
+                raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
         else:
-            raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
+            raise ValueError("image.data does not have a known shape!")
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
-    def _tr_photon_detector_sqs_pnccd(self, values, obj, evt_key):
-        """Translates pixel detector into Humminbird ADU array"""
+
+    def _tr_DSSC(self, values, obj, evt_key):
+        """Translates an DSSC detector or module into Humminbird ADU array"""
+        if('image.pulseId' not in obj or 'image.data' not in obj):
+            logging.warning('Could not find an DSSC data')
+            return
+        train_length = numpy.asarray(obj["image.pulseId"]).shape[-1]
+        cells = self._cell_filter[:train_length]
+        # When reading from the real live data stream the data looks like
+        # (modules, x, y, memory cells) with both image.data and image.gain
+        # for raw data and only image.data for calibrated data
+        # When reading from a streamed file it looks like
+        # (memory cell, 1, modules, y, x) for raw data and
+        # (memory cells, modules, y, x) for calibrated data
+        # Information confirmed by EXtra-foam
+        # https://github.com/European-XFEL/EXtra-foam/blob/dev/extra_foam/pipeline/processors/image_assembler.py
+        if(obj['image.data'].shape[-2] == 128 and obj['image.data'].shape[-1] == 512):
+            # We're dealing with file streamed data
+            # Reshape it to look like live data
+            if (obj['image.data'].ndim == 5:
+                # looks like raw data
+                if self._data_format != 'Raw':
+                    logging.error('DSSC data looks raw but self._data_format says otherwise!')
+                    return
+                img = obj['image.data']
+                # Transpose to look like live data
+                img = np.transpose(img[cells, 0, ...], (1, 3, 2, 0))
+            elif obj['image.data'].ndim == 4:
+                # looks like calibrated data
+                if self._data_format != 'Calib':
+                    logging.error('DSSC data looks calibrated but self._data_format says otherwise!')
+                    return
+                img = obj['image.data']
+                img = np.transpose(img[cells,...], (1, 3, 2, 0))
+
+        elif(obj['image.data'].shape[-3] == 512 and obj['image.data'].shape[-2] == 128):
+            # We're dealing with live data
+            # No need to tranpose            
+            img = obj['image.data'][...,cells]
+            if self._sel_module is not None:
+                img = img[numpy.newaxis]
+            assert img.ndim == 4            
+        else:
+            raise ValueError("image.data does not have a known shape!")
+        add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)                
+        
+    def _tr_pnCCD(self, values, obj, evt_key):
+        """Translates pnCCD into Humminbird ADU array"""
         if 'data.image' not in obj:
             return
         img  = obj['data.image'][...].squeeze()
-        # print("raw image shape", img.shape)
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
+
+
+    def _tr_photon_detector(self, values, obj, evt_key):
+        """Translates pixel detector into Humminbird ADU array"""
+        if('DET_DSSC1M' in evt_key):
+                self._tr_DSSC(self, values, obj, evt_key):
+        elif('DET_AGIPD1M' in evt_key):
+                self._tr_AGIPD(self, values, obj, evt_key):
+        elif('PNCCD1MP' in evt_key):
+                self._tr_pnCCD(self, values, obj, evt_key):
+        else:
+                raise ValueError("Unknown photon detector %s", evt_key)
+
+
+
+
 
     def _tr_event_id(self, values, obj):
         """Translates euxfel train event ID from data source into a hummingbird one"""
