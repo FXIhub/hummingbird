@@ -15,7 +15,6 @@ from . import ureg
 import logging
 import ipc
 import karabo_bridge
-import numpy
 
 from hummingbird import parse_cmdline_args
 _argparser = None
@@ -299,7 +298,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if(obj['image.data'].shape[-2] == 512 and obj['image.data'].shape[-1] == 128):
             # We're dealing with file streamed data
             # Reshape it to look like live data
-            if (obj['image.data'].ndim == 4:
+            if obj['image.data'].ndim == 4:
                 # looks like raw data
                 if self._data_format != 'Raw':
                     logging.error('AGIPD data looks raw but self._data_format says otherwise!')
@@ -307,7 +306,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
                 # Add a dummy dimension for the module number
                 img = obj['image.data'][numpy.newaxis]
                 # Transpose to look like live data
-                img = np.transpose(img[:,cells,...], (0, 2, 3, 4, 1))
+                img = numpy.transpose(img[:,cells,...], (0, 2, 3, 4, 1))
             elif obj['image.data'].ndim == 3:
                 # looks like calibrated data
                 if self._data_format != 'Calib':
@@ -315,7 +314,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
                     return
                                 # Add a dummy dimension for the module number
                 img = obj['image.data'][numpy.newaxis]
-                img = np.transpose(img[:,cells,...], (0, 2, 3, 1))
+                img = numpy.transpose(img[:,cells,...], (0, 2, 3, 1))
 
         elif(obj['image.data'].shape[-3] == 512 and obj['image.data'].shape[-2] == 128):
             # We're dealing with live data
@@ -359,21 +358,21 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if(obj['image.data'].shape[-2] == 128 and obj['image.data'].shape[-1] == 512):
             # We're dealing with file streamed data
             # Reshape it to look like live data
-            if (obj['image.data'].ndim == 5:
+            if obj['image.data'].ndim == 5:
                 # looks like raw data
                 if self._data_format != 'Raw':
                     logging.error('DSSC data looks raw but self._data_format says otherwise!')
                     return
                 img = obj['image.data']
                 # Transpose to look like live data
-                img = np.transpose(img[cells, 0, ...], (1, 3, 2, 0))
+                img = numpy.transpose(img[cells, 0, ...], (1, 3, 2, 0))
             elif obj['image.data'].ndim == 4:
                 # looks like calibrated data
                 if self._data_format != 'Calib':
                     logging.error('DSSC data looks calibrated but self._data_format says otherwise!')
                     return
                 img = obj['image.data']
-                img = np.transpose(img[cells,...], (1, 3, 2, 0))
+                img = numpy.transpose(img[cells,...], (1, 3, 2, 0))
 
         elif(obj['image.data'].shape[-3] == 512 and obj['image.data'].shape[-2] == 128):
             # We're dealing with live data
@@ -397,11 +396,11 @@ class EUxfelTrainTranslator(EUxfelTranslator):
     def _tr_photon_detector(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
         if('DET_DSSC1M' in evt_key):
-                self._tr_DSSC(self, values, obj, evt_key):
+                self._tr_DSSC(self, values, obj, evt_key)
         elif('DET_AGIPD1M' in evt_key):
-                self._tr_AGIPD(self, values, obj, evt_key):
+                self._tr_AGIPD(self, values, obj, evt_key)
         elif('PNCCD1MP' in evt_key):
-                self._tr_pnCCD(self, values, obj, evt_key):
+                self._tr_pnCCD(self, values, obj, evt_key)
         else:
                 raise ValueError("Unknown photon detector %s", evt_key)
 
@@ -412,10 +411,10 @@ class EUxfelTrainTranslator(EUxfelTranslator):
     def _tr_event_id(self, values, obj):
         """Translates euxfel train event ID from data source into a hummingbird one"""
         if 'timestamp' in obj:
-            timestamp = np.asarray(float(obj['timestamp']))
+            timestamp = numpy.asarray(float(obj['timestamp']))
         else:
             logging.warning('Could not find timestamp information. Faking it...')
-            timestamp = np.asarray(time.time())
+            timestamp = numpy.asarray(time.time())
 
         if 'image.pulseId' in obj:
             train_length = numpy.array(obj["image.pulseId"]).shape[-1]
