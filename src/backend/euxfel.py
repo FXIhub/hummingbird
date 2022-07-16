@@ -240,7 +240,7 @@ class EUxfelTranslator(object):
                 elif key == 'photonPixelDetectors':
                     self._tr_photon_detector(values, evt[k], k)
                 elif key == 'GMD':
-                    self._tr_gmd_sqs_pnccd(values, evt[k], k)
+                    self._tr_gmd(values, evt[k], k)
                 elif key == "trace":
                     self._tr_trace_sqs_pnccd(values, evt[k], k)
                 else:
@@ -422,14 +422,11 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             
         values[rec.name] = rec
 
-    def _tr_gmd_sqs_pnccd(self, values, obj, evt_key):
-        sase_3_pulse_index = 0
-        # print("obj.keys()", obj.keys())
-        sase3 = obj['data.intensitySa3TD'][sase_3_pulse_index]
+    def _tr_gmd(self, values, obj, evt_key):
+        sase3 = obj['data.intensitySa3TD']
         add_record(values, 'GMD', 'SASE3', sase3, ureg.ADU)
 
-        sase_1_train_length = 176
-        sase1 = obj['data.intensitySa1TD'][:sase_1_train_length]
+        sase1 = obj['data.intensitySa1TD']
         add_record(values, 'GMD', 'SASE1', sase1, ureg.ADU)
         
     def _tr_trace_sqs_pnccd(self, values, obj, evt_key):
