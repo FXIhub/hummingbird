@@ -353,28 +353,28 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         # (modules, x, y, memory cells) with both image.data and image.gain
         # for raw data and only image.data for calibrated data
         # When reading from a streamed file it looks like
-        # (memory cell, 1, modules, y, x) for raw data and
-        # (memory cells, modules, y, x) for calibrated data
+        # (memory cell, 1, y, x) for raw data and
+        # (memory cells, y, x) for calibrated data
         # Information confirmed by EXtra-foam
         # https://github.com/European-XFEL/EXtra-foam/blob/dev/extra_foam/pipeline/processors/image_assembler.py
         if(obj['image.data'].shape[-2] == 128 and obj['image.data'].shape[-1] == 512):
             # We're dealing with file streamed data
             # Reshape it to look like live data
-            if obj['image.data'].ndim == 5:
+            if obj['image.data'].ndim == 4:
                 # looks like raw data
                 if self._data_format != 'Raw':
                     logging.error('DSSC data looks raw but self._data_format says otherwise!')
                     return
-                img = obj['image.data']
+                img = obj['image.data'][numpy.newaxis]
                 # Transpose to look like live data
-                img = numpy.transpose(img[cells, 0, ...], (1, 3, 2, 0))
-            elif obj['image.data'].ndim == 4:
+                img = numpy.transpose(img[:,cells, 0, ...], (0, 3, 2, 1))
+            elif obj['image.data'].ndim == 3:
                 # looks like calibrated data
                 if self._data_format != 'Calib':
                     logging.error('DSSC data looks calibrated but self._data_format says otherwise!')
                     return
-                img = obj['image.data']
-                img = numpy.transpose(img[cells,...], (1, 3, 2, 0))
+                img = obj['image.data'][numpy.newaxis]
+                img = numpy.transpose(img[:,cells,...], (0, 3, 2, 1))
 
         elif(obj['image.data'].shape[-3] == 512 and obj['image.data'].shape[-2] == 128):
             # We're dealing with live data
