@@ -29,6 +29,11 @@ class DataSource(QtCore.QObject):
         self._data_socket = ZmqSocket(SUB, self)
         self.conf = conf
         self._group_structure = {}
+        self._connection_timer = QtCore.QTimer()
+        self._connection_timer.setSingleShot(True)
+        self._connection_timer.setInterval(5000) # 5000 ms of connection timeout
+        self._connection_timer.timeout.connect(self._connect_failed)
+        
         try:
             self._connect()
             self.connected = True
@@ -106,7 +111,19 @@ class DataSource(QtCore.QObject):
         self._ctrl_socket = ZmqSocket(REQ)
         addr = "tcp://%s:%d" % (self._hostname, self._port)
         self._ctrl_socket.ready_read.connect(self._get_request_reply)
+        # Start the connection timeout timer, which is cleared after ready_read triggers
+        self._connection_timer.start()
+        self.parent()._status_message("Opening connection...", 5000)
+        QtGui.QApplication.setOverrideCursor(QtGui.QCursor(QtCore.Qt.WaitCursor))    
         self._ctrl_socket.connect_socket(addr, self._ssh_tunnel)
+
+    def _connect_failed(self):
+        """This is only called if the timer triggered by a connect call times out.
+            That should mean the connection failed"""
+        QtGui.QApplication.restoreOverrideCursor()
+        self.parent()._status_message("Connection failed!", 5000)
+        QtGui.QMessageBox.warning(self.parent(), "Connection failed!", "Could not connect to %s" % self.name())     
+        
 
     def _get_data_port(self):
         """Ask to the backend for the data port"""
@@ -122,6 +139,8 @@ class DataSource(QtCore.QObject):
         
     def _get_request_reply(self, socket=None):
         """Handle the reply of the backend to a previous request"""
+        self._connection_timer.stop()
+        QtGui.QApplication.restoreOverrideCursor()
         if(socket is None):
             socket = self.sender()
         reply = socket.recv_json()
