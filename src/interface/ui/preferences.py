@@ -14,3 +14,4 @@ class PreferencesDialog(QtGui.QDialog, Ui_preferences):
         settings = QtCore.QSettings()
         self.outputPath.setText(settings.value("outputPath"))
         self.fontSize.setValue(int(settings.value("plotFontSize")))
+        self.plotRefresh.setValue(int(settings.value("plotRefresh")))

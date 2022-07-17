@@ -25,8 +25,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         self._recorder = None
         self.settings = None
         self.setupUi(self)
-        self.restore_settings(restore)
-        self._init_timer()
+        self.restore_settings(restore)        
         GUI.instance = self
 
     # This is to fix a resizing bug on Mac
@@ -63,6 +62,7 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             s = QtCore.QSettings()
         self._init_geometry(s)
         self._init_recorder(s)
+        self._init_timer(s)
         loaded_sources = []
         try:
             if do_restore:
@@ -94,6 +94,8 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             settings.setValue("outputPath", ".")
         if not settings.contains("plotFontSize"):
             settings.setValue("plotFontSize", "13")
+        if not settings.contains("plotRefresh"):
+            settings.setValue("plotRefresh", "1000")            
         self._recorder = H5Recorder(settings.value("outputPath"), 100)
 
     def _restore_data_windows(self, settings, data_sources):
@@ -135,10 +137,10 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
                 logging.debug("Loaded data source '%s' from settings", ds.name())
         return loaded_sources
 
-    def _init_timer(self):
+    def _init_timer(self, settings):
         """Initialize reploting timer."""
         self._replot_timer = QtCore.QTimer()
-        self._replot_timer.setInterval(1000) # Replot every 1000 ms
+        self._replot_timer.setInterval(int(settings.value("plotRefresh"))) # Replot every 1000 ms
         self._replot_timer.timeout.connect(self._replot)
         self._replot_timer.start()
 
@@ -231,10 +233,13 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
             v = diag.outputPath.text()
             self.settings.setValue("outputPath", v)
             size = diag.fontSize.value()
-            self.settings.setValue("plotFontSize", size)
+            self.settings.setValue("plotFontSize", size)          
             for dw in self._data_windows:
                 dw.updateFonts()
             self._recorder.outpath = v
+            plot_refresh = diag.plotRefresh.value()
+            self.settings.setValue("plotRefresh", plot_refresh)
+            self._replot_timer.setInterval(plot_refresh)              
 
     def _recorder_toggled(self, turn_on):
         """Start/Stop the recorder"""
