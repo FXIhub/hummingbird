@@ -127,7 +127,7 @@ class FLASHTranslator(object):
             val = self.motors.get(self.get_bunch_time()[0])
             if val is None:
                 raise RuntimeError('%s not found in event' % key)
-            for motorname,motorpos in val.iteritems():
+            for motorname,motorpos in val.items():
                 add_record(values, key, motorname, motorpos, ureg.mm)
         elif key == 'ID':
             add_record(values, key, 'DataSetID', self.reader.file_header.dataSetID.rstrip('\0'))

@@ -62,7 +62,7 @@ class Recorder:
                 file.create_dataset(key, (1,), maxshape=(None,), dtype=type)
                 file[key].attrs.modify('axes', [axes])
             
-            for key,item in self.events.iteritems():
+            for key,item in self.events.items():
                 group = os.path.dirname(key)
                 if group == '':
                     logging.error('Record entries need to be in a group')
@@ -94,7 +94,7 @@ class Recorder:
                 file['LCLS/fiducial'][self.index] = evt["eventID"]["Timestamp"].fiducials
                 file['LCLS/run'].resize(self.index+1, axis=0)
                 file['LCLS/run'][self.index] = evt["eventID"]["Timestamp"].run
-                for key, item in self.events.iteritems():
+                for key, item in self.events.items():
                     file[key].resize(self.index+1, axis=0)
                     file[key][self.index] = evt[item[0]][item[1]].data
             self.index += 1

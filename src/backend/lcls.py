@@ -165,7 +165,7 @@ class LCLSTranslator(object):
 
         # Calculate the inverse mapping
         self._c2n = {}
-        for k, v in self._n2c.iteritems():
+        for k, v in self._n2c.items():
             self._c2n[v] = self._c2n.get(v, [])
             self._c2n[v].append(k)
 

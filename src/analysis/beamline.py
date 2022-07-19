@@ -51,10 +51,10 @@ def averagePhotonEnergy(evt, records, outkey="averagePhotonEnergy"):
         
 def printPulseEnergy(pulseEnergies):
     """Expects a dictionary of pulse energy :func:`~backend.Record` objects and prints pulse energies to screen."""
-    for k,v in pulseEnergies.iteritems():
+    for k,v in pulseEnergies.items():
         print("%s = %s" % (k, (v.data*v.unit)))
 
 def printPhotonEnergy(photonEnergies):
     """Expects a dictionary of photon energy :func:`~backend.Record` objects and prints photon energies to screen."""
-    for k,v in photonEnergies.iteritems():
+    for k,v in photonEnergies.items():
         print("%s = %s" % (k, v.data*v.unit))

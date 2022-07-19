@@ -11,7 +11,7 @@ import utils.io
 import utils.array
 
 def printStatistics(detectors):
-    for k,r in detectors.iteritems():
+    for k,r in detectors.items():
         v = r.data
         print("%s (%s): sum=%g mean=%g min=%g max=%g std=%g" % (k, r.unit,
                                                                 sum(v), mean(v),
