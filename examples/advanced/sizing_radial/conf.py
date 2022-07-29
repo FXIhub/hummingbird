@@ -164,7 +164,7 @@ def onEvent(evt):
             t0 = time.time()
             cx = evt["analysis"]["offCenterX"].data + (nx//downsampling - 1) / 2.  
             cy = evt["analysis"]["offCenterY"].data + (ny//downsampling - 1) / 2.
-            analysis.pixel_detector.radial(evt, "analysis", "binned image - CCD", mask=mask_binned, cx=cx, cy=cy)
+            analysis.pixel_detector.radial(evt, evt["analysis"]["binned image - CCD"], mask=mask_binned, cx=cx, cy=cy, key='binned image - CCD')
             # Fitting sphere model to get size and intensity
             analysis.sizing.fitSphereRadial(evt, "analysis", "radial distance - binned image - CCD", "radial average - binned image - CCD", **dict(modelParams, **sizingParams))
             t_size = time.time()-t0
@@ -175,12 +175,12 @@ def onEvent(evt):
         t_full = time.time()-t0
 
         if radial:
-            analysis.pixel_detector.radial(evt, "analysis", "fit", mask=mask_binned, cx=cx, cy=cy)
+            analysis.pixel_detector.radial(evt, evt["analysis"]["fit"], mask=mask_binned, cx=cx, cy=cy,key='fit')
             plotting.line.plotTrace(evt["analysis"]["radial average - fit"], evt["analysis"]["radial distance - fit"], tracelen=100)
             plotting.line.plotTrace(evt["analysis"]["radial average - binned image - CCD"], evt["analysis"]["radial distance - binned image - CCD"], tracelen=100)
 
         t_all = t_center + t_size + t_full
-        print "Time: %g sec (downsampling / center / size / full : %.2f%% %.2f%% / %.2f%% / %.2f%%)" % (t_all, 100.*t_downsampling/t_all, 100.*t_center/t_all, 100.*t_size/t_all, 100.*t_full/t_all)           
+        print("Time: %g sec (downsampling / center / size / full : %.2f%% %.2f%% / %.2f%% / %.2f%%)" % (t_all, 100.*t_downsampling/t_all, 100.*t_center/t_all, 100.*t_size/t_all, 100.*t_full/t_all))
         
         plotting.line.plotHistory(evt["analysis"]["offCenterX"])
         plotting.line.plotHistory(evt["analysis"]["offCenterY"])

@@ -143,10 +143,10 @@ def onEvent(evt):
         t_full = time.time()-t0
 
         t_all = t_downsampling + t_center + t_size + t_full
-        print "Time: %g sec (downsampling / center / size / full : %.2f%% %.2f%% / %.2f%% / %.2f%%)" % (t_all, 100.*t_downsampling/t_all,
+        print("Time: %g sec (downsampling / center / size / full : %.2f%% %.2f%% / %.2f%% / %.2f%%)" % (t_all, 100.*t_downsampling/t_all,
                                                                                                         100.*t_center/t_all,
                                                                                                         100.*t_size/t_all,
-                                                                                                        100.*t_full/t_all)
+                                                                                                        100.*t_full/t_all))
         
         plotting.line.plotHistory(evt["analysis"]["offCenterX"])
         plotting.line.plotHistory(evt["analysis"]["offCenterY"])
