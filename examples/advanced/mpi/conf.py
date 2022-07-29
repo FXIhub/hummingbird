@@ -1,7 +1,6 @@
 import time
 import analysis.event
 import analysis.beamline
-import analysis.background
 import analysis.pixel_detector
 import ipc
 import random
