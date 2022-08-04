@@ -6,6 +6,8 @@
 """The main hummingbird file."""
 import sys
 import logging
+logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s')
+
 import socket
 import importlib
 
@@ -27,7 +29,8 @@ def main():
         level = logging.INFO
     if args.debug:
         level = logging.DEBUG
-    logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s', level=level)
+    logger = logging.getLogger()
+    logger.setLevel(level)
 
     if args.port < PORT_RANGE[0] or args.port > PORT_RANGE[1]:
         print("The port must be from {0} to {1}".format(PORT_RANGE[0], PORT_RANGE[1]))
