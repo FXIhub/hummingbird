@@ -28,9 +28,8 @@ jobs:
         # $CONDA is an environment variable pointing to the root of the miniconda directory
         # $CONDA/bin/conda env update --file environment.yml --name base
         # Install requirements except for h5writer and pint which must be from pip
-        # Also PyQt5 called pyqt in conda and will be installed automatically with the other dependencies
         pip install Pint
-        conda install --yes h5py pexpect pyqtgraph scipy pyzmq tornado pytz
+        conda install --yes h5py pexpect pyqtgraph scipy pyzmq tornado pytz pyqt
         pip install h5writer
     - name: Install mpi
       shell: bash -l {0}
