@@ -16,6 +16,7 @@ class ColorBar(pg.GraphicsObject):
         label = label or ''
         w, h = width, height
         stops, colors = cmap.getStops('float')
+        colors = (colors*255).astype(int)
         smn, spp = stops.min(), stops.ptp()
         stops = (stops - stops.min())/stops.ptp()
         if ticks is None:
@@ -30,7 +31,7 @@ class ColorBar(pg.GraphicsObject):
         p.setPen(pg.mkPen('k'))
         grad = pg.QtGui.QLinearGradient(w/2.0, 0.0, w/2.0, h*1.0)
         for stop, color in zip(stops, colors):
-            grad.setColorAt(1.0 - stop, pg.QtGui.QColor(*[255*c for c in color]))
+            grad.setColorAt(1.0 - stop, pg.QtGui.QColor(*[c for c in color]))
         p.setBrush(pg.QtGui.QBrush(grad))
         p.drawRect(pg.QtCore.QRectF(0, 0, w, h))
  
@@ -38,27 +39,27 @@ class ColorBar(pg.GraphicsObject):
         mintx = 0.0
         for tick, tick_label in zip(ticks, tick_labels):
             y_ = (1.0 - (tick - smn)/spp) * h
-            p.drawLine(0.0, y_, -5.0, y_)
+            p.drawLine(0, int(y_), -5, int(y_))
             br = p.boundingRect(0, 0, 0, 0, pg.QtCore.Qt.AlignRight, tick_label)
             if br.x() < mintx:
                 mintx = br.x()
-            p.drawText(br.x() - 10.0, y_ + br.height() / 4.0, tick_label)
+            p.drawText(br.x() - 10, int(y_) + br.height() // 4, tick_label)
  
         # draw label
         br = p.boundingRect(0, 0, 0, 0, pg.QtCore.Qt.AlignRight, label)
-        p.drawText(-br.width() / 2.0, h + br.height() + 5.0, label)
+        p.drawText(-br.width() // 2, h + br.height() + 5, label)
         
         # done
         p.end()
  
         # compute rect bounds for underlying mask
-        self.zone = mintx - 12.0, -15.0, br.width() - mintx, h + br.height() + 30.0
+        self.zone = mintx - 12, -15, br.width() - mintx, h + br.height() + 30
         
     def paint(self, p, *args):
         # paint underlying mask
         p.setPen(pg.QtGui.QColor(255, 255, 255, 0))
         p.setBrush(pg.QtGui.QColor(255, 255, 255, 100))
-        p.drawRoundedRect(*(self.zone + (9.0, 9.0)))
+        p.drawRoundedRect(*(self.zone + (9, 9)))
         
         # paint colorbar
         p.drawPicture(0, 0, self.pic)

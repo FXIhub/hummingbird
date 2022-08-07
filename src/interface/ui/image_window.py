@@ -341,8 +341,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
         for x,y,z in triples_new:
             
-            ix = numpy.round((x - (self.mm_xmin+self.mm_dx/2.))/self.mm_dx)
-            iy = numpy.round((y - (self.mm_ymin+self.mm_dy/2.))/self.mm_dy)
+            ix = numpy.round((x - (self.mm_xmin+self.mm_dx/2.))/self.mm_dx).astype(int)
+            iy = numpy.round((y - (self.mm_ymin+self.mm_dy/2.))/self.mm_dy).astype(int)
             
             if (ix < 0):                    
                 ix = 0
