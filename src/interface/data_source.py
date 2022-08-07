@@ -180,7 +180,7 @@ class DataSource(QtCore.QObject):
                     self.plotdata_added.emit(self._plotdata[k])
                     self.add_item_to_group_structure(k, group)
             # Remove PlotData which is no longer in the conf
-            for k in self._plotdata.keys():
+            for k in list(self._plotdata.keys()):
                 if k not in self.titles:
                     self._plotdata.pop(k)
 
