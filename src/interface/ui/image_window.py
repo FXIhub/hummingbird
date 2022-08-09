@@ -500,11 +500,19 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 if self.settingsWidget.ui.modelVisibility.value() > 0:
                     # We should overwrite part of the image with a model
                     img = self._apply_model_to_img(img)
-                
-                self.plot.setImage(img,
-                                   transform=transform,
-                                   autoRange=auto_range, autoLevels=auto_levels,
-                                   autoHistogramRange=auto_histogram, axes={'t': 0, 'x': 1, 'y': 2, 'c': None})
+
+                print(img.shape)
+                if(img.ndim == 3):
+                    self.plot.setImage(img,
+                                       transform=transform,
+                                       autoRange=auto_range, autoLevels=auto_levels,
+                                       autoHistogramRange=auto_histogram,
+                                       axes={'t': 0, 'x': 1, 'y': 2, 'c': None})
+                else:
+                    self.plot.setImage(img,
+                                       transform=transform,
+                                       autoRange=auto_range, autoLevels=auto_levels,
+                                       autoHistogramRange=auto_histogram)
 
                 if 'center' in conf and 'diameters' in conf:
                     self._show_circular_rois(conf['center'], conf['diameters'])
