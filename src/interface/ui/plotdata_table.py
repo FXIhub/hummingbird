@@ -244,7 +244,6 @@ class PlotDataTable(QtGui.QWidget):
             self.clear_buffer.setEnabled(False)
 
     def _on_double_click(self, row, column):
-        print('Clicked: %d, %d'%(row, column))
         item = self.table.item(row, 1)
         if self.item_is_group_header(item):
             return

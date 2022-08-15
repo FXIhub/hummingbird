@@ -501,7 +501,6 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     # We should overwrite part of the image with a model
                     img = self._apply_model_to_img(img)
 
-                print(img.shape)
                 if(img.ndim == 3):
                     self.plot.setImage(img,
                                        transform=transform,
