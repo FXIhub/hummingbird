@@ -5,7 +5,7 @@ Monitoring and analysing flash X-ray imaging experiments in real time.
 
 # Documentation
 
-You can find documentation about the project at [fxihub.github.io/hummingbird/docs](http://fxihub.github.io/hummingbird/docs).
+You can find documentation about the project at [fxihub.github.io/hummingbird](https://fxihub.github.io/hummingbird).
 
 # Contribute
 

@@ -27,7 +27,7 @@ Getting help
 
 .. |hum_doc| raw:: html
 
-             <a href="http://fxihub.github.io/hummingbird/docs" target="_self">https://fxihub.github.io/hummingbird/docs</a>
+             <a href="http://fxihub.github.io/hummingbird" target="_self">https://fxihub.github.io/hummingbird/docs</a>
 
 Supported facilities
 --------------------
