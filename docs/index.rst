@@ -57,5 +57,6 @@ Daurer, B. J., Hantke, M. F., Nettelblad, C. & Maia, F. R. N. C. (2016). J. Appl
    configuration
    basic_examples
    lcls_examples
+   advanced_examples
    API/modules
    contribute
