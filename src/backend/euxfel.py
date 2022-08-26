@@ -278,54 +278,14 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             return
         train_length = obj["image.pulseId"].size
         cells = self._cell_filter[:train_length]
-        # When reading from the real live data stream the data looks like
-        # (modules, x, y, memory cells) with both image.data and image.gain
-        # for raw data and only image.data for calibrated data
-        # When reading from a streamed file it looks like
+        # When reading streamed data it looks like
         # (memory cells, 2, x, y) for raw data and
         # (memory cells, x, y) for calibrated data
         # Information confirmed by EXtra-foam
         # https://github.com/European-XFEL/EXtra-foam/blob/dev/extra_foam/pipeline/processors/image_assembler.py
         if(obj['image.data'].shape[-2] == 512 and obj['image.data'].shape[-1] == 128):
-            # We're dealing with file streamed data
-            # Reshape it to look like live data
-            if obj['image.data'].ndim == 4:
-                # looks like raw data
-                if self._data_format != 'Raw':
-                    logging.error('AGIPD data looks raw but self._data_format says otherwise!')
-                    return
-                # Add a dummy dimension for the module number
-                img = obj['image.data'][numpy.newaxis]
-                # Transpose to look like live data
-                img = numpy.transpose(img[:,cells,...], (0, 2, 3, 4, 1))
-            elif obj['image.data'].ndim == 3:
-                # looks like calibrated data
-                if self._data_format != 'Calib':
-                    logging.error('AGIPD data looks calibrated but self._data_format says otherwise!')
-                    return
-                                # Add a dummy dimension for the module number
-                img = obj['image.data'][numpy.newaxis]
-                img = numpy.transpose(img[:,cells,...], (0, 2, 3, 1))
-
-        elif(obj['image.data'].shape[-3] == 512 and obj['image.data'].shape[-2] == 128):
-            # We're dealing with live data
-            # No need to tranpose            
-            img = obj['image.data'][...,cells]
-            if img.ndim == 3:
-                img = img[numpy.newaxis]
-            assert img.ndim == 4
-            
-            # If data is raw, add the gain reference along the 0th dimension
-            if self._data_format == 'Raw':
-                gain = obj['image.gain'][...,cells]
-                if gain.ndim == 3:
-                    gain = gain[numpy.newaxis]                
-                img = numpy.concatenate((img, gain), axis=0)
-            # If data is calibrated there is no need to look at the gain
-            elif self._data_format == 'Calib':
-                pass
-            else:
-                raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
+            # We're dealing with  streamed data
+            img = obj['image.data'][cells]
         else:
             raise ValueError("image.data does not have a known shape!")
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
