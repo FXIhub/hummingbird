@@ -12,6 +12,9 @@ jobs:
       - name: Sphinx build
         run: |
           sphinx-build docs _build
+      - name: Create symlink for old URL
+        run: |
+          ln -s . _build/docs
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
