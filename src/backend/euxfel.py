@@ -140,7 +140,7 @@ class EUxfelTranslator(object):
         self._s2c = {}
         self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
         self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = "AGIPD"
-        self._n2c["SPB_DET_AGIP1M-1/DET/STACKED:xtdf"] = "AGIPD Stacked"
+        self._s2c["SPB_DET_AGIP1M-1/DET/STACKED:xtdf"] = "AGIPD Stacked"
         for module in range(16):
             self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"% module] = ("AGIPD%02d" % module)
             self._s2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ("DSSC%02d" % module)
