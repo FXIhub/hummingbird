@@ -111,6 +111,7 @@ class EUxfelTranslator(object):
         self._n2c = {}
         self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = ['photonPixelDetectors', 'eventID']
         self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = ['photonPixelDetectors', 'eventID']
+        self._n2c["SPB_DET_AGIP1M-1/DET/STACKED:xtdf"] = ['photonPixelDetectors', 'eventID']
         for module in range(16):
             self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
             self._n2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
@@ -139,7 +140,7 @@ class EUxfelTranslator(object):
         self._s2c = {}
         self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
         self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = "AGIPD"
-        
+        self._n2c["SPB_DET_AGIP1M-1/DET/STACKED:xtdf"] = "AGIPD Stacked"
         for module in range(16):
             self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"% module] = ("AGIPD%02d" % module)
             self._s2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ("DSSC%02d" % module)
