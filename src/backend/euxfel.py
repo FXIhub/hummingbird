@@ -349,6 +349,8 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             self._tr_DSSC(values, obj, evt_key)
         elif('DET_AGIPD1M' in evt_key):
             self._tr_AGIPD(values, obj, evt_key)
+        elif('DET_AGIP1M' in evt_key):
+            self._tr_AGIPD(values, obj, evt_key)            
         elif('PNCCD1MP' in evt_key):
             self._tr_pnCCD(values, obj, evt_key)
         else:
