@@ -275,7 +275,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
     def _tr_AGIPD(self, values, obj, evt_key):
         """Translates an AGIPD detector or module into Humminbird ADU array"""
         if('image.data' not in obj):
-            logging.warning('Could not find an AGIPD data')
+            # logging.warning('Could not find an AGIPD data')
             return
         if 'image.pulseId' in obj:
             train_length = obj["image.pulseId"].size
