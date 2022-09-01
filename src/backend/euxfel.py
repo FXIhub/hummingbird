@@ -274,10 +274,13 @@ class EUxfelTrainTranslator(EUxfelTranslator):
 
     def _tr_AGIPD(self, values, obj, evt_key):
         """Translates an AGIPD detector or module into Humminbird ADU array"""
-        if('image.pulseId' not in obj or 'image.data' not in obj):
+        if('image.data' not in obj):
             logging.warning('Could not find an AGIPD data')
             return
-        train_length = obj["image.pulseId"].size
+        if 'image.pulseId' in obj:
+            train_length = obj["image.pulseId"].size
+        else:
+            train_length = obj['image.data'].shape[0]
         cells = self._cell_filter[:train_length]
         # When reading streamed data it looks like
         # (memory cells, 2, x, y) for raw data and
