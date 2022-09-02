@@ -265,7 +265,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         
     def event_id(self, evt):
         """Returns the first id of a train."""
-        return self.translate(evt, 'eventID')['Timestamp'].timestamp[0]
+        return float(self.translate(evt, 'eventID')['Timestamp'].timestamp[0])
 
     def train_id(self, evt):
         """Returns the full stack of all event ids within a train."""
