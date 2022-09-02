@@ -42,6 +42,12 @@ def onEvent(evt):
     # Visualize detector image
     plotting.image.plotImage(evt['photonPixelDetectors']['CCD'], send_rate=10)
 
+
+    # Visualize detector sum
+    rowsum_rec = add_record(evt['analysis'], 'analysis', 'row_sum', np.sum(evt['photonPixelDetectors']['CCD'].data,axis=1))
+    # Visualize row sum
+    plotting.line.plotTrace(rowsum_rec, group='analysis')
+
     # Visualize detector sum
     sum_rec = add_record(evt['analysis'], 'analysis', 'sum', np.sum(evt['photonPixelDetectors']['CCD'].data))
     plotting.line.plotHistory(sum_rec, group='analysis')
