@@ -1,7 +1,9 @@
 # Import analysis/plotting modules
 import analysis.event
 import plotting.image
+import plotting.line
 import numpy as np
+from backend import add_record
 
 # Set new random seed
 np.random.seed()
@@ -39,3 +41,7 @@ def onEvent(evt):
 
     # Visualize detector image
     plotting.image.plotImage(evt['photonPixelDetectors']['CCD'], send_rate=10)
+
+    # Visualize detector sum
+    sum_rec = add_record(evt['analysis'], 'analysis', 'sum', np.sum(evt['photonPixelDetectors']['CCD'].data))
+    plotting.line.plotHistory(sum_rec, group='analysis')
