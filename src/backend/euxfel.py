@@ -406,15 +406,17 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             timestamp = numpy.asarray(time.time())
 
         if 'image.pulseId' in obj:
-            train_length = numpy.array(obj["image.pulseId"]).shape[-1]
+            pulseid = numpy.squeeze(obj["image.pulseId"]).astype(int)
+            cellid = numpy.squeeze(obj['image.cellId']).astype(int)
+            train_length = len(pulseid)
             cells = self._cell_filter[:train_length]
-            pulseid  = numpy.array(obj["image.pulseId"][..., cells], dtype='int')
+            pulseid = pulseid[cells]
             # The denominator here is totally arbitrary, just we have different timestamps for different pulses
             timestamp = timestamp + (pulseid / 27000.)
             rec = Record('Timestamp', timestamp, ureg.s)
             rec.pulseId = pulseid
-            rec.cellId   = numpy.array(obj['image.cellId'][...,  cells], dtype='int')
-            rec.badCells = numpy.array(obj['image.cellId'][..., ~cells], dtype='int')
+            rec.cellId   = cellid[cells]
+            rec.badCells = cellid[~cells]
             rec.timestamp = timestamp
         else:
             rec = Record('Timestamp', timestamp, ureg.s)
