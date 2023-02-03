@@ -175,7 +175,7 @@ class EUxfelTranslator(object):
         if(self._slow_client is not None): 
             buf, meta = self.append_slow_data(buf, meta)
        
-        age = numpy.floor(time.time()) - int(meta[list(meta.keys())[0]]['timestamp.tid'])
+        age = time.time() - meta[list(meta.keys())[0]]['timestamp']
         if self._max_train_age is None or age < self._max_train_age:
             return buf, meta
         else:
