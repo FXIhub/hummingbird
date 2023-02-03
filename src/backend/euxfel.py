@@ -91,10 +91,10 @@ class EUxfelTranslator(object):
             self._slow_update_rate = int(state['EuXFEL/SlowUpdate'])
         
         # Cell filter
-        self._cell_filter = numpy.zeros(MAX_TRAIN_LENGTH, dtype='bool')
-        self._cell_filter[first_cell:last_cell] = True
-        for cell in bad_cells:
-            self._cell_filter[cell] = False
+        cell_filter = numpy.zeros(MAX_TRAIN_LENGTH, dtype='bool')
+        cell_filter[first_cell:last_cell] = True
+        cell_filter[bad_cells] = False
+        self._use_cells = numpy.flatnonzero(cell_filter)
 
         # Start Karabo client for data source
         self._data_client = karabo_bridge.Client(dsrc)
@@ -276,8 +276,8 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if('image.pulseId' not in obj or 'image.data' not in obj):
             logging.warning('Could not find an AGIPD data')
             return
-        train_length = obj["image.pulseId"].size
-        cells = self._cell_filter[:train_length]
+        cellid = numpy.squeeze(obj["image.cellId"]).astype(int)
+        cells = numpy.in1d(cellid, self._use_cells)
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
         # for raw data and only image.data for calibrated data
@@ -336,8 +336,8 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if('image.pulseId' not in obj or 'image.data' not in obj):
             logging.warning('Could not find an DSSC data')
             return
-        train_length = obj["image.pulseId"].size
-        cells = self._cell_filter[:train_length]
+        cellid = numpy.squeeze(obj["image.cellId"]).astype(int)
+        cells = numpy.in1d(cellid, self._use_cells)
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
         # for raw data and only image.data for calibrated data
@@ -409,7 +409,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             pulseid = numpy.squeeze(obj["image.pulseId"]).astype(int)
             cellid = numpy.squeeze(obj['image.cellId']).astype(int)
             train_length = len(pulseid)
-            cells = self._cell_filter[:train_length]
+            cells = numpy.in1d(cellid, self._use_cells)
             pulseid = pulseid[cells]
             # The denominator here is totally arbitrary, just we have different timestamps for different pulses
             timestamp = timestamp + (pulseid / 27000.)
