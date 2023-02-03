@@ -37,59 +37,42 @@ class EUxfelTranslator(object):
         cmdline_args = _argparser.parse_args()
 
         # Read the main data source, e.g. AGIPD
-        if 'EuXFEL/DataSource' in state:
-            dsrc = state['EuXFEL/DataSource']
-        elif('EuXFEL' in state and 'DataSource' in state['EuXFEL']):
-            dsrc = state['EuXFEL']['DataSource']
-        else:
+        dsrc = state.get('EuXFEL/DataSource')
+        if dsrc is None:
+            dsrc = state.get('EuXFEL', {}).get('DataSource')
+        if dsrc is None:
             raise ValueError("You need to set the '[EuXFEL][DataSource]'"
                              " in the configuration")
 
         # The data format for the data source, either "Calib" or "Raw"
-        self._data_format = "Calib"
-        if 'EuXFEL/DataFormat' in state:
-            self._data_format = state["EuXFEL/DataFormat"]
+        self._data_format = state.get("EuXFEL/DataFormat", "Calib")
         if not self._data_format in ["Calib", "Raw"]:
             raise ValueError("You need to set the 'EuXFEL/DataFormat'"
                              " in the configuration as 'Calib' or 'Raw'")
 
         # Option to decide about maximum allowd age of trains
-        self._max_train_age = None # in units of seconds
-        if 'EuXFEL/MaxTrainAge' in state:
-            self._max_train_age = state['EuXFEL/MaxTrainAge']
+        self._max_train_age = state.get('EuXFEL/MaxTrainAge')  # in units of seconds
 
         # Option to set the first cell to be selected per train
-        first_cell = 0
-        if 'EuXFEL/FirstCell' in state:
-            first_cell = state['EuXFEL/FirstCell']
+        first_cell = state.get('EuXFEL/FirstCell', 0)
 
         # Option to set the last cell to be selected per train
-        last_cell = MAX_TRAIN_LENGTH
-        if 'EuXFEL/LastCell' in state:
-            last_cell = state['EuXFEL/LastCell'] + 1
+        last_cell = state.get('EuXFEL/LastCell', MAX_TRAIN_LENGTH - 1) + 1
 
         # Option to specify bad cells
-        bad_cells = []
-        if 'EuXFEL/BadCells' in state:
-            bad_cells = list(state['EuXFEL/BadCells'])
-
+        bad_cells = list(state.get('EuXFEL/BadCells', []))
 
         # Option to read a slow data source, e.g for GMD, MOTORS, ....
-        if 'EuXFEL/SlowSource' in state:
-            slsrc = state['EuXFEL/SlowSource']
-        else:
-            slsrc = None
+        slsrc = state.get('EuXFEL/SlowSource')
 
         # Option to provide a list of slow data native keys
-        self._slow_keys = None
-        if 'EuXFEL/SlowKeys' in state:
-            self._slow_keys = list(state['EuXFEL/SlowKeys'])
+        self._slow_keys = state.get('EuXFEL/SlowKeys')
+        if self._slow_keys is not None:
+            self._slow_keys = list(self._slow_keys)
 
         # Option to provide update frequency for slow data source
-        self._slow_update_rate = 1
-        if 'EuXFEL/SlowUpdate' in state:
-            self._slow_update_rate = int(state['EuXFEL/SlowUpdate'])
-        
+        self._slow_update_rate = int(state.get('EuXFEL/SlowUpdate', 1))
+
         # Cell filter
         cell_filter = numpy.zeros(MAX_TRAIN_LENGTH, dtype='bool')
         cell_filter[first_cell:last_cell] = True
@@ -98,8 +81,7 @@ class EUxfelTranslator(object):
 
         # Start Karabo client for data source
         self._data_client = karabo_bridge.Client(dsrc)
-        
-        
+
         # Start Karabo client for slow data source
         self._slow_cache  = None
         self._slow_last_time = 0
@@ -139,13 +121,13 @@ class EUxfelTranslator(object):
         self._s2c = {}
         self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
         self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = "AGIPD"
-        
+
         for module in range(16):
-            self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf"% module] = ("AGIPD%02d" % module)
+            self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf" % module] = ("AGIPD%02d" % module)
             self._s2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ("DSSC%02d" % module)
-        
+
         self._s2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = "pnCCD"
-        
+
         self._s2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = "GMD"
         ## Add more AGIPD sources here
 
