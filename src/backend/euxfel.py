@@ -64,7 +64,7 @@ class EUxfelTranslator(object):
             first_cell = state['EuXFEL/FirstCell']
 
         # Option to set the last cell to be selected per train
-        last_cell = -1
+        last_cell = MAX_TRAIN_LENGTH
         if 'EuXFEL/LastCell' in state:
             last_cell = state['EuXFEL/LastCell'] + 1
 
