@@ -5,9 +5,9 @@
 """Broadcasts the analysed data to be displayed in the interface."""
 from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import numpy
-import ipc
 import logging
 import hashlib
+from .. import ipc
 
 evt = None
 data_conf = {}

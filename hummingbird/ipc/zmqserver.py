@@ -10,13 +10,13 @@ import zmq.eventloop
 import zmq.eventloop.zmqstream
 import tornado.ioloop
 import threading
-import ipc
+import logging
 import numpy
 import hashlib
-import ipc.mpi
-import backend.worker
-import logging
-from utils.cmdline_args import argparser as _argparser
+
+from .. import ipc
+from .. import backend
+from ..utils.cmdline_args import argparser as _argparser
 
 
 eventLimit = 125
@@ -155,7 +155,7 @@ class ZmqServer(object):
         else:
             raise ValueError('Unexpected message: %r' % msg[0])
         if ipc.mpi.is_master():
-            for i in range(1,ipc.mpi.size):
+            for i in range(1, ipc.mpi.size):
                 ipc.mpi.reload_comm.send(['__subscribed__',self._subscribed], i)
         self._xsub_stream.send_multipart(msg)
 

@@ -6,6 +6,7 @@ from .broadcast import new_data, set_current_event # pylint: disable=unused-impo
 
 from . import mpi
 from . import influx
+from . import broadcast
 import socket
 
 _server = None

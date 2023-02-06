@@ -4,12 +4,14 @@
 # -------------------------------------------------------------------------
 """Allows the backend and analysis to run in parallel using MPI."""
 from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
-import ipc
 import numpy
 import numbers
 import logging
 import time
 import sys
+
+from .. import ipc
+
 
 try:
     # Try to import MPI and create a group containing all the slaves
