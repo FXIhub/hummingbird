@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # --------------------------------------------------------------------------------------
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
