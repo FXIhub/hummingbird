@@ -8,6 +8,7 @@ from __future__ import print_function, absolute_import # Compatibility with pyth
 import zmq
 import zmq.eventloop
 import zmq.eventloop.zmqstream
+import tornado.ioloop
 import threading
 import ipc
 import numpy
@@ -17,14 +18,13 @@ import backend.worker
 import logging
 from utils.cmdline_args import argparser as _argparser
 
+
 eventLimit = 125
-zmq.eventloop.ioloop.install()
-# Tornado 5 changed the behaviour of IOLoop.instance() such that
-# is now returns a new thread local IOLoop instead of the main
-# thread IOLoop. So we need this global variable to tell the thread
-# the correct IOLoop to start.
-# http://www.tornadoweb.org/en/stable/ioloop.html#tornado.ioloop.IOLoop.instance
-ioloop = zmq.eventloop.ioloop.IOLoop.instance()
+
+# `IOLoop.current()` returns a thread local `IOLoop`. So we need this 
+# global variable to tell the thread the correct `IOLoop` to start.
+ioloop = tornado.ioloop.IOLoop.current()
+
 
 class ZmqServer(object):
     """Implements the server that broadcasts the results from the backend.
@@ -81,7 +81,6 @@ class ZmqServer(object):
         # Make sure the program exists even when the thread exists
         t.daemon = True
         t.start()
-
 
     def _send_array(self, array, flags=0, copy=True, track=False):
         """Send a numpy array with metadata"""
