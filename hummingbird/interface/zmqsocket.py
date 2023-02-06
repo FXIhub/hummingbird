@@ -5,8 +5,8 @@
 """
 Provides a wrapper for a ZeroMQ socket. Adapted from PyZeroMQt.
 """
-from interface.Qt import QtCore
-from interface.zmqcontext import ZmqContext
+from .Qt import QtCore
+from .zmqcontext import ZmqContext
 from zmq import FD, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, EVENTS, \
                 POLLIN, RCVHWM
 import numpy

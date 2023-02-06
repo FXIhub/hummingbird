@@ -3,11 +3,11 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Manages a connection with one backend"""
-from interface.Qt import QtGui, QtCore
+from .Qt import QtGui, QtCore
 from zmq import SUB, REQ
 import zmq
-from interface.zmqsocket import ZmqSocket
-from interface.plotdata import PlotData
+from .zmqsocket import ZmqSocket
+from .plotdata import PlotData
 import logging
 import numpy
 

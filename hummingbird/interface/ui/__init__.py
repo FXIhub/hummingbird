@@ -1,5 +1,5 @@
 """Contains all the Designer created widgets, one per module"""
-from interface.Qt import loadUiType
+from ..Qt import loadUiType
 import os
 import sys
 # Append the images to the module search path so we can find the resources file
@@ -13,12 +13,12 @@ Ui_imageWindowSettings, base = loadUiType(uidir + '/image_window_settings.ui')
 Ui_imageWindow, base = loadUiType(uidir + '/image_window.ui')
 Ui_linePlotSettings, base = loadUiType(uidir + '/line_plot_settings.ui')
 
-from interface.ui.data_window import DataWindow # pylint: disable=unused-import
-from interface.ui.add_backend import AddBackendDialog # pylint: disable=unused-import
-from interface.ui.preferences import PreferencesDialog # pylint: disable=unused-import
-from interface.ui.line_plot_settings import LinePlotSettings # pylint: disable=unused-import
-from interface.ui.plot_window import PlotWindow # pylint: disable=unused-import
-from interface.ui.image_window import ImageWindow # pylint: disable=unused-import
+from .data_window import DataWindow # pylint: disable=unused-import
+from .add_backend import AddBackendDialog # pylint: disable=unused-import
+from .preferences import PreferencesDialog # pylint: disable=unused-import
+from .line_plot_settings import LinePlotSettings # pylint: disable=unused-import
+from .plot_window import PlotWindow # pylint: disable=unused-import
+from .image_window import ImageWindow # pylint: disable=unused-import
 
 Ui_mainWindow, base = loadUiType(uidir + '/main_window.ui')
 

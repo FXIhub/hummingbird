@@ -3,8 +3,8 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Dialog to add data sources to the GUI"""
-from interface.Qt import QtGui, QtCore
-from interface.ui import Ui_addBackend
+from ..Qt import QtGui, QtCore
+from . import Ui_addBackend
 
 class AddBackendDialog(QtGui.QDialog, Ui_addBackend):
     """Dialog to add data sources to the GUI"""

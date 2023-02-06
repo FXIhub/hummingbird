@@ -3,17 +3,17 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Window to display images"""
-from interface.Qt import QtGui, QtCore
-from interface.ui import Ui_imageWindow
-from interface.ui import DataWindow
-import utils.array
+from ..Qt import QtGui, QtCore
+from . import Ui_imageWindow
+from . import DataWindow
+from ... import utils
 import pyqtgraph
 import numpy
 import numpy.random
 import datetime
 import logging
 import os
-import utils.io
+
 
 class ImageWindow(DataWindow, Ui_imageWindow):
     """Window to display images"""
@@ -420,7 +420,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             
             conf = source.conf[title]
             if "alert" in conf and self.actionToggleAlert.isChecked() and conf['alert']:
-                os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+                cwd = os.path.dirname(os.path.abspath(__file__))
+                os.system('afplay -v %f %s/sounds/%s.wav &' %(self.volume, cwd, self.sound))
                 if not self.alertBlinkTimer.isActive():
                     self.alertBlinkTimer.start()
             else:

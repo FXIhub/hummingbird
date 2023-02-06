@@ -3,14 +3,13 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Window to display 2D plots"""
-from interface.ui import Ui_plotWindow
+from . import Ui_plotWindow, DataWindow
 import pyqtgraph
 import numpy
-from interface.ui import DataWindow
-from interface.Qt import QtCore, QtGui
-from interface.colorbar import ColorBar
+from ..Qt import QtCore, QtGui
+from ..colorbar import ColorBar
 import datetime
-import utils.array
+from ... import utils
 import os
 from .pg_time_axis import DateAxisItem
 
@@ -269,7 +268,8 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 alert_flag = True
 
         if alert_flag:
-            os.system('afplay -v %f src/interface/ui/sounds/%s.wav &' %(self.volume,self.sound))
+            cwd = os.path.dirname(os.path.abspath(__file__))
+            os.system('afplay -v %f %s/sounds/%s.wav &' %(self.volume, cwd, self.sound))
             if not self.alertBlinkTimer.isActive():
                 self.alertBlinkTimer.start()
         else:
@@ -596,4 +596,4 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         self.yLabel.setText("%f" % (y))
 
         
-from interface.ui import LinePlotSettings
+from . import LinePlotSettings

@@ -389,7 +389,7 @@
   <customwidget>
    <class>ImageWindowSettings</class>
    <extends>QWidget</extends>
-   <header>interface.ui.image_window_settings</header>
+   <header>hummingbird.interface.ui.image_window_settings</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

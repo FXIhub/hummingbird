@@ -3,7 +3,7 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Stores the data associated with a given broadcast"""
-from interface.ringbuffer import RingBuffer, RingBufferStr
+from .ringbuffer import RingBuffer, RingBufferStr
 import numpy
 
 class PlotData(object):

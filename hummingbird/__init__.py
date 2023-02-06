@@ -10,7 +10,7 @@ logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s')
 import socket
 import importlib
 
-from utils.cmdline_args import argparser
+from .utils.cmdline_args import argparser
 # Leave this for backwards compatibility with old configuration files
 parse_cmdline_args = argparser.parse_args
 
@@ -37,9 +37,9 @@ def main():
 
     if(args.backend is not None):
         if (args.influxdb is not None):
-            from ipc import influx
+            from .ipc import influx
             influx.init(args.influxdb)
-        from backend import Worker
+        from .backend import Worker
         if(args.backend != True):
             worker = Worker(args.backend, args.port)
         else:
@@ -56,7 +56,7 @@ def main():
             with PyCallGraph(output=graphviz):
                 worker.start()
     elif(args.interface is not False):
-        import interface
+        from . import interface
         interface.start_interface(args.no_restore)
     elif(args.reload is not False):
         import os, signal

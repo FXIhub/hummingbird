@@ -3,12 +3,12 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Displays the results of the analysis to the user, using images and plots."""
-from interface.Qt import QtGui, QtCore
-from interface.ui import AddBackendDialog, PreferencesDialog
-from interface.ui import PlotWindow, ImageWindow
-from interface.ui import Ui_mainWindow
-from interface.recorder import H5Recorder
-from interface import DataSource
+from .Qt import QtGui, QtCore
+from .ui import AddBackendDialog, PreferencesDialog
+from .ui import PlotWindow, ImageWindow
+from .ui import Ui_mainWindow
+from .recorder import H5Recorder
+from . import DataSource
 import logging
 import os
 

@@ -2,7 +2,7 @@
 """
 
 import sys
-from interface.Qt import QtGui, QtCore
+from .Qt import QtGui, QtCore
 import signal
 
 def start_interface(restore):
@@ -25,10 +25,10 @@ def sigint_handler(*_):
         GUI.instance.close()
 
 
-from interface.data_source import DataSource # pylint: disable=unused-import
-from interface.plotdata import PlotData # pylint: disable=unused-import
-from interface.recorder import H5Recorder # pylint: disable=unused-import
-from interface.ringbuffer import RingBuffer # pylint: disable=unused-import
-from interface.zmqcontext import ZmqContext # pylint: disable=unused-import
-from interface.zmqsocket import ZmqSocket # pylint: disable=unused-import
-from interface.gui import GUI
+from .data_source import DataSource # pylint: disable=unused-import
+from .plotdata import PlotData # pylint: disable=unused-import
+from .recorder import H5Recorder # pylint: disable=unused-import
+from .ringbuffer import RingBuffer # pylint: disable=unused-import
+from .zmqcontext import ZmqContext # pylint: disable=unused-import
+from .zmqsocket import ZmqSocket # pylint: disable=unused-import
+from .gui import GUI

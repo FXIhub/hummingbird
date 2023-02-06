@@ -3,8 +3,8 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Dialog to change the line plot settings"""
-from interface.Qt import QtGui, QtCore
-from interface.ui import Ui_linePlotSettings
+from ..Qt import QtGui, QtCore
+from . import Ui_linePlotSettings
 import numpy
 
 class LinePlotSettings(QtGui.QDialog, Ui_linePlotSettings):

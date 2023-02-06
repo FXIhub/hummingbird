@@ -3,7 +3,7 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Base class for all the data display windows"""
-from interface.Qt import QtGui, QtCore
+from ..Qt import QtGui, QtCore
 import logging
 
 class DataWindow(QtGui.QMainWindow):
