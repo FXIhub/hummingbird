@@ -4,7 +4,7 @@
 # -------------------------------------------------------------------------
 from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import os
-import ipc
+from .. import ipc
 import numpy
 import h5py
 import time

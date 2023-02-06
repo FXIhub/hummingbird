@@ -8,7 +8,7 @@ except ImportError:
     print(100*"*")
     exit(1)
     
-import ipc.mpi
+from .. import ipc
 
 logger = h5writer.logger
 
