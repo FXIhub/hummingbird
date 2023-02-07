@@ -11,6 +11,7 @@ regular buffer.
 
 import numpy
 
+
 class RingBuffer(object):
     """Provides a ring buffer for scalar and numpy data.
     It's always possible to retrieve the buffer data as a numpy array in O(1)
@@ -237,4 +238,3 @@ class RingBufferStr(object):
     @property
     def number_of_added_elements(self):
         return self._counter
-        

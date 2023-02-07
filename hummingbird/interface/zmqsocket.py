@@ -5,12 +5,14 @@
 """
 Provides a wrapper for a ZeroMQ socket. Adapted from PyZeroMQt.
 """
+import hashlib
+
+import numpy
+from zmq import EVENTS, FD, IDENTITY, POLLIN, RCVHWM, SUBSCRIBE, UNSUBSCRIBE
+
 from .Qt import QtCore
 from .zmqcontext import ZmqContext
-from zmq import FD, IDENTITY, SUBSCRIBE, UNSUBSCRIBE, EVENTS, \
-                POLLIN, RCVHWM
-import numpy
-import hashlib
+
 
 class ZmqSocket(QtCore.QObject):
     """Wrapper around a zmq socket. Provides Qt signal handling"""

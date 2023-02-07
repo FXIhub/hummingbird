@@ -4,9 +4,9 @@
 # -------------------------------------------------------------------------
 """A plotting module for correlations and maps"""
 import numpy as np
+
 from .. import ipc
 from ..backend import Record
-
 
 histograms = {}
 def plotHistogram(value, hmin=0, hmax=10, bins=10, name=None, group=None, buffer_length=100):

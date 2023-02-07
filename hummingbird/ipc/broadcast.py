@@ -3,10 +3,14 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Broadcasts the analysed data to be displayed in the interface."""
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
-import numpy
-import logging
+from __future__ import (absolute_import,  # Compatibility with python 2 and 3
+                        print_function)
+
 import hashlib
+import logging
+
+import numpy
+
 from .. import ipc
 
 evt = None
@@ -93,5 +97,3 @@ def set_current_event(_evt):
     """Updates the current event, such that it can
     be accessed easily in analysis code"""
     ipc.broadcast.evt = _evt
-
-

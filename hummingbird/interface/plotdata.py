@@ -3,8 +3,10 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Stores the data associated with a given broadcast"""
-from .ringbuffer import RingBuffer, RingBufferStr
 import numpy
+
+from .ringbuffer import RingBuffer, RingBufferStr
+
 
 class PlotData(object):
     """Stores the data associated with a given broadcast"""
@@ -145,4 +147,3 @@ class PlotData(object):
         self._title = state['title']
         self._maxlen = state['maxlen']
         self.recordhistory = state['recordhistory']
-

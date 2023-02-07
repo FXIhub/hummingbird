@@ -4,9 +4,8 @@
 # -------------------------------------------------------------------------
 """A plotting module for line plots"""
 import numpy as np
-from .. import ipc
-from .. import utils
 
+from .. import ipc, utils
 
 histories = {}
 def plotHistory(param, label='', history=100, hline=None, runningHistogram=False, window=20, bins=100, hmin=0, hmax=100, name_extension="", name=None, group=None, **kwargs):
@@ -104,4 +103,3 @@ def plotTrace(paramY, paramX=None, label='', history=10000, tracelen=None, name=
             logging.warning("For %s x- and y-dimension do not match (%i, %i). Cannot plot trace." % (name,x.size,y.size))
             return
         ipc.new_data(name, data_y=np.array([x,y], copy=False)) 
-

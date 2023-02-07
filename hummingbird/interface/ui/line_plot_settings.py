@@ -3,9 +3,11 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Dialog to change the line plot settings"""
-from ..Qt import QtGui, QtCore
-from . import Ui_linePlotSettings
 import numpy
+
+from ..Qt import QtCore, QtGui
+from . import Ui_linePlotSettings
+
 
 class LinePlotSettings(QtGui.QDialog, Ui_linePlotSettings):
     """Dialog to change the line plot settings"""
@@ -155,4 +157,3 @@ class LinePlotSettings(QtGui.QDialog, Ui_linePlotSettings):
             print("... done")
         self.bg_filename_loaded = self.bg_filename
         self.bg_angle_loaded = self.bg_angle.text()
-            

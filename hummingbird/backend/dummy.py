@@ -3,12 +3,13 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Creates Hummingbird events for testing purposes"""
-import time
 import random
+import time
+
 import numpy
 
 from .. import ipc
-from . import Worker, ureg, add_record, EventTranslator
+from . import EventTranslator, Worker, add_record, ureg
 
 
 class DummyTranslator(object):

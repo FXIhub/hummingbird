@@ -3,19 +3,19 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Online backend for reading EuXFEL events via the Karabo-bridge."""
-from __future__ import print_function # Compatibility with python 2 and 3
-import os
-import numpy
+from __future__ import print_function  # Compatibility with python 2 and 3
+
 import datetime
-import time
 import logging
+import os
+import time
+
 import karabo_bridge
-
+import numpy
 from pytz import timezone
-from .. import ipc
-from .. import parse_cmdline_args
-from . import Worker, ureg, Record, add_record, EventTranslator
 
+from .. import ipc, parse_cmdline_args
+from . import EventTranslator, Record, Worker, add_record, ureg
 
 _argparser = None
 def add_cmdline_args():

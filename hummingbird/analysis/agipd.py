@@ -2,13 +2,14 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
-import numpy as np
-from ..backend import ureg, add_record
+from __future__ import (absolute_import,  # Compatibility with python 2 and 3
+                        print_function)
+
 import h5py
+import numpy as np
 
+from ..backend import add_record, ureg
 from . import cfel_geom
-
 
 _nGains = 3
 _nPanels = 16

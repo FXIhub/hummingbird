@@ -4,8 +4,9 @@
 # -------------------------------------------------------------------------
 """A table to show the available PlotData"""
 
-from ..Qt import QtGui, QtCore
-from . import PlotWindow, ImageWindow
+from ..Qt import QtCore, QtGui
+from . import ImageWindow, PlotWindow
+
 #from .plot_window import PlotWindow
 
 class PlotDataTable(QtGui.QWidget):

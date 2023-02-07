@@ -5,6 +5,7 @@
 import h5py
 import numpy as np
 
+
 class H5Reader:
     def __init__(self, filename, key=None):
         self._fileno = h5py.File(filename, 'r')
@@ -33,4 +34,3 @@ class GeometryReader(H5Reader):
         self.x = np.round(self.x).astype(np.int)
         self.y = np.round(self.y).astype(np.int)
         self._fileno.close()
-

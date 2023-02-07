@@ -1,11 +1,8 @@
 from ..backend import ureg
-from . import (
-    agipd, hitfinding, patterson, sizing, stxm, tof, beamline,
-    event, pixel_detector,  recorder, stack
-)
+from . import (agipd, beamline, event, hitfinding, patterson, pixel_detector,
+               recorder, sizing, stack, stxm, tof)
 
 try:
     from . import tracking
 except ModuleNotFoundError:
     pass
-

@@ -2,8 +2,11 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
+from __future__ import (absolute_import,  # Compatibility with python 2 and 3
+                        print_function)
+
 import numpy
+
 from .. import utils
 from ..backend.record import add_record
 
@@ -71,4 +74,3 @@ def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop
             add_record(v, "analysis", "patterson multiples", M, unit='')
         multiple_score = M.sum()
         add_record(v, "analysis", "multiple score", multiple_score, unit='')
-    

@@ -2,9 +2,12 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-import condor
 import numpy
+
+import condor
+
 from .. import utils
+
 
 class Simulation:
     def __init__(self, conf):
@@ -129,4 +132,3 @@ class Simulation:
             return self._output["particles"]["particle_00"]["position"][2]*(1e9)
         else:
             return None
-

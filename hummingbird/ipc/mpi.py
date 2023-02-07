@@ -3,15 +3,17 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Allows the backend and analysis to run in parallel using MPI."""
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
-import numpy
-import numbers
+from __future__ import (absolute_import,  # Compatibility with python 2 and 3
+                        print_function)
+
 import logging
-import time
+import numbers
 import sys
+import time
+
+import numpy
 
 from .. import ipc
-
 
 try:
     # Try to import MPI and create a group containing all the slaves

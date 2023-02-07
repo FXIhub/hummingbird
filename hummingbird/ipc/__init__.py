@@ -1,13 +1,14 @@
 """Handles the communication between the backend<->interface, as well
 as the MPI communication between different backend processes."""
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
-from .zmqserver import ZmqServer
-from .broadcast import new_data, set_current_event # pylint: disable=unused-import
+from __future__ import (absolute_import,  # Compatibility with python 2 and 3
+                        print_function)
 
-from . import mpi
-from . import influx
-from . import broadcast
 import socket
+
+from . import broadcast, influx, mpi
+from .broadcast import (new_data,  # pylint: disable=unused-import
+                        set_current_event)
+from .zmqserver import ZmqServer
 
 _server = None
 hostname = socket.gethostname()

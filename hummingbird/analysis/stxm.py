@@ -2,7 +2,9 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
+from __future__ import (absolute_import,  # Compatibility with python 2 and 3
+                        print_function)
+
 import numpy as np
 import scipy.ndimage.measurements
 
@@ -77,4 +79,3 @@ def stxmCenterOfMass(evt, data_rec):
     # return y_rec, x_rec
     rec = add_record(evt["analysis"], "analysis", "stxm center of mass", diff)
     return rec
-    

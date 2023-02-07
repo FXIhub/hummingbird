@@ -4,20 +4,21 @@
 # -------------------------------------------------------------------------
 """Implements the server that broadcasts the results from the backend.
 Analysis users do not need to deal with it."""
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
+from __future__ import (absolute_import,  # Compatibility with python 2 and 3
+                        print_function)
+
+import hashlib
+import logging
+import threading
+
+import numpy
+import tornado.ioloop
 import zmq
 import zmq.eventloop
 import zmq.eventloop.zmqstream
-import tornado.ioloop
-import threading
-import logging
-import numpy
-import hashlib
 
-from .. import ipc
-from .. import backend
+from .. import backend, ipc
 from ..utils.cmdline_args import argparser as _argparser
-
 
 eventLimit = 125
 

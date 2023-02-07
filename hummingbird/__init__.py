@@ -3,14 +3,16 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """The main hummingbird file."""
-import sys
-import logging
-logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s')
-
-import socket
 import importlib
+import logging
+import socket
+import sys
 
 from .utils.cmdline_args import argparser
+
+logging.basicConfig(format='%(filename)s:%(lineno)d %(message)s')
+
+
 # Leave this for backwards compatibility with old configuration files
 parse_cmdline_args = argparser.parse_args
 
@@ -49,7 +51,7 @@ def main():
         else:
             from pycallgraph import PyCallGraph
             from pycallgraph.output import GraphvizOutput
-            import ipc.mpi
+            from . import ipc
             import os
             graphviz = GraphvizOutput()
             graphviz.output_file = 'pycallgraph_%d.png' % (ipc.mpi.rank)

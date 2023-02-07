@@ -2,16 +2,19 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-from __future__ import print_function # Compatibility with python 2 and 3
-import scipy.ndimage as ndi
-import PIL.Image as Image
-import matplotlib.pyplot as plt
-from matplotlib.colors import LogNorm
-import numpy as np
-from scipy.ndimage import zoom
-import h5py
-import sys
+from __future__ import print_function  # Compatibility with python 2 and 3
+
 import os
+import sys
+
+import h5py
+import matplotlib.pyplot as plt
+import numpy as np
+import PIL.Image as Image
+import scipy.ndimage as ndi
+from matplotlib.colors import LogNorm
+from scipy.ndimage import zoom
+
 from .. import utils
 
 # Physical constants
@@ -368,6 +371,3 @@ if __name__ == '__main__':
     if save:
         fig.savefig('./diffraction.pdf', format='pdf', bbox_inches='tight', dpi=300)
     plt.show()
-    
-    
-

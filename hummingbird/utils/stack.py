@@ -2,13 +2,18 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
-import os
-from .. import ipc
-import numpy
-import h5py
-import time
+from __future__ import absolute_import  # Compatibility with python 2 and 3
+from __future__ import print_function
+
 import logging
+import os
+import time
+
+import h5py
+import numpy
+
+from .. import ipc
+
 
 class Stack:
     def __init__(self,name="stack",maxLen=100,reducePeriod=None,outPeriod=None, outputs=None):

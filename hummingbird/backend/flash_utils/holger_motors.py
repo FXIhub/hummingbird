@@ -1,6 +1,8 @@
-from __future__ import print_function # Compatibility with python 2 and 3
-import time
+from __future__ import print_function  # Compatibility with python 2 and 3
+
 import os
+import time
+
 
 class MotorPositions(object):
     def __init__(self, path):
@@ -83,4 +85,3 @@ class MotorPositions(object):
                      "nozzle_rot": float(line_data[31]),
                      "dummy": float(line_data[33])}
         return (self._parse_time(line_data[0]), data_dict)
-

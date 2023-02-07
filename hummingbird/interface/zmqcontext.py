@@ -8,6 +8,7 @@ PyZeroMQt - zmqsocket.py: Provides a singleton wrapper for a ZeroMQ context
 """
 from zmq import Context
 
+
 class ZmqContext(object):
     """Provides a singleton wrapper for a ZeroMQ context"""
     self_ = None

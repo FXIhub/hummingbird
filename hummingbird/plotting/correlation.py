@@ -5,9 +5,9 @@
 """A plotting module for correlations and maps"""
 import numpy as np
 from scipy.sparse import lil_matrix
+
 from .. import ipc
 from ..backend import Record
-
 
 _existingPlots = {}
 
@@ -315,5 +315,3 @@ def plotScatterColor(X,Y,Z, name=None, history=10000, xlabel=None, ylabel=None, 
                                 vmin=vmin, vmax=vmax, group=group)
         _existingPlots[name] = True
     ipc.new_data(name, np.array([X.data, Y.data, Z.data]))
-
-    

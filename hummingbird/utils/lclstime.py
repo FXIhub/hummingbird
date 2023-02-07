@@ -1,5 +1,7 @@
 import struct
+
 import numpy
+
 
 def lcls2float(t):
    if isinstance(t, numpy.ndarray):

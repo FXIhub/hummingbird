@@ -2,8 +2,10 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-import numpy
 import logging
+
+import numpy
+
 
 def slacH5ToCheetah(slacArr):
     out_arr = numpy.zeros((8*185, 4*388))

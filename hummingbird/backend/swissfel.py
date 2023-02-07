@@ -1,12 +1,14 @@
-import sfdata
 import glob
 import os
-import numpy as np
 import time
+
 import h5py
+import numpy as np
+
+import sfdata
 
 from .. import ipc
-from . import Worker, ureg, add_record, EventTranslator
+from . import EventTranslator, Worker, add_record, ureg
 
 
 class SwissFELTranslator(object):
@@ -108,5 +110,3 @@ class SwissFELTranslator(object):
             raise RuntimeError('%s not found in event' % key)
         
         return values
-
-

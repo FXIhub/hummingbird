@@ -4,9 +4,13 @@
 # -------------------------------------------------------------------------
 # Code adapted from http://github.com/mhantke/condor
 # --------------------------------------------------
-import numpy, time, sys, inspect
-
+import inspect
 import logging
+import sys
+import time
+
+import numpy
+
 logger = logging.getLogger(__name__)
 
 log_and_raise_error = lambda logger, message: log(logger, message, lvl="ERROR", exception=RuntimeError, rollback=2)
@@ -63,4 +67,3 @@ def log_execution_time(logger):
             return r        
         return st_func
     return st_time
-

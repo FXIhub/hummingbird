@@ -9,7 +9,8 @@ This module exists to smooth out some of the differences between PySide and PyQt
 
 """
 
-import sys, re
+import re
+import sys
 
 PYSIDE = 0
 PYQT4 = 1

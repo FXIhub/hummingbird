@@ -1,10 +1,13 @@
-from __future__ import print_function # Compatibility with python 2 and 3
-import struct
-import numpy as np
-import h5py
-import sys
-import os
+from __future__ import print_function  # Compatibility with python 2 and 3
+
 import argparse
+import os
+import struct
+import sys
+
+import h5py
+import numpy as np
+
 
 class Frms6_file_header():
     def __init__(self, length=1024):
@@ -175,4 +178,3 @@ if __name__ == '__main__':
         hf['meta/tv_usec'] = np.array([h.tv_usec for h in reader.frame_headers])
         hf['meta/temp'] = np.array([h.temp for h in reader.frame_headers])
         hf['meta/dataSetID'] = np.string_(reader.file_header.dataSetID.rstrip('\0'))
-

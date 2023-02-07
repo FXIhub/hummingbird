@@ -3,16 +3,17 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Window to display images"""
-from ..Qt import QtGui, QtCore
-from . import Ui_imageWindow
-from . import DataWindow
-from ... import utils
-import pyqtgraph
-import numpy
-import numpy.random
 import datetime
 import logging
 import os
+
+import numpy
+import numpy.random
+import pyqtgraph
+
+from ... import utils
+from ..Qt import QtCore, QtGui
+from . import DataWindow, Ui_imageWindow
 
 
 class ImageWindow(DataWindow, Ui_imageWindow):
@@ -759,4 +760,3 @@ class ImageWindow(DataWindow, Ui_imageWindow):
     def _onMouseHover(self, items):
         if(len(items) < 2):
             self.infoLabel.setText(None)
-        

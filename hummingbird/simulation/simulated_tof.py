@@ -3,6 +3,7 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 import os
+
 import numpy as np
 
 # Loading a test object (binary hummingbird logo)

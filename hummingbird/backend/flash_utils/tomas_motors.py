@@ -1,5 +1,6 @@
-import time
 import os
+import time
+
 
 class MotorPositions(object):
     def __init__(self, filename):
@@ -47,4 +48,3 @@ class MotorPositions(object):
         # for this_expected_key in expected_keys:
         #     if this_expected_key not in data_dict:
         return (self._parse_time(line_data[0]), data_dict)
-

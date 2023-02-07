@@ -2,9 +2,12 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
+from __future__ import (absolute_import,  # Compatibility with python 2 and 3
+                        print_function)
+
 import numpy as np
-from ..backend import ureg, add_record
+
+from ..backend import add_record, ureg
 
 
 def ToFCalib(evt, type, key, photon_peak, Calib_peak, Calib_mass, Calib_q, outkey):
@@ -130,5 +133,3 @@ def ToFPeakAnalysis(evt, type, key, X0, X1, outkey=None):
     add_record(evt['analysis'], 'analysis', 'ToF Peak ' + outkey, Peak_pos)
     add_record(evt['analysis'], 'analysis', 'ToF Peak Position MQ ' + outkey, Peak_pos_MQ)
     add_record(evt['analysis'], 'analysis', 'ToF Peak Area ' + outkey, Peak_sum)
-
-

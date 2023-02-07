@@ -4,6 +4,7 @@
 # -------------------------------------------------------------------------
 import inspect
 
+
 def load_spimage():
     """Loading the ```libspimage``` module if available"""
     try:
@@ -27,4 +28,3 @@ def load_condor():
         success = False
         module = None
     return success, module
-    

@@ -2,12 +2,17 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
-import os
-import time, datetime
-import h5py
+from __future__ import absolute_import  # Compatibility with python 2 and 3
+from __future__ import print_function
+
+import datetime
 import logging
+import os
+import time
+
+import h5py
 import numpy as np
+
 
 class Recorder:
     def __init__(self, outpath, events, rank, maxEvents=1000):
@@ -102,8 +107,3 @@ class Recorder:
     def make_group(self, file, group_name):
         if group_name not in file:
             file.create_group(group_name)
-            
-
-
-    
-            

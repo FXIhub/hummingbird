@@ -3,8 +3,9 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Wraps the preferences Dialog"""
-from ..Qt import QtGui, QtCore
+from ..Qt import QtCore, QtGui
 from . import Ui_preferences
+
 
 class PreferencesDialog(QtGui.QDialog, Ui_preferences):
     """Wraps the preferences Dialog"""

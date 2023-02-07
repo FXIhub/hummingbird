@@ -2,11 +2,13 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
+from __future__ import (absolute_import,  # Compatibility with python 2 and 3
+                        print_function)
+
 import numpy as np
+
+from .. import ipc, utils
 from ..backend import add_record
-from .. import ipc
-from .. import utils
 
 
 def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5, blur=4):

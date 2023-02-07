@@ -3,8 +3,10 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Base class for all the data display windows"""
-from ..Qt import QtGui, QtCore
 import logging
+
+from ..Qt import QtCore, QtGui
+
 
 class DataWindow(QtGui.QMainWindow):
     """Base class for all the data display windows
@@ -263,4 +265,3 @@ class DataWindow(QtGui.QMainWindow):
                 return True
                 
         return False
-

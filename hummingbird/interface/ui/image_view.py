@@ -12,13 +12,14 @@ Widget used for displaying 2D or 3D data. Features:
   - ROI plotting
   - Image normalization through a variety of methods
 """
+import numpy
+import pyqtgraph
+
 from ..Qt import QtCore, QtGui, loadUiType
 from . import uidir
 
 Ui_Form, base = loadUiType(uidir + '/image_view.ui')
 
-import pyqtgraph
-import numpy
 
 class ImageView(QtGui.QWidget):
     """

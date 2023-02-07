@@ -4,8 +4,9 @@
 # -------------------------------------------------------------------------
 import h5py
 import numpy as np
-from .. import utils
-from .. import ipc
+
+from .. import ipc, utils
+
 
 class Simulation(utils.reader.H5Reader):
     def __init__(self, filename, datakey, pulsekey, injkey):

@@ -3,22 +3,23 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Creates Hummingbird events for testing purposes"""
-from __future__ import print_function # Compatibility with python 2 and 3
-import time
-import random
-import numpy
+from __future__ import print_function  # Compatibility with python 2 and 3
+
 import glob
-import sys
 import os
-import h5py
+import random
 import re
+import sys
+import time
+
+import h5py
+import numpy
 
 from .. import ipc
-from . import Worker, ureg, add_record, EventTranslator
-
+from . import EventTranslator, Worker, add_record, ureg
 from .flash_utils import convert_frms6 as convert
-from .flash_utils import tomas_motors as motors
 from .flash_utils import read_daq_offline as read_daq
+from .flash_utils import tomas_motors as motors
 
 
 class FLASHTranslator(object):
@@ -288,8 +289,3 @@ class FLASHTranslator(object):
         if daq_index is not None:
             if self.gmds is not None:
                 return self.gmds[daq_index]
-        
-        
-
-        
-         

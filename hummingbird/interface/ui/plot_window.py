@@ -3,15 +3,18 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Window to display 2D plots"""
-from . import Ui_plotWindow, DataWindow
-import pyqtgraph
-import numpy
-from ..Qt import QtCore, QtGui
-from ..colorbar import ColorBar
 import datetime
-from ... import utils
 import os
+
+import numpy
+import pyqtgraph
+
+from ... import utils
+from ..colorbar import ColorBar
+from ..Qt import QtCore, QtGui
+from . import DataWindow, LinePlotSettings, Ui_plotWindow
 from .pg_time_axis import DateAxisItem
+
 
 class Histogram(object):
     def __init__(self, hmin, hmax, bins):
@@ -594,6 +597,3 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         y = xy.y()
         self.xLabel.setText("%f" % (x))
         self.yLabel.setText("%f" % (y))
-
-        
-from . import LinePlotSettings

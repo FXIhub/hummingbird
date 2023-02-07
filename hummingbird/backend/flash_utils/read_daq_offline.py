@@ -1,9 +1,12 @@
-import numpy
-import h5py
-import time
 import os
-from camp.pah.beamtimedaqaccess import BeamtimeDaqAccess
+import time
+
+import h5py
+import numpy
+
 import camp.pah.h5filedataaccess
+from camp.pah.beamtimedaqaccess import BeamtimeDaqAccess
+
 
 class DAQReader(object):
     def __init__(self, experiment_dir):

@@ -1,9 +1,18 @@
 """Displays the results of the analysis to the user, using images and plots.
 """
 
-import sys
-from .Qt import QtGui, QtCore
 import signal
+import sys
+
+from .data_source import DataSource  # pylint: disable=unused-import
+from .gui import GUI
+from .plotdata import PlotData  # pylint: disable=unused-import
+from .Qt import QtCore, QtGui
+from .recorder import H5Recorder  # pylint: disable=unused-import
+from .ringbuffer import RingBuffer  # pylint: disable=unused-import
+from .zmqcontext import ZmqContext  # pylint: disable=unused-import
+from .zmqsocket import ZmqSocket  # pylint: disable=unused-import
+
 
 def start_interface(restore):
     """Initialize and show the Interface"""
@@ -23,12 +32,3 @@ def sigint_handler(*_):
                                   QtGui.QMessageBox.Yes | QtGui.QMessageBox.No,
                                   QtGui.QMessageBox.No) == QtGui.QMessageBox.Yes:
         GUI.instance.close()
-
-
-from .data_source import DataSource # pylint: disable=unused-import
-from .plotdata import PlotData # pylint: disable=unused-import
-from .recorder import H5Recorder # pylint: disable=unused-import
-from .ringbuffer import RingBuffer # pylint: disable=unused-import
-from .zmqcontext import ZmqContext # pylint: disable=unused-import
-from .zmqsocket import ZmqSocket # pylint: disable=unused-import
-from .gui import GUI

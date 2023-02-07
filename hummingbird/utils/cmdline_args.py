@@ -1,6 +1,6 @@
-import sys
-import logging 
 import argparse
+import logging
+import sys
 
 argparser = argparse.ArgumentParser(description='Hummingbird - '
                                     'Monitoring and Analysing FXI experiments.')

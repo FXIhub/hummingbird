@@ -2,11 +2,15 @@
 # Copyright 2016, Benedikt J. Daurer, Filipe R.N.C. Maia, Max F. Hantke, Carl Nettelblad
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
-from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
-import numpy as np
+from __future__ import (absolute_import,  # Compatibility with python 2 and 3
+                        print_function)
+
 import cv2
+import numpy as np
 import scipy.ndimage.measurements
-from ..backend import ureg, add_record
+
+from ..backend import add_record, ureg
+
 
 def getMaskedParticles(evt, type, key, output, thresh = 20, minX = 800, maxX = 1500, minY = 0, maxY = 1700, kw = 5):
     """Black-box method to create a masked version of a camera
@@ -26,4 +30,3 @@ def countContours(evt, type, key, maskedKey, outimage, outvector):
     counts = scipy.ndimage.measurements.sum(evt[type][key].data, imageoutput, needed_labels)
     add_record(evt["analysis"], "analysis", outimage, imageoutput)
     add_record(evt["analysis"], "analysis", outvector, counts)
-    

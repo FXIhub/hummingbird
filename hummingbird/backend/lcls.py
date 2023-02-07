@@ -3,18 +3,19 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 """Translates between LCLS events and Hummingbird ones"""
-from __future__ import print_function # Compatibility with python 2 and 3
-import os
-import logging
-import psana
-import numpy
+from __future__ import print_function  # Compatibility with python 2 and 3
+
 import datetime
+import logging
+import os
+
+import numpy
 from pytz import timezone
 
-from .. import ipc
-from .. import parse_cmdline_args
-from . import Worker, ureg, Record, add_record, EventTranslator
+import psana
 
+from .. import ipc, parse_cmdline_args
+from . import EventTranslator, Record, Worker, add_record, ureg
 
 _argparser = None
 def add_cmdline_args():

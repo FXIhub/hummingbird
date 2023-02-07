@@ -30,10 +30,11 @@
 This module provides date-time aware axis
 """
 
-import numpy
-from pyqtgraph import AxisItem
 from datetime import datetime, timedelta
 from time import mktime
+
+import numpy
+from pyqtgraph import AxisItem
 
 
 class DateAxisItem(AxisItem):
@@ -217,4 +218,3 @@ class DateAxisItem(AxisItem):
         #self._oldAxis.setVisible(self.isVisible())
         # self.hide()
         #self._oldAxis.show()
-

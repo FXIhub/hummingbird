@@ -5,8 +5,8 @@ https://gist.github.com/maedoc/b61090021d2a5161c5b9
 
 import numpy as np
 import pyqtgraph as pg
- 
- 
+
+
 class ColorBar(pg.GraphicsObject):
  
     def __init__(self, cmap, width, height, ticks=None, tick_labels=None, label=None):
