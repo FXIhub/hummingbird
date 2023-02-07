@@ -6,8 +6,7 @@ from __future__ import print_function, absolute_import # Compatibility with pyth
 import numpy as np
 import cv2
 import scipy.ndimage.measurements
-from backend import ureg
-from backend import add_record
+from ..backend import ureg, add_record
 
 def getMaskedParticles(evt, type, key, output, thresh = 20, minX = 800, maxX = 1500, minY = 0, maxY = 1700, kw = 5):
     """Black-box method to create a masked version of a camera

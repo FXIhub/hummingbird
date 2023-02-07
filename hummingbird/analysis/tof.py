@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------
 from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import numpy as np
-from backend import ureg
-from backend import add_record
+from ..backend import ureg, add_record
+
 
 def ToFCalib(evt, type, key, photon_peak, Calib_peak, Calib_mass, Calib_q, outkey):
     

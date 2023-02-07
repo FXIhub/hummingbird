@@ -5,10 +5,9 @@
 from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 from numpy import sum, mean, min, max, std
 import numpy as np
-from backend import ureg
-from backend import add_record
-import utils.io
-import utils.array
+from ..backend import ureg, add_record
+from .. import utils
+
 
 def printStatistics(detectors):
     for k,r in detectors.items():

@@ -4,11 +4,11 @@
 # -------------------------------------------------------------------------
 from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import numpy as np
-from backend import ureg
-from backend import add_record
+from ..backend import ureg, add_record
 import h5py
 
-import analysis.cfel_geom
+from . import cfel_geom
+
 
 _nGains = 3
 _nPanels = 16

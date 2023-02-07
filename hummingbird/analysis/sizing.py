@@ -3,10 +3,11 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
-from backend import add_record
-import ipc
-import utils.io
 import numpy as np
+from ..backend import add_record
+from .. import ipc
+from .. import utils
+
 
 def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5, blur=4):
     """Estimating the center of diffraction based on pair-wise correlation enforcing friedel-symmetry and adding the estimated off center shifts cx and cy to

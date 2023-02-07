@@ -3,10 +3,11 @@
 # Hummingbird is distributed under the terms of the Simplified BSD License.
 # -------------------------------------------------------------------------
 from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
-import ipc
 import numpy as np
-from backend import ureg
-from backend import add_record
+
+from .. import ipc
+from ..backend import ureg, add_record
+
 
 def averagePulseEnergy(evt, records, outkey="averagePulseEnergy"):
     """Averages across given pulse energies and adds it to evt["analysis"][outkey].

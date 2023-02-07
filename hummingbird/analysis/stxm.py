@@ -4,9 +4,11 @@
 # -------------------------------------------------------------------------
 from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import numpy as np
-from backend import add_record
-import beamline
 import scipy.ndimage.measurements
+
+from ..backend import add_record
+from . import beamline
+
 
 def stxm(evt, data_rec, pulse_energy=1., mode='bf', cx=None, cy=None, r=20, mask=None, badmask=None):
     data = data_rec.data

@@ -5,9 +5,11 @@
 from __future__ import print_function, absolute_import # Compatibility with python 2 and 3
 import collections
 import datetime
-import ipc
 import numpy as np
-from backend import EventTranslator
+
+from .. import ipc
+from ..backend import EventTranslator
+
 
 #processingTimes = collections.deque([], 1000)
 processingTimesDict = {}
