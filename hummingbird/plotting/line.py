@@ -4,8 +4,8 @@
 # -------------------------------------------------------------------------
 """A plotting module for line plots"""
 import numpy as np
-import ipc
-import utils.array
+from .. import ipc
+from .. import utils
 
 
 histories = {}

@@ -4,7 +4,8 @@
 # -------------------------------------------------------------------------
 """A plotting module for images"""
 import numpy as np
-import ipc
+from .. import ipc
+
 
 images = {}
 def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None, msg=None, alert=False, name=None, group=None, send_rate=None, roi_center=None, roi_diameters=None, aspect_ratio=None):

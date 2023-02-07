@@ -4,9 +4,10 @@
 # -------------------------------------------------------------------------
 """A plotting module for correlations and maps"""
 import numpy as np
-import ipc
 from scipy.sparse import lil_matrix
-from backend import Record
+from .. import ipc
+from ..backend import Record
+
 
 _existingPlots = {}
 
