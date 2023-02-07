@@ -4,7 +4,7 @@
 # -------------------------------------------------------------------------
 import condor
 import numpy
-import utils.io
+from .. import utils
 
 class Simulation:
     def __init__(self, conf):

@@ -10,8 +10,9 @@ from matplotlib.colors import LogNorm
 import numpy as np
 from scipy.ndimage import zoom
 import h5py
-import sys, os
-import utils.io
+import sys
+import os
+from .. import utils
 
 # Physical constants
 h = 6.62606957e-34 #[Js]
