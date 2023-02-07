@@ -1,14 +1,12 @@
 import sfdata
-from backend.event_translator import EventTranslator
-from backend.record import add_record
-from backend import Worker
-import ipc
 import glob
 import os
 import numpy as np
 import time
 import h5py
-from . import ureg
+
+from .. import ipc
+from . import Worker, ureg, add_record, EventTranslator
 
 
 class SwissFELTranslator(object):

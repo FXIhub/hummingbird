@@ -6,21 +6,20 @@
 from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import logging
-from backend.event_translator import EventTranslator
-from backend.record import Record, add_record
 import psana
 import numpy
 import datetime
 from pytz import timezone
-from . import ureg
-from backend import Worker
-import ipc
-from hummingbird import parse_cmdline_args
+
+from .. import ipc
+from .. import parse_cmdline_args
+from . import Worker, ureg, Record, add_record, EventTranslator
+
 
 _argparser = None
 def add_cmdline_args():
     global _argparser
-    from utils.cmdline_args import argparser
+    from ..utils.cmdline_args import argparser
     _argparser = argparser
     group = _argparser.add_argument_group('LCLS', 'Options for the LCLS event translator')
     group.add_argument('--lcls-run-number', metavar='lcls_run_number', nargs='?',

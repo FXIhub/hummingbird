@@ -5,12 +5,11 @@
 """Creates Hummingbird events for testing purposes"""
 import time
 import random
-from backend.event_translator import EventTranslator
-from backend.record import add_record
-from backend import Worker
-from . import ureg
 import numpy
-import ipc
+
+from .. import ipc
+from . import Worker, ureg, add_record, EventTranslator
+
 
 class DummyTranslator(object):
     """Creates Hummingbird events for testing purposes"""

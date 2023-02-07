@@ -6,17 +6,17 @@
 from __future__ import print_function # Compatibility with python 2 and 3
 import os
 import numpy
-import datetime, time
-from pytz import timezone
-from backend.event_translator import EventTranslator
-from backend.record import Record, add_record
-from backend import Worker
-from . import ureg
+import datetime
+import time
 import logging
-import ipc
 import karabo_bridge
 
-from hummingbird import parse_cmdline_args
+from pytz import timezone
+from .. import ipc
+from .. import parse_cmdline_args
+from . import Worker, ureg, Record, add_record, EventTranslator
+
+
 _argparser = None
 def add_cmdline_args():
     global _argparser

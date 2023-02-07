@@ -7,7 +7,7 @@ from __future__ import print_function, absolute_import # Compatibility with pyth
 import os
 import logging
 import imp
-import ipc
+from .. import ipc
 import time
 import signal
 
@@ -185,16 +185,16 @@ def init_translator(state):
     if('Facility' not in state):
         raise ValueError("You need to set the 'Facility' in the configuration")
     elif(state['Facility'].lower() == 'lcls'):
-        from backend.lcls import LCLSTranslator
+        from .lcls import LCLSTranslator
         return LCLSTranslator(state)
     elif(state['Facility'].lower() == 'dummy'):
-        from backend.dummy import DummyTranslator
+        from .dummy import DummyTranslator
         return DummyTranslator(state)
     elif(state['Facility'].lower() == 'flash'):
-        from backend.flash import FLASHTranslator
+        from .flash import FLASHTranslator
         return FLASHTranslator(state)
     elif(state['Facility'].lower() == 'euxfel'):
-        from backend.euxfel import EUxfelTrainTranslator
+        from .euxfel import EUxfelTrainTranslator
         return EUxfelTrainTranslator(state)
     else:
         raise ValueError('Facility %s not supported' % (state['Facility']))

@@ -6,20 +6,20 @@
 from __future__ import print_function # Compatibility with python 2 and 3
 import time
 import random
-from backend.event_translator import EventTranslator
-from backend.record import add_record
-from backend import Worker
-from . import ureg
 import numpy
-import ipc
-import backend.flash_utils.convert_frms6 as convert
-import backend.flash_utils.tomas_motors as motors
-import backend.flash_utils.read_daq_offline as read_daq
 import glob
 import sys
 import os
 import h5py
 import re
+
+from .. import ipc
+from . import Worker, ureg, add_record, EventTranslator
+
+from .flash_utils import convert_frms6 as convert
+from .flash_utils import tomas_motors as motors
+from .flash_utils import read_daq_offline as read_daq
+
 
 class FLASHTranslator(object):
     """Creates Hummingbird events for testing purposes"""
