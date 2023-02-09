@@ -34,12 +34,12 @@ class Worker(object):
         if(config_file is None):
             # Try to load an example configuration file
             config_file = os.path.abspath(os.path.dirname(__file__)+
-                                          "/../../examples/basic/dummy.py")
+                                          "/conf/dummy.py")
             logging.warning("No configuration file given! "
                             "Loading example configuration from %s",
                             (config_file))
         if not os.path.isfile(config_file):
-            raise IOError('Could not find backend configuration file %s' % (config_file))        
+            raise IOError('Could not find backend configuration file %s' % (config_file))
         Worker._config_file = config_file
         signal.signal(signal.SIGUSR1, self.raise_interruption)
         self.oldHandler = signal.signal(signal.SIGINT, self.ctrlcevent)
