@@ -1,16 +1,10 @@
-# Import analysis/plotting modules
-import analysis.event
-import analysis.hitfinding
-import analysis.pixel_detector
-import analysis.sizing
-import plotting.image
-import plotting.line
-import plotting.correlation
-import plotting.histogram
-from backend.record import add_record
-import numpy as np
 import time
-import ipc
+
+import numpy as np
+
+# Import analysis/plotting modules
+from hummingbird import analysis, ipc, plotting
+from hummingbird.backend.record import add_record
 
 scanInjector = False
 scanXmin = 88

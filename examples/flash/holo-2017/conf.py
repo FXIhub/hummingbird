@@ -1,6 +1,6 @@
 import numpy as np
-import utils.reader
 
+from hummingbird import utils
 
 # Path to rawdata
 #base_path = "/data/beamline"

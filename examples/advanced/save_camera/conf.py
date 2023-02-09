@@ -1,10 +1,8 @@
-import analysis.event
-import analysis.beamline
-import analysis.pixel_detector
-#import analysis.background
-import ipc   
+import os
+import sys
 
-import os,sys
+from hummingbird import analysis, ipc
+
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 import cxiwriter
 

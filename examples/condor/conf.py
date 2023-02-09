@@ -1,7 +1,6 @@
-import simulation.condor
-import analysis.event
-import plotting.image
 import os
+
+from hummingbird import analysis, plotting, simulation
 
 # Absolute path to the location of the example
 __thisdir__ = os.path.dirname(os.path.realpath(__file__))

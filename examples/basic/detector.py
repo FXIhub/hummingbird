@@ -1,9 +1,5 @@
 # Import analysis/plotting/simulation modules
-import analysis.event
-import analysis.pixel_detector
-import plotting.line
-import plotting.image
-import simulation.base
+from hummingbird import analysis, plotting, simulation
 
 # Simulate diffraction data  
 sim = simulation.base.Simulation()

@@ -1,16 +1,10 @@
 import os
 import time
+
 import numpy
-import ipc.mpi
-import utils.reader
-import simulation.condor
-import analysis.event
-import analysis.pixel_detector
-import analysis.hitfinding
-import analysis.sizing
-import plotting.line
-import plotting.image
-import plotting.correlation
+
+from hummingbird import analysis, ipc, plotting, simulation, utils
+
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
 

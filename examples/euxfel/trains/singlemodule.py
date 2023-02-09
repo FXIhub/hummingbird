@@ -8,12 +8,8 @@ and then start the Hummingbird backend:
 
 ./hummingbird.py -b examples/euxfel/trains/singlemodule.py
 """
-import plotting.image
-import analysis.agipd
-import analysis.event
-import analysis.hitfinding
-import ipc.mpi
-from backend import add_record
+from hummingbird import ananlysis, ipc, plotting
+from hummingbird.backend import add_record
 
 state = {}
 state['Facility'] = 'EuXFEL'

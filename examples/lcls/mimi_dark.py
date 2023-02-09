@@ -1,6 +1,5 @@
-import analysis.event
-import plotting.image
 import h5py
+from hummingbird import analysis, plotting
 
 state = {}
 state['Facility'] = 'LCLS'

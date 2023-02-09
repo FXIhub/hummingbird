@@ -1,8 +1,7 @@
-# Import analysis/plotting modules
-import analysis.event
-import plotting.image
-import utils.cxiwriter
 import numpy as np
+
+# Import analysis/plotting modules
+from hummingbird import analysis, plotting, utils
 
 # Set new random seed
 np.random.seed()

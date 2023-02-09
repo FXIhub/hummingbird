@@ -1,22 +1,17 @@
-# Import analysis/plotting modules
-import analysis.event
-import analysis.hitfinding
-import analysis.pixel_detector
-import analysis.patterson
-import plotting.image
-import plotting.line
-import plotting.correlation
-import plotting.histogram
-import utils.cxiwriter
-import ipc
-from backend.record import add_record
-import numpy as np
-import time, os, sys
-import h5py
 import logging
+import os
+import sys
+import time
 
+import h5py
+import numpy as np
+
+# Import analysis/plotting modules
+from hummingbird import analysis, ipc, plotting, utils
+from hummingbird.backend import add_record
 # Commandline arguments
-from utils.cmdline_args import argparser, add_config_file_argument
+from hummingbird.utils.cmdline_args import add_config_file_argument, argparser
+
 add_config_file_argument('--hitscore-threshold', metavar='INT',
                          help='Hitscore threshold', type=int)
 add_config_file_argument('--gain-lvl', metavar='INT',
@@ -42,10 +37,10 @@ args = argparser.parse_args()
 this_dir = os.path.dirname(os.path.realpath(__file__))                                                                             
 sys.path.append(this_dir)
 
-from conf import *
-
 # Read in parameters from a csv file
 import params
+from conf import *
+
 p = params.read_params('params.csv', args.run_nr)
 gap_top = p['pnccdGapTopMM'] * 1E-3
 gap_bottom = p['pnccdGapBottomMM'] * 1E-3

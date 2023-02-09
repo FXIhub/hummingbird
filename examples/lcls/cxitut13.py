@@ -1,7 +1,6 @@
-import analysis.event
-import analysis.beamline
-import plotting.line
 import time
+
+from hummingbird import analysis, plotting
 
 state = {
     'Facility': 'LCLS',
