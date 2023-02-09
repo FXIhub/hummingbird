@@ -1,0 +1,7 @@
+include hummingbird/backend/units.txt
+include hummingbird/backend/conf/*.py
+include hummingbird/interface/ui/*.ui
+include hummingbird/interface/ui/sounds/*.wav
+include hummingbird/interface/images/*.png
+include hummingbird/interface/images/*.qrc
+include hummingbird/interface/images/svg_icons/*.svg
