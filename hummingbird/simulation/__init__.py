@@ -2,10 +2,10 @@ from . import base, fromfile, simulated_tof
 
 try:
     from . import condor
-except ModuleNotFoundError:
+except ImportError:
     pass
 
 try:
     from . import ptycho
-except:
+except ImportError:
     pass

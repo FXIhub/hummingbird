@@ -30,7 +30,7 @@ class Worker(object):
     conf = None
     def __init__(self, config_file, port):
         # Save the port as global variable in ipc
-        ipc.port = port
+        ipc.zmqserver.ipc_port = port
         if(config_file is None):
             # Try to load an example configuration file
             config_file = os.path.abspath(os.path.dirname(__file__)+

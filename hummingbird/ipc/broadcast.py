@@ -8,10 +8,10 @@ from __future__ import (absolute_import,  # Compatibility with python 2 and 3
 
 import hashlib
 import logging
-
 import numpy
 
-from .. import ipc
+from . import mpi as ipc_mpi
+
 
 evt = None
 data_conf = {}
@@ -27,8 +27,8 @@ def init_data(title, **kwds):
     else:
         logging.debug("Initializing source '%s.'" % title)
         data_conf[title] = kwds
-    if(ipc.mpi.is_slave()):
-        ipc.mpi.send('__data_conf__', data_conf)
+    if(ipc_mpi.is_slave()):
+        ipc_mpi.send('__data_conf__', data_conf)
 
 def _check_type(title, data_y):
     """Make sure that the given broadcast already has the data_type set.
@@ -49,21 +49,24 @@ def _check_type(title, data_y):
 
         else:
             data_conf[title]['data_type'] = 'scalar'
-        if(ipc.mpi.is_slave()):
-            ipc.mpi.send('__data_conf__', data_conf)
+        if(ipc_mpi.is_slave()):
+            ipc_mpi.send('__data_conf__', data_conf)
 
 def new_data(title, data_y, mpi_reduce=False, **kwds):
     """Send a new data item, which will be appended to any existing
     values at the interface. If mpi_reduce is True data_y will be
     summed over all the slaves. All keywords pairs given will also be
     transmitted and available at the interface."""
+    from .zmqserver import ipc_uuid, get_zmq_server as ipc_zmq
+    from . import influx as ipc_influx
+
     global sent_time
     _check_type(title, data_y)
     event_id = evt.event_id()
 
     # If send_rate is given limit the send rate to it
     if 'send_rate' in kwds and kwds['send_rate'] is not None:
-        send_rate = float(kwds['send_rate'])/ipc.mpi.nr_workers()
+        send_rate = float(kwds['send_rate']) / ipc_mpi.nr_workers()
         cur_time = event_id
         if title in sent_time:
             send_probability = (cur_time-sent_time[title])*send_rate
@@ -74,26 +77,27 @@ def new_data(title, data_y, mpi_reduce=False, **kwds):
             # do not send the data
             return
 
-    if(ipc.mpi.is_slave()):
+    if(ipc_mpi.is_slave()):
         if(mpi_reduce):
-            ipc.mpi.send_reduce(title, 'new_data', data_y, event_id, **kwds)
+            ipc_mpi.send_reduce(title, 'new_data', data_y, event_id, **kwds)
         else:
             m = hashlib.md5()
             m.update(title.encode('UTF-8'))
-            if m.digest() in ipc.mpi.subscribed:
-                ipc.mpi.send(title, [ipc.uuid, 'new_data', title, data_y,
+            if m.digest() in ipc_mpi.subscribed:
+                ipc_mpi.send(title, [ipc_uuid, 'new_data', title, data_y,
                                      event_id, kwds])
             else:
                 logging.debug('%s not subscribed, not sending' % (title))
     else:
-        ipc.zmq().send(title, [ipc.uuid, 'new_data', title, data_y,
+        ipc_zmq().send(title, [ipc_uuid, 'new_data', title, data_y,
                                event_id, kwds])
         logging.debug("Sending data on source '%s'" % title)
     if data_conf[title]["data_type"] == "scalar":
-        ipc.influx.write(title, data_y, event_id, kwds)
+        ipc_influx.write(title, data_y, event_id, kwds)
         
 
 def set_current_event(_evt):
     """Updates the current event, such that it can
     be accessed easily in analysis code"""
-    ipc.broadcast.evt = _evt
+    global evt
+    evt = _evt

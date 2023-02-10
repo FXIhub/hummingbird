@@ -13,7 +13,6 @@ import time
 
 import numpy
 
-from .. import ipc
 
 try:
     # Try to import MPI and create a group containing all the slaves
@@ -167,11 +166,12 @@ def send(title, data):
 
 subscribed = set()
 def checkreload():
+    from .zmqserver import get_zmq_server as ipc_zmq
     global subscribed
 
-    if ipc.zmq() is not None:
-        if ipc.zmq().reloadmaster == True:
-            ipc.zmq().reloadmaster = False
+    if ipc_zmq() is not None:
+        if ipc_zmq().reloadmaster == True:
+            ipc_zmq().reloadmaster = False
             if reload_comm is not None:
                 for i in range(1,size):
                     reload_comm.send(['__reload__'], i)
@@ -198,7 +198,8 @@ def master_loop():
     status = MPI.Status()
     msg = comm.recv(None, MPI.ANY_SOURCE, status = status)
     if(msg[0] == '__data_conf__'):
-        ipc.broadcast.data_conf.update(msg[1])
+        from .broadcast import data_conf as ipc_broadcast_data_conf
+        ipc_broadcast_data_conf.update(msg[1])
     elif(msg[0] == '__reduce__'):
         cmd = msg[1]
         if(msg[2] != ()):
@@ -228,8 +229,9 @@ def master_loop():
             return True
     else:
         # Inject a proper UUID
-        msg[1][0] = ipc.uuid
-        ipc.zmq().send(msg[0], msg[1])
+        from .zmqserver import get_zmq_server as ipc_zmq, ipc_uuid
+        msg[1][0] = ipc_uuid
+        ipc_zmq().send(msg[0], msg[1])
 
 def slave_done():
     send('__exit__', rank)

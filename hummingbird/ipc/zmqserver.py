@@ -9,6 +9,7 @@ from __future__ import (absolute_import,  # Compatibility with python 2 and 3
 
 import hashlib
 import logging
+import socket
 import threading
 
 import numpy
@@ -17,7 +18,7 @@ import zmq
 import zmq.eventloop
 import zmq.eventloop.zmqstream
 
-from .. import backend, ipc
+from . import mpi as ipc_mpi
 from ..utils.cmdline_args import argparser as _argparser
 
 eventLimit = 125
@@ -38,7 +39,8 @@ class ZmqServer(object):
         if self._batch_mode:
             return
 
-        self._state = backend.worker.Worker.state
+        from hummingbird.backend import Worker
+        self._state = Worker.state
         #self._zmq_key = bytes('hummingbird')
         self._context = zmq.Context()
         self._ctrl_socket = self._context.socket(zmq.REP)
@@ -77,7 +79,7 @@ class ZmqServer(object):
         self._xsub_stream = zmq.eventloop.zmqstream.ZMQStream(self._broker_sub_socket)
         self._xsub_stream.on_recv_stream(self._forward_xsub)
 
-        ipc.uuid = ipc.hostname+':'+str(self._broker_pub_port)
+        ipc_uuid = ipc_hostname+':'+str(self._broker_pub_port)
         t = threading.Thread(target=self._ioloop)
         # Make sure the program exists even when the thread exists
         t.daemon = True
@@ -126,11 +128,12 @@ class ZmqServer(object):
     def _answer_command(self, stream, msg):
         """Reply to commands received on the _ctrl_stream"""
         if(msg[0] == 'conf'.encode('UTF-8')):
-            stream.socket.send_json(['conf', ipc.broadcast.data_conf])
+            from .broadcast import data_conf as ipc_broadcast_data_conf
+            stream.socket.send_json(['conf', ipc_broadcast_data_conf])
         if(msg[0] == 'data_port'.encode('UTF-8')):
             stream.socket.send_json(['data_port', self._broker_pub_port])
         if(msg[0] == 'uuid'):
-            stream.socket.send_json(['uuid', ipc.uuid])
+            stream.socket.send_json(['uuid', ipc_uuid])
         if(msg[0] == 'reload'.encode('UTF-8')):
             #TODO: Find a way to replace this with a direct function call (in all workers)
             stream.socket.send_json(['reload', True])
@@ -155,11 +158,27 @@ class ZmqServer(object):
             self._subscribed.add(msg[0][1:])
         else:
             raise ValueError('Unexpected message: %r' % msg[0])
-        if ipc.mpi.is_master():
-            for i in range(1, ipc.mpi.size):
-                ipc.mpi.reload_comm.send(['__subscribed__',self._subscribed], i)
+        if ipc_mpi.is_master():
+            for i in range(1, ipc.mpi_size):
+                ipc_mpi.reload_comm.send(['__subscribed__',self._subscribed], i)
         self._xsub_stream.send_multipart(msg)
 
     @property
     def subscribed(self):
         return self._subscribed
+
+
+_server = None
+ipc_hostname = socket.gethostname()
+ipc_port = None
+ipc_uuid = None
+
+
+def get_zmq_server():
+    """Returns the ZmqServer for process.
+    If it does not yet exist create one first."""
+    global _server # pylint: disable=global-statement
+    global ipc_port # pylint: disable=global-statement
+    if(_server is None and ipc_mpi.is_zmqserver()):
+        _server = ZmqServer(ipc_port)
+    return _server

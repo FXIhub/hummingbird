@@ -4,5 +4,5 @@ from . import (agipd, beamline, event, hitfinding, patterson, pixel_detector,
 
 try:
     from . import tracking
-except ModuleNotFoundError:
+except ImportError:
     pass
