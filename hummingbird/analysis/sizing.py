@@ -7,8 +7,8 @@ from __future__ import (absolute_import,  # Compatibility with python 2 and 3
 
 import numpy as np
 
-from .. import ipc, utils
-from ..backend import add_record
+from hummingbird import ipc, utils
+from hummingbird.backend import add_record
 
 
 def findCenter(evt, type, key, mask=None, x0=0, y0=0, maxshift=10, threshold=0.5, blur=4):

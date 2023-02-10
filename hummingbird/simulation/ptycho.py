@@ -15,7 +15,7 @@ import scipy.ndimage as ndi
 from matplotlib.colors import LogNorm
 from scipy.ndimage import zoom
 
-from .. import utils
+from hummingbird import utils
 
 # Physical constants
 h = 6.62606957e-34 #[Js]

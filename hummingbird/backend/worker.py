@@ -12,7 +12,7 @@ import os
 import signal
 import time
 
-from .. import ipc
+from hummingbird import ipc
 
 
 class Worker(object):

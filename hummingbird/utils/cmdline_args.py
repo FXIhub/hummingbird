@@ -30,16 +30,16 @@ argparser.add_argument("--no-restore", help="no restoring of Qsettings",
 
 # Add LCLS-specific arguments to argparser
 try:
-    from ..backend.lcls import add_cmdline_args
+    from hummingbird.backend.lcls import add_cmdline_args
     add_cmdline_args()
 except ImportError:
     pass
 
 # Add euxfel-specific arguments to argparser
 try:
-    from ..backend.euxfel import add_cmdline_args
+    from hummingbird.backend.euxfel import add_cmdline_args
     add_cmdline_args()
-    from ..backend.euxfel_trains import add_cmdline_args
+    from hummingbird.backend.euxfel_trains import add_cmdline_args
     add_cmdline_args()
 except ImportError:
     pass

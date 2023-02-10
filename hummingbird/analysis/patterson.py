@@ -7,8 +7,8 @@ from __future__ import (absolute_import,  # Compatibility with python 2 and 3
 
 import numpy
 
-from .. import utils
-from ..backend.record import add_record
+from hummingbird import utils
+from hummingbird.backend.record import add_record
 
 
 def patterson(evt, type, key, mask=None, threshold=None, diameter_pix=None, crop=None, full_output=False, xgap_pix=None, ygap_pix=None, frame_pix=None, **params):

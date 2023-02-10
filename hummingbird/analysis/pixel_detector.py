@@ -8,8 +8,8 @@ from __future__ import (absolute_import,  # Compatibility with python 2 and 3
 import numpy as np
 from numpy import max, mean, min, std, sum
 
-from .. import utils
-from ..backend import add_record, ureg
+from hummingbird import utils
+from hummingbird.backend import add_record, ureg
 
 
 def printStatistics(detectors):

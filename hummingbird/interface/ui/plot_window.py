@@ -9,7 +9,7 @@ import os
 import numpy
 import pyqtgraph
 
-from ... import utils
+from hummingbird import utils
 from ..colorbar import ColorBar
 from ..Qt import QtCore, QtGui
 from . import DataWindow, LinePlotSettings, Ui_plotWindow

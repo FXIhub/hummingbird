@@ -5,7 +5,7 @@
 from __future__ import (absolute_import,  # Compatibility with python 2 and 3
                         print_function)
 
-from ..backend import add_record
+from hummingbird.backend import add_record
 
 
 def someAnalysis(evt, type, key, keyword=None):

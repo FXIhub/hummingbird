@@ -7,8 +7,8 @@ from __future__ import (absolute_import,  # Compatibility with python 2 and 3
 
 import numpy as np
 
-from .. import ipc
-from ..backend import add_record, ureg
+from hummingbird import ipc
+from hummingbird.backend import add_record, ureg
 
 
 def averagePulseEnergy(evt, records, outkey="averagePulseEnergy"):

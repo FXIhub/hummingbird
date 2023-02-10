@@ -7,7 +7,7 @@ import numpy as np
 
 import sfdata
 
-from .. import ipc
+from hummingbird import ipc
 from . import EventTranslator, Worker, add_record, ureg
 
 

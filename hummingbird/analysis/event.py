@@ -10,8 +10,8 @@ import datetime
 
 import numpy as np
 
-from .. import ipc
-from ..backend import EventTranslator
+from hummingbird import ipc
+from hummingbird.backend import EventTranslator
 
 #processingTimes = collections.deque([], 1000)
 processingTimesDict = {}

@@ -12,7 +12,7 @@ import time
 import h5py
 import numpy
 
-from .. import ipc
+from hummingbird import ipc
 
 
 class Stack:

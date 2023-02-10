@@ -8,7 +8,7 @@ from __future__ import (absolute_import,  # Compatibility with python 2 and 3
 import h5py
 import numpy as np
 
-from ..backend import add_record, ureg
+from hummingbird.backend import add_record, ureg
 from . import cfel_geom
 
 _nGains = 3

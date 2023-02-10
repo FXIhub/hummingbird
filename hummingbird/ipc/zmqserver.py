@@ -19,7 +19,7 @@ import zmq.eventloop
 import zmq.eventloop.zmqstream
 
 from . import mpi as ipc_mpi
-from ..utils.cmdline_args import argparser as _argparser
+from hummingbird.utils.cmdline_args import argparser as _argparser
 
 eventLimit = 125
 

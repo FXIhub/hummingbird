@@ -6,7 +6,7 @@ import numpy
 
 import condor
 
-from .. import utils
+from hummingbird import utils
 
 
 class Simulation:

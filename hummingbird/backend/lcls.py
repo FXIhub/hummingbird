@@ -14,13 +14,13 @@ from pytz import timezone
 
 import psana
 
-from .. import ipc, parse_cmdline_args
+from hummingbird import ipc, parse_cmdline_args
 from . import EventTranslator, Record, Worker, add_record, ureg
 
 _argparser = None
 def add_cmdline_args():
     global _argparser
-    from ..utils.cmdline_args import argparser
+    from hummingbird.utils.cmdline_args import argparser
     _argparser = argparser
     group = _argparser.add_argument_group('LCLS', 'Options for the LCLS event translator')
     group.add_argument('--lcls-run-number', metavar='lcls_run_number', nargs='?',

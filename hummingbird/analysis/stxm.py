@@ -8,7 +8,7 @@ from __future__ import (absolute_import,  # Compatibility with python 2 and 3
 import numpy as np
 import scipy.ndimage.measurements
 
-from ..backend import add_record
+from hummingbird.backend import add_record
 from . import beamline
 
 

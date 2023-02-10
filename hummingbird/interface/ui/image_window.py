@@ -11,7 +11,7 @@ import numpy
 import numpy.random
 import pyqtgraph
 
-from ... import utils
+from hummingbird import utils
 from ..Qt import QtCore, QtGui
 from . import DataWindow, Ui_imageWindow
 

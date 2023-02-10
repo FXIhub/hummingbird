@@ -15,7 +15,7 @@ import time
 import h5py
 import numpy
 
-from .. import ipc
+from hummingbird import ipc
 from . import EventTranslator, Worker, add_record, ureg
 from .flash_utils import convert_frms6 as convert
 from .flash_utils import read_daq_offline as read_daq

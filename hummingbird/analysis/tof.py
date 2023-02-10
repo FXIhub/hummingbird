@@ -7,7 +7,7 @@ from __future__ import (absolute_import,  # Compatibility with python 2 and 3
 
 import numpy as np
 
-from ..backend import add_record, ureg
+from hummingbird.backend import add_record, ureg
 
 
 def ToFCalib(evt, type, key, photon_peak, Calib_peak, Calib_mass, Calib_q, outkey):

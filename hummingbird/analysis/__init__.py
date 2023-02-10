@@ -1,4 +1,4 @@
-from ..backend import ureg
+from hummingbird.backend import ureg
 from . import (agipd, beamline, event, hitfinding, patterson, pixel_detector,
                recorder, sizing, stack, stxm, tof)
 

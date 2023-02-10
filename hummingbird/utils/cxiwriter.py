@@ -8,7 +8,7 @@ except ImportError:
     print(100*"*")
     exit(1)
     
-from .. import ipc
+from hummingbird import ipc
 
 logger = h5writer.logger
 

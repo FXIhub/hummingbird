@@ -9,8 +9,8 @@ import collections
 
 import numpy as np
 
-from .. import ipc
-from ..backend import add_record
+from hummingbird import ipc
+from hummingbird.backend import add_record
 
 hitrate_counters = {}
 hit_counters = {}

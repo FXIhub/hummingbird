@@ -9,7 +9,7 @@ import cv2
 import numpy as np
 import scipy.ndimage.measurements
 
-from ..backend import add_record, ureg
+from hummingbird.backend import add_record, ureg
 
 
 def getMaskedParticles(evt, type, key, output, thresh = 20, minX = 800, maxX = 1500, minY = 0, maxY = 1700, kw = 5):

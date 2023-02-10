@@ -14,7 +14,7 @@ import karabo_bridge
 import numpy
 from pytz import timezone
 
-from .. import ipc, parse_cmdline_args
+from hummingbird import ipc, parse_cmdline_args
 from . import EventTranslator, Record, Worker, add_record, ureg
 
 _argparser = None

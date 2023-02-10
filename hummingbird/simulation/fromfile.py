@@ -5,7 +5,7 @@
 import h5py
 import numpy as np
 
-from .. import ipc, utils
+from hummingbird import ipc, utils
 
 
 class Simulation(utils.reader.H5Reader):

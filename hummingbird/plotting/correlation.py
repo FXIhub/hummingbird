@@ -6,8 +6,8 @@
 import numpy as np
 from scipy.sparse import lil_matrix
 
-from .. import ipc
-from ..backend import Record
+from hummingbird import ipc
+from hummingbird.backend import Record
 
 _existingPlots = {}
 
