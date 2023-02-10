@@ -15,6 +15,38 @@ with open(os.path.join(cwd, "hummingbird/__init__.py")) as f:
         raise RuntimeError("Unable to find version string.")
     version = match.group(1)
 
+
+if sys.version_info >= (3, 0):
+    install_requires = [
+        'h5py',
+        'h5writer',
+        'mpi4py',
+        'numpy',
+        'pexpect',
+        'Pint',
+        'PyQt5',                                                                                                                                                       
+        'pyqtgraph',
+        'pytz',                                                                                                                                                        
+        'pyzmq',
+        'scipy',
+        'tornado',
+   ]
+else:
+    install_requires = [
+        "h5py<3",
+        "h5writer",
+        "mpi4py",
+        "numpy<1.17",
+        "pexpect",
+        "Pint<=0.9",
+        "PySide",
+        "pyqtgraph",
+        "pytz",
+        "pyzmq<20",
+        "scipy<1.3",
+        "tornado<6",
+        "msgpack<=1.0.2",
+    ]
     
 
 setup(
@@ -34,29 +66,18 @@ setup(
             "hummingbird = hummingbird:main",
         ],
     },
-    install_requires=[
-        'h5py',
-        'h5writer',
-        'karabo_bridge',
-        'mpi4py',
-        'numpy',
-        'pexpect',
-        'Pint',
-        'PyQt5',
-        'pyqtgraph',
-        #'pytz',
-        'pyzmq',
-        'scipy',
-        'tornado',
-        #'opencv-python==4.6.0.66',
-    ],
+    install_requires=install_requires,
     extras_require={
-        'docs': [
-            'sphinx',
-            'sphinx_rtd_theme',
+        "docs": [
+            "sphinx",
+            "sphinx_rtd_theme",
         ],
-        'test': [
-            'pytest',
+        "test": [
+            "pytest",
+            "subprocess32;python_version<'3.0'",
+        ],
+        "euxfel": [
+            "karabo-bridge",
         ]
     },
     python_requires='>=2.7',
