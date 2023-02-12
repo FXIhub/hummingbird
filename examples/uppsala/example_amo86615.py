@@ -1,17 +1,11 @@
-import os,sys
-import numpy
-import time
 import logging
+import os
+import sys
+import time
 
-import analysis.event
-import analysis.beamline
-import analysis.pixel_detector
-import analysis.hitfinding
+import numpy
 
-import utils.cxiwriter
-
-import ipc   
-import ipc.mpi
+from hummingbird import analysis, ipc, utils
 
 this_dir = os.path.dirname(os.path.realpath(__file__))
 
@@ -20,6 +14,7 @@ utils.cxiwriter.logger.setLevel("WARNING")
 
 # CMDLINE ARGS
 from hummingbird import parse_cmdline_args
+
 cmdline_args = parse_cmdline_args()
 
 # DATA PARAMS

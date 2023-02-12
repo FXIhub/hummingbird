@@ -1,9 +1,4 @@
-import analysis.event
-import analysis.hitfinding
-import analysis.pixel_detector
-import plotting.line
-import plotting.image
-import utils.reader
+from hummingbird import analysis, plotting, utils
 
 state = {}
 state['Facility'] = 'LCLS'

@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>534</width>
+    <height>430</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QLineEdit" name="title">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::ClickFocus</enum>
+      </property>
+      <property name="text">
+       <string>Image Plot</string>
+      </property>
+      <property name="frame">
+       <bool>false</bool>
+      </property>
+      <property name="alignment">
+       <set>Qt::AlignCenter</set>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QWidget" name="plotFrame" native="true">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="focusPolicy">
+       <enum>Qt::ClickFocus</enum>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="ImageWindowSettings" name="settingsWidget" native="true"/>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="footerHBox">
+      <item>
+       <widget class="QLabel" name="infoLabel">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="text">
+         <string>Test</string>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignTop</set>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_3">
+          <item>
+           <widget class="QLabel" name="label_2">
+            <property name="text">
+             <string>Time:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="timeLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="horizontalLayout_2">
+          <item>
+           <widget class="QLabel" name="label_5">
+            <property name="text">
+             <string>Date:</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="dateLabel">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+              <horstretch>0</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="text">
+             <string/>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="logoLabel">
+        <property name="text">
+         <string/>
+        </property>
+        <property name="pixmap">
+         <pixmap resource="../images/resources.qrc">:/logo_48_transparent.png</pixmap>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>534</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuData_Sources">
+    <property name="title">
+     <string>Data Sources</string>
+    </property>
+    <addaction name="actionDefault"/>
+   </widget>
+   <widget class="QMenu" name="menuSave">
+    <property name="title">
+     <string>Save</string>
+    </property>
+    <addaction name="actionSaveToPNG"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionPlotSettings"/>
+    <addaction name="actionX_axis"/>
+    <addaction name="actionY_axis"/>
+    <addaction name="actionHistogram"/>
+    <addaction name="actionCrosshair"/>
+    <addaction name="actionCircularROI"/>
+    <addaction name="separator"/>
+    <addaction name="actionReset_cache"/>
+   </widget>
+   <widget class="QMenu" name="menuAlert">
+    <property name="title">
+     <string>Alert</string>
+    </property>
+    <widget class="QMenu" name="menuSounds">
+     <property name="enabled">
+      <bool>true</bool>
+     </property>
+     <property name="title">
+      <string>Sounds</string>
+     </property>
+     <addaction name="actionBeep"/>
+     <addaction name="actionClick"/>
+     <addaction name="actionPunch"/>
+     <addaction name="actionWhack"/>
+     <addaction name="actionSharp"/>
+     <addaction name="actionGlass"/>
+    </widget>
+    <widget class="QMenu" name="menuVolume">
+     <property name="title">
+      <string>Volume</string>
+     </property>
+     <addaction name="actionHigh"/>
+     <addaction name="actionMedium"/>
+     <addaction name="actionLow"/>
+    </widget>
+    <addaction name="actionToggleAlert"/>
+    <addaction name="menuSounds"/>
+    <addaction name="menuVolume"/>
+   </widget>
+   <addaction name="menuData_Sources"/>
+   <addaction name="menuSave"/>
+   <addaction name="menuView"/>
+   <addaction name="menuAlert"/>
+  </widget>
+  <action name="actionSaveToPNG">
+   <property name="text">
+    <string>Save to PNG</string>
+   </property>
+  </action>
+  <action name="actionPlotSettings">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Plot Settings</string>
+   </property>
+  </action>
+  <action name="actionX_axis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>X axis</string>
+   </property>
+  </action>
+  <action name="actionY_axis">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Y axis</string>
+   </property>
+  </action>
+  <action name="actionHistogram">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Histogram</string>
+   </property>
+  </action>
+  <action name="actionAlert">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Alert</string>
+   </property>
+  </action>
+  <action name="actionToggleAlert">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Toggle Alert</string>
+   </property>
+  </action>
+  <action name="actionBeep">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="enabled">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>beep</string>
+   </property>
+   <property name="toolTip">
+    <string>beep</string>
+   </property>
+  </action>
+  <action name="actionClick">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>click</string>
+   </property>
+  </action>
+  <action name="actionHigh">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>High</string>
+   </property>
+  </action>
+  <action name="actionMedium">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Medium</string>
+   </property>
+  </action>
+  <action name="actionLow">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Low</string>
+   </property>
+  </action>
+  <action name="actionPunch">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>punch</string>
+   </property>
+  </action>
+  <action name="actionWhack">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>whack</string>
+   </property>
+  </action>
+  <action name="actionSharp">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>sharp</string>
+   </property>
+  </action>
+  <action name="actionGlass">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>glass</string>
+   </property>
+  </action>
+  <action name="actionCrosshair">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Crosshair</string>
+   </property>
+  </action>
+  <action name="actionReset_cache">
+   <property name="text">
+    <string>Reset Cache</string>
+   </property>
+  </action>
+  <action name="actionDefault">
+   <property name="text">
+    <string>default</string>
+   </property>
+  </action>
+  <action name="actionCircularROI">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Circular ROI</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>ImageWindowSettings</class>
+   <extends>QWidget</extends>
+   <header>hummingbird.interface.ui.image_window_settings</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../images/resources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>title</sender>
+   <signal>editingFinished()</signal>
+   <receiver>plotFrame</receiver>
+   <slot>setFocus()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>266</x>
+     <y>44</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>266</x>
+     <y>199</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

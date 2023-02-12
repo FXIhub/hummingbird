@@ -2,15 +2,15 @@ import os, sys
 import numpy as np
 
 # Make sure we are relative to the root path
-__thisdir__ = os.path.dirname(os.path.realpath(__file__))
-sys.path.insert(0, __thisdir__ + "/../src")
+__thisdir__ = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
+sys.path.insert(0, __thisdir__)
 
 # Import Hummingbird Dummy translator
-from backend.dummy import DummyTranslator
+from hummingbird.backend.dummy import DummyTranslator
 
 # Import analysis modules
-import analysis.beamline
-import analysis.hitfinding
+from hummingbird import analysis
+
 
 # Setting the environment for testing the analysis modules
 state = {}

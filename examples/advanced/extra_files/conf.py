@@ -1,10 +1,4 @@
-import simulation.condor
-import analysis.event
-import analysis.pixel_detector
-import analysis.hitfinding
-import plotting.line
-import plotting.image
-import utils.reader
+from hummingbird import analysis, plotting, simulation, utils
 
 sim = simulation.condor.Simulation("examples/advanced/extra_files/virus.conf")
 sim.hitrate = 0.1

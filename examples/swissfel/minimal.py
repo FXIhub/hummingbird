@@ -1,7 +1,6 @@
-import analysis.hitfinding
 import time
-import plotting.line
-import plotting.image
+
+from hummingbird import analysis, plotting
 
 state = {}
 state['Facility'] = 'SwissFEL'

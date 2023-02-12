@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>605</width>
+    <height>490</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Hummingbird</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <widget class="QStackedWidget" name="stackedWidget">
+      <property name="currentIndex">
+       <number>0</number>
+      </property>
+      <widget class="PlotDataTable" name="plotdata_widget"/>
+      <widget class="QWidget" name="page"/>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>605</width>
+     <height>22</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="_backends_menu">
+    <property name="title">
+     <string>Backends</string>
+    </property>
+    <addaction name="_add_backend_action"/>
+    <addaction name="_reload_backend_action"/>
+    <addaction name="separator"/>
+   </widget>
+   <widget class="QMenu" name="_displays_menu">
+    <property name="title">
+     <string>Displays</string>
+    </property>
+    <addaction name="_new_plot_action"/>
+    <addaction name="_new_image_action"/>
+   </widget>
+   <widget class="QMenu" name="_options_menu">
+    <property name="title">
+     <string>Options</string>
+    </property>
+    <addaction name="_preferences_action"/>
+   </widget>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <addaction name="actionSave_Settings_As"/>
+    <addaction name="actionLoad_Settings"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="_backends_menu"/>
+   <addaction name="_displays_menu"/>
+   <addaction name="_options_menu"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="_add_backend_action"/>
+   <addaction name="_reload_backend_action"/>
+   <addaction name="separator"/>
+   <addaction name="_new_plot_action"/>
+   <addaction name="_new_image_action"/>
+   <addaction name="separator"/>
+   <addaction name="_preferences_action"/>
+   <addaction name="separator"/>
+   <addaction name="_recorder_action"/>
+   <addaction name="separator"/>
+   <addaction name="_config_reloader_action"/>
+  </widget>
+  <action name="_add_backend_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/add_backend.svg</normaloff>:/svg_icons/add_backend.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Add</string>
+   </property>
+   <property name="toolTip">
+    <string>Add Backend</string>
+   </property>
+  </action>
+  <action name="_reload_backend_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/reload_backend.svg</normaloff>
+     <normalon>:/svg_icons/reload_backend_pressed.svg</normalon>:/svg_icons/reload_backend.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Reload</string>
+   </property>
+   <property name="toolTip">
+    <string>Reload Backends</string>
+   </property>
+  </action>
+  <action name="_new_plot_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/add_line_plot.svg</normaloff>:/svg_icons/add_line_plot.svg</iconset>
+   </property>
+   <property name="text">
+    <string>New Line Plot</string>
+   </property>
+  </action>
+  <action name="_new_image_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/add_image_plot.svg</normaloff>:/svg_icons/add_image_plot.svg</iconset>
+   </property>
+   <property name="text">
+    <string>New Image Viewer</string>
+   </property>
+  </action>
+  <action name="_preferences_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/settings.svg</normaloff>:/svg_icons/settings.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Preferences</string>
+   </property>
+  </action>
+  <action name="actionSave_Settings_As">
+   <property name="text">
+    <string>Save Settings As...</string>
+   </property>
+  </action>
+  <action name="actionLoad_Settings">
+   <property name="text">
+    <string>Load Settings</string>
+   </property>
+  </action>
+  <action name="_recorder_action">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/recorder_red.svg</normaloff>:/svg_icons/recorder_red.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Recorder</string>
+   </property>
+   <property name="toolTip">
+    <string>Recorder On/Off</string>
+   </property>
+  </action>
+  <action name="_config_reloader_action">
+   <property name="icon">
+    <iconset resource="../images/resources.qrc">
+     <normaloff>:/svg_icons/reload_config.svg</normaloff>:/svg_icons/reload_config.svg</iconset>
+   </property>
+   <property name="text">
+    <string>ConfigReload</string>
+   </property>
+   <property name="toolTip">
+    <string>Reloading configuration</string>
+   </property>
+  </action>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>PlotDataTable</class>
+   <extends>QWidget</extends>
+   <header>hummingbird.interface.ui.plotdata_table</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources>
+  <include location="../images/resources.qrc"/>
+ </resources>
+ <connections>
+  <connection>
+   <sender>_add_backend_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_add_backend_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_new_image_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_new_display_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_new_plot_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_new_display_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_reload_backend_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_reload_backend_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_preferences_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_preferences_clicked()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionSave_Settings_As</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_on_save_settings_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>actionLoad_Settings</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_on_load_settings_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_recorder_action</sender>
+   <signal>triggered(bool)</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_recorder_toggled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>_config_reloader_action</sender>
+   <signal>triggered()</signal>
+   <receiver>MainWindow</receiver>
+   <slot>_reload_configuration_triggered()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>-1</x>
+     <y>-1</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>302</x>
+     <y>244</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+ <slots>
+  <slot>_add_backend_triggered()</slot>
+  <slot>_reload_backend_triggered()</slot>
+  <slot>_new_display_triggered()</slot>
+  <slot>_preferences_clicked()</slot>
+  <slot>_on_save_settings_triggered()</slot>
+  <slot>_on_load_settings_triggered()</slot>
+  <slot>_recorder_toggled(bool)</slot>
+  <slot>_reload_configuration_triggered()</slot>
+ </slots>
+</ui>

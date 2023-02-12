@@ -1,15 +1,11 @@
-import analysis.event
-import analysis.beamline
-import analysis.pixel_detector
-import analysis.hitfinding
-import utils.cxiwriter
-import simulation.ptycho
-import ipc.mpi
-
-import numpy as np
-import os,sys
+import os
+import sys
 import time
+
 import h5py
+import numpy as np
+
+from hummingbird import analysis, ipc, simulation, utils
 
 # Physical constants (from http://physics.nist.gov/)
 h    = 6.626070040e-34 # [J s]
@@ -46,7 +42,7 @@ sim.setScan(nperpos=scan_exposure, scanx=scan_x, scany=scan_y,
 sim.setObject(sample='logo', size=sample_size,
               thickness=sample_thickness, material=sample_material)
 sim.setIllumination(shape='gaussian')
-print "Simulating a scanning experiment, this might take a few seconds..."
+print("Simulating a scanning experiment, this might take a few seconds...")
 sim.start()
 
 state = {
@@ -111,7 +107,7 @@ def onEvent(evt):
 
     # Stop running at the end of the scan
     if evt['simulation']['end'].data:
-        print "Reached the end of the scan"
+        print("Reached the end of the scan")
         end_of_run()
 
 def end_of_run():

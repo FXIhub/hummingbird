@@ -1,11 +1,6 @@
-import simulation.condor
-import analysis.event
-import analysis.pixel_detector
-import analysis.hitfinding
-import plotting.line
-import plotting.image
-import plotting.correlation
 import numpy as np
+
+from hummingbird import analysis, plotting, simulation
 
 sim = simulation.condor.Simulation("examples/advanced/correlation/virus.conf")
 sim.hitrate = 0.1

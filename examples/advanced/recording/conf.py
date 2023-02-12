@@ -1,24 +1,13 @@
-import os,sys
+import os
+import sys
+
 import numpy
-import analysis.event
-import analysis.beamline
-import analysis.hitfinding
-import analysis.pixel_detector
-import analysis.stack
-import analysis.recorder
-import analysis.sizing
-import analysis.injection_camera
-import plotting.image
-import plotting.line
-import plotting.correlation
-import backend
-import ipc  
-import utils.reader
-import utils.array
+
+from hummingbird import analysis, backend, ipc, plotting, utils
+
 this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(this_dir)
 import diagnostics
-
 
 # Flags
 # -----
@@ -306,7 +295,7 @@ def onEvent(evt):
 
         
     if miss or bgall:
-        #print "MISS (hit score %i < %i)" % (evt["analysis"]["hitscore - " + c2x2_key].data, hitscoreThreshold)
+        print "MISS (hit score %i < %i)" % (evt["analysis"]["hitscore - " + c2x2_key].data, hitscoreThreshold)
         # COLLECTING BACKGROUND
         # Update
         bg.add(evt[c2x2_type][c2x2_key].data)
@@ -351,7 +340,7 @@ def onEvent(evt):
             backend.add_record(evt["analysis"], "analysis", "Good hit rate", float(good_hit))
 
         # Record hits together with sizing results
-		recorder.setup_file_if_needed(evt)
+        recorder.setup_file_if_needed(evt)
         recorder.append(evt)
                 
     # ------------------------ #

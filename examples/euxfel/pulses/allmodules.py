@@ -8,10 +8,8 @@ and then start the Hummingbird backend:
 
 ./hummingbird.py -b examples/euxfel/pulses/allmodules.py
 """
-import plotting.image
-import analysis.agipd
-import analysis.event
-from backend import add_record
+from hummingbird import analysis, plotting
+from hummingbird.backend import add_record
 
 state = {}
 state['Facility'] = 'EuXFEL'

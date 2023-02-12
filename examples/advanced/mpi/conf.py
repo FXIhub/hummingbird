@@ -1,10 +1,9 @@
-import time
-import analysis.event
-import analysis.beamline
-import analysis.pixel_detector
-import ipc
 import random
+import time
+
 import numpy
+
+from hummingbird import analysis, ipc
 
 numpy.random.seed()
 

@@ -1,20 +1,14 @@
-# Import analysis/plotting modules
-import analysis.event
-import analysis.hitfinding
-import analysis.pixel_detector
-import analysis.sizing
-import analysis.patterson
-import plotting.image
-import plotting.line
-import plotting.correlation
-import plotting.histogram
-from backend.record import add_record
+import os
+import sys
+import time
+
 import numpy as np
 import scipy.misc as misc
-import time
-import ipc
-import os, sys
-import analysis.refocus_hologram
+
+# Import analysis/plotting modules
+from hummingbird import analysis, ipc, plotting
+from hummingbird.backend import add_record
+
 this_dir = os.path.dirname(os.path.realpath(__file__))
 sys.path.append(this_dir)
 #import conf

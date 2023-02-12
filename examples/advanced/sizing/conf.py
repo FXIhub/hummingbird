@@ -1,15 +1,8 @@
 import os
 import time
-import ipc.mpi
-import utils.reader
-import simulation.condor
-import analysis.event
-import analysis.pixel_detector
-import analysis.hitfinding
-import analysis.sizing
-import plotting.line
-import plotting.image
-from backend import ureg
+
+from hummingbird import analysis, ipc, plotting, simulation, utils
+from hummingbird.backend import ureg
 
 sim = simulation.condor.Simulation("examples/advanced/sizing/virus.conf")
 sim.hitrate = 1.
