@@ -50,7 +50,7 @@ else:
     
 
 setup(
-    name="Hummingbird-FXI",
+    name="Hummingbird-XFEL",
     version=version,
     author="Filipe R. N. C. Maia",
     author_email="filipe.c.maia@gmail.com",
