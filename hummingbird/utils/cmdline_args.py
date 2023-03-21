@@ -39,8 +39,6 @@ except ImportError:
 try:
     from hummingbird.backend.euxfel import add_cmdline_args
     add_cmdline_args()
-    from hummingbird.backend.euxfel_trains import add_cmdline_args
-    add_cmdline_args()
 except ImportError:
     pass
 

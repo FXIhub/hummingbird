@@ -14,13 +14,13 @@ import karabo_bridge
 import numpy
 from pytz import timezone
 
-from hummingbird import ipc, parse_cmdline_args
+from hummingbird import ipc
 from . import EventTranslator, Record, Worker, add_record, ureg
 
 _argparser = None
 def add_cmdline_args():
     global _argparser
-    from utils.cmdline_args import argparser
+    from hummingbird.utils.cmdline_args import argparser
     _argparser = argparser
     ## ADD EuXFEL specific parser arguments here ##
 
