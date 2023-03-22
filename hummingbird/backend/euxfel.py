@@ -260,7 +260,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if('image.pulseId' not in obj or 'image.data' not in obj):
             logging.warning('Could not find an AGIPD data')
             return
-        cellid = numpy.squeeze(obj["image.cellId"]).astype(int)
+        cellid = numpy.squeeze(obj["image.cellId"], axis=-1).astype(int)
         cells = numpy.in1d(cellid, self._use_cells)
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
@@ -320,7 +320,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if('image.pulseId' not in obj or 'image.data' not in obj):
             logging.warning('Could not find an DSSC data')
             return
-        cellid = numpy.squeeze(obj["image.cellId"]).astype(int)
+        cellid = numpy.squeeze(obj["image.cellId"], axis=-1).astype(int)
         cells = numpy.in1d(cellid, self._use_cells)
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
@@ -390,8 +390,8 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             timestamp = numpy.asarray(time.time())
 
         if 'image.pulseId' in obj:
-            pulseid = numpy.squeeze(obj["image.pulseId"]).astype(int)
-            cellid = numpy.squeeze(obj['image.cellId']).astype(int)
+            pulseid = numpy.squeeze(obj["image.pulseId"], axis=-1).astype(int)
+            cellid = numpy.squeeze(obj['image.cellId'], axis=-1).astype(int)
             train_length = len(pulseid)
             cells = numpy.in1d(cellid, self._use_cells)
             pulseid = pulseid[cells]
