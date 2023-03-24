@@ -389,7 +389,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             logging.warning('Could not find timestamp information. Faking it...')
             timestamp = numpy.asarray(time.time())
 
-        if 'image.pulseId' in obj:
+        if 'image.pulseId' in obj and obj['image.cellId'].size > 0:
             pulseid = numpy.squeeze(obj["image.pulseId"], axis=-1).astype(int)
             cellid = numpy.squeeze(obj['image.cellId'], axis=-1).astype(int)
             train_length = len(pulseid)
