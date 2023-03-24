@@ -152,19 +152,19 @@ class EUxfelTranslator(object):
 
     def next_train(self):
         """Asks for next train until its age is within a given time window."""
-        buf, meta = self._data_client.next()
-        logging.debug("Received train data")
+        while True:
+            buf, meta = self._data_client.next()
+            logging.debug("Received train data")
 
-        if(self._slow_client is not None): 
-            buf, meta = self.append_slow_data(buf, meta)
-       
-        age = time.time()
-        age -= meta[list(meta.keys())[0]].get('timestamp', age)
-        if self._max_train_age is None or age < self._max_train_age:
-            return buf, meta
-        else:
+            if(self._slow_client is not None): 
+                buf, meta = self.append_slow_data(buf, meta)
+
+            age = time.time()
+            age -= meta[list(meta.keys())[0]].get('timestamp', age)
+            if self._max_train_age is None or age < self._max_train_age:
+                return buf, meta
+
             logging.info("Skipping train data with age %f > %f", age, self._max_train_age)
-            return self.next_train()
 
     def event_keys(self, evt):
         """Returns the translated keys available"""
