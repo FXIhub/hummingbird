@@ -14,7 +14,7 @@ from pytz import timezone
 
 import psana
 
-from hummingbird import ipc, parse_cmdline_args
+from hummingbird import ipc
 from . import EventTranslator, Record, Worker, add_record, ureg
 
 _argparser = None

@@ -14,13 +14,13 @@ import karabo_bridge
 import numpy
 from pytz import timezone
 
-from hummingbird import ipc, parse_cmdline_args
+from hummingbird import ipc
 from . import EventTranslator, Record, Worker, add_record, ureg
 
 _argparser = None
 def add_cmdline_args():
     global _argparser
-    from utils.cmdline_args import argparser
+    from hummingbird.utils.cmdline_args import argparser
     _argparser = argparser
     ## ADD EuXFEL specific parser arguments here ##
 
@@ -152,19 +152,19 @@ class EUxfelTranslator(object):
 
     def next_train(self):
         """Asks for next train until its age is within a given time window."""
-        buf, meta = self._data_client.next()
-        logging.debug("Received train data")
+        while True:
+            buf, meta = self._data_client.next()
+            logging.debug("Received train data")
 
-        if(self._slow_client is not None): 
-            buf, meta = self.append_slow_data(buf, meta)
-       
-        age = time.time()
-        age -= meta[list(meta.keys())[0]].get('timestamp', age)
-        if self._max_train_age is None or age < self._max_train_age:
-            return buf, meta
-        else:
+            if(self._slow_client is not None): 
+                buf, meta = self.append_slow_data(buf, meta)
+
+            age = time.time()
+            age -= meta[list(meta.keys())[0]].get('timestamp', age)
+            if self._max_train_age is None or age < self._max_train_age:
+                return buf, meta
+
             logging.info("Skipping train data with age %f > %f", age, self._max_train_age)
-            return self.next_train()
 
     def event_keys(self, evt):
         """Returns the translated keys available"""
@@ -260,7 +260,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if('image.pulseId' not in obj or 'image.data' not in obj):
             logging.warning('Could not find an AGIPD data')
             return
-        cellid = numpy.squeeze(obj["image.cellId"]).astype(int)
+        cellid = numpy.squeeze(obj["image.cellId"], axis=-1).astype(int)
         cells = numpy.in1d(cellid, self._use_cells)
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
@@ -320,7 +320,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if('image.pulseId' not in obj or 'image.data' not in obj):
             logging.warning('Could not find an DSSC data')
             return
-        cellid = numpy.squeeze(obj["image.cellId"]).astype(int)
+        cellid = numpy.squeeze(obj["image.cellId"], axis=-1).astype(int)
         cells = numpy.in1d(cellid, self._use_cells)
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
@@ -389,9 +389,9 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             logging.warning('Could not find timestamp information. Faking it...')
             timestamp = numpy.asarray(time.time())
 
-        if 'image.pulseId' in obj:
-            pulseid = numpy.squeeze(obj["image.pulseId"]).astype(int)
-            cellid = numpy.squeeze(obj['image.cellId']).astype(int)
+        if 'image.pulseId' in obj and obj['image.cellId'].size > 0:
+            pulseid = numpy.squeeze(obj["image.pulseId"], axis=-1).astype(int)
+            cellid = numpy.squeeze(obj['image.cellId'], axis=-1).astype(int)
             train_length = len(pulseid)
             cells = numpy.in1d(cellid, self._use_cells)
             pulseid = pulseid[cells]
