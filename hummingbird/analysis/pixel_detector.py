@@ -333,9 +333,9 @@ def commonModeLines(evt, record, outkey=None, direction='vertical'):
         outkey = "corrected"
     data = record.data
     dataCorrected = np.copy(data)
-    if direction is 'vertical':
+    if direction == 'vertical':
         dataCorrected -= np.transpose(np.median(data,axis=0).repeat(data.shape[0]).reshape(data.shape))
-    elif direction is 'horizontal':
+    elif direction == 'horizontal':
         dataCorrected -= np.median(data,axis=1).repeat(data.shape[1]).reshape(data.shape)
     add_record(evt["analysis"], "analysis", outkey, dataCorrected)
 

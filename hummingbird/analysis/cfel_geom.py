@@ -137,14 +137,14 @@ def parse_xy(string):
 
     x = y = 0
 
-    if string.find('x') is not -1:
+    if string.find('x') != -1:
         xs = string.split('x')[0].split(' ')[-1]
         if len(xs) > 0:
             x = float(xs)
         else:
             x = 1.
 
-    if string.find('y') is not -1:
+    if string.find('y') != -1:
         ys = string.split('y')[0].split(' ')[-1]
         if len(ys) > 0:
             y = float(ys)
