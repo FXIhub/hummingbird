@@ -295,6 +295,7 @@ class ImageView(QtGui.QWidget):
         return data.min(), data.max()
 
     def normalize(self, image):
+        image[numpy.isnan(image)] = 0
         return image
 
 
