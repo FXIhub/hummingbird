@@ -223,7 +223,7 @@ class DataSource(QtCore.QObject):
             self.conf[title].update(conf)
             if self._plotdata[title].recordhistory:
                 self._recorder.append(title, data, data_x)
-            if 'sum_over' in conf:
+            if 'sum_over' in conf and conf['sum_over'] != False:
                 if 'msg' in conf:
                     self._plotdata[title].sum_over(data, data_x, conf['msg'])
                 else:
