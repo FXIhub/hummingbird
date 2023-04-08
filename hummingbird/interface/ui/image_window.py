@@ -235,7 +235,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 self.plot.getView().setLabel(axis_labels[ylabel_index], self.settingsWidget.ui.y_label.text()) #pylint: disable=no-member
 
     def _set_logscale_lookuptable(self):
-        N = 1000000
+        N = 255
         self.lut = numpy.empty((N,4), dtype=numpy.ubyte)
         grad = numpy.log(numpy.linspace(1, 1e5, N))
         self.lut[:,:3] = (255 * grad / grad.max()).reshape(N,1)
@@ -245,7 +245,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
         conf = source.conf[title]
         if source.data_type[title] == 'image' and ("log" in conf):
             if conf["log"]:
-                self.plot.imageItem.setLookupTable(self.lut)
+                self.plot.imageItem.setLookupTable(self.lut, update=False)
 
     def on_reset_cache(self):
         self._reset_meanmap_cache()

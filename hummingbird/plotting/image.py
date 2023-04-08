@@ -37,4 +37,4 @@ def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None, ms
         image = image.reshape(sh[0]*sh[2], sh[1])
     if mask is None:
         mask = np.ones_like(image)
-    ipc.new_data(n, image*mask, msg=msg, alert=alert, send_rate=send_rate, center=roi_center, diameters=roi_diameters, aspect_ratio=aspect_ratio, sum_over=sum_over)
+    ipc.new_data(n, image*mask, msg=msg, alert=alert, send_rate=send_rate, center=roi_center, diameters=roi_diameters, aspect_ratio=aspect_ratio, sum_over=sum_over, log=log)
