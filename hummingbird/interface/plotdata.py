@@ -16,6 +16,7 @@ class PlotData(object):
         self._y = None # pylint: disable=invalid-name
         self._x = None # pylint: disable=invalid-name
         self._l = None # pylint: disable=invalid-name
+        self._num = None
         self._parent = parent
         self._maxlen = maxlen
         self.restored = False
@@ -42,9 +43,10 @@ class PlotData(object):
         self._y.append(y)
         self._x.append(x)
         self._l.append(l)
+        self._num = None
 
-    def sum_over(self, y, x, l):
-        if self._y is None:
+    def sum_over(self, y, x, l, op='sum'):
+        if self._y is None or self._num is None:
             self._y = RingBuffer(1)
             self._x = RingBuffer(1)
             self._l = RingBufferStr(1)
@@ -55,7 +57,10 @@ class PlotData(object):
             self._y._data[0] = y
         else:
             self._num += 1.
-            self._y._data[0] = self._y._data[0] * (self._num-1)/self._num + y/self._num
+            if(op == 'sum'):
+                self._y._data[0] = self._y._data[0] * (self._num-1)/self._num + y/self._num
+            elif(op == 'max'):
+                self._y._data[0] = numpy.maximum(self._y._data[0], y)
             self._x.append(x)
             self._l.append(l)
 

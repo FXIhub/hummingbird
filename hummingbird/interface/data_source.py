@@ -223,16 +223,13 @@ class DataSource(QtCore.QObject):
             self.conf[title].update(conf)
             if self._plotdata[title].recordhistory:
                 self._recorder.append(title, data, data_x)
-            if 'sum_over' in conf and conf['sum_over'] != False:
-                if 'msg' in conf:
-                    self._plotdata[title].sum_over(data, data_x, conf['msg'])
-                else:
-                    self._plotdata[title].sum_over(data, data_x, '')
+            msg = conf.get('msg','')                
+            if 'sum_over' in conf and conf['sum_over']:
+                self._plotdata[title].sum_over(data, data_x, msg, op='sum')
+            elif 'max_over' in conf and conf['max_over']:
+                self._plotdata[title].sum_over(data, data_x, msg, op='max')                
             else:
-                if 'msg' in conf:
-                    self._plotdata[title].append(data, data_x, conf['msg'])
-                else:
-                    self._plotdata[title].append(data, data_x, '')                    
+                self._plotdata[title].append(data, data_x, msg)
 
     @property
     def hostname(self):
