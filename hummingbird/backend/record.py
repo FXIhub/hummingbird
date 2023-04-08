@@ -8,7 +8,7 @@ def add_record(values, group, name, data, unit=None):
     """Convenience function to add a new Record
     to an existing Records dictionary."""
     if data is not None:
-        values[name] = Record(group + " / " + name, data, unit)
+        values[name] = Record(name, data, unit, group)
     else:
         values[name] = None
     return values[name]
@@ -20,10 +20,11 @@ class Record(object):
     Accept both values and functions for data. In the latter case the
     first time data is accessed evaluate the function and return its result.
     """
-    def __init__(self, name, data, unit=None):
+    def __init__(self, name, data, unit=None, group=None):
         self.name  = name
         self.data  = data
         self.unit  = unit
+        self.group = group
 
     @property
     def data(self):

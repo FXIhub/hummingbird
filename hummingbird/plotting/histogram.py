@@ -15,6 +15,8 @@ def plotHistogram(value, hmin=0, hmax=10, bins=10, name=None, group=None, buffer
             name = "Histogram of {0}".format(value.name)
         else:
             name = "Histogram"
+    if group is None:
+        group = value.group
     if (name not in histograms):
         ipc.broadcast.init_data(name, data_type='histogram', history_length=buffer_length,
                                 hmin=hmin, hmax=hmax, bins=bins, group=group)
@@ -30,7 +32,8 @@ def plotNormalizedHistogram(value, weight, hmin=0, hmax=10, bins=10, name=None,
             name = "Normalized histogram of {0}".format(value.name)
         else:
             name = "Normalize histogram"
-        
+    if group is None:
+        group = value.group
     if name not in normalized_histograms:
         ipc.broadcast.init_data(name, data_type='normalized_histogram', history_length=buffer_length,
                                 hmin=hmin, hmax=hmax, bins=bins, group=group)

@@ -124,6 +124,8 @@ def plotMeanMapDynamic(X, Y, Z, norm=1., msg='', update=100, xmin=0, xmax=100, y
     """
     if name is None:
         name = "%s(%s,%s)" %(Z.name, X.name, Y.name)
+    if group is None:
+        group = Z.group
     if (not name in _existingPlots):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
@@ -159,6 +161,8 @@ def plotCorrelation(X, Y, history=10000, name=None, group=None):
     """
     if name is None:
         name = "Corr(%s,%s)" %(X.name, Y.name)
+    if group is None:
+        group = Y.group
     if (not name in _existingPlots):
         ipc.broadcast.init_data(name, history_length=100, group=group)
         _existingPlots[name] = True
@@ -185,6 +189,8 @@ def plotHeatmap(X, Y, xmin=0, xmax=1, xbins=10, ymin=0, ymax=1, ybins=10, name=N
     """
     if name is None:
         name = "Heatmap(%s,%s)" %(X.name, Y.name)
+    if group is None:
+        group = Y.group
     if not(name in _existingPlots):        
         # initiate (y, x) in 2D array to get correct orientation of image
         _existingPlots[name] = np.zeros((ybins, xbins), dtype=int)
@@ -231,6 +237,8 @@ def plotMeanMap(X,Y,Z, xmin=0, xmax=10, xbins=10, ymin=0, ymax=10, ybins=10, xla
     """
     if name is None:
         name = "MeanMap(%s,%s,%s)" % (X.name, Y.name, Z.name)
+    if group is None:
+        group = Z.group
     if (not name in _existingPlots):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
@@ -262,6 +270,8 @@ def plotScatter(X,Y, name=None, history=10000, xlabel=None, ylabel=None, group=N
     """
     if name is None:
         name = "Scatter(%s,%s)" %(X.name, Y.name)
+    if group is None:
+        group = Y.group
     if (not name in _existingPlots):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
@@ -275,6 +285,8 @@ def plotScatterBg(X,Y, name=None, history=10000, xlabel=None, ylabel=None, bg_fi
     """
     if name is None:
         name = "ScatterBg(%s,%s)" %(X.name, Y.name)
+    if group is None:
+        group = Y.group
     if (not name in _existingPlots):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name
@@ -304,6 +316,8 @@ def plotScatterColor(X,Y,Z, name=None, history=10000, xlabel=None, ylabel=None, 
     """
     if name is None:
         name = "ScatterColor(%s,%s)" %(X.name, Y.name)
+    if group is None:
+        group = Y.group
     if (not name in _existingPlots):
         if xlabel is None: xlabel = X.name
         if ylabel is None: ylabel = Y.name

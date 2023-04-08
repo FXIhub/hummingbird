@@ -28,6 +28,8 @@ def plotImage(record, history=10, vmin=None, vmax=None, log=False, mask=None, ms
         n = record.name
     else:
         n = name
+    if group is None:
+        group = record.group
     if(not n in images):
         ipc.broadcast.init_data(n, data_type='image', history_length=history, vmin=vmin, vmax=vmax, log=log, group=group, sum_over=sum_over)
         images[n] = True

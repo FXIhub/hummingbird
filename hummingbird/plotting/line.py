@@ -22,6 +22,9 @@ def plotHistory(param, label='', history=100, hline=None, runningHistogram=False
         return
     if name is None:
         name = "History(%s)%s" % (param.name, name_extension)
+
+    if group is None:
+        group = param.group
         
     if (not param.name in histories):
         if runningHistogram:
@@ -36,6 +39,8 @@ def plotHistory(param, label='', history=100, hline=None, runningHistogram=False
 def plotTimestamp(timestamp, name=None, group=None, **kwargs):
     if name is None:
         name = "History(Fiducial)"
+    if group is None:
+        group = param.group
     if not name in histories:
         ipc.broadcast.init_data(name, data_type='scalar', group=group, **kwargs)
     ipc.new_data(name, timestamp.fiducials, **kwargs)
@@ -59,6 +64,8 @@ def plotHistogram(param, hmin=None, hmax=None, bins=100, label='', density=False
         return
     if name is None:
         name = "Histogram(%s)%s" % (param.name, name_extension)
+    if group is None:
+        group = param.group
     if(not param.name in histograms):
         ipc.broadcast.init_data(name, data_type='vector', xlabel=label, vline=vline, history_length=history, group=group)
         histograms[param.name] = True
@@ -88,6 +95,8 @@ def plotTrace(paramY, paramX=None, label='', history=10000, tracelen=None, name=
         return
     if name is None:
         name = "Trace(%s)" %paramY.name
+    if group is None:
+        group = param.group
     if(not paramY.name in traces):
         ipc.broadcast.init_data(name, data_type='vector', xlabel=label, history_length=history, group=group)
         histograms[paramY.name] = True
