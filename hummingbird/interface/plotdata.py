@@ -56,6 +56,8 @@ class PlotData(object):
         else:
             self._num += 1.
             self._y._data[0] = self._y._data[0] * (self._num-1)/self._num + y/self._num
+            self._x.append(x)
+            self._l.append(l)
 
     def resize(self, new_maxlen):
         """Change the capacity of the buffers"""
