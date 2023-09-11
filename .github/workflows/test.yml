@@ -16,7 +16,7 @@ jobs:
     strategy:
       matrix:
         mpi: ['mpi4py', 'none']
-        python-version: [2.7, 3.7, 3.8]
+        python-version: [ 3.8, 3.9, 3.10]
     steps:
     - uses: actions/checkout@v2
     - uses: conda-incubator/setup-miniconda@v2
@@ -43,12 +43,6 @@ jobs:
         # $CONDA/bin/flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         # exit-zero treats all errors as warnings. The GitHub editor is 127 chars wide
         # $CONDA/bin/flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
-    - name: Install subprocess32
-      shell: bash -l {0}
-      run: |
-        # subprocess32 is necessary for testing under python2.7
-        conda install subprocess32
-      if: matrix.python-version == 2.7
     - name: Test with pytest
       shell: bash -l {0}
       run: |
