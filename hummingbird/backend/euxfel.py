@@ -44,28 +44,48 @@ class EUxfelTranslator(object):
             raise ValueError("You need to set the '[EuXFEL][DataSource]'"
                              " in the configuration")
 
+        self._det_type = state.get("EuXFEL/DetectorType", "AGIPD")
+
         # The data format for the data source, either "Calib" or "Raw"
         self._data_format = state.get("EuXFEL/DataFormat", "Calib")
         if not self._data_format in ["Calib", "Raw"]:
             raise ValueError("You need to set the 'EuXFEL/DataFormat'"
                              " in the configuration as 'Calib' or 'Raw'")
 
-        self._data_shape = state.get("EuXFEL/DataShape", "fmxy")
-        shape_translator = {
-            "Calib": {'m': 1, 'x': -2, 'y': -1, 'f': 0},
-            "Raw": {'m': 1, 'g': -3, 'x': -2, 'y': -1, 'f': 0},
+        data_shape_default = {
+            "AGIPD": {"Calib": "fmxy", "Raw": "fgxy"},
+            "Jungfrau": {"Calib": "mfxy", "Raw": "fyx"},
         }
-        format_shape = shape_translator[self._data_format]
+
+        self._data_shape = state.get(
+            "EuXFEL/DataShape",
+            data_shape_default[self._det_type][self._data_format]
+        )
+        shape_translator = {
+            "AGIPD": {
+                "Calib": {'m': 1, 'x': -2, 'y': -1, 'f': 0},
+                "Raw": {'m': 1, 'g': -3, 'x': -2, 'y': -1, 'f': 0},
+            },
+            "Jungfrau": {
+                "Calib": {'m': 1, 'x': -1, 'y': -2, 'f': 0},  # -> fmyx
+                "Raw": {'m': 1, 'x': -1, 'y': -2, 'f': 0},  # -> fmyx
+            }
+        }
+        format_shape = shape_translator[self._det_type][self._data_format]
 
         self._cell_axis = None
         self._target_shape = [None] * len(self._data_shape)
+        self._axes = [None] * len(format_shape)
         for i, c in enumerate(self._data_shape):
-            self._target_shape[format_shape[c]] = i
+            axis = format_shape[c]
+            self._axes[axis] = slice(None)
+            self._target_shape[axis] = i
             if c == 'f':
                 self._cell_axis = i
 
-        self._use_stacked = len(format_shape) == len(self._data_shape)
+        self._axes = tuple(self._axes)
 
+        self._use_stacked = len(format_shape) == len(self._data_shape)
         self._live = state.get("EuXFEL/DataLive", True)
 
         # Option to decide about maximum allowd age of trains
@@ -121,9 +141,9 @@ class EUxfelTranslator(object):
                 self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
                 self._n2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
             for module in range(1, 9):
-                self._n2c[f"SPB_IRDA_JF4M/DET/JNGFR{module:02d}:daqOutput" ] = ['photonPixelDetectors', 'eventID']
+                self._n2c[f"SPB_IRDA_JF4M/DET/JNGFR{module:02d}:daqOutput"] = ['photonPixelDetectors', 'eventID']
             for module in [9, 10]:
-                self._n2c[f"SPB_CFEL_JF1M/DET/JNGFR{module:02d}:daqOutput" ] = ['photonPixelDetectors', 'eventID']
+                self._n2c[f"SPB_CFEL_JF1M/DET/JNGFR{module:02d}:daqOutput"] = ['photonPixelDetectors', 'eventID']
             
         self._n2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = ['photonPixelDetectors', 'eventID']
         self._n2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = ['GMD', 'eventID']
@@ -280,6 +300,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         for source, d in metadata.items():
             for k,v in d.items():
                 train[source][k] = v
+
         return EventTranslator(train, self)
         
     def event_id(self, evt):
@@ -329,7 +350,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
 
         #if (self._data_format == 'Raw' and img.ndim == 4) or (self._data_format == 'Calib' and img.ndim == 3):
         if not self._use_stacked:
-            img = img[numpy.newaxis]
+            img = img[self._axes]
         
         """
         if(obj['image.data'].shape[-2] == 512 and obj['image.data'].shape[-1] == 128):
@@ -433,6 +454,18 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if 'data.adc' not in obj:
             return
         img = obj['data.adc'][...]
+        ndim = len(self._data_shape)
+        
+        if img.ndim != ndim:
+            logging.error('Jungfrau data has {} dimemtions but {} is expected'.format(img.ndim, ndim))
+            return
+
+        # transpose
+        img = numpy.transpose(img, self._target_shape)
+
+        if not self._use_stacked:
+            img = img[self._axes]
+
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
     def _tr_photon_detector(self, values, obj, evt_key):
