@@ -114,10 +114,16 @@ class EUxfelTranslator(object):
         if self._use_stacked:
             self._n2c["SPB_DET_AGIPD1M-1/DET/STACKED:xtdf"] = ['photonPixelDetectors', 'eventID']
             self._n2c["SPB_DET_AGIPD1M-1/DET/APPEND"] = ['photonPixelDetectors', 'eventID']
+            self._n2c["SPB_CFEL_JF1M/DET/STACKED:output"] = ['photonPixelDetectors', 'eventID']
+            self._n2c["SPB_IRDA_JF4M/DET/STACKED:output"] = ['photonPixelDetectors', 'eventID']
         else:
             for module in range(16):
                 self._n2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
                 self._n2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ['photonPixelDetectors', 'eventID']
+            for module in range(1, 9):
+                self._n2c[f"SPB_IRDA_JF4M/DET/JNGFR{module:02d}:daqOutput" ] = ['photonPixelDetectors', 'eventID']
+            for module in [9, 10]:
+                self._n2c[f"SPB_CFEL_JF1M/DET/JNGFR{module:02d}:daqOutput" ] = ['photonPixelDetectors', 'eventID']
             
         self._n2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = ['photonPixelDetectors', 'eventID']
         self._n2c["SA3_XTD10_XGM/XGM/DOOCS:output"] = ['GMD', 'eventID']
@@ -146,10 +152,16 @@ class EUxfelTranslator(object):
         if self._use_stacked:
             self._s2c["SPB_DET_AGIPD1M-1/DET/APPEND"] = "AGIPD Stacked"
             self._s2c["SPB_DET_AGIPD1M-1/DET/STACKED:xtdf"] = "AGIPD Stacked"
+            self._s2c["SPB_CFEL_JF1M/DET/STACKED:output"] = "JF1M Stacked"
+            self._s2c["SPB_IRDA_JF4M/DET/STACKED:output"] = "JF4M Stacked"
         else:
             for module in range(16):
                 self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf" % module] = ("AGIPD%02d" % module)
                 self._s2c["SQS_DET_DSSC1M-1/DET/%dCH0:xtdf" % module] = ("DSSC%02d" % module)
+            for module in range(1, 9):
+                self._s2c[f"SPB_IRDA_JF4M/DET/JNGFR{module:02d}:daqOutput" ] = f"JNGFR{module:02d}"
+            for module in [9, 10]:
+                self._s2c[f"SPB_CFEL_JF1M/DET/JNGFR{module:02d}:daqOutput" ] = f"JNGFR{module:02d}"
 
         self._s2c["SQS_NQS_PNCCD1MP/CAL/PNCCD_FMT-0:output"] = "pnCCD"
 
@@ -416,6 +428,12 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         img  = obj['data.image'][...].squeeze()
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
+    def _tr_Jungfrau(self, values, obj, evt_key):
+        """Translates Jungfrau into Hummingbird ADU array"""
+        if 'data.adc' not in obj:
+            return
+        img = obj['data.adc'][...]
+        add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
     def _tr_photon_detector(self, values, obj, evt_key):
         """Translates pixel detector into Humminbird ADU array"""
@@ -425,9 +443,12 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             self._tr_AGIPD(values, obj, evt_key)
         elif('PNCCD1MP' in evt_key):
             self._tr_pnCCD(values, obj, evt_key)
+        elif('CFEL_JF1M' in evt_key):
+            self._tr_Jungfrau(values, obj, evt_key)
+        elif('IRDA_JF4M' in evt_key):
+            self._tr_Jungfrau(values, obj, evt_key)
         else:
             raise ValueError("Unknown photon detector %s", evt_key)
-
 
     def _tr_event_id(self, values, obj):
         """Translates euxfel train event ID from data source into a hummingbird one"""
