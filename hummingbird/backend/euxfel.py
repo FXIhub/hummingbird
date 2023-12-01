@@ -24,7 +24,9 @@ def add_cmdline_args():
     _argparser = argparser
     ## ADD EuXFEL specific parser arguments here ##
 
-MAX_TRAIN_LENGTH = 352
+
+MAX_TRAIN_LENGTH = 800
+
 
 class EUxfelTranslator(object):
     """Translate between EUxfel events and Hummingbird ones"""
@@ -55,6 +57,7 @@ class EUxfelTranslator(object):
         data_shape_default = {
             "AGIPD": {"Calib": "fmxy", "Raw": "fgxy"},
             "Jungfrau": {"Calib": "mfxy", "Raw": "fyx"},
+            "DSSC": {"Calib": "fmyx", "Raw": "fgyx"},
         }
 
         self._data_shape = state.get(
@@ -69,7 +72,11 @@ class EUxfelTranslator(object):
             "Jungfrau": {
                 "Calib": {'m': 1, 'x': -1, 'y': -2, 'f': 0},  # -> fmyx
                 "Raw": {'m': 1, 'x': -1, 'y': -2, 'f': 0},  # -> fmyx
-            }
+            },
+            "DSSC": {
+                "Calib": {'m': 1, 'x': -1, 'y': -2, 'f': 0},
+                "Raw": {'m': 1, 'g': -3, 'x': -1, 'y': -2, 'f': 0},
+            },
         }
         format_shape = shape_translator[self._det_type][self._data_format]
 
@@ -129,10 +136,9 @@ class EUxfelTranslator(object):
 
         # Define how to translate between EuXFEL types and Hummingbird ones
         self._n2c = {}
-        #self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = ['photonPixelDetectors', 'eventID']
-        #self._n2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = ['photonPixelDetectors', 'eventID']
         if self._use_stacked:
             self._n2c["SPB_DET_AGIPD1M-1/DET/STACKED:xtdf"] = ['photonPixelDetectors', 'eventID']
+            self._n2c["SQS_DET_DSSC1M-1/DET/STACKED:xtdf"] = ['photonPixelDetectors', 'eventID']
             self._n2c["SPB_DET_AGIPD1M-1/DET/APPEND"] = ['photonPixelDetectors', 'eventID']
             self._n2c["SPB_CFEL_JF1M/DET/STACKED:output"] = ['photonPixelDetectors', 'eventID']
             self._n2c["SPB_IRDA_JF4M/DET/STACKED:output"] = ['photonPixelDetectors', 'eventID']
@@ -167,13 +173,12 @@ class EUxfelTranslator(object):
 
         # Define how to translate between EuXFEL sources and Hummingbird ones
         self._s2c = {}
-        #self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_CORRECTED"] = "AGIPD"
-        #self._s2c["SPB_DET_AGIPD1M-1/CAL/APPEND_RAW"] = "AGIPD"
         if self._use_stacked:
             self._s2c["SPB_DET_AGIPD1M-1/DET/APPEND"] = "AGIPD Stacked"
             self._s2c["SPB_DET_AGIPD1M-1/DET/STACKED:xtdf"] = "AGIPD Stacked"
             self._s2c["SPB_CFEL_JF1M/DET/STACKED:output"] = "JF1M Stacked"
             self._s2c["SPB_IRDA_JF4M/DET/STACKED:output"] = "JF4M Stacked"
+            self._s2c["SQS_DET_DCCS1M-1/DET/STACKED:xtdf"] = "DSSC Stacked"
         else:
             for module in range(16):
                 self._s2c["SPB_DET_AGIPD1M-1/DET/%dCH0:xtdf" % module] = ("AGIPD%02d" % module)
@@ -404,7 +409,13 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if('image.pulseId' not in obj or 'image.data' not in obj):
             logging.warning('Could not find an DSSC data')
             return
-        cellid = numpy.squeeze(obj["image.cellId"], axis=-1).astype(int)
+
+        cellid = obj['image.cellId']
+        if self._live and cellid.ndim == (2 + self._use_stacked):
+            cellid = numpy.squeeze(cellid, axis=-1)
+        if self._live and self._use_stacked:
+            cellid = cellid[:, 0]
+
         cells = numpy.in1d(cellid, self._use_cells)
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
@@ -414,6 +425,25 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         # (memory cells, y, x) for calibrated data
         # Information confirmed by EXtra-foam
         # https://github.com/European-XFEL/EXtra-foam/blob/dev/extra_foam/pipeline/processors/image_assembler.py
+        img = obj['image.data']
+        ndim = len(self._data_shape)
+        
+        if img.ndim != ndim:
+            logging.error('DSSC data has {} dimemtions but {} is expected'.format(img.ndim, ndim))
+            return
+
+        # slice cells
+        img = img.take(indices=cells, axis=self._cell_axis)
+
+        # transpose
+        img = numpy.transpose(img, self._target_shape)
+
+
+        #if (self._data_format == 'Raw' and img.ndim == 4) or (self._data_format == 'Calib' and img.ndim == 3):
+        if not self._use_stacked:
+            img = img[self._axes]
+
+        """
         if(obj['image.data'].shape[-2] == 128 and obj['image.data'].shape[-1] == 512):
             # We're dealing with file streamed data
             # Reshape it to look like live data
@@ -440,6 +470,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         else:
             raise ValueError("image.data does not have a known shape!")
         assert img.ndim == 4
+        """
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)                
         
     def _tr_pnCCD(self, values, obj, evt_key):
@@ -504,7 +535,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             cells = numpy.in1d(cellid, self._use_cells)
             pulseid = pulseid[cells]
             # The denominator here is totally arbitrary, just we have different timestamps for different pulses
-            timestamp = timestamp + (pulseid / 27000.)
+            timestamp = timestamp + (numpy.arange(train_length) / 8000.)
             rec = Record('Timestamp', timestamp, ureg.s)
             rec.pulseId = pulseid
             rec.cellId   = cellid[cells]
