@@ -65,7 +65,7 @@ class ZmqSocket(QtCore.QObject):
         self._socket.bind(addr)
 
     def connect_socket(self, addr, tunnel=None):
-        """Connect socket to endpoint, possible using an ssh tunnel
+        """Connect socket to endpoint, possibly using an ssh tunnel
         The tunnel argument specifies the hostname of the ssh server to
         tunnel through.
         Note that this still succeeds even if there's no ZMQ server on
