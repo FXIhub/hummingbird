@@ -20,9 +20,12 @@ class ZmqSocket(QtCore.QObject):
     ready_write = QtCore.Signal()
     def __init__(self, _type, parent=None, **kwargs):
         QtCore.QObject.__init__(self, parent, **kwargs)
+        self._type = _type
+        self._socket = None
 
+    def init_socket(self):
         ctx = ZmqContext.instance()
-        self._socket = ctx.socket(_type)
+        self._socket = ctx.socket(self._type)
 
         fd = self._socket.getsockopt(FD)
         self._notifier = QtCore.QSocketNotifier(fd, QtCore.QSocketNotifier.Read, self)
@@ -72,6 +75,9 @@ class ZmqSocket(QtCore.QObject):
         the other end as the connection is asynchronous. For more details
         check the zmq_connect(3) documentation.
         """
+        if(self._socket is None):
+            self.init_socket()
+
         if(tunnel):
             from zmq import ssh
             # If there's no ssh server listening we're gonna

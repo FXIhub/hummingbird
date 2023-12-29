@@ -29,7 +29,16 @@ class DataSource(QtCore.QObject):
         self._subscribed_titles = {}
         self._recorded_titles = {}
         self._recorder = None
-        self._data_socket = ZmqSocket(SUB, self)
+        self._data_socket = ZmqSocket(SUB, parent=None)
+
+        self.thread = QtCore.QThread()
+        # Move the data socket to its own thread to ensure it's not blocked by the GUI
+        self._data_socket.moveToThread(self.thread)
+        self.thread.started.connect(self._data_socket.init_socket)
+        self.thread.finished.connect(self._data_socket.deleteLater)
+        self.thread.start()
+        self.destroyed.connect(self.thread.quit)
+
         self.conf = conf
         self._group_structure = {}
         self._connection_timer = QtCore.QTimer()
@@ -112,6 +121,7 @@ class DataSource(QtCore.QObject):
     def _connect(self):
         """Connect to the configured backend"""
         self._ctrl_socket = ZmqSocket(REQ)
+        self._ctrl_socket.init_socket()
         addr = "tcp://%s:%d" % (self._hostname, self._port)
         self._ctrl_socket.ready_read.connect(self._get_request_reply)
         # Start the connection timeout timer, which is cleared after ready_read triggers
@@ -151,7 +161,8 @@ class DataSource(QtCore.QObject):
             self._data_port = reply[1]
             logging.debug("Data source '%s' received data_port=%s", self.name(), self._data_port)
             addr = "tcp://%s:%s" % (self._hostname, self._data_port)
-            self._data_socket.ready_read.connect(self._get_broadcast)
+            # When the data socket has data ready it will be handled by the data socket thread!
+            self._data_socket.ready_read.connect(self._get_broadcast, QtCore.Qt.DirectConnection)
             self._data_socket.connect_socket(addr, self._ssh_tunnel)
             self.parent().add_backend(self)
             # Subscribe to stuff already requested
@@ -189,7 +200,7 @@ class DataSource(QtCore.QObject):
 
     def _get_broadcast(self):
         """Receive a data package on the data socket"""
-        socket = self.sender()
+        socket = self._data_socket
         socket.blockSignals(True)
         QtCore.QCoreApplication.processEvents()
         socket.blockSignals(False)

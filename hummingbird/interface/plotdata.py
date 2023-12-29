@@ -6,7 +6,7 @@
 import numpy
 
 from .ringbuffer import RingBuffer, RingBufferStr
-
+from .Qt import QtCore
 
 class PlotData(object):
     """Stores the data associated with a given broadcast"""
@@ -23,12 +23,14 @@ class PlotData(object):
         self.ishistory = (title[:7] == 'History')
         self.recordhistory = False
         self.clear_histogram = False
+        self.mutex = QtCore.QMutex()
         if title in parent.conf:
             if('history_length' in parent.conf[title]):
                 self._maxlen = parent.conf[title]['history_length']
 
     def append(self, y, x, l):
         """Append the new data to the ringbuffers"""
+        self.mutex.lock()
         if(self._y is None):
             if(isinstance(y, numpy.ndarray)):
                 # Make sure the image ringbuffers don't take more than
@@ -44,8 +46,10 @@ class PlotData(object):
         self._x.append(x)
         self._l.append(l)
         self._num = None
+        self.mutex.unlock()
 
     def sum_over(self, y, x, l, op='sum'):
+        self.mutex.lock()
         if self._y is None or self._num is None:
             self._y = RingBuffer(1)
             self._x = RingBuffer(1)
@@ -63,9 +67,11 @@ class PlotData(object):
                 self._y._data[0] = numpy.maximum(self._y._data[0], y)
             self._x.append(x)
             self._l.append(l)
+        self.mutex.unlock()
 
     def resize(self, new_maxlen):
         """Change the capacity of the buffers"""
+        self.mutex.lock()
         if(self._y is not None):
             self._y.resize(new_maxlen)
         if(self._x is not None):
@@ -73,9 +79,11 @@ class PlotData(object):
         if(self._l is not None):
             self._l.resize(new_maxlen)
         self._maxlen = new_maxlen
+        self.mutex.unlock()
 
     def clear(self):
         """Clear the buffers"""
+        self.mutex.lock()
         if(self._y is not None):
             self._y.clear()
             self._y = None
@@ -84,6 +92,7 @@ class PlotData(object):
         if(self._l is not None):
             self._l.clear()
         self.clear_histogram = True
+        self.mutex.unlock()
 
     @property
     def title(self):
@@ -125,12 +134,17 @@ class PlotData(object):
     @property
     def nbytes(self):
         """Returns the number of bytes taken by the three buffers"""
+        self.mutex.lock()
         if(self._y is not None):
-            return self._y.nbytes + self._x.nbytes + self._y.nbytes
-        return 0
+            ret = self._y.nbytes + self._x.nbytes + self._y.nbytes
+        else:
+            ret = 0
+        self.mutex.unlock()
+        return ret
 
     def save_state(self, save_data=False):
         """Return a serialized representation of the PlotData for saving to disk"""
+        self.mutex.lock()
         pds = {}
         pds['data_source'] = [self._parent.hostname, self._parent.port, self._parent.ssh_tunnel]
         if(save_data):
@@ -141,10 +155,12 @@ class PlotData(object):
         pds['group'] = self.group
         pds['maxlen'] = self.maxlen
         pds['recordhistory'] = self.recordhistory
+        self.mutex.unlock()
         return pds
 
     def restore_state(self, state, parent):
         """Restore a previous stored state"""
+        self.mutex.lock()
         self.parent = parent
         if 'x' in state:
             self._x = RingBuffer.restore_state(state['x'])
@@ -154,3 +170,4 @@ class PlotData(object):
         self._title = state['title']
         self._maxlen = state['maxlen']
         self.recordhistory = state['recordhistory']
+        self.mutex.unlock()
