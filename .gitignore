@@ -5,6 +5,7 @@
 
 # Sphinx documentation
 docs/.build/
+_build/
 
 # bsub logging
 *.out
