@@ -35,9 +35,8 @@ class DataSource(QtCore.QObject):
         # Move the data socket to its own thread to ensure it's not blocked by the GUI
         self._data_socket.moveToThread(self.thread)
         self.thread.started.connect(self._data_socket.init_socket)
-        self.thread.finished.connect(self._data_socket.deleteLater)
         self.thread.start()
-        self.destroyed.connect(self.thread.quit)
+        self._data_socket.closed.connect(self.thread.quit)
 
         self.conf = conf
         self._group_structure = {}

@@ -302,8 +302,6 @@ class GUI(QtGui.QMainWindow, Ui_mainWindow):
         ds_settings = []
         for ds in self._data_sources:
             ds_settings.append([ds.hostname, ds.port, ds.ssh_tunnel, ds.conf])
-            # Exit the thread associated with the data source
-            ds.thread.exit()
         s.setValue("dataSources", ds_settings)
         self.plotdata_widget.save_state(s)
         s.setValue("plotData", self.plotdata_widget.save_plotdata())

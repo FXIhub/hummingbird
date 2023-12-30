@@ -18,10 +18,12 @@ class ZmqSocket(QtCore.QObject):
     """Wrapper around a zmq socket. Provides Qt signal handling"""
     ready_read = QtCore.Signal()
     ready_write = QtCore.Signal()
+    closed = QtCore.Signal()
     def __init__(self, _type, parent=None, **kwargs):
         QtCore.QObject.__init__(self, parent, **kwargs)
         self._type = _type
         self._socket = None
+        QtCore.QCoreApplication.instance().aboutToQuit.connect(self.close)
 
     def init_socket(self):
         ctx = ZmqContext.instance()
@@ -33,9 +35,13 @@ class ZmqSocket(QtCore.QObject):
         self._socket.setsockopt(RCVHWM, 100)
         self.filters = []
 
-    def __del__(self):
-        """Close socket on deletion"""
-        self._socket.close()
+    def close(self):
+        """Close socket"""
+        try:
+            self._socket.close()
+        except:
+            pass
+        self.closed.emit()
 
     def set_identity(self, name):
         """Set zmq socket identity"""
