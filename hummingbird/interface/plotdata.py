@@ -112,9 +112,6 @@ class PlotData(object):
         self.mutex.unlock()
         return ret[0], ret[1], ret[2]
 
-    # FM : Todo. Only give access to y,x,l in one go!
-
-
     @property
     def maxlen(self):
         """Gives access to maximum size of the buffers"""
