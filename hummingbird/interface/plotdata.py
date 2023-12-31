@@ -7,6 +7,7 @@ import numpy
 
 from .ringbuffer import RingBuffer, RingBufferStr
 from .Qt import QtCore
+import copy
 
 class PlotData(object):
     """Stores the data associated with a given broadcast"""
@@ -104,20 +105,15 @@ class PlotData(object):
         """Returns the plot group"""
         return self._group
 
-    @property
-    def y(self):
-        """Gives access to the y buffer"""
-        return self._y
+    def snapshot(self):
+        """Returns a copy of the x,y and l ringbuffers"""
+        self.mutex.lock()
+        ret = (copy.deepcopy(self._x), copy.deepcopy(self._y), copy.deepcopy(self._l))
+        self.mutex.unlock()
+        return ret[0], ret[1], ret[2]
 
-    @property
-    def x(self):
-        """Gives access to the x buffer"""
-        return self._x
+    # FM : Todo. Only give access to y,x,l in one go!
 
-    @property
-    def l(self):
-        """Gives access to the l buffer"""
-        return self._l
 
     @property
     def maxlen(self):

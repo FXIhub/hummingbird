@@ -192,9 +192,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
         # There might be no data yet, so no plotdata
         if(source is not None and title in source.plotdata and
-           source.plotdata[title].x is not None):
+           len(source.plotdata[title]) > 0):
             pd = source.plotdata[title]
-            dt = datetime.datetime.fromtimestamp(pd.x[index])
+            dt = datetime.datetime.fromtimestamp(pd._x[index])
             return dt
         else:
             return datetime.datetime.now()
@@ -296,7 +296,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
         
         for source, title in self.source_and_titles():
             
-            if(title not in source.plotdata or source.plotdata[title].y is None):
+            if(title not in source.plotdata or len(source.plotdata[title]) == 0):
                 continue
             pd = source.plotdata[title]
             titlebar.append(pd.title)
@@ -318,13 +318,13 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 symbol_pen = color
                 symbol_brush = color
                 symbol_size = 3
-            
+            pd_x,pd_y,pd_l = pd.snapshot()
             if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
-                y = numpy.array(pd.y, copy=False)
+                y = numpy.array(pd_y, copy=False)
                 self.last_vector_y = {}
                 self.last_vector_x = None
             elif(source.data_type[title] == 'tuple'):
-                y = pd.y[:,1]
+                y = pd_y[:,1]
                 symbol_brush = (255,255,255,120)
                 symbol_pen = None
                 symbol_size = 8
@@ -349,16 +349,16 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 self.actionPoints.setChecked(1)
                 self.actionLines.setChecked(0)
                 self.colorbar.translate(self.geometry().width() - self.colorbar.zone[2], 20.0)
-                y = pd.y[:,1]
-                z = pd.y[:,2]
+                y = pd_y[:,1]
+                z = pd_y[:,2]
                 symbol_brush = self.colormap.map(z, 'qcolor')
                 symbol_pen   = None
                 symbol_size  = 8
             elif source.data_type[title] == 'vector':
                 if(self.current_index == -1):
-                    y = numpy.array(pd.y[self.current_index % pd.y.shape[0]], copy=False)
-                    self.last_vector_y[title] = numpy.array(pd.y)
-                    self.last_vector_x = numpy.array(pd.x)
+                    y = numpy.array(pd_y[self.current_index % pd_y.shape[0]], copy=False)
+                    self.last_vector_y[title] = numpy.array(pd_y)
+                    self.last_vector_x = numpy.array(pd_x)
                 else:
                     y = self.last_vector_y[title][self.current_index % self.last_vector_y[title].shape[0]]
             elif source.data_type[title] == 'histogram':
@@ -375,7 +375,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 
             x = None
             if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
-                x = numpy.array(pd.x, copy=False)
+                x = numpy.array(pd_x, copy=False)
                 sorted_x = numpy.argsort(x)
                 x = x[sorted_x]
                 y = y[sorted_x]
@@ -384,7 +384,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     y = utils.array.runningMean(y, min(y.size-1,wl))
                     x = x[-y.size:]
             elif(source.data_type[title] == 'tuple') or (source.data_type[title] == 'triple'):
-                x = pd.y[:,0]
+                x = pd_y[:,0]
             elif(source.data_type[title] == 'vector'):
                 if len(y.shape) == 2:
                     x = y[0,:]
@@ -395,7 +395,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                         xmax = conf['xmax']
                     else:
                         xmin = 0
-                        xmax = source.plotdata[title].y.shape[-1] + xmin
+                        xmax = pd_y.shape[-1] + xmin
                     x = numpy.linspace(xmin,xmax, y.shape[-1])
             if(self._settings_diag.histogram.isChecked()):
                 bins = int(self._settings_diag.histBins.text())
@@ -417,7 +417,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 histoangle = 90
                 self._configure_axis(source, title, hist=True)
             elif(source.data_type[title] == "histogram"):
-                ringbuffer = pd.y
+                ringbuffer = pd_y
                 # Clear histogram if asked for
                 if pd.clear_histogram:
                     self._histograms[title].reset()
@@ -426,7 +426,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 x = self._histograms[title].values_x
                 y = self._histograms[title].values_y
             elif(source.data_type[title] == "normalized_histogram"):
-                ringbuffer = pd.y
+                ringbuffer = pd_y
                 # Clear histogram if asked for
                 print("clear_histograms = {0}".format(pd.clear_histograms))
                 if pd.clear_histograms:
@@ -442,7 +442,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
 
             if self._settings_diag.showMainLine.isChecked():
                 plt = self.plot.plot(x=x, y=y, clear=False, pen=pen, symbol=symbol,
-                                 symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
+                                     symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
                 self.legend.addItem(plt, pd.title)
 
             if 'hline' in conf and conf['hline'] is not None:
@@ -480,10 +480,10 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 for trend in ['mean', 'median', 'std', 'min', 'max']:
                     if eval('self._settings_diag.trendVector_%s.isChecked()' %trend):
                         _trend = getattr(numpy, trend)
-                        if len(pd.y.shape) == 3:
-                            ytrend = _trend(numpy.array(pd.y[:,1,:], copy=False), axis=0)
+                        if len(pd_y.shape) == 3:
+                            ytrend = _trend(numpy.array(pd_y[:,1,:], copy=False), axis=0)
                         else:
-                            ytrend = _trend(numpy.array(pd.y, copy=False), axis=0)
+                            ytrend = _trend(numpy.array(pd_y, copy=False), axis=0)
                         plt_trend = self.plot.plot(x=x, y=ytrend, clear=False, pen=self.line_colors[color_index % len(self.line_colors)], symbol=symbol,
                                                    symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
                         self.legend.addItem(plt_trend, trend)

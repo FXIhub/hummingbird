@@ -121,10 +121,10 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
         # There might be no data yet, so no plotdata
         if(source is not None and title in source.plotdata and
-           source.plotdata[title].x is not None):
+           source.plotdata[title]._x is not None):
             pd = source.plotdata[title]
-            dt = datetime.datetime.fromtimestamp(pd.x[index])
-            msg = pd.l[index]
+            dt = datetime.datetime.fromtimestamp(pd._x[index])
+            msg = pd._l[index]
         else:
             dt = datetime.datetime.now()
             msg = ''
@@ -411,12 +411,12 @@ class ImageWindow(DataWindow, Ui_imageWindow):
 
     def replot(self):
         """Replot data"""
-
         for source, title in self.source_and_titles():
             if(title not in source.plotdata):
                 continue
             pd = source.plotdata[title]
-            if(pd.y is None or len(pd.y) == 0):
+            pd_x,pd_y,pd_l = pd.snapshot()
+            if(pd_y is None or len(pd_y) == 0):
                 continue
             
             conf = source.conf[title]
@@ -464,7 +464,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 hmax   = img.shape[1]
                 length = pd.maxlen
             else:
-                img = numpy.array(pd.y, copy=False)
+                img = numpy.array(pd_y, copy=False)
             self._configure_axis(source, title)
             transform = self._image_transform(img, source, title)
             
