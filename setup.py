@@ -16,38 +16,31 @@ with open(os.path.join(cwd, "hummingbird/__init__.py")) as f:
     version = match.group(1)
 
 
-if sys.version_info >= (3, 0):
-    install_requires = [
-        'h5py',
-        'h5writer',
-        'mpi4py',
-        'numpy',
-        'pexpect',
-        'Pint',
-        'PyQt5',                                                                                                                                                       
-        'pyqtgraph',
-        'pytz',                                                                                                                                                        
-        'pyzmq',
-        'scipy',
-        'tornado',
-   ]
-else:
-    install_requires = [
-        "h5py<3",
-        "h5writer",
-        "mpi4py",
-        "numpy<1.17",
-        "pexpect",
-        "Pint<=0.9",
-        "PySide",
-        "pyqtgraph",
-        "pytz",
-        "pyzmq<20",
-        "scipy<1.3",
-        "tornado<6",
-        "msgpack<=1.0.2",
-    ]
-    
+install_requires = [
+    'h5py',
+    'h5writer',
+    'mpi4py',
+    'numpy',
+    'pexpect',
+    'Pint',
+    'PyQt5',                                                                                                                                                       
+    'pyqtgraph',
+    'pytz',                                                                                                                                                        
+    'pyzmq',
+    'scipy',
+    'tornado',
+]
+
+   
+# Check if pyqt5 is already installed, whether by pip or some other manager.
+# If so, avoid trying to install it again.
+# Handles the issue raised in https://github.com/ContinuumIO/anaconda-issues/issues/1554
+try:
+    import PyQt5
+    install_requires.remove('PyQt5')
+except ImportError:
+    pass
+ 
 
 setup(
     name="Hummingbird-XFEL",
@@ -80,7 +73,7 @@ setup(
             "karabo-bridge",
         ]
     },
-    python_requires='>=2.7',
+    python_requires='>=3.8',
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
@@ -90,7 +83,6 @@ setup(
         'License :: OSI Approved :: BSD License',
         'Operating System :: POSIX :: Linux',
         'Operating System :: MacOS',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Topic :: Scientific/Engineering :: Information Analysis',
         'Topic :: Scientific/Engineering :: Physics',
