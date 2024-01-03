@@ -67,7 +67,6 @@ setup(
         ],
         "test": [
             "pytest",
-            "subprocess32;python_version<'3.0'",
         ],
         "euxfel": [
             "karabo-bridge",
