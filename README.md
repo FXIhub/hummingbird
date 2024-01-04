@@ -1,4 +1,4 @@
-[![pypi package](https://img.shields.io/pypi/v/hummingbird-xfel.svg)](https://pypi.python.org/pypi/Hummingbird-XFEL) [![Test Status](https://github.com/FXIhub/hummingbird/workflows/test/badge.svg)](https://github.com/FXIhub/hummingbird/actions?query=workflow%3A%22test%22) [![Documentation Status](https://readthedocs.org/projects/spidocs/badge/?version=latest)](http://fxihub.github.io/hummingbird/) [![codecov](https://codecov.io/gh/FXIhub/hummingbird/branch/master/graph/badge.svg)](https://codecov.io/gh/FXIhub/hummingbird)
+[![pypi package](https://img.shields.io/pypi/v/hummingbird-xfel.svg)](https://pypi.python.org/pypi/Hummingbird-XFEL) [![Test Status](https://github.com/FXIhub/hummingbird/workflows/test/badge.svg)](https://github.com/FXIhub/hummingbird/actions?query=workflow%3A%22test%22) [![Documentation Status](https://github.com/FXIHub/hummingbird/workflows/docs/badge.svg)](http://fxihub.github.io/hummingbird/) [![codecov](https://codecov.io/gh/FXIhub/hummingbird/branch/master/graph/badge.svg)](https://codecov.io/gh/FXIhub/hummingbird)
 
 
 # Hummingbird
