@@ -1,6 +1,32 @@
 Installation
 ============
 
+**From PyPi** - The simplest is to install hummingbird directly from pypi:
+
+::
+   
+      $ pip install hummingbird
+
+
+**From Source** - If you wish to install from source, you can do so by cloning the git repository:
+
+::
+
+   $ git clone https://github.com/FXIhub/hummingbird.git
+
+And then use `pip` from inside the cloned directory:
+
+::
+
+   $ pip install -e .
+
+
+**Running Hummingbird** - After a successful installation, you will be able to start `hummingbird` from anywhere on your system, e.g.:
+
+::
+
+   $ hummingbird -i
+
 Supported Operating Systems
 ---------------------------
 
@@ -10,8 +36,8 @@ Supported Operating Systems
 Requirements
 ------------
 
-* `Python 2.7 or 3.4 <http://python.org>`_ 
-* `PyQt4, PyQt5 <https://riverbankcomputing.com/software/pyqt/intro>`_ or `PySide <https://wiki.qt.io/PySide>`_
+* `Python <http://python.org>`_  >= 3.8
+* `PyQt5 <https://riverbankcomputing.com/software/pyqt/>`_
 * `PyQtGraph <http://www.pyqtgraph.org/>`_ >= 0.10
 * `Numpy <http://www.numpy.org>`_
 * `Scipy <http://www.scipy.org>`_
@@ -21,34 +47,11 @@ Requirements
 * `h5py <http://h5py.org>`_
 * `h5writer <https://pypi.python.org/pypi/h5writer>`_
 * `pint <http://pint.readthedocs.io/en/latest/>`_
+* `pytz <https://github.com/stub42/pytz/>`_
+
 
 Requirements for testing
 ------------------------
-* `subprocess32 <https://pypi.python.org/pypi/subprocess32>`_ (only for python 2.7)
 * `pytest <https://pypi.python.org/pypi/pytest>`_
 
 Some of the `more advanced examples <advanced_examples.html>`_ require an installation of `libspimage <https://github.com/FXIhub/libspimage>`_ and/or `condor <https://github.com/FXIhub/condor>`_.
-
-Downloading the Source Code
----------------------------
-
-To be able to use Hummingbird you first need to obtain the code
-To do that just clone the git repository:
-
-::
-
-   $ git clone https://github.com/FXIhub/hummingbird.git
-
-There is no need for any other installation steps.
-
-Installing the requirements
----------------------------
-
-The simplest way to install the requirements is to use `pip`:
-
-::
-
-   $ pip install -r requirements.txt
-
-After this command executes successfully, you will be able to start `hummingbird.py`
-
