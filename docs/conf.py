@@ -19,7 +19,7 @@ import os
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
-sys.path.insert(0, os.path.abspath('../src'))
+sys.path.insert(0, os.path.abspath('../'))
 
 # Make sure NOT to write bytecode. ReadTheDocs does not clean the build directory
 # before every checkout so leftover pyc files can cause import problems if they
@@ -27,19 +27,21 @@ sys.path.insert(0, os.path.abspath('../src'))
 sys.dont_write_bytecode = True
 
 import glob
-files = glob.glob('../src/analysis/*.pyc')
-files += glob.glob('../src/backend/*.pyc')
-files += glob.glob('../src/interface/*.pyc')
-files += glob.glob('../src/ipc/*.pyc')
-files += glob.glob('../src/plotting/*.pyc')
-files += glob.glob('../src/utils/*.pyc')
+files = glob.glob('../hummingbird/*.pyc')
+files = glob.glob('../hummingbird/analysis/*.pyc')
+files += glob.glob('../hummingbird/backend/*.pyc')
+files += glob.glob('../hummingbird/interface/*.pyc')
+files += glob.glob('../hummingbird/interface/ui/*.pyc')
+files += glob.glob('../hummingbird/ipc/*.pyc')
+files += glob.glob('../hummingbird/plotting/*.pyc')
+files += glob.glob('../hummingbird/utils/*.pyc')
 for f in files:
     os.remove(f)
 
 # Try to use mock modules to be able to build documentation even it's not
 # possible to import certain modules
 try:
-    from mock import Mock as MagicMock
+    from unittest.mock import Mock as MagicMock
 
     class Mock(MagicMock):
         """
@@ -51,8 +53,10 @@ try:
         @classmethod
         def __getattr__(cls, name):
             return Mock()
+#        def __iter__(self):
+#            return iter([])
 
-    MOCK_MODULES = ['PyQt4','psana','sip','numpy', 'numpy.random','scipy','scipy.sparse', 'zmq','zmq.eventloop','zmq.eventloop.zmqstream','pyqtgraph', 'pytz', 'h5py']
+    MOCK_MODULES = ['psana', 'karabo_bridge', 'sfdata', 'camp', 'camp.pah', 'camp.pah.h5filedataaccess', 'camp.pah.beamtimedaqaccess']
 
     sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
 except ImportError:
@@ -87,7 +91,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Hummingbird'
-copyright = u'2015, FXIhub'
+import datetime
+copyright = u'2015-%d, FXIhub' % (datetime.date.today().year)
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

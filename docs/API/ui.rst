@@ -1,7 +1,7 @@
 ui
 ==
 
-.. automodule:: interface.ui
+.. automodule:: hummingbird.interface.ui
 
 .. autoclass:: hummingbird.interface.ui.DataWindow
      :members:

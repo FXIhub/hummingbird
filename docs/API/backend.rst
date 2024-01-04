@@ -30,3 +30,28 @@ hummingbird.backend.lcls
     :members:
     :undoc-members:
     :show-inheritance:
+
+
+hummingbird.backend.euxfel
+--------------------------
+
+.. automodule:: hummingbird.backend.euxfel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+hummingbird.backend.flash
+-------------------------
+
+.. automodule:: hummingbird.backend.flash
+    :members:
+    :undoc-members:
+    :show-inheritance:    
+
+hummingbird.backend.swissfel
+----------------------------
+
+.. automodule:: hummingbird.backend.swissfel
+    :members:
+    :undoc-members:
+    :show-inheritance:
