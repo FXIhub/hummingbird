@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Basic examples &mdash; Hummingbird 1.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/documentation_options.js?v=c55cb9cb"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="LCLS examples" href="lcls_examples.html" />
+    <link rel="prev" title="Configuration" href="configuration.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Hummingbird
+          </a>
+              <div class="version">
+                1.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Basic examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#dummy-py">dummy.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#simulation-py">simulation.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#detector-py">detector.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hitfinding-py">hitfinding.py</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#correlation-py">correlation.py</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="lcls_examples.html">LCLS examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_examples.html">Advanced examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API/modules.html">Reference API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">How to contribute?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Hummingbird</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Basic examples</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/basic_examples.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="basic-examples">
+<h1>Basic examples<a class="headerlink" href="#basic-examples" title="Link to this heading">¶</a></h1>
+<section id="dummy-py">
+<h2>dummy.py<a class="headerlink" href="#dummy-py" title="Link to this heading">¶</a></h2>
+<p>This is the most basic and simple example which generates randomized 256x256 images as fake detector events showing up as <code class="docutils literal notranslate"><span class="pre">evt['photonPixelDetectors']['CCD']</span></code> for virtual events created at a repetition rate of 10 Hz:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Import analysis/plotting modules</span>
+<span class="kn">from</span> <span class="nn">hummingbird</span> <span class="kn">import</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">plotting</span>
+
+<span class="c1"># Set new random seed</span>
+<span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">()</span>
+
+<span class="c1"># Specify the facility</span>
+<span class="n">state</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">state</span><span class="p">[</span><span class="s1">&#39;Facility&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Dummy&#39;</span>
+
+<span class="c1"># Create a dummy facility</span>
+<span class="n">state</span><span class="p">[</span><span class="s1">&#39;Dummy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The event repetition rate of the dummy facility [Hz]</span>
+    <span class="s1">&#39;Repetition Rate&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="c1"># Dictionary of data sources</span>
+    <span class="s1">&#39;Data Sources&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># The name of the data source. </span>
+        <span class="s1">&#39;CCD&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="c1"># A function that will generate the data for every event</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="k">lambda</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">rand</span><span class="p">(</span><span class="mi">256</span><span class="p">,</span><span class="mi">256</span><span class="p">),</span>
+            <span class="c1"># The units to be used</span>
+            <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;ADU&#39;</span><span class="p">,</span>     
+            <span class="c1"># The name of the category for this data source.</span>
+            <span class="c1"># All data sources are aggregated by type, which is the key</span>
+            <span class="c1"># used when asking for them in the analysis code.</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;photonPixelDetectors&#39;</span>
+        <span class="p">}</span>        
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1"># This function is called for every single event</span>
+<span class="c1"># following the given recipy of analysis</span>
+<span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+
+    <span class="c1"># Processin rate [Hz]</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printProcessingRate</span><span class="p">()</span>
+
+    <span class="c1"># Visualize detector image</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">plotImage</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;photonPixelDetectors&#39;</span><span class="p">][</span><span class="s1">&#39;CCD&#39;</span><span class="p">],</span> <span class="n">send_rate</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Notice that facility and data source is defined using the <code class="docutils literal notranslate"><span class="pre">state</span></code> variable. For every event, the current processing rate is printed and an image with the current virtual detector image is sent to the interface. Running this example in the backend (<code class="docutils literal notranslate"><span class="pre">hummingbird.py</span> <span class="pre">-b</span> <span class="pre">examples/basic/dummy.py</span></code>) we can start the frontend (<code class="docutils literal notranslate"><span class="pre">hummingbird.py</span> <span class="pre">-i</span></code>) in a separate shell (or even on a separate machine) and connect it to the backend by clicking on the left-most button:</p>
+<a class="reference internal image-reference" href="_images/dummy_connecting.jpg"><img alt="_images/dummy_connecting.jpg" class="align-center" src="_images/dummy_connecting.jpg" style="width: 99%;" /></a>
+<p>Once we are connecting, the virtual CCD shows up as a data source. After opening an image window (4th button from the left), we can subscribe to the CCD (menu <strong>Data sources</strong>) and the image that we were sending from the backend is displayed at a refreshing rate of 1 second:</p>
+<a class="reference internal image-reference" href="_images/dummy_imagewindow1.jpg"><img alt="_images/dummy_imagewindow1.jpg" src="_images/dummy_imagewindow1.jpg" style="width: 49.5%;" /></a>
+<a class="reference internal image-reference" href="_images/dummy_imagewindow2.jpg"><img alt="_images/dummy_imagewindow2.jpg" src="_images/dummy_imagewindow2.jpg" style="width: 49.5%;" /></a>
+</section>
+<hr class="docutils" />
+<section id="simulation-py">
+<h2>simulation.py<a class="headerlink" href="#simulation-py" title="Link to this heading">¶</a></h2>
+<p>For the next example, we replace the random detector images with CCD images that simulate diffraction from an object produced at a given hit rate (here 50%):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import analysis/plotting/simulation modules</span>
+<span class="kn">from</span> <span class="nn">hummingbird</span> <span class="kn">import</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">plotting</span><span class="p">,</span> <span class="n">simulation</span>
+
+<span class="c1"># Simulate diffraction data  </span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Simulation</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">hitrate</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># Specify the facility</span>
+<span class="n">state</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">state</span><span class="p">[</span><span class="s1">&#39;Facility&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Dummy&#39;</span>
+
+<span class="c1"># Create a dummy facility</span>
+<span class="n">state</span><span class="p">[</span><span class="s1">&#39;Dummy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The event repetition rate of the dummy facility [Hz]</span>
+    <span class="s1">&#39;Repetition Rate&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="c1"># Specify simulation</span>
+    <span class="s1">&#39;Simulation&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="p">,</span>
+    <span class="c1"># Dictionary of data sources</span>
+    <span class="s1">&#39;Data Sources&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># Data from a virtual diffraction detector</span>
+        <span class="s1">&#39;CCD&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="c1"># Fetch diffraction data from the simulation</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_pattern</span><span class="p">,</span>
+            <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;ADU&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;photonPixelDetectors&#39;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1"># This function is called for every single event</span>
+<span class="c1"># following the given recipy of analysis</span>
+<span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+
+    <span class="c1"># Processing rate [Hz]</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printProcessingRate</span><span class="p">()</span>
+
+    <span class="c1"># Visualize detector image</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">plotImage</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;photonPixelDetectors&#39;</span><span class="p">][</span><span class="s1">&#39;CCD&#39;</span><span class="p">],</span> <span class="n">vmin</span><span class="o">=-</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">40</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Following the same procedure as for <code class="docutils literal notranslate"><span class="pre">dummy.py</span></code> we can follow the hits (left) and misses (right) show up in the interface:</p>
+<a class="reference internal image-reference" href="_images/simulation_imagewindow1.jpg"><img alt="_images/simulation_imagewindow1.jpg" src="_images/simulation_imagewindow1.jpg" style="width: 49.5%;" /></a>
+<a class="reference internal image-reference" href="_images/simulation_imagewindow2.jpg"><img alt="_images/simulation_imagewindow2.jpg" src="_images/simulation_imagewindow2.jpg" style="width: 49.5%;" /></a>
+</section>
+<hr class="docutils" />
+<section id="detector-py">
+<h2>detector.py<a class="headerlink" href="#detector-py" title="Link to this heading">¶</a></h2>
+<p>In order to add more analysis of the detector we print some statistics, count the number of photons and send a history of the photon counts and per-event detector histograms along with the CCD image:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import analysis/plotting/simulation modules</span>
+<span class="kn">from</span> <span class="nn">hummingbird</span> <span class="kn">import</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">plotting</span><span class="p">,</span> <span class="n">simulation</span>
+
+<span class="c1"># Simulate diffraction data  </span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Simulation</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">hitrate</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># Specify the facility</span>
+<span class="n">state</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">state</span><span class="p">[</span><span class="s1">&#39;Facility&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Dummy&#39;</span>
+
+<span class="c1"># Create a dummy facility</span>
+<span class="n">state</span><span class="p">[</span><span class="s1">&#39;Dummy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The event repetition rate of the dummy facility [Hz]</span>
+    <span class="s1">&#39;Repetition Rate&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="c1"># Specify simulation</span>
+    <span class="s1">&#39;Simulation&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="p">,</span>
+    <span class="c1"># Dictionary of data sources</span>
+    <span class="s1">&#39;Data Sources&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># Data from a virtual diffraction detector</span>
+        <span class="s1">&#39;CCD&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="c1"># Fetch diffraction data from the simulation</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_pattern</span><span class="p">,</span>
+            <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;ADU&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;photonPixelDetectors&#39;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1"># Configuration for histogram plot</span>
+<span class="n">histogramCCD</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;hmin&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;hmax&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="s1">&#39;bins&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+    <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s2">&quot;Nr of photons&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;history&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">}</span>
+
+<span class="c1"># This function is called for every single event</span>
+<span class="c1"># following the given recipy of analysis</span>
+<span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+
+    <span class="c1"># Processing rate [Hz]</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printProcessingRate</span><span class="p">()</span>
+
+    <span class="c1"># Detector statistics</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">pixel_detector</span><span class="o">.</span><span class="n">printStatistics</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">])</span>
+    
+    <span class="c1"># Count Nr. of Photons</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">pixel_detector</span><span class="o">.</span><span class="n">totalNrPhotons</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">][</span><span class="s2">&quot;CCD&quot;</span><span class="p">],</span> <span class="n">outkey</span><span class="o">=</span><span class="s2">&quot;nrPhotons&quot;</span><span class="p">)</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistory</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;nrPhotons&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Nr of photons / frame&#39;</span><span class="p">,</span> <span class="n">history</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+
+    <span class="c1"># Detector histogram</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistogram</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">][</span><span class="s2">&quot;CCD&quot;</span><span class="p">],</span> <span class="o">**</span><span class="n">histogramCCD</span><span class="p">)</span>
+ 
+    <span class="c1"># Detector images</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">plotImage</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">][</span><span class="s2">&quot;CCD&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>In the interface, we can now open a new line plot (3rd button from the left) and display the history of the photon counts by subscribing to the <code class="docutils literal notranslate"><span class="pre">History(analysis/nrPhotons</span> <span class="pre">-</span> <span class="pre">CCD)</span></code> data source:</p>
+<a class="reference internal image-reference" href="_images/detector_nrphotons.jpg"><img alt="_images/detector_nrphotons.jpg" class="align-center" src="_images/detector_nrphotons.jpg" style="width: 99%;" /></a>
+<p>The depth of the history is defined by the length of the buffer, which can be resized in the main window. To the per-event histogram of the CCD we can subscribe both from an image plot (left panel) and from a line plot (right panel):</p>
+<a class="reference internal image-reference" href="_images/detector_histogram.jpg"><img alt="_images/detector_histogram.jpg" class="align-center" src="_images/detector_histogram.jpg" style="width: 99%;" /></a>
+<p>While the line plot shows the current histogram of the CCD, the image plot shows the history of the most recent detector histograms.</p>
+</section>
+<hr class="docutils" />
+<section id="hitfinding-py">
+<h2>hitfinding.py<a class="headerlink" href="#hitfinding-py" title="Link to this heading">¶</a></h2>
+<p>In the next example, we add htifinding to our analysis pipeline. We use a simply lit pixel counter given thresholds for the definition of a photon (<code class="docutils literal notranslate"><span class="pre">aduThreshold=10</span></code>) and for the definition of a hit (<code class="docutils literal notranslate"><span class="pre">hitscoreThreshold=100</span></code>):</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span>
+<span class="c1"># Import analysis/plotting/simulation modules</span>
+<span class="kn">from</span> <span class="nn">hummingbird</span> <span class="kn">import</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">plotting</span><span class="p">,</span> <span class="n">simulation</span>
+
+<span class="c1"># Simulate diffraction data  </span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Simulation</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">hitrate</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># Specify the facility</span>
+<span class="n">state</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">state</span><span class="p">[</span><span class="s1">&#39;Facility&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Dummy&#39;</span>
+
+<span class="c1"># Create a dummy facility</span>
+<span class="n">state</span><span class="p">[</span><span class="s1">&#39;Dummy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The event repetition rate of the dummy facility [Hz]</span>
+    <span class="s1">&#39;Repetition Rate&#39;</span> <span class="p">:</span> <span class="mi">20</span><span class="p">,</span>
+    <span class="c1"># Specify simulation</span>
+    <span class="s1">&#39;Simulation&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="p">,</span>
+    <span class="c1"># Dictionary of data sources</span>
+    <span class="s1">&#39;Data Sources&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># Data from a virtual diffraction detector</span>
+        <span class="s1">&#39;CCD&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="c1"># Fetch diffraction data from the simulation</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_pattern</span><span class="p">,</span>
+            <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;ADU&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;photonPixelDetectors&#39;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1"># This function is called for every single event</span>
+<span class="c1"># following the given recipy of analysis</span>
+<span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+
+    <span class="c1"># Processing rate [Hz]</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printProcessingRate</span><span class="p">()</span>
+
+    <span class="c1"># Simple hit finding (counting the number of lit pixels)</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">hitfinding</span><span class="o">.</span><span class="n">countLitPixels</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">][</span><span class="s2">&quot;CCD&quot;</span><span class="p">],</span> <span class="n">aduThreshold</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">hitscoreThreshold</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="c1"># Extract boolean (hit or miss)</span>
+    <span class="n">hit</span> <span class="o">=</span> <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;litpixel: isHit&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+    
+    <span class="c1"># Compute the hitrate</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">hitfinding</span><span class="o">.</span><span class="n">hitrate</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">hit</span><span class="p">,</span> <span class="n">history</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
+    
+    <span class="c1"># Plot the hitscore</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistory</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;litpixel: hitscore&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Nr. of lit pixels&#39;</span><span class="p">,</span> <span class="n">hline</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s2">&quot;A&quot;</span><span class="p">)</span>
+
+    <span class="c1"># Plot the hitrate</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistory</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;hitrate&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Hit rate [%]&#39;</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s2">&quot;B&quot;</span><span class="p">)</span>
+     
+    <span class="c1"># Visualize detector image of hits</span>
+    <span class="k">if</span> <span class="n">hit</span><span class="p">:</span>
+        <span class="n">plotting</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">plotImage</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">][</span><span class="s2">&quot;CCD&quot;</span><span class="p">],</span> <span class="n">vmin</span><span class="o">=-</span><span class="mi">10</span><span class="p">,</span> <span class="n">vmax</span><span class="o">=</span><span class="mi">40</span><span class="p">,</span> <span class="n">group</span><span class="o">=</span><span class="s2">&quot;Detectors&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>As compared to previos examples, we are plotting the CCD image only for hits. We are also sending history plots of hitscore and hitrate. The former can be very useful for finding the correct thresholds. When changing the threshold in the configuration file, there is no need to restart the backend. We can simply reload the configuration using the reload button (right-most button). Having all plots connected, the frontend looks like this:</p>
+<a class="reference internal image-reference" href="_images/hitfinding.jpg"><img alt="_images/hitfinding.jpg" class="align-center" src="_images/hitfinding.jpg" style="width: 99%;" /></a>
+</section>
+<hr class="docutils" />
+<section id="correlation-py">
+<h2>correlation.py<a class="headerlink" href="#correlation-py" title="Link to this heading">¶</a></h2>
+<p>In the last example, we show how it is possible to correlate and compare different parameters. Therefore, we first add more virtual data to our simulation: randomzied pulse energies and (x,y) injector positions. Along with plotting the history of pulse energies and plotting the correlation of pulse energy vs. hitscore as a scatter plot, we populate a map of averaged hitrates as a function the (x,y) injector position tuple:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># Import analysis/plotting/simulation modules</span>
+<span class="kn">from</span> <span class="nn">hummingbird</span> <span class="kn">import</span> <span class="n">analysis</span><span class="p">,</span> <span class="n">plotting</span><span class="p">,</span> <span class="n">simulation</span>
+
+<span class="c1"># Simulate diffraction data  </span>
+<span class="n">sim</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Simulation</span><span class="p">()</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">hitrate</span> <span class="o">=</span> <span class="mf">0.5</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">sigma</span> <span class="o">=</span> <span class="mi">1</span>
+
+<span class="c1"># Specify the facility</span>
+<span class="n">state</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">state</span><span class="p">[</span><span class="s1">&#39;Facility&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;Dummy&#39;</span>
+
+<span class="c1"># Create a dummy facility</span>
+<span class="n">state</span><span class="p">[</span><span class="s1">&#39;Dummy&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="c1"># The event repetition rate of the dummy facility [Hz]</span>
+    <span class="s1">&#39;Repetition Rate&#39;</span> <span class="p">:</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="c1"># Specify simulation</span>
+    <span class="s1">&#39;Simulation&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="p">,</span>
+    <span class="c1"># Dictionary of data sources</span>
+    <span class="s1">&#39;Data Sources&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="c1"># Data from a virtual diffraction detector</span>
+        <span class="s1">&#39;CCD&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="c1"># Fetch diffraction data from the simulation</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_pattern</span><span class="p">,</span>
+            <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;ADU&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;photonPixelDetectors&#39;</span>
+        <span class="p">},</span>
+        <span class="c1"># Data from a virutal pulse energy detector</span>
+        <span class="s1">&#39;pulseEnergy&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="c1"># Fetch pulse energy valus from the simulation</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_pulse_energy</span><span class="p">,</span>
+            <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;J&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;pulseEnergies&#39;</span>
+        <span class="p">},</span>
+        <span class="c1"># Data from a virutal injector motor</span>
+        <span class="s1">&#39;injectorX&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="c1"># Fetch injector motor valus (x) from the simulation</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_injector_x</span><span class="p">,</span>
+            <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;parameters&#39;</span>
+        <span class="p">},</span>
+        <span class="c1"># Data from a virutal injector motor</span>
+        <span class="s1">&#39;injectorY&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="c1"># Fetch injector motor valus (y) from the simulation</span>
+            <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_injector_y</span><span class="p">,</span>
+            <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;parameters&#39;</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="c1"># Configuration for hitrate meanmap plot</span>
+<span class="n">hitmapParams</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;xmin&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+    <span class="s1">&#39;xmax&#39;</span><span class="p">:</span><span class="mf">1e-6</span><span class="p">,</span>
+    <span class="s1">&#39;ymin&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">,</span>
+    <span class="s1">&#39;ymax&#39;</span><span class="p">:</span><span class="mf">1e-6</span><span class="p">,</span>
+    <span class="s1">&#39;xbins&#39;</span><span class="p">:</span><span class="mi">10</span><span class="p">,</span>
+    <span class="s1">&#39;ybins&#39;</span><span class="p">:</span><span class="mi">10</span>
+<span class="p">}</span>
+
+<span class="c1"># This function is called for every single event</span>
+<span class="c1"># following the given recipy of analysis</span>
+<span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+    
+    <span class="c1"># Processing rate [Hz]</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printProcessingRate</span><span class="p">()</span>
+
+    <span class="c1"># Simple hit finding (counting the number of lit pixels)</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">hitfinding</span><span class="o">.</span><span class="n">countLitPixels</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">][</span><span class="s2">&quot;CCD&quot;</span><span class="p">],</span>
+                                       <span class="n">aduThreshold</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">hitscoreThreshold</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+    <span class="c1">#analysis.beamline.averagePulseEnergy(evt, evt[&quot;pulseEnergies&quot;])</span>
+    
+    <span class="c1"># Extract boolean (hit or miss)</span>
+    <span class="n">hit</span> <span class="o">=</span> <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;litpixel: isHit&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span>
+    
+    <span class="c1"># Compute the hitrate</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">hitfinding</span><span class="o">.</span><span class="n">hitrate</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">hit</span><span class="p">,</span> <span class="n">history</span><span class="o">=</span><span class="mi">1000</span><span class="p">)</span>
+
+    <span class="c1"># Plot history of pulse energy</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistory</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;pulseEnergies&#39;</span><span class="p">][</span><span class="s1">&#39;pulseEnergy&#39;</span><span class="p">])</span>
+        
+    <span class="c1"># Plot scatter of pulse energy vs. hitscore</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">correlation</span><span class="o">.</span><span class="n">plotScatter</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;pulseEnergies&#39;</span><span class="p">][</span><span class="s1">&#39;pulseEnergy&#39;</span><span class="p">],</span>
+                                     <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;litpixel: hitscore&quot;</span><span class="p">],</span>
+                                     <span class="n">xlabel</span><span class="o">=</span><span class="s1">&#39;Pulse energy [J]&#39;</span><span class="p">,</span> <span class="n">ylabel</span><span class="o">=</span><span class="s1">&#39;Hitscore&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Plot heat map of hitrate as function of injector position</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">correlation</span><span class="o">.</span><span class="n">plotMeanMap</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">][</span><span class="s1">&#39;injectorX&#39;</span><span class="p">],</span> <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;parameters&quot;</span><span class="p">][</span><span class="s1">&#39;injectorY&#39;</span><span class="p">],</span>
+                                     <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;hitrate&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s1">&#39;hitrateMeanMap&#39;</span><span class="p">,</span> <span class="o">**</span><span class="n">hitmapParams</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>In the interface, these plots look like this:</p>
+<a class="reference internal image-reference" href="_images/correlation.jpg"><img alt="_images/correlation.jpg" class="align-center" src="_images/correlation.jpg" style="width: 99%;" /></a>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="configuration.html" class="btn btn-neutral float-left" title="Configuration" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="lcls_examples.html" class="btn btn-neutral float-right" title="LCLS examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015, FXIhub.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

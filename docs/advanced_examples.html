@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Advanced examples &mdash; Hummingbird 1.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/documentation_options.js?v=c55cb9cb"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Reference API" href="API/modules.html" />
+    <link rel="prev" title="LCLS examples" href="lcls_examples.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Hummingbird
+          </a>
+              <div class="version">
+                1.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_examples.html">Basic examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lcls_examples.html">LCLS examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Advanced examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#simulation">Simulation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#detector-characteristics">Detector characteristics</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#hitfinding">Hitfinding</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mpi">MPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#psana-configuration">Psana configuration</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-extra-files">Loading extra files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#recording-to-file">Recording to file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#sizing">Sizing</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#correlations">Correlations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="API/modules.html">Reference API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">How to contribute?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Hummingbird</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Advanced examples</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/advanced_examples.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="advanced-examples">
+<h1>Advanced examples<a class="headerlink" href="#advanced-examples" title="Link to this heading">¶</a></h1>
+<section id="simulation">
+<h2>Simulation<a class="headerlink" href="#simulation" title="Link to this heading">¶</a></h2>
+<p>For most of the following examples, simulated data provided through <a class="reference external" href="http://lmb.icm.uu.se/condor/simulation">Condor</a> is used. In order to run these examples on real data, the only thing to change is the <code class="docutils literal notranslate"><span class="pre">state[Facility]</span></code> variable and maybe some more lightsource specific configurations. See the basic example in <a class="reference external" href="configuration.html">Configuration</a>.</p>
+<p>The speciman used for the simulation is a icosahedron-shaped virus with a diameter of 60 nm with reasonable conditions for experiments inside the 100nm chamber of the CXI beamline. The full Condor configuration file is located in <code class="docutils literal notranslate"><span class="pre">examples/simulation/virus.conf</span></code>.</p>
+<p>Now, lets have a look at the configuration file, located in <code class="docutils literal notranslate"><span class="pre">examples/simulation/conf.py</span></code>. First, the modules <code class="docutils literal notranslate"><span class="pre">simulation</span></code> and <code class="docutils literal notranslate"><span class="pre">analysis.event</span></code> are imported:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">simulation.simple</span>
+<span class="kn">import</span> <span class="nn">analysis.event</span>
+</pre></div>
+</div>
+<p>The <a class="reference external" href="http://lmb.icm.uu.se/condor/simulation">Condor</a> configuration file is loaded and a hitrate of 10% is specified:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">sim</span> <span class="o">=</span> <span class="n">simulation</span><span class="o">.</span><span class="n">simple</span><span class="o">.</span><span class="n">Simulation</span><span class="p">(</span><span class="s2">&quot;examples/simulation/virus.conf&quot;</span><span class="p">)</span>
+<span class="n">sim</span><span class="o">.</span><span class="n">hitrate</span> <span class="o">=</span> <span class="mf">0.1</span>
+</pre></div>
+</div>
+<p>In the <code class="docutils literal notranslate"><span class="pre">state</span></code> variable, it is necessary to provide the simulation <code class="docutils literal notranslate"><span class="pre">sim</span></code> and specify the datasets to be extracted:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Facility&#39;</span><span class="p">:</span> <span class="s1">&#39;Dummy&#39;</span><span class="p">,</span>
+
+    <span class="s1">&#39;Dummy&#39;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="s1">&#39;Repetition Rate&#39;</span> <span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+        <span class="s1">&#39;Simulation&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="p">,</span>
+        <span class="s1">&#39;Data Sources&#39;</span><span class="p">:</span> <span class="p">{</span>
+            <span class="s1">&#39;CCD&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_pattern</span><span class="p">,</span>
+                <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;ph&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;photonPixelDetectors&#39;</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;pulseEnergy&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_pulse_energy</span><span class="p">,</span>
+                <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;J&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;pulseEnergies&#39;</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;inj_x&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_position_x</span><span class="p">,</span>
+                <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;parameters&#39;</span>
+                            <span class="p">},</span>
+            <span class="s1">&#39;inj_y&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_position_y</span><span class="p">,</span>
+                <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;parameters&#39;</span>
+            <span class="p">},</span>
+            <span class="s1">&#39;inj_z&#39;</span><span class="p">:</span> <span class="p">{</span>
+                <span class="s1">&#39;data&#39;</span><span class="p">:</span> <span class="n">sim</span><span class="o">.</span><span class="n">get_position_z</span><span class="p">,</span>
+                 <span class="s1">&#39;unit&#39;</span><span class="p">:</span> <span class="s1">&#39;m&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;type&#39;</span><span class="p">:</span> <span class="s1">&#39;parameters&#39;</span>
+            <span class="p">}</span>
+        <span class="p">}</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Inside the <code class="docutils literal notranslate"><span class="pre">onEvent</span></code> function it is possible to apply analsyis algorithms to the simulated datasets and send plots to the frontend, for now some extracted information is printed:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printProcessingRate</span><span class="p">()</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printKeys</span><span class="p">(</span><span class="n">evt</span><span class="p">)</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printKeys</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="s2">&quot;parameters&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here is the output of this small simulation example:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ./hummingbird.py -b examples/simulation/conf.py
+Starting backend...
+1/1 (1 particle)
+The event has the following keys:  [&#39;pulseEnergies&#39;, &#39;photonPixelDetectors&#39;, &#39;parameters&#39;]
+The event dict &#39;&#39;parameters&#39;&#39; has the following keys:  [&#39;inj_y&#39;, &#39;inj_x&#39;, &#39;inj_z&#39;]
+1/1 (1 particle)
+Processing Rate 0.86 Hz
+The event has the following keys:  [&#39;pulseEnergies&#39;, &#39;photonPixelDetectors&#39;, &#39;parameters&#39;]
+The event dict &#39;&#39;parameters&#39;&#39; has the following keys:  [&#39;inj_y&#39;, &#39;inj_x&#39;, &#39;inj_z&#39;]
+</pre></div>
+</div>
+</section>
+<section id="detector-characteristics">
+<h2>Detector characteristics<a class="headerlink" href="#detector-characteristics" title="Link to this heading">¶</a></h2>
+<p>In this example it is shown how detector-specific characteristics (histograms, averages, … ) can be visualized. This is very important for a robust tuning of more advanced analysis (hitfinding, sizing, …). The configuration file <code class="docutils literal notranslate"><span class="pre">examples/detector/conf.py</span></code> is based on the simulation example, but some more modulues need to be imported:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">simulation.simple</span>
+<span class="kn">import</span> <span class="nn">analysis.event</span>
+<span class="kn">import</span> <span class="nn">analysis.pixel_detector</span>
+<span class="kn">import</span> <span class="nn">plotting.line</span>
+<span class="kn">import</span> <span class="nn">plotting.image</span>
+</pre></div>
+</div>
+<p>In the <code class="docutils literal notranslate"><span class="pre">onEvent</span></code> some more lines are added. First, some detector statistics are printed</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Detector statistics</span>
+<span class="n">analysis</span><span class="o">.</span><span class="n">pixel_detector</span><span class="o">.</span><span class="n">printStatistics</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>giving the following output:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ ./hummingbird -b examples/detector/conf.py
+Processing Rate 0.65 Hz
+CCD (count): sum=-79.434 mean=-0.000463453 min=-0.412553 max=0.506501 std=0.100154
+1/1 (1 particle)
+Processing Rate 0.65 Hz
+CCD (count): sum=-46.7338 mean=-0.000272666 min=-0.456227 max=0.47392 std=0.100047
+1/1 (1 particle)
+</pre></div>
+</div>
+<p>Then, the total nr. of photons is counted on the CCD pixel detector and the result is being sent to the frontend, so that it is possible to follow the history of the total photon count.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Count Nr. of Photons</span>
+<span class="n">analysis</span><span class="o">.</span><span class="n">pixel_detector</span><span class="o">.</span><span class="n">totalNrPhotons</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">,</span> <span class="s2">&quot;CCD&quot;</span><span class="p">)</span>
+<span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistory</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;nrPhotons - CCD&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Nr of photons / frame&#39;</span><span class="p">,</span> <span class="n">history</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>On the frontend, this history can be displayed by opening a Line plot and subscribing to the data source <code class="docutils literal notranslate"><span class="pre">History(nrPhotons</span> <span class="pre">-</span> <span class="pre">CCD)</span></code>:</p>
+<img alt="_images/nrphotons.jpg" src="_images/nrphotons.jpg" />
+<p>Inside the <code class="docutils literal notranslate"><span class="pre">View</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Plot</span> <span class="pre">settings</span></code> dialog there is an option to display a histogram of the current buffer instead of the updating history:</p>
+<img alt="_images/nrphotons_hist.jpg" class="align-center" src="_images/nrphotons_hist.jpg" />
+<p>The next useful detector feature to look is a frame histogram of the entrie CCD:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Detector histogram</span>
+<span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistogram</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">][</span><span class="s2">&quot;CCD&quot;</span><span class="p">],</span> <span class="o">**</span><span class="n">histogramCCD</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>The parameters for the histogram plot (as for any other plot) can be given as keyword arguments or defined outside the <code class="docutils literal notranslate"><span class="pre">onEvent</span></code> function as a dictionary which is then passed as a whole to the plotting function:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">histogramCCD</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;hmin&#39;</span><span class="p">:</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span>
+    <span class="s1">&#39;hmax&#39;</span><span class="p">:</span> <span class="mi">19</span><span class="p">,</span>
+    <span class="s1">&#39;bins&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+    <span class="s1">&#39;label&#39;</span><span class="p">:</span> <span class="s2">&quot;Nr of photons&quot;</span><span class="p">,</span>
+    <span class="s1">&#39;history&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">}</span>
+
+<span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+
+    <span class="o">...</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistory</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">history</span><span class="o">=</span><span class="mi">50</span><span class="p">)</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistogram</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="o">**</span><span class="n">histogramCCD</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Subscribing to the detector histogram <code class="docutils literal notranslate"><span class="pre">Hist(CCD)</span></code> in a Line plot, the visual output looks like this:</p>
+<img alt="_images/histogram_hit.jpg" class="align-center" src="_images/histogram_hit.jpg" />
+<p>Subscribing to the same data source in an Image Plot, the output is a history of histograms looking like this:</p>
+<img alt="_images/histogram_history.jpg" class="align-center" src="_images/histogram_history.jpg" />
+<p>Finally, it is possible to just send every detector frame (or a subset of it based on e.g. hitfinding) as an image</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Detector images</span>
+<span class="n">plotting</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">plotImage</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">][</span><span class="s2">&quot;CCD&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>and display it on the frontend. Instead displaying only the latest image, it is possible to toggle the visualization of the trend (mean, min, max, std) inside the <code class="docutils literal notranslate"><span class="pre">View</span></code> -&gt; <code class="docutils literal notranslate"><span class="pre">Plot</span> <span class="pre">settings</span></code> dialog:</p>
+<img alt="_images/buffer.jpg" class="align-center" src="_images/buffer.jpg" />
+<p>The latest image of the buffer (50 images) is displayed on the left, the per-pixel maximum of the buffer in the middle and the per-pixel mean on the right.</p>
+</section>
+<section id="hitfinding">
+<h2>Hitfinding<a class="headerlink" href="#hitfinding" title="Link to this heading">¶</a></h2>
+<p>In this example, a simple hitfinder is introduced. This makes it possible to monitor the hit rate and plot only detector images of hits. This configuration file <code class="docutils literal notranslate"><span class="pre">examples/hitfinding/conf.py</span></code> is based on the previous on, in addition the hitfinding module needs to be imported:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">analysis.hitfinding</span>
+</pre></div>
+</div>
+<p>The hitfinder used here simply counts the number of lit pixels on the detector, it needs a threshold to stay above the ADU noise level and another threshold that is above the hitscore of the background. In order to tune this parameters, it helps to plot the hitscore and look at the histogram (see plotting below). Based on the given hit/miss counts, a hit rate is estimated. The <code class="docutils literal notranslate"><span class="pre">history</span></code> parameter determines how many events are considered for the calculation of the rate.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Simple hitfinding (Count Nr. of lit pixels)</span>
+<span class="n">analysis</span><span class="o">.</span><span class="n">hitfinding</span><span class="o">.</span><span class="n">countLitPixels</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">,</span> <span class="s2">&quot;CCD&quot;</span><span class="p">,</span> <span class="n">aduThreshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">hitscoreThreshold</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+
+<span class="c1"># Compute the hitrate</span>
+<span class="n">analysis</span><span class="o">.</span><span class="n">hitfinding</span><span class="o">.</span><span class="n">hitrate</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;isHit - CCD&quot;</span><span class="p">],</span> <span class="n">history</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Like in the previous examples, results are plotted as history plots and images. Because of the hitfinding, the detector image needs to be only plotted for hits. Looking at the previous example, it is possible to look at trends (mean, std, min, max) of either hits, misses or both.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Plot the hitscore</span>
+<span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistory</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;hitscore - CCD&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Nr. of lit pixels&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot the hitrate</span>
+<span class="n">plotting</span><span class="o">.</span><span class="n">line</span><span class="o">.</span><span class="n">plotHistory</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;hitrate&quot;</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Hit rate [%]&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot hit images</span>
+<span class="k">if</span> <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;isHit - CCD&quot;</span><span class="p">]:</span>
+    <span class="n">plotting</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">plotImage</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">][</span><span class="s2">&quot;CCD&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>When looking at the hit images, it is possible to jump back and forth in time using the arrow keys. This way, interesting hits can revisited if they passed by too quickly. Jumping all the way to the hight (most recent hit), enables live updating again.</p>
+</section>
+<section id="mpi">
+<h2>MPI<a class="headerlink" href="#mpi" title="Link to this heading">¶</a></h2>
+<p>In order to speed up things, it is possible to run <code class="docutils literal notranslate"><span class="pre">Hummingbird</span></code> in MPI mode, simply use:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ mpirun -n 4 ./hummingbird.py -b examples/hitfinding/conf.py
+</pre></div>
+</div>
+<p>In this mode, <code class="docutils literal notranslate"><span class="pre">Hummingbird</span></code> reserves one process (rank 0) for sending data to the frontend, the rest of the processes (slaves with rank &gt; 1) are used to process incoming data. If necessary (e.g. for hitrate), the  main slave (rank = 1) is doing the reduction and sending the reduced data to the frontend.</p>
+<p>In the above example, the slaves are still reading all from the same data source (e.g. shared memory string defined in <code class="docutils literal notranslate"><span class="pre">state['Facility/DataSource']</span></code>). If there are multiple data sources available (e.g. multiple shared memory streams defined by individual shared memory strings), it is possible to distribute slaves across these data sources. The configuration file needs to be slightly modified:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">ipc</span>
+
+<span class="n">state</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Facility&#39;</span><span class="p">:</span> <span class="s1">&#39;LCLS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;LCLS/DataSource&#39;</span><span class="p">:</span> <span class="n">ipc</span><span class="o">.</span><span class="n">mpi</span><span class="o">.</span><span class="n">get_source</span><span class="p">([</span><span class="s1">&#39;shmem1&#39;</span><span class="p">,</span> <span class="s1">&#39;shmem2&#39;</span><span class="p">,</span> <span class="s1">&#39;shmem3&#39;</span><span class="p">])</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>There is a small example in <code class="docutils literal notranslate"><span class="pre">examples/psana/mpi/conf.py</span></code> running from 2 XTCs at the same time.</p>
+</section>
+<section id="psana-configuration">
+<h2>Psana configuration<a class="headerlink" href="#psana-configuration" title="Link to this heading">¶</a></h2>
+<p>It is possible load a <code class="docutils literal notranslate"><span class="pre">psana</span></code> configuration file in order to run some <a class="reference external" href="https://confluence.slac.stanford.edu/display/PSDM/psana+-+Module+Examples">Psana modules</a> prior to <code class="docutils literal notranslate"><span class="pre">Hummingbird</span></code> analysis modules, just specify <code class="docutils literal notranslate"><span class="pre">LCLS/PsanaConf</span></code> inside the <code class="docutils literal notranslate"><span class="pre">state</span></code> variable:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="p">{</span>
+     <span class="s1">&#39;Facility&#39;</span><span class="p">:</span> <span class="s1">&#39;LCLS&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;LCLS/DataSource&#39;</span><span class="p">:</span> <span class="s1">&#39;shmem=...&#39;</span><span class="p">,</span>
+     <span class="s1">&#39;LCLS/PsanaConf&#39;</span><span class="p">:</span> <span class="s1">&#39;psana.cfg&#39;</span><span class="p">,</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Output keys defined inside <code class="docutils literal notranslate"><span class="pre">psana.cfg</span></code> will appear as <code class="docutils literal notranslate"><span class="pre">Hummingbird</span></code> keys.</p>
+</section>
+<section id="loading-extra-files">
+<h2>Loading extra files<a class="headerlink" href="#loading-extra-files" title="Link to this heading">¶</a></h2>
+<p>This example is in <code class="docutils literal notranslate"><span class="pre">examples/extra_files/conf.py</span></code>.</p>
+<p>In case the incoming data has no geometry applied (important e.g. for sizing), it is possible to load a geometry file and assemble incoming data. There is a <code class="docutils literal notranslate"><span class="pre">GeometryReeader</span></code> in the <code class="docutils literal notranslate"><span class="pre">utils</span></code> module and an <code class="docutils literal notranslate"><span class="pre">assemble</span></code> function in the <code class="docutils literal notranslate"><span class="pre">analysis.pixel_detector</span></code> module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">utils.reader</span>
+
+<span class="c1"># Reading geometry</span>
+<span class="c1"># ----------------</span>
+<span class="n">greader</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">GeometryReader</span><span class="p">(</span><span class="s1">&#39;examples/extra_files/geometry.h5&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+
+
+    <span class="c1"># Assemble images (apply geometry)</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">pixel_detector</span><span class="o">.</span><span class="n">assemble</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="s2">&quot;photonPixelDetectors&quot;</span><span class="p">,</span> <span class="s2">&quot;CCD&quot;</span><span class="p">,</span> \
+                                  <span class="n">greader</span><span class="o">.</span><span class="n">x</span><span class="p">,</span> <span class="n">greader</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">nx</span><span class="o">=</span><span class="mi">414</span><span class="p">,</span> <span class="n">ny</span><span class="o">=</span><span class="mi">414</span><span class="p">,</span> <span class="n">outkey</span><span class="o">=</span><span class="s2">&quot;CCD&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>It is also possible to load a mask using the <code class="docutils literal notranslate"><span class="pre">MaskReader</span></code> from the <code class="docutils literal notranslate"><span class="pre">utils</span></code> module:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">utils.reader</span>
+
+<span class="c1"># Reading mask</span>
+<span class="c1"># ------------</span>
+<span class="n">mreader</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">MaskReader</span><span class="p">(</span><span class="s1">&#39;examples/extra_files/mask.h5&#39;</span><span class="p">,</span> <span class="s1">&#39;data/data&#39;</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+
+    <span class="c1"># Simple hitfinding (Count Nr. of lit pixels)</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">hitfinding</span><span class="o">.</span><span class="n">countLitPixels</span><span class="p">(</span><span class="n">evt</span><span class="p">,</span> <span class="s2">&quot;analysis&quot;</span><span class="p">,</span> <span class="s2">&quot;CCD&quot;</span><span class="p">,</span> \
+                                    <span class="n">aduThreshold</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">hitscoreThreshold</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">mask</span><span class="o">=</span><span class="n">mreader</span><span class="o">.</span><span class="n">boolean_mask</span><span class="p">)</span>
+
+    <span class="c1"># Plot hit images</span>
+    <span class="k">if</span> <span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;isHit - CCD&quot;</span><span class="p">]:</span>
+        <span class="n">plotting</span><span class="o">.</span><span class="n">image</span><span class="o">.</span><span class="n">plotImage</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s2">&quot;analysis&quot;</span><span class="p">][</span><span class="s2">&quot;CCD&quot;</span><span class="p">],</span> <span class="n">mask</span><span class="o">=</span><span class="n">mreader</span><span class="o">.</span><span class="n">integer_mask</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Here, the mask is passed as booleans to the hitfinder (only use True pixels) and as integers when plotting an image (multiplyin image and mask).</p>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">H5Reader</span></code> any data can be written from a given HDF5 file and used for analysis/plotting:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Reading something else</span>
+<span class="c1"># ----------------------</span>
+<span class="n">reader</span> <span class="o">=</span> <span class="n">utils</span><span class="o">.</span><span class="n">reader</span><span class="o">.</span><span class="n">H5Reader</span><span class="p">(</span><span class="s1">&#39;examples/extra_files/something.h5&#39;</span><span class="p">,</span> <span class="s1">&#39;somekey&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</section>
+<section id="recording-to-file">
+<h2>Recording to file<a class="headerlink" href="#recording-to-file" title="Link to this heading">¶</a></h2>
+<p>In the frontend it is possible to record any existing <code class="docutils literal notranslate"><span class="pre">History(...)</span></code> data source to file. Just select the variables of interest (using the Record history column) and hit <code class="docutils literal notranslate"><span class="pre">Recording</span></code> (the button with the red dot):</p>
+<img alt="_images/before.jpg" class="align-center" src="_images/before.jpg" />
+<p>All selected variables are saved to an HDF5 file (saved in the output path defined in te settings) together with the corresponding timestamps:</p>
+<img alt="_images/after.jpg" class="align-center" src="_images/after.jpg" />
+<p>The recorded information can now easily be analyzed outside of <code class="docutils literal notranslate"><span class="pre">Hummingbird</span></code>, e.g. using IPython:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">1</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">h5py</span><span class="o">,</span> <span class="nn">numpy</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">2</span><span class="p">]:</span> <span class="n">file</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="s1">&#39;history_20150531_1708.h5&#39;</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="n">file</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Out</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span> <span class="p">[</span><span class="sa">u</span><span class="s1">&#39;hitrate&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;hitscore - CCD&#39;</span><span class="p">,</span> <span class="sa">u</span><span class="s1">&#39;nrPhotons - CCD&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">4</span><span class="p">]:</span> <span class="n">hitscore_time</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;hitscore - CCD&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">5</span><span class="p">]:</span> <span class="n">hitscore</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;hitscore - CCD&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">numpy</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">hitscore_time</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">6</span><span class="p">]:</span> <span class="n">nrPhotons_time</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;nrPhotons - CCD&quot;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">7</span><span class="p">]:</span> <span class="n">nrPhotons</span> <span class="o">=</span> <span class="n">file</span><span class="p">[</span><span class="s2">&quot;nrPhotons - CCD&quot;</span><span class="p">][</span><span class="mi">1</span><span class="p">][</span><span class="n">numpy</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">nrPhotons_time</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">8</span><span class="p">]:</span> <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">9</span><span class="p">]:</span> <span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">nrPhotons</span><span class="p">,</span> <span class="n">hitscore</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">In</span> <span class="p">[</span><span class="mi">10</span><span class="p">]:</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Nr. of Photons&#39;</span><span class="p">);</span> <span class="n">plt</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Hitscore&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<img alt="_images/scatter.png" class="align-center" src="_images/scatter.png" />
+</section>
+<section id="sizing">
+<h2>Sizing<a class="headerlink" href="#sizing" title="Link to this heading">¶</a></h2>
+<p>See example in <code class="docutils literal notranslate"><span class="pre">examples/sizing/conf.py</span></code>, it works for spheres:</p>
+<img alt="_images/fit_vs_data.jpg" class="align-center" src="_images/fit_vs_data.jpg" />
+</section>
+<section id="correlations">
+<h2>Correlations<a class="headerlink" href="#correlations" title="Link to this heading">¶</a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="lcls_examples.html" class="btn btn-neutral float-left" title="LCLS examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="API/modules.html" class="btn btn-neutral float-right" title="Reference API" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015, FXIhub.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>How to contribute? &mdash; Hummingbird 1.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/documentation_options.js?v=c55cb9cb"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="utils" href="API/utils.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Hummingbird
+          </a>
+              <div class="version">
+                1.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="configuration.html">Configuration</a></li>
+<li class="toctree-l1"><a class="reference internal" href="basic_examples.html">Basic examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lcls_examples.html">LCLS examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_examples.html">Advanced examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API/modules.html">Reference API</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">How to contribute?</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#getting-started">Getting Started</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contributing-algorithms">Contributing algorithms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#contributing-to-documentation">Contributing to documentation</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#editing-documentation">Editing Documentation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#online-editing">Online Editing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#offline-editing">Offline Editing</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Hummingbird</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">How to contribute?</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/contribute.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="how-to-contribute">
+<h1>How to contribute?<a class="headerlink" href="#how-to-contribute" title="Link to this heading">¶</a></h1>
+<p>If you would like to contribute just go the issues page and <a class="reference external" href="https://github.com/FXIhub/hummingbird/issues/new">create a
+new issue</a>
+asking to be added to the team.</p>
+<section id="getting-started">
+<h2>Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
+<p>To be able to contribute first you need a copy of the repository. If
+you have not done so already submit your rsa public key to github
+under Mange/SSH keys and then clone the repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ git clone https://github.com/FXIhub/hummingbird.git
+</pre></div>
+</div>
+<p>For help on using <code class="docutils literal notranslate"><span class="pre">git</span></code> please check <a class="reference external" href="http://git-scm.com/doc">the official git documentation</a>
+and the <a class="reference external" href="https://help.github.com/">Github tutorials</a>.</p>
+</section>
+<section id="contributing-algorithms">
+<h2>Contributing algorithms<a class="headerlink" href="#contributing-algorithms" title="Link to this heading">¶</a></h2>
+<p>You can find all the analysis algorithms inside the <code class="docutils literal notranslate"><span class="pre">src/analysis</span></code> directory and all
+plotting functions inside the <code class="docutils literal notranslate"><span class="pre">src/plotting</span></code> directory.</p>
+<p>To add your own analysis algorithm to Hummingbird first check if there is
+already an algorithm that already does, or could be easily extended to do what
+you want. If there, then just edit the existing one and submit.</p>
+<p>In many cases you will have to start from scratch though. Start by choosing to
+what module you should add your algorithm (e.g. <code class="docutils literal notranslate"><span class="pre">event.py</span></code>), or create a new
+module if you think it does not fit in any existing one.</p>
+<p>Most algorithms take as argument a <code class="docutils literal notranslate"><span class="pre">Record</span></code> (e.g. <code class="docutils literal notranslate"><span class="pre">evt['pixel_detectors']['CCD']</span></code>) or a dictionary of <code class="docutils literal notranslate"><span class="pre">Records</span></code>
+(e.g. <code class="docutils literal notranslate"><span class="pre">evt['pulseEnergies']</span></code>), although many also take the entire event
+variable. You are free to choose, as long as you document it.</p>
+<p>If you want to keep some result from your algorithm to be used by subsequent
+algorithms just return as a <code class="docutils literal notranslate"><span class="pre">Record</span></code> object and assign it to a new key of the
+event variable in the conf file (e.g. <code class="docutils literal notranslate"><span class="pre">examples/dummy/conf.py</span></code>)</p>
+<p>There is a template for new analysis modules in <code class="docutils literal notranslate"><span class="pre">src/analysis/template.py</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>Algorithms that want to keep results for further processing by other
+algorithms must be able to access the <code class="docutils literal notranslate"><span class="pre">evt</span></code> variable, so they must receive
+it as an argument.</p>
+</div>
+</section>
+<section id="contributing-to-documentation">
+<h2>Contributing to documentation<a class="headerlink" href="#contributing-to-documentation" title="Link to this heading">¶</a></h2>
+<p>You can find documentation about the project at
+<a class="reference external" href="http://spidocs.readthedocs.org">spidocs.readthedocs.org</a>.</p>
+<section id="editing-documentation">
+<h3>Editing Documentation<a class="headerlink" href="#editing-documentation" title="Link to this heading">¶</a></h3>
+<p>The documentation is written in
+<a class="reference external" href="http://sphinx-doc.org/rest.html">reStructuredText</a>, which is a simple
+to use and read markup language. The documentation is automatically
+built and published on the website after every commit to the
+<code class="docutils literal notranslate"><span class="pre">Hummingbird</span></code> repository.</p>
+<p>There are two ways to edit documentation, online using the Github
+built-in editor, or offline using your favourite text editor.</p>
+<section id="online-editing">
+<h4>Online Editing<a class="headerlink" href="#online-editing" title="Link to this heading">¶</a></h4>
+<p>Simply click on the <code class="docutils literal notranslate"><span class="pre">Edit</span> <span class="pre">on</span> <span class="pre">Github</span></code> button at the top of the
+desired page in
+<a class="reference external" href="http://fxihub.github.io/hummingbird/docs">spidocs.readthedocs.org</a>. This will
+take you to the Github page corresponding to the source of the page.
+Click on the <code class="docutils literal notranslate"><span class="pre">Edit</span></code> button, due the changes you want, and finally
+commit.</p>
+</section>
+<section id="offline-editing">
+<h4>Offline Editing<a class="headerlink" href="#offline-editing" title="Link to this heading">¶</a></h4>
+<p>For editing the documentation on your computer you will need:</p>
+<ul class="simple">
+<li><p>A copy of the Hummingbird git repository</p></li>
+<li><p>Your favourite text editor</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sphinx</span></code> installed: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">sphinx</span></code> or
+<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">sphinx</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sphinx_rtd_theme</span></code> installed: <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">sphinx_rtd_theme</span></code> or
+<code class="docutils literal notranslate"><span class="pre">sudo</span> <span class="pre">pip</span> <span class="pre">install</span> <span class="pre">sphinx_rtd_theme</span></code></p></li>
+</ul>
+<p>Now you can simply edit existing <code class="docutils literal notranslate"><span class="pre">.rst</span></code> files, or add new ones, in the
+<code class="docutils literal notranslate"><span class="pre">docs</span></code> directory inside the root of the hummingbird git repository:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ cd docs
+$ emacs index.rst
+</pre></div>
+</div>
+<p>After you finish editing you can look at the result by doing:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ make html
+</pre></div>
+</div>
+<p>This will create the html files inside <code class="docutils literal notranslate"><span class="pre">.build/html</span></code>, which you can
+open in your browser.</p>
+<p>If you’re happy with the result you can now simply commit the changes
+and push. Your changes should be automatically pushed to
+<a class="reference external" href="http://fxihub.github.io/hummingbird/docs/">http://fxihub.github.io/hummingbird/docs</a> by
+Github.</p>
+</section>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="API/utils.html" class="btn btn-neutral float-left" title="utils" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015, FXIhub.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

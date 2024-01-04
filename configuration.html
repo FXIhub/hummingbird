@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Configuration &mdash; Hummingbird 1.3 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=649a27d8" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=19f00094" />
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+        <script src="_static/documentation_options.js?v=c55cb9cb"></script>
+        <script src="_static/doctools.js?v=888ff710"></script>
+        <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Basic examples" href="basic_examples.html" />
+    <link rel="prev" title="Getting Started" href="getting_started.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            Hummingbird
+          </a>
+              <div class="version">
+                1.3
+              </div>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="getting_started.html">Getting Started</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Configuration</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#learning-by-example">Learning by Example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="basic_examples.html">Basic examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="lcls_examples.html">LCLS examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="advanced_examples.html">Advanced examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="API/modules.html">Reference API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="contribute.html">How to contribute?</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Hummingbird</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/configuration.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="configuration">
+<h1>Configuration<a class="headerlink" href="#configuration" title="Link to this heading">¶</a></h1>
+<p>The backend of Hummingbird uses a configuration file written in Python.
+This gives the user immense flexibility and power, with the responsability that
+carries.</p>
+<section id="learning-by-example">
+<h2>Learning by Example<a class="headerlink" href="#learning-by-example" title="Link to this heading">¶</a></h2>
+<p>Here is an example of a configuration file used to gather some basic statistics
+about a run stored in an XTC file:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">analysis.event</span>
+<span class="kn">import</span> <span class="nn">analysis.beamline</span>
+<span class="kn">import</span> <span class="nn">analysis.pixel_detector</span>
+
+<span class="n">state</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Facility&#39;</span><span class="p">:</span> <span class="s1">&#39;LCLS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;LCLS/DataSource&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/rawdata/LCLS/cxi/cxic9714/xtc/e419-r0203-s01-c00.xtc&#39;</span>
+<span class="p">}</span>
+
+<span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">beamline</span><span class="o">.</span><span class="n">printPulseEnergy</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;pulseEnergies&#39;</span><span class="p">])</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">beamline</span><span class="o">.</span><span class="n">printPhotonEnergy</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;photonEnergies&#39;</span><span class="p">])</span>
+    <span class="nb">print</span> <span class="s2">&quot;EPICS photon energy = </span><span class="si">%g</span><span class="s2"> eV&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">][</span><span class="s1">&#39;SIOC:SYS0:ML00:AO541&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">pixel_detector</span><span class="o">.</span><span class="n">printStatistics</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;photonPixelDetectors&#39;</span><span class="p">])</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">pixel_detector</span><span class="o">.</span><span class="n">printStatistics</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;ionTOFs&#39;</span><span class="p">])</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printID</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;eventID&#39;</span><span class="p">])</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printProcessingRate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>One can divide in three sections. In the first one the necessary analysis
+modules are imported:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">analysis.event</span>
+<span class="kn">import</span> <span class="nn">analysis.beamline</span>
+<span class="kn">import</span> <span class="nn">analysis.pixel_detector</span>
+</pre></div>
+</div>
+<p>In this case three modules are imported. You can find what modules are available
+by peeking into the <code class="docutils literal notranslate"><span class="pre">src/analysis</span></code> and <code class="docutils literal notranslate"><span class="pre">src/plotting</span></code> directory or by browsing the
+<a class="reference internal" href="API/modules.html"><span class="doc">API documentation</span></a>.</p>
+<p>In the second section of the configuration file the global options for the program are set:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">state</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;Facility&#39;</span><span class="p">:</span> <span class="s1">&#39;LCLS&#39;</span><span class="p">,</span>
+    <span class="s1">&#39;LCLS/DataSource&#39;</span><span class="p">:</span> <span class="s1">&#39;/data/rawdata/LCLS/cxi/cxic9714/xtc/e419-r0203-s01-c00.xtc&#39;</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The global options must always called <code class="docutils literal notranslate"><span class="pre">state</span></code>. In this particular example
+first the <code class="docutils literal notranslate"><span class="pre">Facility</span></code> is set to LCLS, the only supported option at the moment.
+The following line defines where data is read from. It accepts any format that
+<code class="docutils literal notranslate"><span class="pre">psana</span></code> accepts (e.g. an XTC filename, an exp/run pair like
+<code class="docutils literal notranslate"><span class="pre">exp=XCS/xcstut13:run=15</span></code>, or a shared memory string like
+<code class="docutils literal notranslate"><span class="pre">shmem=0_21_psana_AMO.0:stop=no</span></code>.</p>
+<p>In the third and final section of the configuration file the algorithms that are
+run on each of the events are defined:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="k">def</span> <span class="nf">onEvent</span><span class="p">(</span><span class="n">evt</span><span class="p">):</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">beamline</span><span class="o">.</span><span class="n">printPulseEnergy</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;pulseEnergies&#39;</span><span class="p">])</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">beamline</span><span class="o">.</span><span class="n">printPhotonEnergy</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;photonEnergies&#39;</span><span class="p">])</span>
+    <span class="nb">print</span> <span class="s2">&quot;EPICS photon energy = </span><span class="si">%g</span><span class="s2"> eV&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;parameters&#39;</span><span class="p">][</span><span class="s1">&#39;SIOC:SYS0:ML00:AO541&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">pixel_detector</span><span class="o">.</span><span class="n">printStatistics</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;photonPixelDetectors&#39;</span><span class="p">])</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">pixel_detector</span><span class="o">.</span><span class="n">printStatistics</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;ionTOFs&#39;</span><span class="p">])</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printID</span><span class="p">(</span><span class="n">evt</span><span class="p">[</span><span class="s1">&#39;eventID&#39;</span><span class="p">])</span>
+    <span class="n">analysis</span><span class="o">.</span><span class="n">event</span><span class="o">.</span><span class="n">printProcessingRate</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The list of algorithms to run must always be defined inside the <code class="docutils literal notranslate"><span class="pre">onEvent</span></code>
+function, which must take exactly one argument, named <code class="docutils literal notranslate"><span class="pre">evt</span></code> in this case.</p>
+<p>This is a function that is called once for every event. The argument is a
+dictionary containing the measurements in each event. For example in this case
+<code class="docutils literal notranslate"><span class="pre">evt['pulseEnergies']</span></code> is a dictionary with 4 entries, corresponding to the 4
+gas monitor detector at LCLS. Each of the entries is a <code class="docutils literal notranslate"><span class="pre">Record</span></code> class containing at
+least <code class="docutils literal notranslate"><span class="pre">name</span></code>, <code class="docutils literal notranslate"><span class="pre">data</span></code> and often <code class="docutils literal notranslate"><span class="pre">unit</span></code> attributes.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>To see a list of the available keys inside the <code class="docutils literal notranslate"><span class="pre">evt</span></code> simply run <code class="docutils literal notranslate"><span class="pre">evt.keys()</span></code>.</p>
+</div>
+<p>Using the <code class="docutils literal notranslate"><span class="pre">evt</span></code> variable one can pass data to multiple analysis algorithms.
+These algorithms will do the required analysis, communicate the results with the
+interface, and store any eventual output back onto the <code class="docutils literal notranslate"><span class="pre">evt</span></code> dictionary, using a
+new key. That way future analysis can use the output of previous ones.</p>
+<p>For a list of available analysis algorithms please check the relevant <a class="reference internal" href="API/analysis.html"><span class="doc">API documentation</span></a>.</p>
+<p>This example is <code class="docutils literal notranslate"><span class="pre">examples/psana/xtc/conf.py</span></code>. You can find more example configurations inside the directories in <code class="docutils literal notranslate"><span class="pre">examples</span></code> and explained in <span class="xref std std-doc">More examples</span>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="getting_started.html" class="btn btn-neutral float-left" title="Getting Started" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="basic_examples.html" class="btn btn-neutral float-right" title="Basic examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2015, FXIhub.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
