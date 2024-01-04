@@ -15,6 +15,9 @@ jobs:
       - name: Create symlink for old URL
         run: |
           ln -s . _build/docs
+      - name: Disable Jekyll
+        run: |
+          touch _build/.nojekyll          
       - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
