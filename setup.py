@@ -67,6 +67,8 @@ setup(
         ],
         "test": [
             "pytest",
+            "pytest-cov",
+            "codecov",
         ],
         "euxfel": [
             "karabo-bridge",
