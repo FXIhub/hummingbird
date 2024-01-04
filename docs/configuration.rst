@@ -13,10 +13,8 @@ Here is an example of a configuration file used to gather some basic statistics
 about a run stored in an XTC file:
 
 ::
-
-   import analysis.event
-   import analysis.beamline
-   import analysis.pixel_detector
+   
+   from hummingbird import analysis
    
    state = {
        'Facility': 'LCLS',
@@ -37,12 +35,9 @@ modules are imported:
 
 ::
 
-   import analysis.event
-   import analysis.beamline
-   import analysis.pixel_detector
+   from hummingbird import analysis
 
-In this case three modules are imported. You can find what modules are available
-by peeking into the ``src/analysis`` and ``src/plotting`` directory or by browsing the 
+You can find what modules are available by peeking into the ``hummingbird/analysis`` and ``hummingbird/plotting`` directory or by browsing the 
 :doc:`API documentation <API/modules>`.
 
 

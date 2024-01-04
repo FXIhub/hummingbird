@@ -1,28 +1,28 @@
 utils
 =====
 
-.. automodule:: utils
+.. automodule:: hummingbird.utils
     :members:
     :undoc-members:
 
 reader
 ------
 
-.. automodule:: utils.reader
+.. automodule:: hummingbird.utils.reader
     :members:
     :undoc-members:
   
 array
 -----
 
-.. automodule:: utils.array
+.. automodule:: hummingbird.utils.array
     :members:
     :undoc-members:
 
 io
 --
 
-.. automodule:: utils.io
+.. automodule:: hummingbird.utils.io
     :members:
     :undoc-members:
 

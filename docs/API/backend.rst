@@ -1,32 +1,32 @@
 backend
 =======
 
-.. automodule:: backend
+.. automodule:: hummingbird.backend
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: backend.Worker
+.. autoclass:: hummingbird.backend.Worker
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: backend.EventTranslator
+.. autoclass:: hummingbird.backend.EventTranslator
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: backend.Record
+.. autoclass:: hummingbird.backend.Record
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autofunction:: backend.add_record
+.. autofunction:: hummingbird.backend.add_record
 
-backend.lcls
-------------
+hummingbird.backend.lcls
+------------------------
 
-.. automodule:: backend.lcls
+.. automodule:: hummingbird.backend.lcls
     :members:
     :undoc-members:
     :show-inheritance:

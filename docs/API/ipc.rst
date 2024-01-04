@@ -1,27 +1,27 @@
 ipc
 ===
 
-.. automodule:: ipc
+.. automodule:: hummingbird.ipc
     :members:
     :undoc-members:
 
 broadcast
 ---------
 
-.. automodule:: ipc.broadcast
+.. automodule:: hummingbird.ipc.broadcast
     :members:
     :undoc-members:
 
 mpi
 ---
 
-.. automodule:: ipc.mpi
+.. automodule:: hummingbird.ipc.mpi
     :members:
     :undoc-members:
 
 zmqserver
 ---------
-.. automodule:: ipc.zmqserver
+.. automodule:: hummingbird.ipc.zmqserver
     :members:
     :undoc-members:
 

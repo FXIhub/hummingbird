@@ -4,7 +4,7 @@ analysis
 analysis.beamline
 -----------------
 
-.. automodule:: analysis.beamline
+.. automodule:: hummingbird.analysis.beamline
     :members:
     :undoc-members:
     :show-inheritance:
@@ -12,7 +12,7 @@ analysis.beamline
 analysis.event
 --------------
 
-.. automodule:: analysis.event
+.. automodule:: hummingbird.analysis.event
     :members:
     :undoc-members:
     :show-inheritance:
@@ -20,7 +20,7 @@ analysis.event
 analysis.hitfinding
 -------------------
 
-.. automodule:: analysis.hitfinding
+.. automodule:: hummingbird.analysis.hitfinding
     :members:
     :undoc-members:
     :show-inheritance:
@@ -28,7 +28,7 @@ analysis.hitfinding
 analysis.sizing
 ---------------
 
-.. automodule:: analysis.sizing
+.. automodule:: hummingbird.analysis.sizing
     :members:
     :undoc-members:
     :show-inheritance:
@@ -36,7 +36,7 @@ analysis.sizing
 analysis.pixel_detector
 -----------------------
 
-.. automodule:: analysis.pixel_detector
+.. automodule:: hummingbird.analysis.pixel_detector
     :members:
     :undoc-members:
     :show-inheritance:
@@ -44,7 +44,7 @@ analysis.pixel_detector
 analysis.template
 -----------------
 
-.. automodule:: analysis.template
+.. automodule:: hummingbird.analysis.template
     :members:
     :undoc-members:
     :show-inheritance:

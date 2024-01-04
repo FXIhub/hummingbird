@@ -1,44 +1,44 @@
 interface
 =========
 
-.. automodule:: interface
+.. automodule:: hummingbird.interface
 
-.. autoclass:: interface.GUI
+.. autoclass:: hummingbird.interface.GUI
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: interface.DataSource
+.. autoclass:: hummingbird.interface.DataSource
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: interface.PlotData
+.. autoclass:: hummingbird.interface.PlotData
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: interface.H5Recorder
+.. autoclass:: hummingbird.interface.H5Recorder
     :members:
     :undoc-members:
     :show-inheritance:
        
-.. autoclass:: interface.RingBuffer
+.. autoclass:: hummingbird.interface.RingBuffer
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: interface.ZmqContext
+.. autoclass:: hummingbird.interface.ZmqContext
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autoclass:: interface.ZmqSocket
+.. autoclass:: hummingbird.interface.ZmqSocket
     :members:
     :undoc-members:
     :show-inheritance:
 
-.. autofunction:: interface.start_interface
+.. autofunction:: hummingbird.interface.start_interface
 
 .. toctree::
    :maxdepth: 1

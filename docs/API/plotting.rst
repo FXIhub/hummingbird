@@ -4,7 +4,7 @@ plotting
 plotting.line
 -------------
 
-.. automodule:: plotting.line
+.. automodule:: hummingbird.plotting.line
     :members:
     :undoc-members:
     :show-inheritance:
@@ -12,7 +12,7 @@ plotting.line
 plotting.image
 --------------
       
-.. automodule:: plotting.image
+.. automodule:: hummingbird.plotting.image
     :members:
     :undoc-members:
     :show-inheritance:
@@ -20,7 +20,7 @@ plotting.image
 plotting.correlation
 --------------------
 
-.. automodule:: plotting.correlation
+.. automodule:: hummingbird.plotting.correlation
     :members:
     :undoc-members:
     :show-inheritance:

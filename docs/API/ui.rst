@@ -3,17 +3,17 @@ ui
 
 .. automodule:: interface.ui
 
-.. autoclass:: interface.ui.DataWindow
+.. autoclass:: hummingbird.interface.ui.DataWindow
      :members:
      :undoc-members:
      :show-inheritance:
 
-.. autoclass:: interface.ui.PlotWindow
+.. autoclass:: hummingbird.interface.ui.PlotWindow
      :members:
      :undoc-members:
      :show-inheritance:
 
-.. autoclass:: interface.ui.ImageWindow
+.. autoclass:: hummingbird.interface.ui.ImageWindow
      :members:
      :undoc-members:
      :show-inheritance:
