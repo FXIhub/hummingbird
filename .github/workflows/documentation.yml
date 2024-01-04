@@ -39,3 +39,6 @@ jobs:
         with:
           # Upload _build/
           path: '_build/'
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4      
