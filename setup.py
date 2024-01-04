@@ -10,7 +10,7 @@ with open(os.path.join(cwd, "README.md")) as f:
 
 with open(os.path.join(cwd, "hummingbird/__init__.py")) as f:
     content = f.read()
-    match = re.search(r'^__version__ = "(\d+\.\d+(a|b|rc\d+))"', content, re.M)
+    match = re.search(r'^__version__ = "(\d+\.\d+(a|b|rc\d+)?)"', content, re.M)
     if match is None:
         raise RuntimeError("Unable to find version string.")
     version = match.group(1)
