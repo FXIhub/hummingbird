@@ -37,5 +37,5 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload _build/docs
-          path: '_build/docs'
+          # Upload _build/
+          path: '_build/'
