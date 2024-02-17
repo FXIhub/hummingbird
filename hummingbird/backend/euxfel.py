@@ -325,6 +325,9 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         #cellid = numpy.squeeze(obj["image.cellId"], axis=-1)[:,0].astype(int)
 
         cellid = obj['image.cellId']
+        if cellid.size == 0:
+            return
+
         if self._live and cellid.ndim == (2 + self._use_stacked):
             cellid = numpy.squeeze(cellid, axis=-1)
         if self._live and self._use_stacked:
@@ -367,6 +370,9 @@ class EUxfelTrainTranslator(EUxfelTranslator):
             return
 
         cellid = obj['image.cellId']
+        if cellid.size == 0:
+            return
+
         if self._live and cellid.ndim == (2 + self._use_stacked):
             cellid = numpy.squeeze(cellid, axis=-1)
         if self._live and self._use_stacked:
