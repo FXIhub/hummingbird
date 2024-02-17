@@ -330,7 +330,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if self._live and self._use_stacked:
             cellid = cellid[:, 0]
 
-        cells = numpy.in1d(cellid, self._use_cells)
+        cells = numpy.flatnonzero(numpy.in1d(cellid, self._use_cells))
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
         # for raw data and only image.data for calibrated data
@@ -416,7 +416,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if self._live and self._use_stacked:
             cellid = cellid[:, 0]
 
-        cells = numpy.in1d(cellid, self._use_cells)
+        cells = numpy.flatnonzero(numpy.in1d(cellid, self._use_cells))
         # When reading from the real live data stream the data looks like
         # (modules, x, y, memory cells) with both image.data and image.gain
         # for raw data and only image.data for calibrated data
