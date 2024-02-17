@@ -356,51 +356,7 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         #if (self._data_format == 'Raw' and img.ndim == 4) or (self._data_format == 'Calib' and img.ndim == 3):
         if not self._use_stacked:
             img = img[self._axes]
-        
-        """
-        if(obj['image.data'].shape[-2] == 512 and obj['image.data'].shape[-1] == 128):
-            # We're dealing with file streamed data
-            # Reshape it to look like live data
-            if obj['image.data'].ndim == 4:
-                # looks like raw data
-                if self._data_format != 'Raw':
-                    logging.error('AGIPD data looks raw but self._data_format says otherwise!')
-                    return
-                # Add a dummy dimension for the module number
-                img = obj['image.data'][numpy.newaxis]
-                # Transpose to look like live data
-                img = numpy.transpose(img[:,cells,...], (0, 2, 3, 4, 1))
-            elif obj['image.data'].ndim == 3:
-                # looks like calibrated data
-                if self._data_format != 'Calib':
-                    logging.error('AGIPD data looks calibrated but self._data_format says otherwise!')
-                    return
-                                # Add a dummy dimension for the module number
-                img = obj['image.data'][numpy.newaxis]
-                img = numpy.transpose(img[:,cells,...], (0, 2, 3, 1))
 
-        elif(obj['image.data'].shape[-3] == 512 and obj['image.data'].shape[-2] == 128):
-            # We're dealing with live data
-            # No need to tranpose            
-            img = obj['image.data'][...,cells]
-            if img.ndim == 3:
-                img = img[numpy.newaxis]
-            assert img.ndim == 4
-            
-            # If data is raw, add the gain reference along the 0th dimension
-            if self._data_format == 'Raw':
-                gain = obj['image.gain'][...,cells]
-                if gain.ndim == 3:
-                    gain = gain[numpy.newaxis]                
-                img = numpy.concatenate((img, gain), axis=0)
-            # If data is calibrated there is no need to look at the gain
-            elif self._data_format == 'Calib':
-                pass
-            else:
-                raise NotImplementedError("DataFormat should be 'Calib' or 'Raw''")
-        else:
-            raise ValueError("image.data does not have a known shape!")
-        """
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)
 
 
@@ -443,34 +399,6 @@ class EUxfelTrainTranslator(EUxfelTranslator):
         if not self._use_stacked:
             img = img[self._axes]
 
-        """
-        if(obj['image.data'].shape[-2] == 128 and obj['image.data'].shape[-1] == 512):
-            # We're dealing with file streamed data
-            # Reshape it to look like live data
-            if obj['image.data'].ndim == 4:
-                # looks like raw data
-                if self._data_format != 'Raw':
-                    logging.error('DSSC data looks raw but self._data_format says otherwise!')
-                    return
-                img = obj['image.data'][numpy.newaxis]
-                # Transpose to look like live data
-                img = numpy.transpose(img[:,cells, 0, ...], (0, 3, 2, 1))
-            elif obj['image.data'].ndim == 3:
-                # looks like calibrated data
-                if self._data_format != 'Calib':
-                    logging.error('DSSC data looks calibrated but self._data_format says otherwise!')
-                    return
-                img = obj['image.data'][numpy.newaxis]
-                img = numpy.transpose(img[:,cells,...], (0, 3, 2, 1))
-
-        elif(obj['image.data'].shape[-3] == 512 and obj['image.data'].shape[-2] == 128):
-            # We're dealing with live data
-            # No need to tranpose            
-            img = obj['image.data'][...,cells]
-        else:
-            raise ValueError("image.data does not have a known shape!")
-        assert img.ndim == 4
-        """
         add_record(values, 'photonPixelDetectors', self._s2c[evt_key], img, ureg.ADU)                
         
     def _tr_pnCCD(self, values, obj, evt_key):
