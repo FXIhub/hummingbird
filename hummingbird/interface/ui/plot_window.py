@@ -40,7 +40,7 @@ class Histogram(object):
         current_index = ringbuffer.number_of_added_elements
         number_of_values_to_add = current_index-self._last_add_index
         if number_of_values_to_add > 0:
-            values = numpy.array(ringbuffer, copy=False)[-(current_index-self._last_add_index):]
+            values = numpy.asarray(ringbuffer)[-(current_index-self._last_add_index):]
         else:
             return
         for this_value in values:
@@ -75,8 +75,8 @@ class NormalizedHistogram(Histogram):
         current_index = ringbuffer.number_of_added_elements
         number_of_values_to_add = (current_index-self._last_add_index)
         if number_of_values_to_add > 0:
-            values = numpy.array(ringbuffer, copy=False)[-number_of_values_to_add:, 0]
-            weights = numpy.array(ringbuffer, copy=False)[-number_of_values_to_add:, 1]
+            values = numpy.asarray(ringbuffer)[-number_of_values_to_add:, 0]
+            weights = numpy.asarray(ringbuffer)[-number_of_values_to_add:, 1]
         else:
             return
         for this_value, this_weight in zip(values, weights):
@@ -320,7 +320,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 symbol_size = 3
             pd_x,pd_y,pd_l = pd.snapshot()
             if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
-                y = numpy.array(pd_y, copy=False)
+                y = numpy.asarray(pd_y)
                 self.last_vector_y = {}
                 self.last_vector_x = None
             elif(source.data_type[title] == 'tuple'):
@@ -356,7 +356,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 symbol_size  = 8
             elif source.data_type[title] == 'vector':
                 if(self.current_index == -1):
-                    y = numpy.array(pd_y[self.current_index % pd_y.shape[0]], copy=False)
+                    y = numpy.asarray(pd_y[self.current_index % pd_y.shape[0]])
                     self.last_vector_y[title] = numpy.array(pd_y)
                     self.last_vector_x = numpy.array(pd_x)
                 else:
@@ -375,7 +375,7 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                 
             x = None
             if(source.data_type[title] == 'scalar') or (source.data_type[title] == 'running_hist'):
-                x = numpy.array(pd_x, copy=False)
+                x = numpy.asarray(pd_x)
                 sorted_x = numpy.argsort(x)
                 x = x[sorted_x]
                 y = y[sorted_x]
@@ -481,9 +481,9 @@ class PlotWindow(DataWindow, Ui_plotWindow):
                     if eval('self._settings_diag.trendVector_%s.isChecked()' %trend):
                         _trend = getattr(numpy, trend)
                         if len(pd_y.shape) == 3:
-                            ytrend = _trend(numpy.array(pd_y[:,1,:], copy=False), axis=0)
+                            ytrend = _trend(numpy.asarray(pd_y[:,1,:]), axis=0)
                         else:
-                            ytrend = _trend(numpy.array(pd_y, copy=False), axis=0)
+                            ytrend = _trend(numpy.asarray(pd_y), axis=0)
                         plt_trend = self.plot.plot(x=x, y=ytrend, clear=False, pen=self.line_colors[color_index % len(self.line_colors)], symbol=symbol,
                                                    symbolPen=symbol_pen, symbolBrush=symbol_brush, symbolSize=symbol_size)
                         self.legend.addItem(plt_trend, trend)
