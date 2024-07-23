@@ -464,7 +464,7 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                 hmax   = img.shape[1]
                 length = pd.maxlen
             else:
-                img = numpy.array(pd_y, copy=False)
+                img = numpy.asarray(pd_y)
             self._configure_axis(source, title)
             transform = self._image_transform(img, source, title)
             
