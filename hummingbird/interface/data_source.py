@@ -225,8 +225,7 @@ class DataSource(QtCore.QObject):
         if(cmd == 'new_data'):
             data_x = payload[4]
             # At the moment x is always a timestamp so I'll add some metadata to show it
-            if type(data_x) is not numpy.ndarray:
-                data_x = numpy.array(data_x)
+            data_x = numpy.asarray(data_x)
             data_x.dtype = numpy.dtype(data_x.dtype, metadata={'units': 's'})
 
             conf = payload[5]

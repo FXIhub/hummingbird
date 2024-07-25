@@ -455,16 +455,16 @@ class ImageWindow(DataWindow, Ui_imageWindow):
             elif conf["data_type"] == "vector":
                 #print(pd.y.shape)
                 if len(pd.y.shape) == 3:
-                    img = numpy.array(pd.y[:,1,:], copy=False)
+                    img = numpy.asarray(pd.y[:,1,:])
                 else:
-                    img = numpy.array(pd.y[:,:], copy=False)
-                #img = numpy.array(pd.y[:,1,:], copy=False)
+                    img = numpy.asarray(pd.y[:,:])
+                #img = numpy.asarray(pd.y[:,1,:])
                 bins   = img.shape[1]
                 hmin   = 0
                 hmax   = img.shape[1]
                 length = pd.maxlen
             else:
-                img = numpy.array(pd_y, copy=False)
+                img = numpy.asarray(pd_y)
             self._configure_axis(source, title)
             transform = self._image_transform(img, source, title)
             
@@ -485,8 +485,8 @@ class ImageWindow(DataWindow, Ui_imageWindow):
                     auto_rage = True
                     auto_histogram = True
                 if "data_type" in conf and conf["data_type"] == "triple":
-                    triples = numpy.array(pd.y, copy=False)
-                    times   = numpy.array(pd.x, copy=False)
+                    triples = numpy.asarray(pd.y)
+                    times   = numpy.asarray(pd.x)
                     img, transform, x, y = self._fill_meanmap(times, triples,
                                                               xmin=conf["xmin"], xmax=conf["xmax"], ymin=conf["ymin"], ymax=conf["ymax"],
                                                               ybins=conf["ybins"], xbins=conf["xbins"],
