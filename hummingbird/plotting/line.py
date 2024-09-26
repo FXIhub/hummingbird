@@ -111,4 +111,4 @@ def plotTrace(paramY, paramX=None, label='', history=10000, tracelen=None, name=
         if x.size != y.size:
             logging.warning("For %s x- and y-dimension do not match (%i, %i). Cannot plot trace." % (name,x.size,y.size))
             return
-        ipc.new_data(name, data_y=np.array([x,y], copy=False)) 
+        ipc.new_data(name, data_y=np.asarray([x,y]))
