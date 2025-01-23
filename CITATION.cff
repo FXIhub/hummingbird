@@ -1,0 +1,43 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+authors:
+- family-names: "Daurer"
+  given-names: "Benedikt J."
+  orcid: "https://orcid.org/0000-0002-1887-7551"
+- family-names: "Hantke"
+  given-names: "Max F."
+  orcid: "https://orcid.org/0000-0003-1251-0465"
+- family-names: "Nettelblad"
+  given-names: "Carl"
+  orcid: "https://orcid.org/0000-0003-0458-6902"
+- family-names: "Maia"
+  given-names: "Filipe R.N.C."
+  orcid: "https://orcid.org/0000-0002-2141-438X"
+title: "Hummingbird"
+version: 1.3
+date-released: 2024-01-03
+url: "https://github.com/fxihub/hummingbird"
+preferred-citation:
+  type: article
+  authors:
+  - family-names: "Daurer"
+    given-names: "Benedikt J."
+    orcid: "https://orcid.org/0000-0002-1887-7551"
+  - family-names: "Hantke"
+    given-names: "Max F."
+    orcid: "https://orcid.org/0000-0003-1251-0465"
+  - family-names: "Nettelblad"
+    given-names: "Carl"
+    orcid: "https://orcid.org/0000-0003-0458-6902"
+  - family-names: "Maia"
+    given-names: "Filipe R.N.C."
+    orcid: "https://orcid.org/0000-0002-2141-438X"
+  doi: "10.1107/S1600576716005926"
+  journal: "Journal of applied crystallography"
+  month: 6
+  start: 1042 # First page number
+  end: 1047 # Last page number
+  title: "Hummingbird: monitoring and analyzing flash X-ray imaging experiments in real time"
+  issue: 3
+  volume: 49
+  year: 2016
